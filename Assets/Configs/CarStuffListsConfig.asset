@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbc630e95a4084347ae0c5ce458b732d, type: 3}
+  m_Name: CarStuffListsConfig
+  m_EditorClassIdentifier: 
+  <CarConfigs>k__BackingField:
+  - {fileID: 11400000, guid: 927f08791d5064d45b1e42f88b2686e5, type: 2}
+  - {fileID: 11400000, guid: 35fbc3960db601a40a032ba933c11903, type: 2}
+  - {fileID: 11400000, guid: a1baa6a52d77f494bbd464cc149ac8c3, type: 2}
+  - {fileID: 11400000, guid: 3db0763a007f2124c959d087f2d01d3f, type: 2}
+  <CarPartConfigs>k__BackingField:
+  - {fileID: 11400000, guid: 5d7184ff2034fcc42ad8ea829de981e1, type: 2}
+  - {fileID: 11400000, guid: d45e4a8e3b3c44746baeb23b48b21a82, type: 2}
+  - {fileID: 11400000, guid: 21bf86428fc56744493f53a15b2dab06, type: 2}
+  - {fileID: 11400000, guid: 961f7be177a03304e8a776418071017e, type: 2}
+  - {fileID: 11400000, guid: 42512c365e9daad4784788a2d3bc13c9, type: 2}
+  - {fileID: 11400000, guid: c32f496e9633ff147bebf8f741cda9c6, type: 2}
+  - {fileID: 11400000, guid: 48d0b325dee65394384d451085e8995c, type: 2}
+  - {fileID: 11400000, guid: 5a9d4dfd4dea1f74e907e8bb4045f45d, type: 2}
+  - {fileID: 11400000, guid: afdae7d820987fe4288809a69ecf5acd, type: 2}
+  - {fileID: 11400000, guid: 199665a032ed762498496c814451d48a, type: 2}
+  - {fileID: 11400000, guid: 838ba574b77ed3b459fe4a03860d177e, type: 2}
+  - {fileID: 11400000, guid: f9339e25ab3222240be6f0da02d9bea7, type: 2}
+  - {fileID: 11400000, guid: 0291dd12afdc6cf45aa759ac9d669c46, type: 2}
+  - {fileID: 11400000, guid: 981b794735222774d8c946bdaec44564, type: 2}
+  - {fileID: 11400000, guid: 46567927738479649afd516bb6b711ac, type: 2}
+  - {fileID: 11400000, guid: 566fe65d8c31a264eb40eec8232f1eff, type: 2}
+  - {fileID: 11400000, guid: 48149e5be54f634409e2028c22bb91dd, type: 2}
+  - {fileID: 11400000, guid: 18062c2b41400bc4780f6e6dc3794fc8, type: 2}
+  - {fileID: 11400000, guid: e95850b28ad519c4dbbaded7322f88e9, type: 2}
+  - {fileID: 11400000, guid: ca7c03779c21d8f4eaa613994480298a, type: 2}
+  - {fileID: 11400000, guid: 09fb42efed5c8cf4caeed99dd3e0a3a0, type: 2}
+  - {fileID: 11400000, guid: e422ddda4398ccc4e87814ed2504f5c8, type: 2}
+  - {fileID: 11400000, guid: bee1d5a40d2442d4c9bba00f6af28008, type: 2}
+  - {fileID: 11400000, guid: 6795d08eb7edc6e4797bdf71961971ef, type: 2}
+  - {fileID: 11400000, guid: 26aa9ec81215c8a4da1abbf28f3f57c7, type: 2}
+  - {fileID: 11400000, guid: 3a4f74190a60ca24f8940794c6a77d8f, type: 2}
+  - {fileID: 11400000, guid: ee505d3653a40b441895aecb228851da, type: 2}
+  - {fileID: 11400000, guid: c0299473ef4875c468b1f48f0ea0078b, type: 2}
+  - {fileID: 11400000, guid: d38ba62665659014ca37f13d2ca10ee9, type: 2}
+  - {fileID: 11400000, guid: e7443a66a426557479cfd65a2742ce90, type: 2}
+  - {fileID: 11400000, guid: 716abeb35981a4e4db7540b09c91d033, type: 2}
+  <CarPartStuffView>k__BackingField: {fileID: -6712694133279507477, guid: e61c40a5a84f28a48be59a1d252c12e1, type: 3}
+  <MeleeCarPartStuffView>k__BackingField: {fileID: 5055266588798338170, guid: b5905cdd0149c9f41920c02fc4fc69ff, type: 3}
+  <ShopItems>k__BackingField:
+  - PartId: 0
+    Price: 10
+  - PartId: 2
+    Price: 15
+  - PartId: 1
+    Price: 5
+  - PartId: 23
+    Price: 5
+  - PartId: 6
+    Price: 5
+  - PartId: 7
+    Price: 5
+  - PartId: 8
+    Price: 5
+  - PartId: 9
+    Price: 5
+  - PartId: 10
+    Price: 5
+  - PartId: 11
+    Price: 5
+  - PartId: 25
+    Price: 5
+  - PartId: 13
+    Price: 5
+  - PartId: 14
+    Price: 5
+  - PartId: 15
+    Price: 5
+  - PartId: 16
+    Price: 5
+  - PartId: 17
+    Price: 5
+  - PartId: 18
+    Price: 5
+  - PartId: 19
+    Price: 5
+  - PartId: 18
+    Price: 5
+  - PartId: 27
+    Price: 5
+  - PartId: 28
+    Price: 5
+  - PartId: 29
+    Price: 5
+  - PartId: 30
+    Price: 5
+  <Wheels>k__BackingField:
+  - {fileID: 2498112913210683398, guid: 8ad101f6cb99ad943b97d55010c1fe45, type: 3}
+  - {fileID: 2498112913210683398, guid: be901b55b6b1e8d47a7e34211e6d036c, type: 3}

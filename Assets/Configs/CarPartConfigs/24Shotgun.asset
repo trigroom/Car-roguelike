@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 24Shotgun
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 24
+  <MaxHealth>k__BackingField: 150
+  <Weight>k__BackingField: 3
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 2907c8c72d5128c4f86b49335d0b904c, type: 3}
+  <PartType>k__BackingField: 5
+  <RartRare>k__BackingField: 2
+  <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 0
+  <PartName>k__BackingField: Shotgun
+  <DefaultModuleCount>k__BackingField: 2
+  Damage: 8
+  AttackCouldown: 0.75
+  BulletsCountInMagazine: 4
+  BulletsCount: 5
+  BulletSpeed: 20
+  ReloadDuration: 2.5
+  MissleType: 0
+  MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
+  FirePointPosition: {x: 0, y: 0}
+  SpreadAngle: 15
+  ExplosionRadius: 0
+  ImpulseForce: 400

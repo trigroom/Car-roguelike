@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a792126459a80c843848766209bb2200, type: 3}
+  m_Name: EnemyCar2x3
+  m_EditorClassIdentifier: 
+  MapsForCar:
+  - {fileID: 11400000, guid: 667f3711bba8dfa46b2bd5f7bf5a9f2f, type: 2}
+  - {fileID: 11400000, guid: 727ff2aa711def44aa2f56d9f7e7e03d, type: 2}
+  - {fileID: 11400000, guid: 4de2312218f5871419422d62c27c4a7c, type: 2}
+  - {fileID: 11400000, guid: 1ceb4dae0d788f341abcb275c5c1535b, type: 2}
+  CarId: 3

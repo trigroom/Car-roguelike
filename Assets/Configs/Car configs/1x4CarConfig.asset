@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 265eabbea3a2efd40817b800970ff56b, type: 3}
+  m_Name: 1x4CarConfig
+  m_EditorClassIdentifier: 
+  <CarId>k__BackingField: 1
+  <CarName>k__BackingField: Moto
+  <CarBackground>k__BackingField: {fileID: 21300000, guid: 410c020bb9c29ad489320f0488d54b81, type: 3}
+  <CarWeight>k__BackingField: 10
+  <MaxWeight>k__BackingField: 20
+  <Height>k__BackingField: 4
+  <Width>k__BackingField: 1
+  <MaxHealth>k__BackingField: 0
+  <CarEngine>k__BackingField: {fileID: 11400000, guid: 42512c365e9daad4784788a2d3bc13c9, type: 2}
+  <DriverCabine>k__BackingField: {fileID: 11400000, guid: 961f7be177a03304e8a776418071017e, type: 2}
+  <ForwardWheelsPositions>k__BackingField:
+  - {x: 0, y: 1}
+  <BackWheelsPositions>k__BackingField:
+  - {x: 0, y: -1}
+  <WheelId>k__BackingField: 1
+  "<Fuel\u0421onsumption>k__BackingField": 0.2
+  "<AccelerationFuel\u0421onsumption>k__BackingField": 0.35
+  <RotateSpeed>k__BackingField: 170
+  <BoostSpeedMultiplayer>k__BackingField: 6
+  <DefaultMaxSpeed>k__BackingField: 9
+  <Acceleration>k__BackingField: 8
+  <Deceleration>k__BackingField: 12
+  <DefaultMaxFuel>k__BackingField: 80

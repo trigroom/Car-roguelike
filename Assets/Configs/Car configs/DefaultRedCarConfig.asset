@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 265eabbea3a2efd40817b800970ff56b, type: 3}
+  m_Name: DefaultRedCarConfig
+  m_EditorClassIdentifier: 
+  <CarId>k__BackingField: 0
+  <CarName>k__BackingField: Red car
+  <CarBackground>k__BackingField: {fileID: 21300000, guid: 28d1fb641609cc041889f23076cc258d, type: 3}
+  <CarWeight>k__BackingField: 60
+  <MaxWeight>k__BackingField: 150
+  <Height>k__BackingField: 4
+  <Width>k__BackingField: 3
+  <MaxHealth>k__BackingField: 0
+  <CarEngine>k__BackingField: {fileID: 11400000, guid: 42512c365e9daad4784788a2d3bc13c9, type: 2}
+  <DriverCabine>k__BackingField: {fileID: 11400000, guid: 961f7be177a03304e8a776418071017e, type: 2}
+  <ForwardWheelsPositions>k__BackingField:
+  - {x: -1.345, y: 1}
+  - {x: 1.345, y: 1}
+  <BackWheelsPositions>k__BackingField:
+  - {x: -1.345, y: -1}
+  - {x: 1.345, y: -1}
+  <WheelId>k__BackingField: 0
+  "<Fuel\u0421onsumption>k__BackingField": 0.3
+  "<AccelerationFuel\u0421onsumption>k__BackingField": 0.5
+  <RotateSpeed>k__BackingField: 150
+  <BoostSpeedMultiplayer>k__BackingField: 7
+  <DefaultMaxSpeed>k__BackingField: 10
+  <Acceleration>k__BackingField: 5
+  <Deceleration>k__BackingField: 10
+  <DefaultMaxFuel>k__BackingField: 150

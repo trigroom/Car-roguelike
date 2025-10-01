@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a71a6438dae87d4596acaf623a004ff, type: 3}
+  m_Name: 22Chainsaw
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 22
+  <MaxHealth>k__BackingField: 300
+  <Weight>k__BackingField: 10
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 5611ac3bbbe480241a01d3e79d1776d2, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 2
+  <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 0
+  <PartName>k__BackingField: Chainsaw
+  <DefaultModuleCount>k__BackingField: 0
+  Damage: 10
+  AttackCouldown: 0.1
+  DamageAddedFromOneSpeed: 0

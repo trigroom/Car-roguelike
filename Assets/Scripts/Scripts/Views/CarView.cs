@@ -1,0 +1,26 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CarView : MonoBehaviour {
+    public Transform[] Wheels;
+
+    public Rigidbody2D Rigidbody;
+    public Transform MainCarContainer;
+    public Transform CarPartsContainer;
+    public Transform ForwardWheelsContainer;
+    public SpriteRenderer CarBaseSpriteRenderer;
+    public int _entity { get;private set;}
+    private Action<int, int> _collisionHitAction;
+    
+    public BoxCollider2D CarBaseCollider;
+
+    public void Construct(int entity, Action<int, int> CollisionHitAction) {
+        _entity = entity;
+        _collisionHitAction = CollisionHitAction;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other) {
+        _collisionHitAction.Invoke(_entity,other.gameObject.GetComponent<CarView>()._entity); 
+    }
+}
