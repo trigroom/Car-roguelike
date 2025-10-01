@@ -307,6 +307,7 @@ using UnityEngine.UI;
                 
                 SetEffectComponent(damagedEntity, gunConfig.EffectType, gunConfig.EffectDuration);
             } else if (attackType == AttackType.Melee) {
+               
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(weaponCellEntity);
                 if (meleeCmp.couldown > 0) return;
                 var meleeWeaponConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(weaponId);
@@ -317,6 +318,7 @@ using UnityEngine.UI;
                                     .CurrentMoveSpeed +
                                 _movementComponentsPool.Value.Get(_carPartCellComponentsPool.Value.Get(damagedEntity).MainEntity)
                                     .CurrentMoveSpeed) * meleeWeaponConfig.DamageAddedFromOneSpeed;
+                Debug.Log("Meleee hit dmg"+damagePoints);
             } else /*laser*/ {
                 float distanceBetween = Vector2.Distance(_carPartCellComponentsPool.Value.Get(weaponCellEntity).MainCellPart.transform.position,
                     collisionPoint);
@@ -330,7 +332,9 @@ using UnityEngine.UI;
 
             if (_carPartCellComponentsPool.Value.Get(damagedEntity).MainEntity == _sceneData.Value.PlayerEntity)
                 damagePoints *= _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).RoundMoneyMultiplayer;
-            ChangeHealth(damagePoints, damagedEntity);
+
+            if (damagePoints > 0)
+                ChangeHealth(damagePoints, damagedEntity);
         }
 
         private void ProjectileImpulse(float impulseForce, int damagedEntity, Vector2 collisionPoint) {
@@ -414,6 +418,7 @@ using UnityEngine.UI;
 
             ref var carCmp = ref _carComponentsPool.Value.Get(carEntity); 
             _sceneData.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
+            if(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType == RoundType.None)return;
             if (carEntity != _sceneData.Value.PlayerEntity) {
                // _movementComponentsPool.Value.Del(carEntity);
                // _carComponentsPool.Value.Del(carEntity);

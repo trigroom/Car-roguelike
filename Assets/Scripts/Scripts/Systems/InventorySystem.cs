@@ -383,7 +383,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         carCmp.CurrentWeight = carWeight;
-        float weightFactor = carWeight / carConfig.MaxWeight;Debug.Log(carWeight / carConfig.MaxWeight);
+        float weightFactor = carWeight / carConfig.MaxWeight;
         defaultMaxCarSpeed *= 1-weightFactor;
         defaultMaxCarSpeed = Mathf.Max(defaultMaxCarSpeed, 0);
         speedBoost += defaultMaxCarSpeed;

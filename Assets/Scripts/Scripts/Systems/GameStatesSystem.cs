@@ -5,6 +5,7 @@ using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
@@ -26,6 +27,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<TaskComponent> _taskComponentsPool;
     private EcsPoolInject<PlayerCurrencyComponent> _playerCurrencyComponentsPool;
     private EcsPoolInject<LaserComponent> _laserComponentsPool;
+    private EcsPoolInject<FilledZoneComponent> _filledZoneComponentsPool;
     private EcsPoolInject<FromPointToPointRoundComponent> _fromPointToPointRoundComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
@@ -41,6 +43,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentBattleRounds = 2;
         _sceneData.Value._inventoryUIView._playButton.onClick.AddListener(() => ChangeRoundInfo());
         _sceneData.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
+        _sceneData.Value._mapFilledZoneView.SetupFilledZone(TriggerFilledZone);
     }
 
     public void Run(IEcsSystems systems) {
@@ -161,7 +164,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         (var randomRounds, int moneyMultiplayerRound) =
             RoundUtilits.GetRandomBattleRound(curGameCmp.CurrentBattleRounds, 3, currentSupportRoundTypes);
         curGameCmp.RoundTypes.Add(randomRounds);
-        curGameCmp.RoundButtons = new Button[randomRounds.Length];
+        curGameCmp.RoundButtons = new EventTrigger[randomRounds.Length];
         var mapImageRect = _sceneData.Value._mapUIView.MapImage.rectTransform;
         _sceneData.Value._mapUIView.MapImage.transform.position -= new Vector3(0,
             mapImageRect.rect.height / _sceneData.Value._gameProcessConfig.GameRounds.Length, 0);
@@ -170,7 +173,17 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             int newIndex = i;
             roundButton.GetComponent<Image>().sprite = _sceneData.Value._mapUIView.RoundSprites[randomRounds[i]];
 
-            roundButton.onClick.AddListener(() => StartCurrentRoundType(randomRounds[newIndex]));
+            EventTrigger.Entry clickEntry = new EventTrigger.Entry();
+            clickEntry.eventID = EventTriggerType.PointerClick;
+            clickEntry.callback.AddListener((data) => { StartCurrentRoundType(randomRounds[newIndex],(PointerEventData)data); });
+            
+            EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+            enterEntry.eventID = EventTriggerType.PointerEnter;
+            enterEntry.callback.AddListener((data) => { ChangeRoundDescription(randomRounds[newIndex],(PointerEventData)data); });
+            
+            roundButton.triggers.Add(clickEntry);
+            roundButton.triggers.Add(enterEntry);
+          //  roundButton.onClick.AddListener(() => StartCurrentRoundType(randomRounds[newIndex]));
             float posX = (newIndex + 1) * (mapImageRect.rect.width / ((float)randomRounds.Length + 1)) - mapImageRect.rect.width / 2;
             float posY = (curGameCmp.CurrentRound + 1) *
                 (mapImageRect.rect.height / ((float)_sceneData.Value._gameProcessConfig.GameRounds.Length + 2)) - mapImageRect.rect.height / 2;
@@ -186,9 +199,41 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         _sceneData.Value._mapUIView.RoundNumberText.text = "Round" + (curGameCmp.CurrentRound + 1);
         ChangeInventoryState(false);
+
+        ChangeRoundDescription(RoundType.None);
     }
 
-    private void StartCurrentRoundType(RoundType roundType) {
+    private void ChangeRoundDescription(RoundType roundType, PointerEventData data = null) {
+        var descriptionText = _sceneData.Value._mapUIView.RoundDescriptionText;
+        switch (roundType) {
+            case RoundType.None:
+                descriptionText.text = "";
+                break;
+            case RoundType.Task:
+                descriptionText.text = " Get task with reward";
+                break;
+            case RoundType.BattleDefault:
+                descriptionText.text = " Fight until the timer runs out";
+                break;
+            case RoundType.Chest:
+                descriptionText.text = " Get random free car part";
+                break;
+            case RoundType.FromAToB:
+                descriptionText.text = " Check all the given points";
+                break;
+            case RoundType.Shop:
+                descriptionText.text = " Go to shop with big sales";
+                break;
+            case RoundType.Transfer:
+                descriptionText.text = " Exchange two of your parts for one of higher quality";
+                break;
+            case RoundType.ZoneDefence:
+                descriptionText.text = " Stay and defence zone";
+                break;
+        }
+    }
+    
+    private void StartCurrentRoundType(RoundType roundType,PointerEventData data) {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var button in curGameCmp.RoundButtons) {
             button.enabled = false;
@@ -208,6 +253,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.ZoneDefence:
                 SetEnemiesCars();
                 SetPlayerCarPrefab();
+                SetFilledZoneRound();
                 break;
             case RoundType.Chest:
                 var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -249,6 +295,29 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentRound++;
     }
 
+    private void TriggerFilledZone() {
+       Debug.Log("zoneTriggered");
+        ref var filledZoneCmp =ref _filledZoneComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        filledZoneCmp.CurrentZoneTime += Time.deltaTime;
+        _sceneData.Value._mapFilledZoneView.FilledZoneUI.fillAmount = filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime;
+        if (filledZoneCmp.CurrentZoneTime >= filledZoneCmp.NeedZoneTime) {
+            EndFilledZoneRound();
+            _filledZoneComponentsPool.Value.Del(_sceneData.Value.PlayerEntity);
+            EndRound();
+        }
+    }
+
+    private void EndFilledZoneRound() {
+        _sceneData.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(false);
+        _sceneData.Value._mapFilledZoneView.gameObject.SetActive(false);
+    }
+    
+    private void SetFilledZoneRound() {
+        _sceneData.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(true);
+        _sceneData.Value._mapFilledZoneView.gameObject.SetActive(true);
+       _filledZoneComponentsPool.Value.Add(_sceneData.Value.PlayerEntity).NeedZoneTime = 10;
+        _sceneData.Value._mapFilledZoneView.ChangeZonePosition(GetRandomPointAround(Vector2.zero, 10));
+    }
     private void SetNewPointToPointRound() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.FromAToB;
@@ -309,7 +378,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetEnemiesCars() {
-Debug.Log(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound);
         var currentRoundCarStuff = _sceneData.Value._gameProcessConfig.GameRounds[_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound];
 
         Dictionary<CarPartType, List<int>> currentCarPartsList = new Dictionary<CarPartType, List<int>>();
@@ -490,10 +558,10 @@ Debug.Log(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).Cu
 
             _carComponentsPool.Value.Get(cellCmp.MainEntity).CurrentWeight += carPartConfig.Weight;
 
-            if (isPlayer) {
-                carPart.gameObject.layer = LayerMask.NameToLayer("Player");
-                carPart.gameObject.tag = "Player";
-            }
+            if (carPartConfig.PartType != CarPartType.MeleeWeapon)
+                carPart.gameObject.layer = isPlayer ? LayerMask.NameToLayer("Player") : LayerMask.NameToLayer("Enemy");
+            carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
+            
                 
         }
     }
@@ -505,6 +573,8 @@ Debug.Log(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).Cu
         movementComponent.Deceleration = carConfig.Deceleration;
         movementComponent.MovableObjectRigidbody.mass = _carComponentsPool.Value.Get(enemyEntity).CurrentWeight;
         movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed * (1-_carComponentsPool.Value.Get(enemyEntity).CurrentWeight / carConfig.MaxWeight);
+        if (movementComponent.MaxMoveSpeed < 4)
+            movementComponent.MaxMoveSpeed = 4;
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {
         ref var firstMovementCmp = ref _movementComponentsPool.Value.Get(entityOne);
@@ -520,47 +590,16 @@ Debug.Log(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).Cu
 
         // Соотношение масс
         float totalMass = firstCarCmp.CurrentWeight + secondCarCmp.CurrentWeight;
-        float car1Ratio = secondCarCmp.CurrentWeight/ totalMass; // Более тяжелая машина меньше реагирует
-        //float car2Ratio = firstCarCmp.CurrentWeight / totalMass;
-        // Коэффициенты (можно настраивать)
-       // float elasticity = 0.7f; // Упругость (0-1)
-       //float friction = 0.5f; // Трение
-        float minForce = 0.15f; // Минимальная сила для реакции
-//Debug.Log(collisionForce);
-        // Применяем только если сила столкновения значительная
-        if (collisionForce > minForce)
-        {
-            // Основное воздействие
-           // firstMovementCmp.Velocity += direction * collisionForce * car1Ratio * elasticity;
-//secondMovementCmp.Velocity -= direction * collisionForce * car2Ratio * elasticity;
-        
-            // Потеря скорости от трения
-//firstMovementCmp.Velocity *= (1 - friction);
-           // secondMovementCmp.Velocity *= (1 - friction);
-        
-            // Отталкивание (пропорционально силе удара)
-       //     float push = collisionForce * 0.05f;
-       firstMovementCmp.CurrentMoveSpeed -= collisionForce * car1Ratio * secondCarCmp.CurrentWeight;
-       if (firstMovementCmp.CurrentMoveSpeed < 0)
-           firstMovementCmp.CurrentMoveSpeed = 0;
-       if (collisionForce > 0.4f)
-           collisionForce = 0.4f;
-       firstMovementCmp.CantMoveTime = collisionForce;
-       firstMovementCmp.MovableObjectRigidbody.AddForce(direction * secondCarCmp.CurrentWeight*car1Ratio / 3, ForceMode2D.Impulse);
-           // firstMovementCmp.PushForce += push * 3f;
-           // firstMovementCmp.PushVelocity = direction;
-           
-          //  Debug.Log(direction * secondCarCmp.CurrentWeight*10 + "    "+ (Vector3)direction);
-          
-           // firstMovementCmp.CurrentMoveSpeed -=  push * car1Ratio * 2;
-          //  if (firstMovementCmp.CurrentMoveSpeed < 0)
-           //     firstMovementCmp.CurrentMoveSpeed = 0;
-            // secondMovementCmp.MovableObjectRigidbody.position += direction * push * car2Ratio;
-
-            // Вращательный эффект (упрощенный)
-            /* float torque = collisionForce * 0.1f;
-             car1.Rotation += torque * car1Ratio;
-             secondMovementCmp..Rotation -= torque * car2Ratio;*/
+        float car1Ratio = secondCarCmp.CurrentWeight / totalMass;
+        float minForce = 0.15f;
+        if (collisionForce > minForce) {
+            firstMovementCmp.CurrentMoveSpeed -= collisionForce * car1Ratio * secondCarCmp.CurrentWeight;
+            if (firstMovementCmp.CurrentMoveSpeed < 0)
+                firstMovementCmp.CurrentMoveSpeed = 0;
+            if (collisionForce > 0.4f)
+                collisionForce = 0.4f;
+            firstMovementCmp.CantMoveTime = collisionForce;
+            firstMovementCmp.MovableObjectRigidbody.AddForce(direction * secondCarCmp.CurrentWeight * car1Ratio / 3, ForceMode2D.Impulse);
         }
     }
     private CarView CarViewSetup(int entity) {

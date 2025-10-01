@@ -2,12 +2,14 @@ using Leopotam.EcsLite;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Pool;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
+    [field: SerializeField] public MapFilledZoneView _mapFilledZoneView { get; private set; }
     [field: SerializeField] public SpriteRenderer _explosionEffectPrefab { get; private set; }
     [field: SerializeField] public MapPointColiderView _mapPointPrefab { get; private set; }
     [field: SerializeField] public CarPartInGameUIView _carPartInGameUIView { get; private set; }
@@ -109,7 +111,7 @@ public class SceneService : MonoBehaviour
         _explosionEffectsPool.Release(explosion);
     }
 
-    public Button InstantiateRoundButton() {
+    public EventTrigger InstantiateRoundButton() {
         return Instantiate(_mapUIView.RoundButton,_mapUIView.MapImage.transform);
     }
 

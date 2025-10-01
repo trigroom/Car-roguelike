@@ -1,5 +1,6 @@
  
  using System.Collections.Generic;
+ using UnityEngine.EventSystems;
  using UnityEngine.UI;
 
  public struct CurrentGameComponent {
@@ -9,7 +10,7 @@
 
         public int CurrentBattleRounds;
         
-        public Button[] RoundButtons;
+        public EventTrigger[] RoundButtons;
         
         public float RoundMoneyMultiplayer;
         public int RoundWithMoneyMultiplayer;
