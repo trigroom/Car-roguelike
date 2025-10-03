@@ -9,6 +9,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
+    [field: SerializeField] public MergeRoundView _mergeRoundView { get; private set; }
     [field: SerializeField] public MapFilledZoneView _mapFilledZoneView { get; private set; }
     [field: SerializeField] public SpriteRenderer _explosionEffectPrefab { get; private set; }
     [field: SerializeField] public MapPointColiderView _mapPointPrefab { get; private set; }

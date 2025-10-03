@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class InventoryUIView : MonoBehaviour
 {
+     [field: SerializeField]
+        public Transform _carStuffContainer { get;private set; }
     [field: SerializeField]
     public GridLayoutGroup _gridLayoutGroup { get;private set; }
     [field: SerializeField]

@@ -10,6 +10,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     public Button ShowInfoButton;
     public Image ItemSprite;
     public TMP_Text ItemPriceText;
+    public TMP_Text ItemSaleText;
 
     public Action<int> TakeItemFromInventory;
 
@@ -24,6 +25,11 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
         ItemSprite.sprite = sprite;
         ItemPriceText.text = price + "$";
         BuyButton.enabled = true;
+    }
+    
+    public void SetShopSaleInfo(int percent) {
+        ItemSaleText.text = percent + "%";
+        ItemSaleText.gameObject.transform.parent.gameObject.SetActive(percent > 0);
     }
 
     public void SoldItemChangeButton() {

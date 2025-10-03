@@ -28,6 +28,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<PlayerCurrencyComponent> _playerCurrencyComponentsPool;
     private EcsPoolInject<LaserComponent> _laserComponentsPool;
     private EcsPoolInject<FilledZoneComponent> _filledZoneComponentsPool;
+    private EcsPoolInject<UpdateShopToSaleRoundEvent> _updateShopToSaleRoundEventsPool;
     private EcsPoolInject<FromPointToPointRoundComponent> _fromPointToPointRoundComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
@@ -97,6 +98,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             //smth particle effect
         }
     }
+
+    private void SetSaleShopRound() {
+        _sceneData.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(false);
+        _updateShopToSaleRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
+    }
+    
+    
     
     private void UpdateArrowDirection(Vector2 target, Vector2 playerPosition)
     {
@@ -234,6 +242,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private void StartCurrentRoundType(RoundType roundType,PointerEventData data) {
+        _sceneData.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
+        
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var button in curGameCmp.RoundButtons) {
             button.enabled = false;
@@ -263,12 +273,15 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 ChangeInventoryState(true);
                 break;
             case RoundType.Shop:
-                SetEnemiesCars();
-                SetPlayerCarPrefab();
+                SetSaleShopRound();
+                ChangeInventoryState(true);
+              //  SetEnemiesCars();
+                //SetPlayerCarPrefab();
                 break;
             case RoundType.Transfer:
-                SetEnemiesCars();
-                SetPlayerCarPrefab();
+               // SetEnemiesCars();
+               // SetPlayerCarPrefab();
+               ChangeInventoryState(true);
                 break;
             case RoundType.Task:
                 ref var taskCmp = ref _taskComponentsPool.Value.Add(_world.Value.NewEntity());

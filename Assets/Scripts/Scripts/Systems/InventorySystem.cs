@@ -4,6 +4,7 @@ using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,7 +24,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<InventoryCellComponent> _inventoryCellComponentsPool;
     private EcsPoolInject<CarPartInGameUIComponent> _carPartInGameUIComponentsPool;
     private EcsPoolInject<AddInventoryItemEvent> _addInventoryItemEventsPool;
+    private EcsPoolInject<UpdateShopToSaleRoundEvent> _updateShopToSaleRoundEventsPool;
 
+    private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
     private EcsFilterInject<Inc<AddInventoryItemEvent>> _addInventoryItemEventsFilter;
@@ -79,7 +82,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             UpdateShopItems();
         }
 
-        
+        foreach (var updateSaleShop in _updateShopToSaleRoundEventsFilter.Value) {
+            SetShopCells(true);
+            _updateShopToSaleRoundEventsPool.Value.Del(updateSaleShop);
+        }
+
         if (Input.GetMouseButtonDown(0))
             inventoryCmp.StartMouseInputPosition = Input.mousePosition;
         if (Input.GetMouseButton(0))
@@ -198,15 +205,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             shopCell.Construct(shopCellEntity, BuyShopItem, SetCarPartInfoPanel, TakeItemFromInventory);
         }
 
-        SetShopCells();
+        SetShopCells(false);
     }
 
     private void UpdateShopItems() {
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         _sceneData.Value._shopUIView._updateItemsText.text = "update for 5$";
-        if (playerCurrencyCmp.moneyCount > 5) {
+        if (playerCurrencyCmp.moneyCount >= 5) {
             playerCurrencyCmp.moneyCount -= 5;
-            SetShopCells();
+            SetShopCells(false);
             SetMoneyText();
         }
     }
@@ -222,21 +229,34 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         CarPartType.Gun,
         CarPartType.MeleeWeapon
     };
-    private void SetShopCells() {
+
+    private void SetShopCells(bool isShopSaleRound) {
         var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Dictionary<CarPartType, List<ShopItem>> carPartsForTypes = new Dictionary<CarPartType, List<ShopItem>>();
         foreach (var shopItem in shopCmp.CurrentShopItems) {
-            if(!carPartsForTypes.TryAdd(_sceneData.Value.GetCarPartConfig(shopItem.PartId).PartType,new List<ShopItem>() {shopItem} ))
-                carPartsForTypes[_sceneData.Value.GetCarPartConfig(shopItem.PartId).PartType].Add(shopItem); 
+            if (!carPartsForTypes.TryAdd(_sceneData.Value.GetCarPartConfig(shopItem.PartId).PartType, new List<ShopItem>() { shopItem }))
+                carPartsForTypes[_sceneData.Value.GetCarPartConfig(shopItem.PartId).PartType].Add(shopItem);
         }
 
+        int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsShop.Length);
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
             var shopButton = _sceneData.Value._shopUIView._buttonsShop[i];
-            var randomItem = i >= _firstCarPartTypesForShop.Length ?shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)]:
-                    carPartsForTypes[_firstCarPartTypesForShop[i]][Random.Range(0, carPartsForTypes[_firstCarPartTypesForShop[i]].Count)];
+            var randomItem = i >= _firstCarPartTypesForShop.Length
+                ? shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)]
+                : carPartsForTypes[_firstCarPartTypesForShop[i]][Random.Range(0, carPartsForTypes[_firstCarPartTypesForShop[i]].Count)];
             ref var shopCellCmp = ref _shopCellComponentsPool.Value.Get(shopButton._entity);
+            int price = randomItem.Price;
+            if (i == saleIndex || isShopSaleRound) {
+                float saleSize = isShopSaleRound ? Random.Range(2, 15) * 0.05f : Random.Range(1, 7) * 0.05f;
+                price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - saleSize)));
+                shopButton.SetShopSaleInfo((int)(saleSize * 100));
+            } else {
+                shopButton.SetShopSaleInfo(0);
+            }
+ 
             shopCellCmp.CurrentBuyItem = randomItem;
-            shopButton.SetShopCellInfo(randomItem.Price, GetCarPartConfig(randomItem.PartId).PartSprite);
+            shopButton.SetShopCellInfo(price, GetCarPartConfig(randomItem.PartId).PartSprite);
+            shopCellCmp.Price = price;
         }
     }
 
@@ -250,8 +270,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private bool RemoveMoneyForBuy(ShopCellComponent shopCellCmp) {
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        if (shopCellCmp.CurrentBuyItem.Price > playerCurrencyCmp.moneyCount) return true;
-        playerCurrencyCmp.moneyCount -= shopCellCmp.CurrentBuyItem.Price;
+        if (shopCellCmp.Price > playerCurrencyCmp.moneyCount) return true;
+        playerCurrencyCmp.moneyCount -= shopCellCmp.Price;
         _sceneData.Value._shopUIView._buttonsShop[shopCellCmp.ShopButtonIndex].SoldItemChangeButton();
         SetMoneyText();
         return false;
