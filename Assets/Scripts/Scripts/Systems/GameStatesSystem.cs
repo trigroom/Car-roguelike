@@ -30,6 +30,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<FilledZoneComponent> _filledZoneComponentsPool;
     private EcsPoolInject<UpdateShopToSaleRoundEvent> _updateShopToSaleRoundEventsPool;
     private EcsPoolInject<FromPointToPointRoundComponent> _fromPointToPointRoundComponentsPool;
+    private EcsPoolInject<StartRoundEvent> _startRoundEventsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -55,7 +56,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 curGameCmp.RoundTime -= Time.deltaTime;
                 _sceneData.Value._playerUIView._gameTimerText.text = ((int)curGameCmp.RoundTime).ToString();
                 if (curGameCmp.RoundTime <= 0) {
-                    curGameCmp.CurrentRoundType = RoundType.None;
                     _sceneData.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
                     EndRound();
                 }
@@ -63,24 +63,10 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 break;
 
             case RoundType.FromAToB:
-                if(!_fromPointToPointRoundComponentsPool.Value.Has(_sceneData.Value.PlayerEntity))return;
+                if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) return;
                 ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
                 var moveCmp = _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-
-               /* if (Vector2.Distance(moveCmp.MovableObjectRigidbody.transform.position, pointToPointRound.PointsToCheck[0]) < 1) {
-                    pointToPointRound.PointsToCheck.RemoveAt(0);
-                    Debug.Log("complete point");
-                    if (pointToPointRound.PointsToCheck.Count == 0) {
-                        EndPointToPointRound();
-                        EndRound();
-                    } else {
-                        _sceneData.Value._mapPointPrefab.transform.position = pointToPointRound.PointsToCheck[0];
-                        //smth particle effect
-                    }
-                } else {*/
-                    UpdateArrowDirection(pointToPointRound.PointsToCheck[0], moveCmp.MovableObjectRigidbody.gameObject.transform.position);
-                   
-               // }
+                UpdateArrowDirection(pointToPointRound.PointsToCheck[0], moveCmp.MovableObjectRigidbody.gameObject.transform.position);
 
                 break;
         }
@@ -142,8 +128,10 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void EndRound() {
-        _endRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        curGameCmp.CurrentRoundType = RoundType.None;
+        _endRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneData.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_sceneData.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
@@ -154,6 +142,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ChangeInventoryState(true);
         ChangePlayerUIState(false);
         ReleaseAllCarPartUI();
+        Debug.Log("end round" + curGameCmp.CurrentRoundType);
     }
 
     private void ReleaseAllCarPartUI() {
@@ -252,8 +241,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         switch (roundType) {
             case RoundType.BattleDefault:
                 SetEnemiesCars();
-                SetGameTimer();
                 SetPlayerCarPrefab();
+                SetGameTimer();
                 break;
             case RoundType.FromAToB:
                 SetEnemiesCars();
@@ -284,14 +273,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                ChangeInventoryState(true);
                 break;
             case RoundType.Task:
-                ref var taskCmp = ref _taskComponentsPool.Value.Add(_world.Value.NewEntity());
-                taskCmp.CurrentCount = 0;
-                taskCmp.NeedCount= Random.Range(3, 6);
-                taskCmp.TaskType = TaskUtilits.GetRandomTaskType();
-                taskCmp.MoneyReward = (curGameCmp.CurrentRound+taskCmp.NeedCount) * 5;
-                taskCmp.TaskText = GetTextForTask();
-                taskCmp.TaskText.gameObject.SetActive(true);
-                TaskUtilits.UpdateTaskText(taskCmp);
+                CreateNewTask(curGameCmp);
                 ChangeInventoryState(true);
                 break;
         }
@@ -306,6 +288,18 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ChangePlayerUIState(true);
         
         curGameCmp.CurrentRound++;
+        _startRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
+    }
+
+    private void CreateNewTask(CurrentGameComponent curGameCmp) {
+        ref var taskCmp = ref _taskComponentsPool.Value.Add(_world.Value.NewEntity());
+        taskCmp.CurrentCount = 0;
+        taskCmp.NeedCount= Random.Range(3, 6);
+        taskCmp.TaskType = TaskUtilits.GetRandomTaskType();
+        taskCmp.MoneyReward = (curGameCmp.CurrentRound+taskCmp.NeedCount) * 5;
+        taskCmp.TaskText = GetTextForTask();
+        taskCmp.TaskText.gameObject.SetActive(true);
+        TaskUtilits.UpdateTaskText(taskCmp);
     }
 
     private void TriggerFilledZone() {
@@ -618,7 +612,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private CarView CarViewSetup(int entity) {
         var carView = _sceneData.Value.InstantiateCarView();
         _movementComponentsPool.Value.Get(entity).MovableObjectRigidbody = carView.Rigidbody;
-        carView.Construct(entity,ColissionCarsHit);
+        string tag = entity == _sceneData.Value.PlayerEntity ? "Player" : "Enemy";
+        carView.Construct(entity, ColissionCarsHit, tag);
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         carCmp.CarView = carView;
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);

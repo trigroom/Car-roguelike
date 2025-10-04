@@ -21,20 +21,21 @@ public class EcsStartUp : MonoBehaviour
         _systemsUpdate
 #if UNITY_EDITOR
             .Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem())
-#endif
+#endif 
+            
             .Add(new InventorySystem())
             .Add(new GameStatesSystem())
             .Add(new MovementSystem())
             .Add(new PlayerInputSystem())
             .Add(new EnemyInputSystem())
-            
             .Add(new AttackSystem())
             .Add(new DestroyDontUsedEntitesSystem())
            //  .Add(new UiControlSystem())
          //   .Add(new CellsSystem())
             .DelHere<DestroyEntityEvent>()
            .DelHere<ConstructMeleeCellEvent>()
-            .DelHere<EndRoundEvent>()
+           .DelHere<EndRoundEvent>()
+            .DelHere<StartRoundEvent>()
 
          .Inject(_sceneService)
          .Init();

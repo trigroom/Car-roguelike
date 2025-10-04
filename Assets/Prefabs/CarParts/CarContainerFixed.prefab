@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: 6669162380463978342}
   - component: {fileID: 4397821262879654343}
   - component: {fileID: 9176414897181522736}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: CarContainerRigidbody
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -198,7 +198,7 @@ BoxCollider2D:
     m_Bits: 4294967295
   m_CallbackLayers:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 2103
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0

@@ -26,10 +26,12 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
         ItemPriceText.text = price + "$";
         BuyButton.enabled = true;
     }
-    
+
     public void SetShopSaleInfo(int percent) {
-        ItemSaleText.text = percent + "%";
         ItemSaleText.gameObject.transform.parent.gameObject.SetActive(percent > 0);
+        if (percent == 0) return;
+        ItemSaleText.fontSize = 7 + (10f / 100f * percent);
+        ItemSaleText.text = percent + "%";
     }
 
     public void SoldItemChangeButton() {

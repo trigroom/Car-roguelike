@@ -20,6 +20,7 @@ public class MapFilledZoneView : MonoBehaviour
    }
 
    private void OnTriggerStay2D(Collider2D other) {
-      _triggerAction.Invoke();
+      if (other.CompareTag("Player"))
+         _triggerAction.Invoke();
    }
 }

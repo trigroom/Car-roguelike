@@ -15,9 +15,10 @@ public class CarView : MonoBehaviour {
     
     public BoxCollider2D CarBaseCollider;
 
-    public void Construct(int entity, Action<int, int> CollisionHitAction) {
+    public void Construct(int entity, Action<int, int> CollisionHitAction, string tag) {
         _entity = entity;
         _collisionHitAction = CollisionHitAction;
+        gameObject.tag = tag;
     }
 
     private void OnCollisionEnter2D(Collision2D other) {

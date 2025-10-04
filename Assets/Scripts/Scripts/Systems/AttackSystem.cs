@@ -42,6 +42,7 @@ using UnityEngine.UI;
         private EcsFilterInject<Inc<ConstructMeleeCellEvent>> _constructMeleeCellEventsFilter;
         public void Run (IEcsSystems systems) {
             foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
+                Debug.Log(endRoundEntity + " des all cars");
                 EndRound();
             }
 
@@ -134,7 +135,6 @@ using UnityEngine.UI;
             laserLineRenderer.gameObject.SetActive(true);
         }
         private void EndRound() {
-            _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType = RoundType.None;
             DestroyAllProjectiles();
             DestroyAllCars();
         }
