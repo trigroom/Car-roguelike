@@ -27,7 +27,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             if (movementCmp.MovableObjectRigidbody == null) continue;
 
             var deltaTime = Time.deltaTime;
- ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
+            ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
             movementCmp.Velocity = ((Vector2)movementCmp.MovableObjectRigidbody.transform.position - movementCmp.PreviousPosition) / deltaTime;
             movementCmp.PreviousPosition = movementCmp.MovableObjectRigidbody.transform.position;
             if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0) {
@@ -56,7 +56,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                     }
 
                     RotateWheels(angleToTarget, movementCmp.CurrentRotateSpeed, movementEntity);
-
+                    SetWheelParticleSystemState(movementEntity, true);
                     if (!isReversing) {
                         movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, movementCmp.MaxMoveSpeed,
                             movementCmp.Acceleration * deltaTime);
@@ -66,32 +66,23 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                             movementCmp.Deceleration * deltaTime);
                     }
                 } else {
+                    SetWheelParticleSystemState(movementEntity, false);
                     movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, 0f, movementCmp.Deceleration * deltaTime);
                     movementCmp.CurrentRotateSpeed = Mathf.MoveTowards(
                         movementCmp.CurrentRotateSpeed, 0f, movementCmp.RotateSpeed * Time.fixedDeltaTime);
                 }
 
-                /*   if (movementCmp.PushForce > 0) {
-                         movementCmp.MovableObjectRigidbody.transform.position +=
-                                       (Vector3)movementCmp.PushVelocity * deltaTime * movementCmp.PushForce;
-
-                         movementCmp.PushForce -= _carComponentsPool.Value.Get(movementEntity).CurrentWeight * deltaTime * 0.2f;
-                         Debug.Log("push"+ movementCmp.PushForce);
-                   }*/
-
                 movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
                 movementCmp.MovableObjectRigidbody.linearVelocity =
                     movementCmp.MovableObjectRigidbody.transform.up * movementCmp.CurrentMoveSpeed;
-            } else 
+            } else
                 movementCmp.CantMoveTime -= deltaTime;
-
-           
 
             carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
             carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
-            
-           if(movementEntity == _sceneData.Value.PlayerEntity) 
-               UpdateCameraPosition(carCmp.CarView.transform.position);
+
+            if (movementEntity == _sceneData.Value.PlayerEntity)
+                UpdateCameraPosition(carCmp.CarView.transform.position);
         }
     }
 
@@ -127,9 +118,36 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         var needRot = Quaternion.Euler(0, 0, targetWheelAngle);
         currentWheelAngle = Quaternion.Lerp(currentWheelAngle, needRot, rotateSpeed * Time.deltaTime);
         carCmp.WheelsRotateAngle = currentWheelAngle.eulerAngles.z;
+      
+      
 
         foreach (var wheel in wheels)
             wheel.localRotation = currentWheelAngle;
+    }
+
+    private void SetWheelParticleSystemState(int entity, bool needParticles) {
+        var moveCmp = _movementComponentsPool.Value.Get(entity);
+        if (needParticles)
+            needParticles = moveCmp.CurrentMoveSpeed > 4;
+        ref var carCmp = ref _carComponentsPool.Value.Get(entity);
+        var wheelsParticles = carCmp.ForwardWheelsParticles;
+        foreach (var particles in wheelsParticles) {
+            var main = particles.main;
+            main.startSpeed = moveCmp.CurrentMoveSpeed;
+            var emission = particles.emission;
+            emission.rateOverTime = (int)moveCmp.CurrentMoveSpeed-3;
+        }
+
+        if (carCmp.isWheelParticle != needParticles) {
+            carCmp.isWheelParticle = needParticles;
+            foreach (var particles in wheelsParticles) {
+                if (needParticles)
+                    particles.Play();
+                else
+                    particles.Stop();
+                Debug.Log(needParticles);
+            }
+        }
     }
 }
 

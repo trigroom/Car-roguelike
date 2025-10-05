@@ -75,7 +75,7 @@ using UnityEngine.UI;
                 projectileCmp.LifeTime -= Time.deltaTime;
                 if (projectileCmp.LifeTime <= 0) {
                     projectileCmp.IsActive = false;
-                    _sceneData.Value.ReleaseGunProjectile(projectileCmp.ProjectileView);
+                    _sceneData.Value.ReleaseGunProjectile(projectileCmp.ProjectileView,projectileCmp.ExplosionRadius);
                 }
             }
 
@@ -149,7 +149,7 @@ using UnityEngine.UI;
             foreach (var projectileEntity in _projectileComponentsFilter.Value) {
                 ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectileEntity);
                 if(!projectileCmp.IsActive)continue;
-                _sceneData.Value.ReleaseGunProjectile(projectileCmp.ProjectileView);
+                _sceneData.Value.ReleaseGunProjectile(projectileCmp.ProjectileView,0);
                 projectileCmp.IsActive = false;
             }
           
@@ -284,7 +284,7 @@ using UnityEngine.UI;
                 if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
                 _projectileComponentsPool.Value.Get(projectile.entity).IsActive = false;
 
-                _sceneData.Value.ReleaseGunProjectile(projectile, _sceneData.Value._bulletSprites);
+                _sceneData.Value.ReleaseGunProjectile(projectile,_projectileComponentsPool.Value.Get(projectile.entity).ExplosionRadius, _sceneData.Value._bulletSprites);
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(weaponId);
                 damagePoints = gunConfig.Damage;
 

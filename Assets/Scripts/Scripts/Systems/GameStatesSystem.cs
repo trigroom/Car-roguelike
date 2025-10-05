@@ -303,7 +303,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void TriggerFilledZone() {
-       Debug.Log("zoneTriggered");
         ref var filledZoneCmp =ref _filledZoneComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         filledZoneCmp.CurrentZoneTime += Time.deltaTime;
         _sceneData.Value._mapFilledZoneView.FilledZoneUI.fillAmount = filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime;
@@ -621,18 +620,21 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         carView.CarPartsContainer.localPosition = new Vector3(-(float)carConfig.Width / 2, (float)carConfig.Height / 2, 0);
         carCmp.CurrentWeight += carConfig.MaxWeight / 5f;
         carCmp.ForwardWheels = new Transform[carConfig.ForwardWheelsPositions.Length];
+        carCmp.ForwardWheelsParticles = new ParticleSystem[carConfig.ForwardWheelsPositions.Length + carConfig.BackWheelsPositions.Length];
         carCmp.CurrentWeight = carConfig.CarWeight;
         int index = 0;
         foreach (var pos in carConfig.ForwardWheelsPositions) {
             Animator wheelTransform = CreateWheel(carConfig, carView, pos);
            // wheelTransform.GetComponent<FixedJoint2D>().connectedBody = carView.Rigidbody;
             carCmp.ForwardWheels[index] = wheelTransform.transform;
+            carCmp.ForwardWheelsParticles[index] = wheelTransform.GetComponentInChildren<ParticleSystem>();
             wheelTransform.transform.SetParent(carView.ForwardWheelsContainer);
             index++;
         }
 
         foreach (var pos in carConfig.BackWheelsPositions) {
-            CreateWheel(carConfig, carView, pos);
+            carCmp.ForwardWheelsParticles[index] = CreateWheel(carConfig, carView, pos).GetComponentInChildren<ParticleSystem>();
+            index++;
         }
 
         carView.CarBaseCollider.size = new Vector2(carConfig.Width, carConfig.Height);

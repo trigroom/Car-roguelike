@@ -188,13 +188,13 @@ public class SceneService : MonoBehaviour
         projectile.transform.position = spawnPosition;
         return projectile;
     }
-    public void ReleaseGunProjectile(ProjectileView projectile, Sprite[] animation = null) {
+    public void ReleaseGunProjectile(ProjectileView projectile, float radius ,Sprite[] animation = null) {
        // if(!projectile.gameObject.activeInHierarchy)return;
 
         if (animation == null) 
             RelaseProjectileYourself(projectile);
         else {
-            projectile.PlayHitAnimation(animation, RelaseProjectileYourself);
+            projectile.PlayHitAnimation(animation,radius, RelaseProjectileYourself);
         }
     }
 

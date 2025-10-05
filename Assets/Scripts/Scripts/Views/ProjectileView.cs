@@ -11,6 +11,8 @@ public class ProjectileView : MonoBehaviour {
     private string needTag;
     [SerializeField]
     private Collider2D collider;
+    [SerializeField]
+    private ParticleSystem particleSystem;
     [field: SerializeField]
     public Rigidbody2D rigidbody2D { get; private set; }
     private Sequence animationSequence;
@@ -71,27 +73,31 @@ public class ProjectileView : MonoBehaviour {
         // Возвращаем центр пересечения (примерная точка столкновения)
         return boundsA.ClosestPoint(boundsB.center);
     }
-    
-    public void PlayHitAnimation(Sprite[] animationSprites, Action<ProjectileView> hideAction)
-    {
+
+    public void PlayHitAnimation(Sprite[] animationSprites, float radius, Action<ProjectileView> hideAction) {
+        var main = particleSystem.main;
+        main.startSpeed = radius * 1.5f + 2;
+        var emission = particleSystem.emission;
+
+        emission.SetBursts(new ParticleSystem.Burst[] {
+            new ParticleSystem.Burst(0f, 10 + (int)radius * 5) 
+        });
+        particleSystem.Play();
         animationSequence = DOTween.Sequence();
-    
-        for (int i = 0; i < animationSprites.Length; i++)
-        {
-            int index = i; 
-        
+
+        for (int i = 0; i < animationSprites.Length; i++) {
+            int index = i;
+
             animationSequence.AppendCallback(() => {
                 if (index < animationSprites.Length)
                     spriteRenderer.sprite = animationSprites[index];
             });
-        
+
             animationSequence.AppendInterval(0.15f);
         }
-    
-        animationSequence.OnComplete(() => {
-            hideAction?.Invoke(this);
-        });
-    
+
+        animationSequence.OnComplete(() => { hideAction?.Invoke(this); });
+
         animationSequence.Play();
     }
 }
