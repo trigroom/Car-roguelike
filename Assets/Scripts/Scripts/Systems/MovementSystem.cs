@@ -145,7 +145,6 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                     particles.Play();
                 else
                     particles.Stop();
-                Debug.Log(needParticles);
             }
         }
     }

@@ -66,6 +66,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) return;
                 ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
                 var moveCmp = _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+                if(moveCmp.MovableObjectRigidbody != null)
                 UpdateArrowDirection(pointToPointRound.PointsToCheck[0], moveCmp.MovableObjectRigidbody.gameObject.transform.position);
 
                 break;

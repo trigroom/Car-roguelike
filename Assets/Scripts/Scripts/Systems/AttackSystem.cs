@@ -140,6 +140,7 @@ using UnityEngine.UI;
         }
 
         private void LoseGame() {
+            Debug.Log("LoseGame");
             if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType != RoundType.None)
                 EndRound();
             _sceneData.Value._endGameScreenView.SetLoseScreenInfo(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound);
@@ -155,10 +156,16 @@ using UnityEngine.UI;
           
         }
         private void DestroyAllCars() {
+            int index = 0;
+            
             foreach (var carEntity in _carComponentsFilter.Value) {
+                Debug.Log(index + " staaaaaaaaaaaaart");
                DestroyNeedCar(carEntity);
+               Debug.Log(index + " eeeend");
+               index++;
             }
-          
+            
+         
         }
         private void ConstructMeleeWeaponCell(int entity) {
             var cellCmp = _carPartCellComponentsPool.Value.Get(entity);
@@ -362,8 +369,12 @@ using UnityEngine.UI;
                 carPartCellCmp.CurrentHealth = 0;
                 DestroyCarPartCell(cellEntity, carPartCellCmp);
 
-                if (_sceneData.Value.GetCarPartConfig(carPartCellCmp.CarPartsId[0]).PartType == CarPartType.Main) 
+                if (_sceneData.Value.GetCarPartConfig(carPartCellCmp.CarPartsId[0]).PartType == CarPartType.Main) {
                     DestroyNeedCar(carPartCellCmp.MainEntity);
+                    if (carPartCellCmp.MainEntity == _sceneData.Value.PlayerEntity)
+                        LoseGame();
+                }
+                   
                    
                 carPartCellCmp.MainCellPart = null;
                 
@@ -417,16 +428,16 @@ using UnityEngine.UI;
             }
 
             ref var carCmp = ref _carComponentsPool.Value.Get(carEntity); 
+          
             _sceneData.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
+           Debug.Log("startDestroy");
             if(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType == RoundType.None)return;
             if (carEntity != _sceneData.Value.PlayerEntity) {
                // _movementComponentsPool.Value.Del(carEntity);
                // _carComponentsPool.Value.Del(carEntity);
                _destroyEntityEventsPool.Value.Add(carEntity);
                 CheckTasks(TaskType.Kills);
-            } else 
-                LoseGame();
-                
+            } 
         }
         
         public void CheckTasks(TaskType taskType) {
