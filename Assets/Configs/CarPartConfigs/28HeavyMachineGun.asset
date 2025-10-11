@@ -22,6 +22,8 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Heavy MG
   <DefaultModuleCount>k__BackingField: 4
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 10
   AttackCouldown: 0.1
   BulletsCountInMagazine: 30
@@ -34,5 +36,5 @@ MonoBehaviour:
   SpreadAngle: 3
   ExplosionRadius: 0.2
   ImpulseForce: 150
-  EffectType: 0
-  EffectDuration: 0
+  EffectType: 1
+  EffectDuration: 3

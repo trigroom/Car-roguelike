@@ -1,5 +1,6 @@
 using Leopotam.EcsLite;
 using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,6 +10,10 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
+    [field: SerializeField] public SpriteRenderer _carPartSpriteRenderer { get; private set; }
+    [field: SerializeField] public Image _carPartUIImage { get; private set; }
+    [field: SerializeField] public Transform _floatingTextContainer { get; private set; }
+    [field: SerializeField] public TMP_Text _floatingTextPrefab { get; private set; }
     [field: SerializeField] public MergeRoundView _mergeRoundView { get; private set; }
     [field: SerializeField] public MapFilledZoneView _mapFilledZoneView { get; private set; }
     [field: SerializeField] public SpriteRenderer _explosionEffectPrefab { get; private set; }
@@ -60,10 +65,12 @@ public class SceneService : MonoBehaviour
     public BuildingView buildingViewForTest;
     private ObjectPool<ProjectileView> _projectilesPool;
     private ObjectPool<CarPartStuffView> _carPartsPool;
+    private ObjectPool<TMP_Text> _floatingTextsPool;
     private ObjectPool<LineRenderer> _laserLineRenderersPool;
     private ObjectPool<MeleeCarPartStuffView> _meleeCarPartsPool;
     private ObjectPool<CarPartInGameUIView> _сarPartInGameUIViewsPool;
     private ObjectPool<SpriteRenderer> _explosionEffectsPool;
+    
 
     private void Awake() {
         _endGameScreenView.OnInitialize();
@@ -75,6 +82,7 @@ public class SceneService : MonoBehaviour
         mainCamera = Camera.main;
         _laserLineRenderersPool = new ObjectPool<LineRenderer>(() => Instantiate(_laserLineRenderer, _notUsedCarPartsContainer));
         _projectilesPool = new ObjectPool<ProjectileView>(() => Instantiate(_projectileView));
+        _floatingTextsPool = new ObjectPool<TMP_Text>(() => Instantiate(_floatingTextPrefab, _floatingTextContainer));
         _carPartsPool = new ObjectPool<CarPartStuffView>(() => Instantiate(_carStuffListsConfig.CarPartStuffView));
         _meleeCarPartsPool = new ObjectPool<MeleeCarPartStuffView>(() => Instantiate(_carStuffListsConfig.MeleeCarPartStuffView));
         _explosionEffectsPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_explosionEffectPrefab));
@@ -86,6 +94,29 @@ public class SceneService : MonoBehaviour
         var projectile = _сarPartInGameUIViewsPool.Get();
         projectile.gameObject.SetActive(true);
         return projectile;
+    }
+
+    public Image GetCarPartUISprite(Transform parent, Vector2 position) {
+        return Instantiate(_carPartUIImage, position, Quaternion.identity, parent);
+    }
+    public void GetFloatingTextPrefab(Vector2 position, string text, Color textColor) {
+        var floatingText = _floatingTextsPool.Get();
+        floatingText.text = text;
+        floatingText.transform.position = position;
+        floatingText.color = textColor;
+        floatingText.gameObject.SetActive(true);
+        Sequence sequence = DOTween.Sequence();
+
+        sequence.Append(floatingText.transform.DOLocalMoveY(position.y+1, 0.7f)
+            .SetEase(Ease.OutCubic));
+        sequence.Join(floatingText.DOColor(new Color(textColor.r, textColor.g, textColor.b,0), 0.7f));
+        sequence.OnComplete(()=>ReleaseFloatingText(floatingText));
+        sequence.Play();
+    }
+    
+    public void ReleaseFloatingText(TMP_Text floatingText) {
+        floatingText.gameObject.SetActive(false);
+        _floatingTextsPool.Release(floatingText);
     }
     
     public LineRenderer GetLaserLineRenderer() {

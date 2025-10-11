@@ -15,11 +15,11 @@
         public int CurrentDraggedCellEntity;
         public CellView CurrentCellCarPart;
         public CarPartType SortedCarPartType;
-        public int[,] GridCarPartsEntities;
+        public int[,] GridCarPartCellsEntities;
         public Tween CurrentTween;
         public int CurrentRotateDegrees;
         public Vector3 StartMouseInputPosition;
-
+        public Vector2 onCarCellSize;
         
         public int CurrentMarkedCellForPanelInfo;
     }

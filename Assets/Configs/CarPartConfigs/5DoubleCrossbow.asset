@@ -22,6 +22,8 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Double crossbow
   <DefaultModuleCount>k__BackingField: 2
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 12
   AttackCouldown: 0
   BulletsCountInMagazine: 1
@@ -34,3 +36,5 @@ MonoBehaviour:
   SpreadAngle: 20
   ExplosionRadius: 0
   ImpulseForce: 200
+  EffectType: 0
+  EffectDuration: 0

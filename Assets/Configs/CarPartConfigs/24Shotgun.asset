@@ -22,6 +22,8 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Shotgun
   <DefaultModuleCount>k__BackingField: 2
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 8
   AttackCouldown: 0.75
   BulletsCountInMagazine: 4
@@ -34,3 +36,5 @@ MonoBehaviour:
   SpreadAngle: 15
   ExplosionRadius: 0
   ImpulseForce: 400
+  EffectType: 0
+  EffectDuration: 0

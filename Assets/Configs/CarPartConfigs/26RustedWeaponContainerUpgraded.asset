@@ -22,5 +22,7 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Rusted Weapon Container upgraded
   <DefaultModuleCount>k__BackingField: 4
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   MaxAngle: 80
   RotateSpeed: 3

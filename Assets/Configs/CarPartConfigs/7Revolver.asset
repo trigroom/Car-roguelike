@@ -19,8 +19,11 @@ MonoBehaviour:
   <PartType>k__BackingField: 5
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Revolver
   <DefaultModuleCount>k__BackingField: 2
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 20
   AttackCouldown: 1.2
   BulletsCountInMagazine: 6
@@ -33,3 +36,5 @@ MonoBehaviour:
   SpreadAngle: 20
   ExplosionRadius: 0
   ImpulseForce: 400
+  EffectType: 0
+  EffectDuration: 0

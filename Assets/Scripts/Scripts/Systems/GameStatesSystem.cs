@@ -31,6 +31,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<UpdateShopToSaleRoundEvent> _updateShopToSaleRoundEventsPool;
     private EcsPoolInject<FromPointToPointRoundComponent> _fromPointToPointRoundComponentsPool;
     private EcsPoolInject<StartRoundEvent> _startRoundEventsPool;
+    private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -338,7 +339,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                    pointToPointRoundCmp.PointsToCheck.Add(posToSpawn);
         }
 
-        var carPartsGrid = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).GridCarPartsEntities;
+        var carPartsGrid = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).GridCarPartCellsEntities;
         _sceneData.Value._playerUIView._arrowImageTransform.parent.transform.position =
             _sceneData.Value.mainCamera.WorldToScreenPoint(Vector3.zero);
         float arrowPos =
@@ -409,12 +410,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             int[,] GridCarPartsEntities = new int[carMap.CarPartTypeGrid.Length, carMap.CarPartTypeGrid[0].types.Length];
             for (int j = 0; j < carMap.CarPartTypeGrid.Length; j++) {
                 for (int k = 0; k < carMap.CarPartTypeGrid[0].types.Length; k++) {
-                    var currentCarType = carMap.CarPartTypeGrid[j].types[k];
+                   /* var currentCarType = carMap.CarPartTypeGrid[j].types[k];
                     if (currentCarType == CarPartType.None) continue;
                     int carPartCellEntity = _world.Value.NewEntity();
                     GridCarPartsEntities[j, k] = carPartCellEntity;
                  
-                    ref var cellCmp = ref _cellComponentsPool.Value.Add(carPartCellEntity);
+                    ref var cellCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
                     cellCmp.CarPartsId = new List<int>();
 
                     cellCmp.MainEntity = enemyEntity;
@@ -431,7 +432,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                         currentMainPartCount++;
                     }
 
-                    SpawnCarPartCellView(carPartCellEntity, carView, k, j, 0, false);
+                    SpawnCarPartCellView(carPartCellEntity, carView, k, j, 0, false);*/
                 }
             }
 
@@ -443,9 +444,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carView = CarViewSetup(_sceneData.Value.PlayerEntity);
 
-        for (int i = 0; i < inventoryCmp.GridCarPartsEntities.GetLength(0); i++) {
-            for (int j = 0; j < inventoryCmp.GridCarPartsEntities.GetLength(1); j++) {
-                int cellEntity = inventoryCmp.GridCarPartsEntities[i, j];
+        for (int i = 0; i < inventoryCmp.GridCarPartCellsEntities.GetLength(0); i++) {
+            for (int j = 0; j < inventoryCmp.GridCarPartCellsEntities.GetLength(1); j++) {
+                int cellEntity = inventoryCmp.GridCarPartCellsEntities[i, j];
                 var cellCmp = _cellComponentsPool.Value.Get(cellEntity);
                 SpawnCarPartCellView(cellEntity, carView, j, i, cellCmp.CellView._imageCarPart.transform.localEulerAngles.z, true);
             }
@@ -465,8 +466,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         float parentWidth = parentRect.rect.width;
         float parentHeight = parentRect.rect.height;
 
-        int columns = inventoryCmp.GridCarPartsEntities.GetLength(1);
-        int rows = inventoryCmp.GridCarPartsEntities.GetLength(0);
+        int columns = inventoryCmp.GridCarPartCellsEntities.GetLength(1);
+        int rows = inventoryCmp.GridCarPartCellsEntities.GetLength(0);
         // Вычисляем размер каждого квадрата
         float cellSize = Mathf.Min((parentWidth - (columns - 1) * spacing) / columns, (parentHeight - (rows - 1) * spacing) / rows);
 
@@ -479,7 +480,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns; col++) {
-                int cellEntity = inventoryCmp.GridCarPartsEntities[row, col];
+            /*    int cellEntity = inventoryCmp.GridCarPartsEntities[row, col];
                 float posX = startX + col * (cellSize + spacing);
                 float posY = startY - row * (cellSize + spacing);
                 var cellUIHealth = _sceneData.Value.GetCarPartInGameUIView();
@@ -492,7 +493,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     cellUIHealth.SetSize(new Vector2(cellSize, cellSize), new Vector2(posX, posY));
                     cellUIHealth.SetHealthCount(_sceneData.Value._healthGradient.Evaluate(cellCmp.CurrentHealth / cellCmp.MaxHealth),
                         (int)cellCmp.CurrentHealth);
-                }
+                }*/
             }
         }
     }
@@ -505,8 +506,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SpawnCarPartCellView(int cellEntity, CarView carView, int j, int i, float needRotate, bool isPlayer) {
-        ref var cellCmp = ref _cellComponentsPool.Value.Get(cellEntity);
-        for (int k = 0; k < cellCmp.CarPartsId.Count; k++) {
+        ref var cellCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
+       /* for (int k = 0; k < cellCmp.CarPartsId.Count; k++) {
             var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[cellCmp.CarPartsId[k]];
             bool isWeapon = carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun;
             var carPart = carPartConfig.PartType == CarPartType.MeleeWeapon
@@ -570,7 +571,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
             
                 
-        }
+        }*/
     }
 
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {

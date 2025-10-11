@@ -19,8 +19,11 @@ MonoBehaviour:
   <PartType>k__BackingField: 5
   <RartRare>k__BackingField: 1
   <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Sawed off shotgun
   <DefaultModuleCount>k__BackingField: 25
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 6
   AttackCouldown: 2
   BulletsCountInMagazine: 1
@@ -33,3 +36,5 @@ MonoBehaviour:
   SpreadAngle: 20
   ExplosionRadius: 0
   ImpulseForce: 300
+  EffectType: 0
+  EffectDuration: 0

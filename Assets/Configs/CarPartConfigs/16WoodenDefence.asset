@@ -19,5 +19,8 @@ MonoBehaviour:
   <PartType>k__BackingField: 1
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Wooden defence
   <DefaultModuleCount>k__BackingField: 0
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}

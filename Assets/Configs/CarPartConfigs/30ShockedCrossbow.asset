@@ -22,6 +22,8 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Shocked Crossbow
   <DefaultModuleCount>k__BackingField: 1
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 10
   AttackCouldown: 1
   BulletsCountInMagazine: 1

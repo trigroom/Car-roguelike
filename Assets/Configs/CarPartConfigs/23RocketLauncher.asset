@@ -22,7 +22,9 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Rocket launcher
   <DefaultModuleCount>k__BackingField: 0
-  Damage: 3
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  Damage: 13
   AttackCouldown: 2
   BulletsCountInMagazine: 1
   BulletsCount: 1

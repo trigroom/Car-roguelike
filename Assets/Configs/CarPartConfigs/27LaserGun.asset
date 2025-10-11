@@ -22,6 +22,8 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Laser gun
   <DefaultModuleCount>k__BackingField: 4
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 40
   AttackCouldown: 3
   BulletsCountInMagazine: 0
@@ -34,3 +36,5 @@ MonoBehaviour:
   SpreadAngle: 0
   ExplosionRadius: 0.3
   ImpulseForce: 0
+  EffectType: 0
+  EffectDuration: 0

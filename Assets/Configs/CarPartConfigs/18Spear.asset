@@ -19,8 +19,11 @@ MonoBehaviour:
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 0
   <PartName>k__BackingField: Default spear
   <DefaultModuleCount>k__BackingField: 2
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   Damage: 5
   AttackCouldown: 1
   DamageAddedFromOneSpeed: 1.5

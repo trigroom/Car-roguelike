@@ -20,6 +20,8 @@ public class CarPartConfig : ScriptableObject
     [field: SerializeField] public string PartName { get; private set; }
     
     [field: SerializeField] public int DefaultModuleCount { get; private set; }
+
+  [field: SerializeField] public Vector2Int[] PartForm { get; private set; }
 }
 
 public enum CarPartRare {

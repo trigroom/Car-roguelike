@@ -19,9 +19,9 @@ public class CarPartInfoUIView : MonoBehaviour
     public TMP_Text CarDescriptionText;
     [field: SerializeField] public Image _carPartIcon { get; private set; }
 
-    public void SetupButtonsInfoPanel(Action backCarPart, Action nextCarPart, Action destroy, Action upgrade) {
+    public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade) {
         _backButton.onClick.AddListener(() => backCarPart?.Invoke());
-        _nextButton.onClick.AddListener(() => nextCarPart?.Invoke());
+     //   _nextButton.onClick.AddListener(() => nextCarPart?.Invoke());
         _destroyButton.onClick.AddListener(() => destroy?.Invoke());
         _upgradeButton.onClick.AddListener(() => upgrade?.Invoke());
     }

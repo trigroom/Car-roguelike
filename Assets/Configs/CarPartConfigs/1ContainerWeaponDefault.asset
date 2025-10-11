@@ -22,5 +22,7 @@ MonoBehaviour:
   <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Wooden weapon container
   <DefaultModuleCount>k__BackingField: 1
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
   MaxAngle: 0
   RotateSpeed: 0

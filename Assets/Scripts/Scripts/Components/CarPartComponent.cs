@@ -1,6 +1,15 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
 [System.Serializable]
     public struct CarPartComponent {
         public int CarPartId;
-        public int[] ModulesId;
-        public float HealthCount;
+        public float CurrentHealth;
+        public float MaxHealth;
+        public int CurrentRotateAngle;
+        public int MainEntity;
+        public List<CarPartStuffView> CellCarPartsStuffViews;
+        public Image carPartCellImage;
+        public SpriteRenderer CarPartCellRenderer;
     }
