@@ -56,7 +56,6 @@ public class SceneService : MonoBehaviour
     [field: SerializeField] public TMP_Text moneyText { get; private set; }
     [field: SerializeField] public Light gloabalLight { get; set; }
     [field: SerializeField] public Camera mainCamera { get; private set; }
-    [field: SerializeField] public Sprite transparentSprite { get; private set; }
     public float aspectRatio;
     public InputSystem_Actions gameInput;
 
