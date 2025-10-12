@@ -20,8 +20,7 @@ MonoBehaviour:
   <Height>k__BackingField: 3
   <Width>k__BackingField: 2
   <MaxHealth>k__BackingField: 0
-  <CarEngine>k__BackingField: {fileID: 11400000, guid: 42512c365e9daad4784788a2d3bc13c9, type: 2}
-  <DriverCabine>k__BackingField: {fileID: 11400000, guid: 961f7be177a03304e8a776418071017e, type: 2}
+  <StartCarParts>k__BackingField: 0300000004000000
   <ForwardWheelsPositions>k__BackingField:
   - {x: 0, y: 1}
   - {x: 0, y: 1}

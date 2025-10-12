@@ -16,7 +16,7 @@ MonoBehaviour:
   <MaxHealth>k__BackingField: 300
   <Weight>k__BackingField: 10
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 5611ac3bbbe480241a01d3e79d1776d2, type: 3}
-  <PartType>k__BackingField: 6
+  <PartType>k__BackingField: 7
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 0

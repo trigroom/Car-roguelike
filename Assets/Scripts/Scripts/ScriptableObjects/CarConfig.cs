@@ -19,9 +19,7 @@ public class CarConfig : ScriptableObject {
     [field: SerializeField]
     public int MaxHealth { get; private set; }
     [field: SerializeField]
-    public CarPartConfig CarEngine { get; private set; }
-    [field: SerializeField]
-    public CarPartConfig DriverCabine { get; private set; }
+    public int[] StartCarParts { get; private set; }
     [field: SerializeField]
     public Vector2[] ForwardWheelsPositions { get; private set; }
     [field: SerializeField]

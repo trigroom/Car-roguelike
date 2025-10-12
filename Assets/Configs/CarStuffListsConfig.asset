@@ -51,6 +51,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 716abeb35981a4e4db7540b09c91d033, type: 2}
   - {fileID: 11400000, guid: cc8fadb341b693a42a0447d7b6128ce9, type: 2}
   - {fileID: 11400000, guid: 19e85ac05d075a240854fd55a8161db7, type: 2}
+  - {fileID: 11400000, guid: 352938a9e17d0a34484dac8f0fecb462, type: 2}
   <CarPartStuffView>k__BackingField: {fileID: -6712694133279507477, guid: e61c40a5a84f28a48be59a1d252c12e1, type: 3}
   <MeleeCarPartStuffView>k__BackingField: {fileID: 5055266588798338170, guid: b5905cdd0149c9f41920c02fc4fc69ff, type: 3}
   <ShopItems>k__BackingField:

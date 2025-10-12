@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
+    [field: SerializeField] public RectTransform _carPartsContainersContainer { get; private set; }
     [field: SerializeField] public SpriteRenderer _carPartSpriteRenderer { get; private set; }
     [field: SerializeField] public Image _carPartUIImage { get; private set; }
     [field: SerializeField] public Transform _floatingTextContainer { get; private set; }
