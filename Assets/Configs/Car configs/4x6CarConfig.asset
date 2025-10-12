@@ -20,7 +20,7 @@ MonoBehaviour:
   <Height>k__BackingField: 6
   <Width>k__BackingField: 4
   <MaxHealth>k__BackingField: 0
-  <StartCarParts>k__BackingField: 0300000004000000010000002100000021000000
+  <StartCarParts>k__BackingField: 0300000004000000220000000100000021000000
   <ForwardWheelsPositions>k__BackingField:
   - {x: 2, y: 2}
   - {x: -2, y: 2}

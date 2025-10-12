@@ -19,6 +19,7 @@ public class CellView : MonoBehaviour, IPointerEnterHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        Debug.Log("On pointer");
         SetPartFromInventory?.Invoke(this);
     }
     public void Construct(Vector2Int _gridPosition, Action<CellView> SetPartFromInventory, int _entity, Action<int> SetPanelInfo)
@@ -26,6 +27,7 @@ public class CellView : MonoBehaviour, IPointerEnterHandler
         this._gridPosition = _gridPosition;
         this.SetPartFromInventory = SetPartFromInventory;
         this._entity = _entity;
+        if(_carPartButton != null)
         _carPartButton.onClick.AddListener(() => SetPanelInfo?.Invoke(_entity));
     }
 }
