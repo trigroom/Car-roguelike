@@ -10,6 +10,8 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
+  [field: SerializeField] public Image _subGridTransform { get; private set; }
+  [field: SerializeField] public RectTransform _gridMaskRect { get; private set; }
     [field: SerializeField] public RectTransform _carPartsContainersContainer { get; private set; }
     [field: SerializeField] public SpriteRenderer _carPartSpriteRenderer { get; private set; }
     [field: SerializeField] public Image _carPartUIImage { get; private set; }
@@ -160,6 +162,13 @@ public class SceneService : MonoBehaviour
     {
         if (GetCarPartConfig(id) is MeleeWeaponConfig armor)
             return armor;
+        return null; 
+    }
+    
+    public WheelsContainerConfig GetWheelContainerFromCarPart(int id)
+    {
+        if (GetCarPartConfig(id) is WheelsContainerConfig wheels)
+            return wheels;
         return null; 
     }
     

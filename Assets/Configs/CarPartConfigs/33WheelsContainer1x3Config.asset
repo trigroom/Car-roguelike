@@ -27,6 +27,8 @@ MonoBehaviour:
   - {x: 1, y: 0}
   - {x: 2, y: 0}
   WheelId: 0
-  WheelsPositions: []
+  WheelsPositions:
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
   MaxWeight: 0
   MaxSpeed: 0
