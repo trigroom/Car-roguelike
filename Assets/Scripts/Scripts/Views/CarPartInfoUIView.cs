@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class CarPartInfoUIView : MonoBehaviour
 {
+    [field: SerializeField] public Button _moveToInventoryButton { get; private set; }
     [field: SerializeField] public Button _upgradeButton { get; private set; }
     [field: SerializeField] public TMP_Text _upgradeButtonText { get; private set; }
     [field: SerializeField] public Button _destroyButton { get; private set; }
@@ -19,15 +20,16 @@ public class CarPartInfoUIView : MonoBehaviour
     public TMP_Text CarDescriptionText;
     [field: SerializeField] public Image _carPartIcon { get; private set; }
 
-    public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade) {
+    public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade,Action moveToInventory) {
         _backButton.onClick.AddListener(() => backCarPart?.Invoke());
-     //   _nextButton.onClick.AddListener(() => nextCarPart?.Invoke());
+        _moveToInventoryButton.onClick.AddListener(() => moveToInventory?.Invoke());
         _destroyButton.onClick.AddListener(() => destroy?.Invoke());
         _upgradeButton.onClick.AddListener(() => upgrade?.Invoke());
     }
 
-    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton) {
+    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
+        _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         if (carPartConfig.UpgradedPartCost != 0)
             _upgradeButtonText.text = $"{carPartConfig.UpgradedPartCost.ToString()}$ to upgrade";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
