@@ -12,8 +12,9 @@ public class CellView : MonoBehaviour, IPointerEnterHandler
     public Image _secondImageCarPart { get; private set; }
     [field: SerializeField]
     public Button _carPartButton { get; private set; }
+
     [field: SerializeField]
-    public Vector2Int _gridPosition { get; private set; }//move to cmp
+    public Vector2Int _gridPosition;
     public Action<CellView> SetPartFromInventory;
     public int _entity { get;private set; }
 

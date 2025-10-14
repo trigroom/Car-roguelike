@@ -4,6 +4,10 @@ using UnityEngine.UI;
 
 public class InventoryUIView : MonoBehaviour
 {
+    [field: SerializeField]
+    public Button _changeToRedactCarPartsModeButton { get;private set; }
+    [field: SerializeField]
+    public Button _changeToRedactCarContainersModeButton { get;private set; }
      [field: SerializeField]
         public Transform _carStuffContainer { get;private set; }
     [field: SerializeField]
@@ -11,8 +15,6 @@ public class InventoryUIView : MonoBehaviour
     [field: SerializeField]
     public CellView _cellView { get;private set; }
     
-    [field: SerializeField]
-    public Image _carBackground { get;private set; }
     [field: SerializeField]
     public TMP_Text _pageNumberText { get;private set; }
 
