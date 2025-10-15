@@ -5017,11 +5017,7 @@ MonoBehaviour:
   - {fileID: 677832819}
   - {fileID: 169180254}
   - {fileID: 1623639576}
-  <_cancelCellPlaceButtons>k__BackingField:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  <_cancelCellPlaceButtons>k__BackingField: []
   <_playButton>k__BackingField: {fileID: 1642392025}
 --- !u!1 &912781225
 GameObject:

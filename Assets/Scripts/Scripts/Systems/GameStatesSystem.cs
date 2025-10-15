@@ -44,7 +44,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
-        _sceneData.Value._inventoryUIView._playButton.onClick.AddListener(() => ChangeRoundInfo());
+        _sceneData.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
         _sceneData.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
         _sceneData.Value._mapFilledZoneView.SetupFilledZone(TriggerFilledZone);
     }
@@ -501,7 +501,29 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private bool CanStartRound() {
         var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (carCmp.CurrentWeight > _sceneData.Value.GetCarConfig(carCmp.CarId).MaxWeight) return false;
-       if (MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity))) return true;
+       if (MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity)) &&  CanUseThisCarPartContainers()) return true;
+        return false;
+    }
+    
+    private bool CanUseThisCarPartContainers() {
+        int wheelsCount = 0;
+        Vector2Int lastWheelMinMaxY = Vector2Int.zero;
+        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartContainer.Key);
+            var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
+            if (carPartConfig.PartType == CarPartType.WheelsContainer) {
+                wheelsCount++;
+                Vector2Int edgePoint = GridUtils.GetEdgePointFromCarPart(carPartContainer.Value);
+                Vector2Int partSize = GridUtils.GetCarPartSize(carPartConfig);
+                if (wheelsCount == 1) {
+                    lastWheelMinMaxY = new Vector2Int(edgePoint.y, edgePoint.y + partSize.y - 1);
+                } else if( lastWheelMinMaxY.x > (edgePoint.y + partSize.y - 1) || lastWheelMinMaxY.y < edgePoint.y) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
