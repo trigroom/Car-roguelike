@@ -97,7 +97,9 @@ public class SceneService : MonoBehaviour
         projectile.gameObject.SetActive(true);
         return projectile;
     }
-
+    public SpriteRenderer GetCarPartSpriteRenderer(Transform parent) {
+        return Instantiate(_carPartSpriteRenderer, parent);
+    }
     public Image GetCarPartUISprite(Transform parent, Vector2 position) {
         return Instantiate(_carPartUIImage, position, Quaternion.identity, parent);
     }

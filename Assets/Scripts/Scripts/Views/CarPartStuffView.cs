@@ -11,10 +11,9 @@ public class CarPartStuffView : MonoBehaviour
     private Action<int> _takeDamageAction;
     public int _entity { get;private set; }
 
-    public void SetupCarPart(int cellEntity, Sprite needSprite, int spriteLevel) {
+    public void SetupCarPart(int cellEntity, string carPartLayer) {
         _entity = cellEntity;
-        _carPartSpriteRenderer.sprite = needSprite;
-        _carPartSpriteRenderer.sortingOrder = spriteLevel;
+        gameObject.layer = LayerMask.NameToLayer(carPartLayer);
     }
 
     public void SetColliderEnableState(bool state) {

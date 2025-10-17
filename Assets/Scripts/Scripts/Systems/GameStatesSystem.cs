@@ -443,19 +443,28 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void SetPlayerCarPrefab() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carView = CarViewSetup(_sceneData.Value.PlayerEntity);
+        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
 
-        for (int i = 0; i < inventoryCmp.GridCarPartCellsEntities.GetLength(0); i++) {
-            for (int j = 0; j < inventoryCmp.GridCarPartCellsEntities.GetLength(1); j++) {
-                int cellEntity = inventoryCmp.GridCarPartCellsEntities[i, j];
-                var cellCmp = _cellComponentsPool.Value.Get(cellEntity);
-                SpawnCarPartCellView(cellEntity, carView, j, i, cellCmp.CellView._imageCarPart.transform.localEulerAngles.z, true);
-            }
+        foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
+            SpawnCarPartCellView(carPartInfo.Key, carView, true);
         }
 
+        foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+            SpawnCarPartCellView(carPartInfo.Key, carView, true);
+        }
+
+        /*  for (int i = 0; i < inventoryCmp.GridCarPartCellsEntities.GetLength(0); i++) {
+              for (int j = 0; j < inventoryCmp.GridCarPartCellsEntities.GetLength(1); j++) {
+                  int cellEntity = inventoryCmp.GridCarPartCellsEntities[i, j];
+                  var cellCmp = _cellComponentsPool.Value.Get(cellEntity);
+
+              }
+          }*/
+
         ArrangeImagesInGrid();
-        
+
         //_sceneData.Value.mainCamera.orthographicSize = 15 + Mathf.Max(inventoryCmp.GridCarPartsEntities.GetLength(0), inventoryCmp.GridCarPartsEntities.GetLength(1));
-        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;
     }
 
@@ -527,73 +536,89 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return false;
     }
 
-    private void SpawnCarPartCellView(int cellEntity, CarView carView, int j, int i, float needRotate, bool isPlayer) {
+    private void SpawnCarPartCellView(int cellEntity, CarView carView, bool isPlayer) {
         ref var cellCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
-       /* for (int k = 0; k < cellCmp.CarPartsId.Count; k++) {
-            var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[cellCmp.CarPartsId[k]];
-            bool isWeapon = carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun;
-            var carPart = carPartConfig.PartType == CarPartType.MeleeWeapon
-                ? _sceneData.Value.GetMeleeCarPartCell(isWeapon ? cellCmp.MainCellPart.transform : carView.CarPartsContainer)
-                : _sceneData.Value.GetCarPartCell(isWeapon ? cellCmp.MainCellPart.transform : carView.CarPartsContainer);
+        ref var carCmp = ref _carComponentsPool.Value.Get(cellCmp.MainEntity);
+        var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[cellCmp.CarPartId];
+        bool isWeapon = carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun;
+        /* var carPart = carPartConfig.PartType == CarPartType.MeleeWeapon
+             ? _sceneData.Value.GetMeleeCarPartCell(isWeapon ? cellCmp.MainCellPart.transform : carView.CarPartsContainer)
+             : _sceneData.Value.GetCarPartCell(isWeapon ? cellCmp.MainCellPart.transform : carView.CarPartsContainer);*/
 
-            int needSpriteLevel = isWeapon ? 2 : 1;
-            carPart.SetupCarPart(cellEntity, carPartConfig.PartSprite, needSpriteLevel);
-            if (isWeapon) {
-                cellCmp.MaxHealth += carPartConfig.MaxHealth;
-                cellCmp.CurrentHealth += carPartConfig.MaxHealth;
-            } else {
-                cellCmp.MaxHealth = carPartConfig.MaxHealth;
-                cellCmp.CurrentHealth = carPartConfig.MaxHealth;
-            }
+        // first need container and after that up level car parts
+
+        //   int needSpriteLevel = isWeapon ? 2 : 1;
+        bool isContainer = carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer;
+        float needRotate = cellCmp.carPartCellImage.transform.eulerAngles.z;
         
-            if (carPartConfig.PartType == CarPartType.Gun) {
-                carPart.SetColliderEnableState(false);
-                ref var gunCmp = ref _gunComponentsPool.Value.Add(cellEntity);
-                var gunConfig = _sceneData.Value.GetGunFromCarPart(cellCmp.CarPartsId[k]);
-                gunCmp.CurrentCouldown = gunConfig.ReloadDuration;
-                gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
-                carPart.transform.localPosition = Vector3.zero;
-                carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                if (gunConfig.MissleType == MissleType.laser) {
-                    _laserComponentsPool.Value.Add(cellEntity).LaserLineRenderer = _sceneData.Value.GetLaserLineRenderer();
-                }
-                
-            } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
-                carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                carPart.transform.localPosition = Vector3.zero;
-                carPart.MakeTriggerCollider();
+        cellCmp.MaxHealth = carPartConfig.MaxHealth;
+        cellCmp.CurrentHealth = carPartConfig.MaxHealth;
+        var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;
+        cellCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
+        foreach (var carPartInfo in needList[cellEntity]) {
+            var carPart = _sceneData.Value.GetCarPartCell(carView.CarPartsContainer);
+            cellCmp.CellCarPartsStuffViews.Add(carPart);
+            if (isContainer) {
+                carPart.SetupCarPart(cellEntity, "CarContainer");
+                carPart.transform.localPosition = new Vector2(carPartInfo.x, carPartInfo.y) + _cellOffset;
+              //  carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
                 carPart.SetColliderEnableState(true);
-                _constructMeleeCellEventsPool.Value.Add(cellEntity);
-            } else {
-                cellCmp.MainCellPart = carPart;
-                carPart.transform.localPosition = new Vector2(j, i) + _cellOffset;
-                carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
-                carPart.SetColliderEnableState(true);
-                if (carPartConfig.PartType == CarPartType.Support) {
-                    var supportCarPartConfig = _sceneData.Value.GetSupportModuleFromCarPart(cellCmp.CarPartsId[k]);
-                    switch (supportCarPartConfig.ModuleType) {
-                        case SupportModuleType.Fuel:
-                            ref var fuelCmp = ref _fuelComponentsPool.Value.Get(cellCmp.MainEntity);
-                            fuelCmp.CurrentFuel += supportCarPartConfig.FirstCount;
-                            fuelCmp.MaxFuel += supportCarPartConfig.FirstCount;
-                            Debug.Log(fuelCmp.MaxFuel); //id breack delete current fuel
-                            break;
-                        case SupportModuleType.Turbine:
-                            _fuelComponentsPool.Value.Get(cellCmp.MainEntity).FuelConsumption += supportCarPartConfig.FirstCount;
-                            _movementComponentsPool.Value.Get(cellCmp.MainEntity).MaxMoveSpeed += supportCarPartConfig.SecondCount;
-                            break;
-                    }
+                carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
+            } else
+                carPart.SetupCarPart(cellEntity, "CarPart");
+            // need check
+        }
+
+        if (carPartConfig.PartType == CarPartType.Gun) {
+            //  carPart.SetColliderEnableState(false);
+            ref var gunCmp = ref _gunComponentsPool.Value.Add(cellEntity);
+            var gunConfig = _sceneData.Value.GetGunFromCarPart(cellCmp.CarPartId);
+            gunCmp.CurrentCouldown = gunConfig.ReloadDuration;
+            gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
+            //   carPart.transform.localPosition = Vector3.zero;
+            //  carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            if (gunConfig.MissleType == MissleType.laser) {
+                _laserComponentsPool.Value.Add(cellEntity).LaserLineRenderer = _sceneData.Value.GetLaserLineRenderer();
+            }
+        } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
+            //  carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            // carPart.transform.localPosition = Vector3.zero;
+            //  carPart.MakeTriggerCollider();
+            //  carPart.SetColliderEnableState(true);
+            _constructMeleeCellEventsPool.Value.Add(cellEntity);
+        } else {
+            // cellCmp.MainCellPart = carPart;
+            //  carPart.transform.localPosition = new Vector2(j, i) + _cellOffset;
+            // carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
+            //  carPart.SetColliderEnableState(true);
+            if (carPartConfig.PartType == CarPartType.Support) {
+                var supportCarPartConfig = _sceneData.Value.GetSupportModuleFromCarPart(cellCmp.CarPartId);
+                switch (supportCarPartConfig.ModuleType) {
+                    case SupportModuleType.Fuel:
+                        ref var fuelCmp = ref _fuelComponentsPool.Value.Get(cellCmp.MainEntity);
+                        fuelCmp.CurrentFuel += supportCarPartConfig.FirstCount;
+                        fuelCmp.MaxFuel += supportCarPartConfig.FirstCount;
+                        Debug.Log(fuelCmp.MaxFuel); //id breack delete current fuel
+                        break;
+                    case SupportModuleType.Turbine:
+                        _fuelComponentsPool.Value.Get(cellCmp.MainEntity).FuelConsumption += supportCarPartConfig.FirstCount;
+                        _movementComponentsPool.Value.Get(cellCmp.MainEntity).MaxMoveSpeed += supportCarPartConfig.SecondCount;
+                        break;
                 }
             }
+        }
 
-            _carComponentsPool.Value.Get(cellCmp.MainEntity).CurrentWeight += carPartConfig.Weight;
+        cellCmp.CarPartCellRenderer = _sceneData.Value.GetCarPartSpriteRenderer(carView.transform);
+        cellCmp.CarPartCellRenderer.sprite = carPartConfig.PartSprite;
+        Vector2Int carPartSize = GridUtils.GetCarPartSize(carPartConfig);
+        cellCmp.CarPartCellRenderer.transform.localScale = (Vector3Int)carPartSize;
+        cellCmp.CarPartCellRenderer.transform.localPosition = ((Vector3Int)GridUtils.GetEdgePointFromCarPart(needList[cellEntity]) + (Vector3Int)carPartSize) - (Vector3)(Vector2.one*0.5f);
+        
+        
+        carCmp.CurrentWeight += carPartConfig.Weight;
 
-            if (carPartConfig.PartType != CarPartType.MeleeWeapon)
-                carPart.gameObject.layer = isPlayer ? LayerMask.NameToLayer("Player") : LayerMask.NameToLayer("Enemy");
-            carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
-            
-                
-        }*/
+        //   if (carPartConfig.PartType != CarPartType.MeleeWeapon)
+        //      carPart.gameObject.layer = isPlayer ? LayerMask.NameToLayer("Player") : LayerMask.NameToLayer("Enemy");
     }
 
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {

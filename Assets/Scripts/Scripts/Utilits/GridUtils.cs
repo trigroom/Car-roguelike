@@ -23,4 +23,12 @@ public class GridUtils : MonoBehaviour
     }
     return carPartSize;
   }
+  
+  public static bool IsPositionInGrid(Vector2Int gridPosition, int[,] gridSize)
+  {
+       
+    return gridPosition.x >= 0 && gridPosition.x < gridSize.GetLength(0) &&
+           gridPosition.y >= 0 && gridPosition.y < gridSize.GetLength(1);
+        
+  }
 }

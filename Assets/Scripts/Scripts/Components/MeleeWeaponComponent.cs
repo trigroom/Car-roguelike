@@ -1,4 +1,7 @@
 
+   using UnityEngine;
+
    public struct MeleeWeaponComponent {
-        public float couldown;
-    }
+       public float couldown;
+       public SpriteRenderer meleeWeaponRenderer;
+   }

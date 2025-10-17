@@ -2432,7 +2432,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Redact part containers
+  m_text: 'Redact down level
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2441,8 +2443,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4281283902
+  m_fontColor: {r: 0.24313727, g: 0.20784315, b: 0.18431373, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2459,8 +2461,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 11
-  m_fontSizeBase: 11
+  m_fontSize: 15
+  m_fontSizeBase: 15
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4637,7 +4639,7 @@ MonoBehaviour:
   <_subGridTransform>k__BackingField: {fileID: 2119767461}
   <_gridMaskRect>k__BackingField: {fileID: 1501678726}
   <_carPartsContainersContainer>k__BackingField: {fileID: 1365394891}
-  <_carPartSpriteRenderer>k__BackingField: {fileID: 0}
+  <_carPartSpriteRenderer>k__BackingField: {fileID: 6886424704273075561, guid: 02b29821d4510e34a8a4903c4f1cd901, type: 3}
   <_carPartUIImage>k__BackingField: {fileID: 8772265081409430298, guid: 1e658ec96be8531478ab5b69d473b9c6, type: 3}
   <_floatingTextContainer>k__BackingField: {fileID: 200247433}
   <_floatingTextPrefab>k__BackingField: {fileID: 6177103583092437149, guid: 4d9567d7fcb12a2458db6016de1868ae, type: 3}
