@@ -123,10 +123,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     carCmp.CarPartContainerGroupsGrid.GetLength(1));
             var carPartsContainer = _sceneData.Value._carPartsContainersContainer;
             _sceneData.Value._subGridTransform.transform.position = carPartsContainer.position;
-            Vector2 positionOffset = _sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.sizeDelta -currentCellSize;
+            Vector2 positionOffset = _sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.rect.size -currentCellSize;
+            Debug.Log(" siiiiiiiiiiiize"+_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.rect.size+" -"+currentCellSize);
+           // Debug.Log(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.rect.size + "            " + _sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.sizeDelta);
             if (positionOffset != Vector2.zero) {
-                var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
-                positionOffset -= (new Vector2(carPartSize.x - 1, carPartSize.y - 1) * currentCellSize / 9.82f);
+               var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
+               positionOffset = new Vector2(carPartSize.x - 1, carPartSize.y - 1)/2 * currentCellSize * _sceneData.Value.mainCanvas.localScale.x;
+                //9.82 for 3440x1440
+              // positionOffset -= (Vector2.one*(2 -_sceneData.Value.mainCanvas.localScale.x)) * currentCellSize;
+//              Debug.Log("new" + positionOffset);
             }
 
             if (inventoryCmp.LastCheckedGridCellPosition != GetCurrentDragCarPartContainerGridPosition()) {
@@ -143,6 +148,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     targetCellPosition = ((worldPosition + positionOffset) * 7 + (Vector2)Input.mousePosition + positionOffset) / 8;
                 } else*/ if (carCmp.CarPartContainerGroupsList.Count != 0 && inventoryCmp.IsSnappingToGrid) {
                     var worldPosition = GetWorldPositionFromGrid(GetCurrentDragCarPartContainerGridPosition());
+                    Debug.Log("worldposition"+worldPosition);
                     targetCellPosition = ((worldPosition + positionOffset) * 7 + (Vector2)Input.mousePosition + positionOffset) / 8;
                 } else {
                     targetCellPosition = (Vector2)Input.mousePosition + positionOffset;
@@ -150,6 +156,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
                 _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position = Vector3.Slerp(
                     _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position, targetCellPosition, Time.deltaTime * 10f);
+                Debug.Log(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position + " poooooooooooooooos    "+positionOffset);
                 if (Input.GetMouseButtonDown(1) && (GetCurrentDraggedCellCarPart().PartType == CarPartType.Gun ||
                                                     GetCurrentDraggedCellCarPart().PartType == CarPartType.MeleeWeapon))
                     RotateCarPart();
@@ -474,7 +481,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             _carPartComponentsPool.Value.Add(carPartEntity);
             Vector2 offset = (carPartSize - Vector2Int.one) * gridCellNewSize;
             if (carPartSize != Vector2Int.one)
-                offset -= (new Vector2(carPartSize.x - 1, carPartSize.y - 1) * gridCellNewSize / 9.82f);
+                offset = new Vector2(carPartSize.x - 1, carPartSize.y - 1)/2 * gridCellNewSize * _sceneData.Value.mainCanvas.localScale.x;
             Vector3 finalPosition = GetWorldPositionFromGrid(currentGridPosition) + offset;
             Sequence carPartSequence = DOTween.Sequence();
             carPartSequence.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform.DOMove(finalPosition, 0.2f)
@@ -507,7 +514,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     newPos.x -= xOffsetDown;
                 if (yOffsetDown != 0)
                     newPos.y -= yOffsetDown;
-                Debug.Log(newPos + " new pos"+ carCmp.CarPartContainerGroupsList[cellGroup.Key][i]);
+         //       Debug.Log(newPos + " new pos"+ carCmp.CarPartContainerGroupsList[cellGroup.Key][i]);
                 carCmp.CarPartContainerGroupsList[cellGroup.Key][i] = newPos;
                 carCmp.CarPartContainerGroupsGrid[newPos.x, newPos.y] = cellGroup.Key;
             }
@@ -517,7 +524,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var oldCarPartSize = GridUtils.GetCarPartSize(oldCarPartConfig);
             Vector2 oldFiguresOffset = (oldCarPartSize - Vector2Int.one) * gridCellNewSize;
             if (oldCarPartSize != Vector2Int.one)
-                oldFiguresOffset -= (new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1) * gridCellNewSize / 9.82f);
+            oldFiguresOffset = new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1)/2 * gridCellNewSize * _sceneData.Value.mainCanvas.localScale.x;
             Sequence returnSequence = DOTween.Sequence();
             returnSequence.Append(carPartOldCmp.carPartCellImage.rectTransform.DOSizeDelta(gridCellNewSize * oldCarPartSize, 0.2f)
                 .SetEase(Ease.InOutQuad));
@@ -542,7 +549,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var oldCarPartSize = GridUtils.GetCarPartSize(oldCarPartConfig);
             Vector2 oldFiguresOffset = (oldCarPartSize - Vector2Int.one) * gridCellNewSize;
             if (oldCarPartSize != Vector2Int.one)
-                oldFiguresOffset -= (new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1) * gridCellNewSize / 9.82f);
+            oldFiguresOffset = new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1)/2 * gridCellNewSize * _sceneData.Value.mainCanvas.localScale.x;
             Sequence returnSequence = DOTween.Sequence();
             returnSequence.Append(carPartOldCmp.carPartCellImage.rectTransform.DOSizeDelta(gridCellNewSize * oldCarPartSize, 0.2f)
                 .SetEase(Ease.InOutQuad));
@@ -1113,7 +1120,7 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
        
     Vector2 offset = carPartSize * inventoryCmp.onCarCellSize - inventoryCmp.onCarCellSize;
     if (carPartSize != Vector2Int.one) {
-        offset -= (new Vector2(carPartSize.x - 1, carPartSize.y - 1) * inventoryCmp.onCarCellSize / 9.82f);
+        offset = new Vector2(carPartSize.x - 1, carPartSize.y - 1)/2 * inventoryCmp.onCarCellSize * _sceneData.Value.mainCanvas.localScale.x;
     }
 
     var gridPos = inventoryCmp.LastCheckedGridCellPosition;
