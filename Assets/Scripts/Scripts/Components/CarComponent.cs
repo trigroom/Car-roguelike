@@ -15,6 +15,7 @@ public struct CarComponent {
 
      public Dictionary<int, List<Vector2Int>> CarPartGroupsList;
      public int[,] CarPartGroupsGrid;
+     public CarPartStuffView[,] CarPartViewsGrid;
      
      public Dictionary<int, List<Vector2Int>> CarPartContainerGroupsList;
      public int[,] CarPartContainerGroupsGrid;

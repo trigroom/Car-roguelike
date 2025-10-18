@@ -143,7 +143,9 @@ using UnityEngine.UI;
 
                 // Если попали во врага, можно нанести урон
                 if (hit.collider.CompareTag("Enemy")) {
-                    ProjectileHit(AttackType.Laser, gunConfig.Id, hit.collider.GetComponent<CarPartStuffView>()._entity, hit.point, null, entity);
+                    var damagedCarPart = hit.collider.GetComponent<CarPartStuffView>();
+                    ProjectileHit(AttackType.Laser, gunConfig.Id, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point, null,
+                        entity);
                 }
             } else {
                 // Если не попали, конечная точка на максимальной дистанции
@@ -187,7 +189,7 @@ using UnityEngine.UI;
               var meleeStuffCarPart =   carPartComponent.CarPartCellRenderer.transform.GetChild(0)
                 .GetComponent<MeleeCarPartStuffView>();
               _meleeWeaponComponentsPool.Value.Add(entity);
-            meleeStuffCarPart.ConstructMelee(ProjectileHit, carPartComponent.MainEntity == _sceneData.Value.PlayerEntity?"Enemy":"Player",carPartComponent.CarPartId);
+            meleeStuffCarPart.ConstructMelee(carPartComponent.CarPartCellRenderer,ProjectileHit, carPartComponent.MainEntity == _sceneData.Value.PlayerEntity?"Enemy":"Player",carPartComponent.CarPartId, entity);
         }
 
         private void CreateExplosionEffect(float radius, Vector2 position, EffectType effectType) {
@@ -303,7 +305,7 @@ using UnityEngine.UI;
             }
         }
 
-        private void ProjectileHit(AttackType attackType, int weaponId, int damagedEntity, Vector2 collisionPoint,
+        private void ProjectileHit(AttackType attackType, int weaponId, Vector2Int damagedEntityGridPosition,int damagedMainEntity, Vector2 collisionPoint,
             ProjectileView projectile = null, int weaponCellEntity = -1, string layerName = null) {
             float damagePoints;
             if /*gunProjectile*/ (attackType == AttackType.Projectile) {
@@ -314,7 +316,10 @@ using UnityEngine.UI;
                     _sceneData.Value._bulletSprites);
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(weaponId);
                 damagePoints = gunConfig.Damage;
-
+                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
+                    ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
+                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
                 if (gunConfig.ImpulseForce != 0)
                     ProjectileImpulse(gunConfig.ImpulseForce, damagedEntity, projectile.rigidbody2D.linearVelocity.normalized);
                 projectile.rigidbody2D.linearVelocity = Vector2.zero;
@@ -325,7 +330,12 @@ using UnityEngine.UI;
                     if (_carPartComponentsPool.Value.Get(damagedEntity).MainEntity == _sceneData.Value.PlayerEntity)
                         damagePoints *= _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).RoundMoneyMultiplayer;
                     foreach (var castedObject in castedObjects) {
-                        int currentDamagedEntity = castedObject.GetComponent<CarPartStuffView>()._entity;
+                        
+                        Vector2Int currentDamagedEntityGridPos = castedObject.GetComponent<CarPartStuffView>()._gridPosition;
+                        var currentCarCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                        int currentDamagedEntity = currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y] == 0
+                            ? currentCarCmpDamaged.CarPartContainerGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y]
+                            : currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y];
                         _sceneData.Value.GetFloatingTextPrefab(
                             _carPartComponentsPool.Value.Get(currentDamagedEntity).CarPartCellRenderer.transform.position, damagePoints.ToString(),
                             Color.white);
@@ -348,7 +358,7 @@ using UnityEngine.UI;
                 damagePoints = meleeWeaponConfig.Damage +
                                (_movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity)
                                     .CurrentMoveSpeed +
-                                _movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(damagedEntity).MainEntity)
+                                _movementComponentsPool.Value.Get(damagedMainEntity)
                                     .CurrentMoveSpeed) * meleeWeaponConfig.DamageAddedFromOneSpeed;
             } else /*laser*/ {
                 float distanceBetween = Vector2.Distance(_carPartComponentsPool.Value.Get(weaponCellEntity).CarPartCellRenderer.transform.position,
@@ -361,11 +371,15 @@ using UnityEngine.UI;
                 // gunConfig.ExplosionRadius is damage that can be minus from all damage from distance - smaller = higher damage
             }
 
-            if (_carPartComponentsPool.Value.Get(damagedEntity).MainEntity == _sceneData.Value.PlayerEntity)
+            if (damagedMainEntity == _sceneData.Value.PlayerEntity)
                 damagePoints *= _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).RoundMoneyMultiplayer;
 
             if (damagePoints > 0) {
                 _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString(), Color.white);
+                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
+                    ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
+                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
                 ChangeHealth(damagePoints, damagedEntity);
             }
         }
@@ -449,7 +463,7 @@ using UnityEngine.UI;
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
                     var gridPos = carCmp.CarPartGroupsList[cellEntity][i];
                     carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] = 0;
-                    carPart.SetupCarPart(carCmp.CarPartContainerGroupsGrid[gridPos.x, gridPos.y], "CarContainer");
+                    carPart.SetupCarPart(gridPos, "CarBase",carPartCmp.MainEntity);
                 }
             }
 

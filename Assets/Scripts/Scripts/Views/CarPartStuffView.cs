@@ -4,16 +4,16 @@ using UnityEngine;
 public class CarPartStuffView : MonoBehaviour
 {
     [field: SerializeField]
-    public SpriteRenderer _carPartSpriteRenderer { get;protected set;}
-    [field: SerializeField]
     public BoxCollider2D _carPartCollider { get;protected set;}
 
     private Action<int> _takeDamageAction;
-    public int _entity { get;private set; }
+    public Vector2Int _gridPosition { get;private set; }
+    public int _mainEntity { get;private set; }
 
-    public void SetupCarPart(int cellEntity, string carPartLayer) {
-        _entity = cellEntity;
+    public void SetupCarPart(Vector2Int gridposition, string carPartLayer, int mainEntity) {
+        _gridPosition = gridposition;
         gameObject.layer = LayerMask.NameToLayer(carPartLayer);
+        _mainEntity = mainEntity;
     }
 
     public void SetColliderEnableState(bool state) {

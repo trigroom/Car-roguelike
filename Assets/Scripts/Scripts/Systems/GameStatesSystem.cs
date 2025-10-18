@@ -443,8 +443,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void SetPlayerCarPrefab() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carView = CarViewSetup(_sceneData.Value.PlayerEntity);
-        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-
+        ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        carCmp.CarPartViewsGrid =
+            new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
             SpawnCarPartCellView(carPartInfo.Key, carView, true);
         }
@@ -469,14 +470,16 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void ArrangeImagesInGrid() {
-        float spacing = 4f;
+        float spacing = 0f;
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        RectTransform parentRect = _sceneData.Value._playerUIView._carPratsHealthContainer;
+        ref var carCmp  = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        RectTransform parentRect = _sceneData.Value._playerUIView._carPratsDownLevelHealthContainer;
         float parentWidth = parentRect.rect.width;
         float parentHeight = parentRect.rect.height;
-
-        int columns = inventoryCmp.GridCarPartCellsEntities.GetLength(1);
-        int rows = inventoryCmp.GridCarPartCellsEntities.GetLength(0);
+    
+        int columns = carCmp.CarPartContainerGroupsGrid.GetLength(1);
+        int rows = carCmp.CarPartContainerGroupsGrid.GetLength(0);
+        inventoryCmp.CarPartInfoUIViewsGrid = new CarPartInGameUIView[rows, columns];
         // Вычисляем размер каждого квадрата
         float cellSize = Mathf.Min((parentWidth - (columns - 1) * spacing) / columns, (parentHeight - (rows - 1) * spacing) / rows);
 
@@ -487,22 +490,25 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         float startX = -gridWidth / 2 + cellSize / 2;
         float startY = gridHeight / 2 - cellSize / 2;
 
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < columns; col++) {
-            /*    int cellEntity = inventoryCmp.GridCarPartsEntities[row, col];
+        foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
+            foreach (var cell in carPartInfo.Value) {
+                var col = cell.x;
+                var row = cell.y;
                 float posX = startX + col * (cellSize + spacing);
                 float posY = startY - row * (cellSize + spacing);
                 var cellUIHealth = _sceneData.Value.GetCarPartInGameUIView();
-                _carPartInGameUIComponentsPool.Value.Get(cellEntity).view = cellUIHealth;
-                var cellCmp = _cellComponentsPool.Value.Get(cellEntity);
-                if (cellCmp.MaxHealth == 0) {
-                    cellUIHealth.gameObject.SetActive(false);
-                } else {
-                    cellUIHealth.gameObject.SetActive(true);
-                    cellUIHealth.SetSize(new Vector2(cellSize, cellSize), new Vector2(posX, posY));
-                    cellUIHealth.SetHealthCount(_sceneData.Value._healthGradient.Evaluate(cellCmp.CurrentHealth / cellCmp.MaxHealth),
-                        (int)cellCmp.CurrentHealth);
-                }*/
+                var cellCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+                inventoryCmp.CarPartInfoUIViewsGrid[col, row] = cellUIHealth;
+                /*   if (cellCmp.MaxHealth == 0) {
+                       cellUIHealth.gameObject.SetActive(false);
+                   } else {*/
+                cellUIHealth.gameObject.SetActive(true);
+                cellUIHealth.SetSize(new Vector2(cellSize, cellSize), new Vector2(posX, posY),
+                    _sceneData.Value._carStuffListsConfig.CarPartUIBordersSprites[
+                        GridUtils.GetTileSpriteIndex(carCmp.CarPartContainerGroupsGrid, cell)]);
+                cellUIHealth.SetHealthCount(_sceneData.Value._healthGradient.Evaluate(cellCmp.CurrentHealth / cellCmp.MaxHealth),
+                    (int)cellCmp.CurrentHealth);
+                // }
             }
         }
     }
@@ -556,16 +562,17 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;
         cellCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
         foreach (var carPartInfo in needList[cellEntity]) {
-            var carPart = _sceneData.Value.GetCarPartCell(carView.CarPartsContainer);
+            var carPart =  isContainer ? _sceneData.Value.GetCarPartCell(carView.CarPartsContainer): carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y];
             cellCmp.CellCarPartsStuffViews.Add(carPart);
             if (isContainer) {
-                carPart.SetupCarPart(cellEntity, "CarContainer");
+                carPart.SetupCarPart(carPartInfo, "CarBase", cellCmp.MainEntity);
                 carPart.transform.localPosition = new Vector2(carPartInfo.x, carPartInfo.y) + _cellOffset;
               //  carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
                 carPart.SetColliderEnableState(true);
                 carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
+                carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y] = carPart;
             } else
-                carPart.SetupCarPart(cellEntity, "CarPart");
+                carPart.SetupCarPart(carPartInfo, "CarBase", cellCmp.MainEntity);
             // need check
         }
 

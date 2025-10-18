@@ -16,8 +16,9 @@ public class CarPartInGameUIView : MonoBehaviour
         CarPartImage.color = needColor;
     }
 
-    public void SetSize(Vector2 size, Vector2 position) {
+    public void SetSize(Vector2 size, Vector2 position, Sprite sprite) {
         CarPartImage.rectTransform.sizeDelta = size;
         CarPartImage.transform.localPosition = position;
+        CarPartImage.sprite = sprite;
     }
 }

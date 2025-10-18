@@ -10,7 +10,9 @@ public class PlayerUIView : MonoBehaviour
     [field: SerializeField]
     public TMP_Text _fuelText { get; private set; }
     [field: SerializeField]
-    public RectTransform _carPratsHealthContainer { get; private set; }
+    public RectTransform _carPratsUpLevelHealthContainer { get; private set; }
+    [field: SerializeField]
+    public RectTransform _carPratsDownLevelHealthContainer { get; private set; }
     [field: SerializeField]
     public TMP_Text _gameTimerText { get; private set; }
     [field: SerializeField]

@@ -80,7 +80,8 @@ public class SceneService : MonoBehaviour
         gameInput = new InputSystem_Actions();
         gameInput.Enable();
         gameVersionText.text = Application.version;
-        aspectRatio = mainCanvas.rect.width / mainCanvas.rect.height;
+        aspectRatio =(mainCanvas.rect.width / mainCanvas.rect.height)/(16f/9f) ;
+        aspectRatio = 7.5f;
         mainCamera = Camera.main;
         _laserLineRenderersPool = new ObjectPool<LineRenderer>(() => Instantiate(_laserLineRenderer, _notUsedCarPartsContainer));
         _projectilesPool = new ObjectPool<ProjectileView>(() => Instantiate(_projectileView));
@@ -89,7 +90,7 @@ public class SceneService : MonoBehaviour
         _meleeCarPartsPool = new ObjectPool<MeleeCarPartStuffView>(() => Instantiate(_carStuffListsConfig.MeleeCarPartStuffView));
         _explosionEffectsPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_explosionEffectPrefab));
         _сarPartInGameUIViewsPool =
-            new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsHealthContainer));
+            new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsDownLevelHealthContainer));
     }
 
     public CarPartInGameUIView GetCarPartInGameUIView() {

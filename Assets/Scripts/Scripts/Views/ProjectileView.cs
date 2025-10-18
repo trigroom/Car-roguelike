@@ -5,7 +5,7 @@ using UnityEngine;
 public class ProjectileView : MonoBehaviour {
     public int entity;
     private int gunId;
-    private Action<AttackType,int, int,Vector2,ProjectileView,int, string> hitTargetAction;
+    private Action<AttackType,int, Vector2Int,int,Vector2,ProjectileView,int, string> hitTargetAction;
     [SerializeField]
     private SpriteRenderer spriteRenderer;
     private string needTag;
@@ -17,7 +17,7 @@ public class ProjectileView : MonoBehaviour {
     public Rigidbody2D rigidbody2D { get; private set; }
     private Sequence animationSequence;
 
-    public void Construct( Action<AttackType,int, int,Vector2, ProjectileView, int, string> hitTargetAction, int gunId, Sprite sprite, string tag) {
+    public void Construct( Action<AttackType,int, Vector2Int,int,Vector2, ProjectileView, int, string> hitTargetAction, int gunId, Sprite sprite, string tag) {
         this.hitTargetAction = hitTargetAction;
         this.gunId = gunId;
         spriteRenderer.sprite = sprite;
@@ -53,8 +53,9 @@ public class ProjectileView : MonoBehaviour {
             targetAngle += other.transform.eulerAngles.z-180;
             if(targetAngle >= 360)
                 targetAngle -= 360;
+            var damagedCarPart = other.gameObject.GetComponent<CarPartStuffView>();
             transform.eulerAngles = new Vector3(0, 0, + targetAngle);
-             hitTargetAction?.Invoke (AttackType.Projectile,gunId, other.gameObject.GetComponent<CarPartStuffView>()._entity,EstimateCollisionPoint(other, collider)
+             hitTargetAction?.Invoke (AttackType.Projectile,gunId, damagedCarPart._gridPosition,damagedCarPart._mainEntity,EstimateCollisionPoint(other, collider)
                  ,this, entity, needTag);
              
         }

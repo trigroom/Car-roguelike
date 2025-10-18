@@ -17,6 +17,9 @@ public class CarStuffListsConfig : ScriptableObject
     
     [field: SerializeField]
     public Animator[] Wheels { get;private set; }
+    
+    [field: SerializeField]
+    public Sprite[] CarPartUIBordersSprites { get;private set; }
 }
 [System.Serializable]
 public struct ShopItem {

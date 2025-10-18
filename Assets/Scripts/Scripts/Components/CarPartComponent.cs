@@ -12,5 +12,4 @@ using UnityEngine.UI;
         public List<CarPartStuffView> CellCarPartsStuffViews;
         public Image carPartCellImage;
         public SpriteRenderer CarPartCellRenderer;
-        public CarPartInGameUIView CarPartInGameUIView;
     }
