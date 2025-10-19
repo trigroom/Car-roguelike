@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
-  [field: SerializeField] public Image _subGridTransform { get; private set; }
+  [field: SerializeField] public SubGridView _subGridTransform { get; private set; }
   [field: SerializeField] public RectTransform _gridMaskRect { get; private set; }
     [field: SerializeField] public RectTransform _carPartsContainersContainer { get; private set; }
     [field: SerializeField] public SpriteRenderer _carPartSpriteRenderer { get; private set; }

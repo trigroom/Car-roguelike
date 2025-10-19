@@ -455,7 +455,7 @@ GameObject:
   m_Component:
   - component: {fileID: 79886596}
   m_Layer: 5
-  m_Name: ContainerForHealth
+  m_Name: ContainerForHealthDownLevel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -477,7 +477,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.0001}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &130634091 stripped
@@ -4638,7 +4638,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47a5551cc11d45d46b1963fc225b00d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <_subGridTransform>k__BackingField: {fileID: 2119767461}
+  <_subGridTransform>k__BackingField: {fileID: 2119767463}
   <_gridMaskRect>k__BackingField: {fileID: 1501678726}
   <_carPartsContainersContainer>k__BackingField: {fileID: 1365394891}
   <_carPartSpriteRenderer>k__BackingField: {fileID: 6886424704273075561, guid: 02b29821d4510e34a8a4903c4f1cd901, type: 3}
@@ -4975,6 +4975,7 @@ RectTransform:
   - {fileID: 1642392024}
   - {fileID: 994807420}
   - {fileID: 909077290}
+  - {fileID: 1587120305}
   m_Father: {fileID: 796384107}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5726,7 +5727,6 @@ RectTransform:
   - {fileID: 237735763}
   - {fileID: 1365394891}
   - {fileID: 1744138807}
-  - {fileID: 1587120305}
   m_Father: {fileID: 1355753778}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -9705,6 +9705,7 @@ GameObject:
   - component: {fileID: 1587120305}
   - component: {fileID: 1587120307}
   - component: {fileID: 1587120306}
+  - component: {fileID: 1587120308}
   m_Layer: 5
   m_Name: DraggedInventoryCell
   m_TagString: Untagged
@@ -9725,11 +9726,11 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1501678726}
-  m_Father: {fileID: 999509312}
+  m_Father: {fileID: 912522063}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -74, y: 2}
+  m_AnchoredPosition: {x: -52.79309, y: 1.6540527}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1587120306
@@ -9770,6 +9771,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1587120304}
   m_CullTransparentMesh: 1
+--- !u!225 &1587120308
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1587120304}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &1596246886
 GameObject:
   m_ObjectHideFlags: 0
@@ -11460,7 +11473,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1904155910}
   m_Layer: 5
-  m_Name: ContainerForHealth
+  m_Name: ContainerForHealthUpLevel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11482,7 +11495,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.0001}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 160, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1924443095
@@ -13286,6 +13299,7 @@ GameObject:
   - component: {fileID: 2119767460}
   - component: {fileID: 2119767462}
   - component: {fileID: 2119767461}
+  - component: {fileID: 2119767463}
   m_Layer: 5
   m_Name: GridImage
   m_TagString: Untagged
@@ -13353,6 +13367,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2119767459}
   m_CullTransparentMesh: 1
+--- !u!114 &2119767463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2119767459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9b88a3a126674047be92d731321f1cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _dragedCellCanvasGroup: {fileID: 1587120306}
+  _subGridImages:
+  - {fileID: 2119767461}
+  - {fileID: 1935483626}
+  - {fileID: 1356266312}
+  - {fileID: 944229666}
+  _canPlaceColor: {r: 1, g: 1, b: 1, a: 0.29803923}
+  _canNotPlaceColor: {r: 0.8113208, g: 0.27171594, b: 0.27171594, a: 0.29803923}
 --- !u!1001 &2353255607547516804
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -111,7 +111,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             rotateSpeed *= -1;
         ref var carCmp = ref _carComponentsPool.Value.Get(debug);
         var wheels = carCmp.ForwardWheels;
-        if (wheels == null || wheels.Length > 0 && wheels[0] == null) return;
+        if (wheels == null || wheels.Count > 0 && wheels[0] == null) return;
         var currentWheelAngle = wheels[0].localRotation;
 
         targetWheelAngle = Mathf.Clamp(targetWheelAngle, -40, 40);

@@ -23,6 +23,9 @@
         public bool IsCarPartsRedactorMode;
         public int CurrentMarkedCellForPanelInfo;
         public CarPartInGameUIView[,] CarPartInfoUIViewsGrid;
+        public CarPartInGameUIView[,] CarPartInfoUIViewsUpLevelGrid;
+        public Vector2 StartOffsetFromCell;
+        public Vector3 EdgeInputPosition;
         
         public Vector2Int LastCheckedGridCellPosition;
         public bool IsSnappingToGrid;

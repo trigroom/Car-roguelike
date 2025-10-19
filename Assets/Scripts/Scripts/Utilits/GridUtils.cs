@@ -103,4 +103,26 @@ public class GridUtils : MonoBehaviour
                 return currentPos;
         }
     }
+    
+    public static Vector2 GetNormalizedMouseOffset(RectTransform uiElement)
+    {
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            uiElement, 
+            Input.mousePosition, 
+            null, 
+            out Vector2 localPoint);
+
+        Rect rect = uiElement.rect;
+        Vector2 elementSize = rect.size;
+
+        Vector2 normalizedOffset = new Vector2(
+            (localPoint.x + elementSize.x * 0.5f) / elementSize.x * 2 - 1,
+            (localPoint.y + elementSize.y * 0.5f) / elementSize.y * 2 - 1
+        );
+
+        normalizedOffset.x = Mathf.Clamp(normalizedOffset.x, -1f, 1f);
+        normalizedOffset.y = Mathf.Clamp(normalizedOffset.y, -1f, 1f);
+
+        return normalizedOffset;
+    }
 }

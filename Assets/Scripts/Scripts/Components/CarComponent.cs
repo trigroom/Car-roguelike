@@ -7,8 +7,8 @@ public struct CarComponent {
     public float CurrentWeight;
     public int ShockedMainPartsCount;
 
-    public ParticleSystem[] ForwardWheelsParticles;
-    public Transform[] ForwardWheels;
+    public List<ParticleSystem> ForwardWheelsParticles;
+    public List<Transform> ForwardWheels;
     public CarView CarView;
 
     public bool isWheelParticle;
