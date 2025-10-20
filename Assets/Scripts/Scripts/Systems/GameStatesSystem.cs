@@ -35,6 +35,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
+    private EcsFilterInject<Inc<FilledZoneComponent>> _filledZoneComponentsFilter;
     private EcsFilterInject<Inc<TaskComponent>> _taskComponentsFilter;
     private EcsFilterInject<Inc<CarPartInGameUIComponent>> _carPartInGameUIComponentsFilter;
 
@@ -46,12 +47,17 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentBattleRounds = 2;
         _sceneData.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
         _sceneData.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
-        _sceneData.Value._mapFilledZoneView.SetupFilledZone(TriggerFilledZone);
+        _sceneData.Value._mapFilledZoneView.SetupFilledZone(SetFeelingZoneState);
     }
 
     public void Run(IEcsSystems systems) {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
 
+        foreach (var filledZone in _filledZoneComponentsFilter.Value) {
+            TriggerFilledZone();
+        }
+
+        
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
                 curGameCmp.RoundTime -= Time.deltaTime;
@@ -306,8 +312,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         TaskUtilits.UpdateTaskText(taskCmp);
     }
 
+    private void SetFeelingZoneState(bool isFeeling) {
+        _filledZoneComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ZoneIsFeeling = isFeeling;
+    }
     private void TriggerFilledZone() {
         ref var filledZoneCmp =ref _filledZoneComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        if(!filledZoneCmp.ZoneIsFeeling)return;
         filledZoneCmp.CurrentZoneTime += Time.deltaTime;
         _sceneData.Value._mapFilledZoneView.FilledZoneUI.fillAmount = filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime;
         if (filledZoneCmp.CurrentZoneTime >= filledZoneCmp.NeedZoneTime) {
@@ -568,20 +578,24 @@ Debug.Log(startX + " " + startY);
 
         // first need container and after that up level car parts
 
-        //   int needSpriteLevel = isWeapon ? 2 : 1;
+          
+        var containersSize = new Vector2(carCmp.CarPartContainerGroupsGrid.GetLength(0),carCmp.CarPartContainerGroupsGrid.GetLength(1));
         bool isContainer = carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer;
-        float needRotate = cellCmp.carPartCellImage.transform.eulerAngles.z;
+        int needSpriteLevel = isContainer ? 1 : 2;
+        int needRotate = (int)cellCmp.carPartCellImage.transform.eulerAngles.z; 
+        var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;
          Vector2Int carPartSize = GridUtils.GetCarPartSize(carPartConfig);
         cellCmp.MaxHealth = carPartConfig.MaxHealth;
         cellCmp.CurrentHealth = carPartConfig.MaxHealth;
-        var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;
+       
         cellCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
         foreach (var carPartInfo in needList[cellEntity]) {
             var carPart =  isContainer ? _sceneData.Value.GetCarPartCell(carView.CarPartsContainer): carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y];
             cellCmp.CellCarPartsStuffViews.Add(carPart);
             if (isContainer) {
                 carPart.SetupCarPart(carPartInfo, "CarBase", cellCmp.MainEntity);
-                carPart.transform.localPosition = new Vector2(carPartInfo.x, carPartInfo.y);
+                carPart.transform.localPosition = new Vector2(carPartInfo.x, carPartInfo.y)
+                                                  - new Vector2(containersSize.x/2f, containersSize.y/2f);
               //  carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
                 carPart.SetColliderEnableState(true);
                 carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
@@ -629,15 +643,16 @@ Debug.Log(startX + " " + startY);
 
         cellCmp.CarPartCellRenderer = _sceneData.Value.GetCarPartSpriteRenderer(carView.transform);
         cellCmp.CarPartCellRenderer.sprite = carPartConfig.PartSprite;
-
-        //  cellCmp.CarPartCellRenderer.transform.localScale = new Vector3(carPartSize.x, carPartSize.y, 1);
-        cellCmp.CarPartCellRenderer.transform.localPosition =
-            (Vector3Int)GridUtils.GetEdgePointFromCarPart(needList[cellEntity]) + new Vector3(carPartSize.x/2f, carPartSize.y/2f)/*- (Vector3)(Vector2.one * 0.5f)*/;
-        Debug.Log(GridUtils.GetEdgePointFromCarPart(needList[cellEntity]) + " edgee");
+        cellCmp.CarPartCellRenderer.sortingOrder = needSpriteLevel;
+        
+        if (needRotate == 90 || needRotate == 270) 
+            carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
+        
+        cellCmp.CarPartCellRenderer.transform.localPosition = (Vector3Int)GridUtils.GetEdgePointFromCarPart(needList[cellEntity]) +
+                                                              new Vector3((carPartSize.x - containersSize.x) / 2f,
+                                                                  (carPartSize.y - containersSize.y) / 2f);
         carCmp.CurrentWeight += carPartConfig.Weight;
-
-        //   if (carPartConfig.PartType != CarPartType.MeleeWeapon)
-        //      carPart.gameObject.layer = isPlayer ? LayerMask.NameToLayer("Player") : LayerMask.NameToLayer("Enemy");
+        cellCmp.CarPartCellRenderer.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
     }
 
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {
@@ -684,8 +699,7 @@ Debug.Log(startX + " " + startY);
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         carCmp.CarView = carView;
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
-        carView.CarBaseSpriteRenderer.sprite = carConfig.CarBackground;
-        carView.CarPartsContainer.localPosition = new Vector3(-(float)carConfig.Width / 2, (float)carConfig.Height / 2, 0);
+       // carView.CarPartsContainer.localPosition = new Vector3(-(float)carConfig.Width / 2, (float)carConfig.Height / 2, 0);
         carCmp.CurrentWeight += carConfig.MaxWeight / 5f;
         carCmp.ForwardWheels = new List<Transform>();
         carCmp.ForwardWheelsParticles = new List<ParticleSystem>();
@@ -739,7 +753,7 @@ Debug.Log(startX + " " + startY);
 
     private Animator CreateWheel(int wheelId, CarView carView, Vector2 pos, bool isLeftSide) {
         var wheelTransform = _sceneData.Value.InstantiateAnimator(_sceneData.Value._carStuffListsConfig.Wheels[wheelId],
-            carView.CarBaseSpriteRenderer.transform);
+            carView.ForwardWheelsContainer.transform);
         AnimatorClipInfo[] clipInfo = wheelTransform.GetCurrentAnimatorClipInfo(0);
         float clipLength = clipInfo[0].clip.length;
 

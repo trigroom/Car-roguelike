@@ -24,6 +24,17 @@ public class GridUtils : MonoBehaviour
     return carPartSize;
   }
   
+  public static Vector2Int GetCarPartSize(List<Vector2Int> carPartPositions) {
+      Vector2Int carPartSize = Vector2Int.one;
+      foreach (Vector2Int cell in carPartPositions) {
+          if (cell.x + 1 > carPartSize.x)
+              carPartSize.x = cell.x + 1;
+          if (cell.y + 1 > carPartSize.y)
+              carPartSize.y = cell.y + 1;
+      }
+      return carPartSize;
+  }
+  
   public static bool IsPositionInGrid(Vector2Int gridPosition, int[,] gridSize)
   {
        

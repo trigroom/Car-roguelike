@@ -83,6 +83,8 @@ using UnityEngine.UI;
             }
 
             foreach (var cellEntity in _constructMeleeCellEventsFilter.Value) {
+               return;
+               
                 ConstructMeleeWeaponCell(cellEntity);
             }
 

@@ -9,7 +9,6 @@ public class CarView : MonoBehaviour {
     public Transform MainCarContainer;
     public Transform CarPartsContainer;
     public Transform ForwardWheelsContainer;
-    public SpriteRenderer CarBaseSpriteRenderer;
     public int _entity { get;private set;}
     private Action<int, int> _collisionHitAction;
     

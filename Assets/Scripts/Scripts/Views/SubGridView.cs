@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +16,7 @@ public class SubGridView : MonoBehaviour {
             gridChild.pixelsPerUnitMultiplier = gridSize;
         }
     }
+
 
     public bool GetCurrentState() {
         return _subGridImages[0].color == _canPlaceColor;

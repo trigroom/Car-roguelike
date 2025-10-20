@@ -3,13 +3,14 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class MapFilledZoneView : MonoBehaviour
-{
+public class MapFilledZoneView : MonoBehaviour {
    [FormerlySerializedAs("_filledZoneUI")]
    public Image FilledZoneUI;
-   private Action _triggerAction;
 
-   public void SetupFilledZone(Action triggerAction) {
+   private Action<bool> _triggerAction;
+   public int collidersCount = 0;
+
+   public void SetupFilledZone(Action<bool> triggerAction) {
       _triggerAction = triggerAction;
    }
 
@@ -19,8 +20,19 @@ public class MapFilledZoneView : MonoBehaviour
       FilledZoneUI.fillAmount = 0;
    }
 
-   private void OnTriggerStay2D(Collider2D other) {
-      if (other.CompareTag("Player"))
-         _triggerAction.Invoke();
+   private void OnTriggerEnter2D(Collider2D other) {
+      if (other.CompareTag("Player")) {
+         if (collidersCount == 0)
+            _triggerAction.Invoke(true);
+         collidersCount++;
+      }
+   }
+
+   private void OnTriggerExit2D(Collider2D other) {
+      if (other.CompareTag("Player")) {
+         if (collidersCount == 1)
+            _triggerAction.Invoke(false);
+         collidersCount--;
+      }
    }
 }
