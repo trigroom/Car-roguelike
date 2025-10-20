@@ -30,6 +30,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<UpdateShopToSaleRoundEvent> _updateShopToSaleRoundEventsPool;
     private EcsPoolInject<CurrentGameComponent> _currentGameComponentsPool;
     private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
+    private EcsPoolInject<GunComponent> _gunComponentsPool;
  //   private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
 
     private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
@@ -297,18 +298,44 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.rotation = Quaternion.Euler(0, 0, 0);
         inventoryCmp.CurrentRotateDegrees = 0;
+        var partSize = GridUtils.GetCarPartSize(partInfo);
         var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Vector2 currentCellSize = /*inventoryCmp.IsCarPartsRedactorMode ? inventoryCmp.onCarCellSize :*/
             new Vector2(200, 200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1));
-        Vector2 cellSize = GridUtils.GetCarPartSize(partInfo) * currentCellSize;
+        Vector2 cellSize = partSize * currentCellSize;
+        
         _sceneData.Value._subGridTransform.gameObject.SetActive(true);
         _sceneData.Value._gridMaskRect.gameObject.SetActive(true);
         _sceneData.Value._subGridTransform.SetSubGridSize(Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
             carCmp.CarPartContainerGroupsGrid.GetLength(1)) * 8);
+        inventoryCmp.CurrentTween = DOTween.Sequence();
+
+        inventoryCmp.CurrentTween.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(cellSize, 0.3f)
+            .SetEase(Ease.OutBack));
+        if (partInfo.PartType == CarPartType.Gun) {
+            (Sprite upSprite, Vector2 size, Vector2 position) =
+                GetUpperPartSizesForUI(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform, partInfo);
+
+            var upDragCell = _sceneData.Value._inventoryUIView._draggedInventoryCellUp;
+            upDragCell.sprite = upSprite;
+            upDragCell.transform.localPosition = position;
+            upDragCell.rectTransform.sizeDelta = size;
+            var gunConfig = _sceneData.Value.GetGunFromCarPart(partInfo.Id);
+            var sizeMultiplyer = partInfo.PartSprite.rect.size / gunConfig.UpPartSprite.rect.size;
+            
+         /*   cellSize = cell.sizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;*/
+            var needPosition = cellSize / Math.Max(partSize.x, partSize.y) * gunConfig.UpPartPosition;
+            
+            inventoryCmp.CurrentTween.Join(upDragCell.rectTransform.DOSizeDelta(cellSize * sizeMultiplyer, 0.3f)
+                .SetEase(Ease.OutBack));
+            inventoryCmp.CurrentTween.Join(upDragCell.transform.DOLocalMove(needPosition, 0.3f)
+                .SetEase(Ease.OutBack));
+            
+            //  inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, upSprite, size, position);
+        } else
+            _sceneData.Value._inventoryUIView._draggedInventoryCellUp.sprite = _sceneData.Value._transparentPixel;
 
         _sceneData.Value._gridMaskRect.sizeDelta = cellSize + currentCellSize * 1.8f;
-        inventoryCmp.CurrentTween = _sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(cellSize, 0.3f)
-            .SetEase(Ease.OutBack);
     }
 
     private void RotateCarPart() {
@@ -325,8 +352,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         
         _sceneData.Value._gridMaskRect.sizeDelta = new Vector2(_sceneData.Value._gridMaskRect.sizeDelta.y, _sceneData.Value._gridMaskRect.sizeDelta.x);
         // Создаем новую анимацию от текущего положения к целевому
-        inventoryComponent.CurrentTween = cellView.transform
-            .DORotate(new Vector3(0, 0, inventoryComponent.CurrentRotateDegrees), 0.3f, RotateMode.Fast).SetEase(Ease.OutBack);
+        inventoryComponent.CurrentTween = DOTween.Sequence();
+        inventoryComponent.CurrentTween.Append(cellView.transform
+                                                           .DORotate(new Vector3(0, 0, inventoryComponent.CurrentRotateDegrees), 0.3f, RotateMode.Fast).SetEase(Ease.OutBack));
     }
 
     private void StartupShopCells() {
@@ -630,14 +658,19 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             int price = randomItem.Price;
             if (i == saleIndex || isShopSaleRound) {
                 float saleSize = isShopSaleRound ? Random.Range(2, 15) * 5 : Random.Range(1, 7) * 5;
-                price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - (saleSize/ 100f))));
+                price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - saleSize / 100f)));
                 shopButton.SetShopSaleInfo((int)saleSize);
-            } else {
+            } else 
                 shopButton.SetShopSaleInfo(0);
-            }
- 
+
             shopCellCmp.CurrentBuyItem = randomItem;
-            shopButton.SetShopCellInfo(price, GetCarPartConfig(randomItem.PartId).PartSprite);
+            var carPartConfig = GetCarPartConfig(randomItem.PartId);
+            if (carPartConfig.PartType == CarPartType.Gun) {
+                (Sprite upSprite, Vector2 size, Vector2 position) = GetUpperPartSizesForUI(shopButton.ItemSprite.rectTransform, carPartConfig);
+                shopButton.SetShopCellInfo(price, carPartConfig.PartSprite, upSprite, position, size);
+            } else
+                shopButton.SetShopCellInfo(price, carPartConfig.PartSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero);
+
             shopCellCmp.Price = price;
         }
     }
@@ -1166,7 +1199,8 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
         inventoryCmp.CurrentCellCarPart = null;
     }
 
-    private void SetCarPartInfo(Vector2 worldPosition,CarPartConfig partInfo, int carPartCmpEntity, Vector2Int gridPosition, Vector2 imageOffset) {
+    private void SetCarPartInfo(Vector2 worldPosition, CarPartConfig partInfo, int carPartCmpEntity, Vector2Int gridPosition,
+        Vector2 imageOffset) {
         Debug.Log("CellIsPlaced2 in that position");
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartCmpEntity);
         _sceneData.Value._inventoryUIView._draggedInventoryCell.gameObject.SetActive(false);
@@ -1180,18 +1214,33 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
         foreach (var cell in needCells) {
             Debug.Log("CellIsPlaced:" + cell);
             carCmp.CarPartGroupsGrid[cell.x, cell.y] = carPartCmpEntity;
-           // _carPartCellComponentsPool.Value.Get(inventoryCmp.GridCarPartCellsEntities[cell.x, cell.y]).CellView._imageCarPart.sprite =
-           //     _sceneData.Value._transparentPixel;
+            // _carPartCellComponentsPool.Value.Get(inventoryCmp.GridCarPartCellsEntities[cell.x, cell.y]).CellView._imageCarPart.sprite =
+            //     _sceneData.Value._transparentPixel;
         }
 
         carCmp.CarPartGroupsList.Add(carPartCmpEntity, needCells);
         Vector2Int carPartSize = GridUtils.GetCarPartSize(partInfo);
         // Vector2 halfCellSize = currentCarPartCell._imageCarPart.rectTransform.sizeDelta * new Vector2Int(carPartSize.x-1, carPartSize.y-1) ;
         Vector2 needPos = worldPosition + imageOffset;
-        carPartCmp.carPartCellImage = _sceneData.Value.GetCarPartUISprite(_sceneData.Value._inventoryUIView._carPartsUpLevelContainer.transform, needPos);
+
+        carPartCmp.carPartCellImage =
+            _sceneData.Value.GetCarPartUISprite(_sceneData.Value._inventoryUIView._carPartsUpLevelContainer.transform, needPos);
         carPartCmp.carPartCellImage.sprite = partInfo.PartSprite;
         carPartCmp.carPartCellImage.transform.eulerAngles = new Vector3(0, 0, inventoryCmp.CurrentRotateDegrees);
         carPartCmp.carPartCellImage.rectTransform.sizeDelta = inventoryCmp.onCarCellSize * carPartSize;
+        if (partInfo.PartType == CarPartType.Gun) {
+            (Sprite upSprite, Vector2 upSize, Vector2 upPosition) = GetUpperPartSizesForUI(carPartCmp.carPartCellImage.rectTransform, partInfo);
+            if (upSprite != _sceneData.Value._transparentPixel) {
+                ref var gunCmp = ref _gunComponentsPool.Value.Add(carPartCmpEntity);
+
+                gunCmp.GunSpriteImage =
+                    _sceneData.Value.GetCarPartUISprite(carPartCmp.carPartCellImage.rectTransform, Vector2.zero);
+                gunCmp.GunSpriteImage.transform.localRotation = Quaternion.identity;
+                gunCmp.GunSpriteImage.transform.localPosition = upPosition;
+                gunCmp.GunSpriteImage.sprite = upSprite;
+                gunCmp.GunSpriteImage.rectTransform.sizeDelta = upSize;
+            }
+        }
     }
    
     public bool AreNonZeroAndNonDeletedConnected(int[,] grid, int deletedInt)
@@ -1351,9 +1400,34 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
     private void SetInventoryCell(int partId, int cellNumber) {
         var inventoryCell = _sceneData.Value._inventoryUIView._inventoryCellViews[cellNumber];
         inventoryCell.gameObject.SetActive(true);
-
-        inventoryCell.SetSprite(_sceneData.Value._carStuffListsConfig.CarPartConfigs[partId].PartSprite);
+        var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[partId];
+        if (carPartConfig.PartType == CarPartType.Gun) {
+            (Sprite upSprite, Vector2 size, Vector2 position) =
+                GetUpperPartSizesForUI(inventoryCell._inventoryCellImage.rectTransform, carPartConfig);
+            inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, upSprite, size, position);
+        } else 
+            inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero);
     }
+
+    private ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(RectTransform cell, CarPartConfig carPartConfig) {
+        Vector2 cellSize = Vector2.zero;
+        Vector2 needPosition = Vector2.zero;
+        Sprite upSprite = _sceneData.Value._transparentPixel;
+        if (carPartConfig.PartType == CarPartType.Gun) {
+            var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartConfig.Id);
+            if (gunConfig.UpPartSprite != null) {
+                var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
+                var gunPartSize = GridUtils.GetCarPartSize(gunConfig);
+                Debug.Log(gunConfig.UpPartSprite.rect.size + " texture size");
+                cellSize = cell.sizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;
+                needPosition = cell.sizeDelta / Math.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
+                upSprite = gunConfig.UpPartSprite != null? gunConfig.UpPartSprite : _sceneData.Value._transparentPixel;
+            }
+        }
+
+        return (upSprite, cellSize, needPosition);
+    }
+    
 
     private void SetupInventoryCells() {
         int i = 0;

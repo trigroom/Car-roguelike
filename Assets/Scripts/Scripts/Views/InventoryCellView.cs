@@ -12,18 +12,25 @@ public class InventoryCellView : MonoBehaviour, IPointerDownHandler
    public Button _buttonInventoryCell { get; private set; }
     [field: SerializeField]
     public Image _inventoryCellImage { get; private set; }
+    [field: SerializeField]
+    public Image _inventoryUpCellImage { get; private set; }
     [SerializeField]
     private int _cellId;
     
     public Action<int> TakeItemFromInventory;
+
     public void OnPointerDown(PointerEventData eventData) {
-        if(Input.GetMouseButtonDown(0))
-        TakeItemFromInventory?.Invoke(_entity);
+        if (Input.GetMouseButtonDown(0))
+            TakeItemFromInventory?.Invoke(_entity);
         // _world.GetPool<TakeInventoryItemEvent>().Add(_entity);
     }
 
-    public void SetSprite(Sprite sprite) {
+    public void SetInventoryCellSprite(Sprite sprite, Sprite upSprite, Vector2 size, Vector2 position) {
         _inventoryCellImage.sprite = sprite;
+        _inventoryUpCellImage.sprite = upSprite;
+        if(size == Vector2.zero)return;
+        _inventoryUpCellImage.rectTransform.sizeDelta = size;
+        _inventoryUpCellImage.rectTransform.localPosition = position;
     }
 
     public void Construct( /*EcsWorld _world,*/ int _entity, Action<int> _takeItemFromInventory, int _cellId, Action<int> SetPanelInfo) {

@@ -26,6 +26,10 @@ MonoBehaviour:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
   - {x: 0, y: 1}
+  UpPartSprite: {fileID: 0}
+  UpPartPosition: {x: 0, y: 0}
+  MaxRotateAngle: 0
+  RotateSpeed: 0
   Damage: 10
   AttackCouldown: 1
   BulletsCountInMagazine: 1

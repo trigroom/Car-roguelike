@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class SubGridView : MonoBehaviour {
     [SerializeField]
-    private Image _dragedCellCanvasGroup;
+    private CanvasGroup _dragedCellCanvasGroup;
     [SerializeField]
     private Image[] _subGridImages;
     [SerializeField]
@@ -27,7 +27,7 @@ public class SubGridView : MonoBehaviour {
         foreach (var gridChild in _subGridImages) {
             gridChild.color = state ? _canPlaceColor : _canNotPlaceColor;
         }
-        _dragedCellCanvasGroup.color = state ? new Color(1,1,1,1f) : new Color(1,1,1,0.5f);
+        _dragedCellCanvasGroup.alpha = state ? 1 : 0.5f;
     }
 
 

@@ -9,6 +9,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     public Button BuyButton;
     public Button ShowInfoButton;
     public Image ItemSprite;
+    public Image UpperItemSprite;
     public TMP_Text ItemPriceText;
     public TMP_Text ItemSaleText;
 
@@ -21,10 +22,15 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
         this.TakeItemFromInventory = _takeItemFromInventory;
     }
 
-    public void SetShopCellInfo(int price, Sprite sprite) {
+    public void SetShopCellInfo(int price, Sprite sprite, Sprite upperSprite, Vector2 upperImageSpritePos, Vector2 upperImageSize) {
         ItemSprite.sprite = sprite;
         ItemPriceText.text = price + "$";
         BuyButton.enabled = true;
+        UpperItemSprite.sprite = upperSprite;
+        if (upperImageSize == Vector2.zero)
+            return;
+        UpperItemSprite.transform.localPosition = upperImageSpritePos;
+        UpperItemSprite.rectTransform.sizeDelta = upperImageSize;
     }
 
     public void SetShopSaleInfo(int percent) {

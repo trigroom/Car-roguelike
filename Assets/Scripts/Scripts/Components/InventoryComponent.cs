@@ -16,7 +16,7 @@
         public CellView CurrentCellCarPart;
         public CarPartType SortedCarPartType;
         public int[,] GridCarPartCellsEntities;
-        public Tween CurrentTween;
+        public Sequence CurrentTween;
         public int CurrentRotateDegrees;
         public Vector3 StartMouseInputPosition;
         public Vector2 onCarCellSize;

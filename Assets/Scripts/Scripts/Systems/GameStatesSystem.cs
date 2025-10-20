@@ -605,10 +605,31 @@ Debug.Log(startX + " " + startY);
             // need check
         }
 
+        cellCmp.CarPartCellRenderer = _sceneData.Value.GetCarPartSpriteRenderer(carView.transform);
+        cellCmp.CarPartCellRenderer.sprite = carPartConfig.PartSprite;
+        cellCmp.CarPartCellRenderer.sortingOrder = needSpriteLevel;
+
+        if (needRotate == 90 || needRotate == 270)
+            carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
+
+        cellCmp.CarPartCellRenderer.transform.localPosition = (Vector3Int)GridUtils.GetEdgePointFromCarPart(needList[cellEntity]) +
+                                                              new Vector3((carPartSize.x - containersSize.x) / 2f,
+                                                                  (carPartSize.y - containersSize.y) / 2f);
+        carCmp.CurrentWeight += carPartConfig.Weight;
+        cellCmp.CarPartCellRenderer.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
+
         if (carPartConfig.PartType == CarPartType.Gun) {
             //  carPart.SetColliderEnableState(false);
-            ref var gunCmp = ref _gunComponentsPool.Value.Add(cellEntity);
+            
+            var gunCmp = _gunComponentsPool.Value.Has(cellEntity)? _gunComponentsPool.Value.Get(cellEntity): _gunComponentsPool.Value.Add(cellEntity);
             var gunConfig = _sceneData.Value.GetGunFromCarPart(cellCmp.CarPartId);
+            if (gunConfig.UpPartSprite != null) {
+                gunCmp.GunSpriteRenderer = _sceneData.Value.GetCarPartSpriteRenderer(cellCmp.CarPartCellRenderer.transform);
+                gunCmp.GunSpriteRenderer.sprite = gunConfig.UpPartSprite;
+                gunCmp.GunSpriteRenderer.sortingOrder = 3;
+                gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition;
+            }
+
             gunCmp.CurrentCouldown = gunConfig.ReloadDuration;
             gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
             //   carPart.transform.localPosition = Vector3.zero;
@@ -616,6 +637,8 @@ Debug.Log(startX + " " + startY);
             if (gunConfig.MissleType == MissleType.laser) {
                 _laserComponentsPool.Value.Add(cellEntity).LaserLineRenderer = _sceneData.Value.GetLaserLineRenderer();
             }
+            
+            _gunComponentsPool.Value.Get(cellEntity) = gunCmp;
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
             //  carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
             // carPart.transform.localPosition = Vector3.zero;
@@ -641,18 +664,7 @@ Debug.Log(startX + " " + startY);
             wheelsConfig.WheelsPositions
         }*/
 
-        cellCmp.CarPartCellRenderer = _sceneData.Value.GetCarPartSpriteRenderer(carView.transform);
-        cellCmp.CarPartCellRenderer.sprite = carPartConfig.PartSprite;
-        cellCmp.CarPartCellRenderer.sortingOrder = needSpriteLevel;
         
-        if (needRotate == 90 || needRotate == 270) 
-            carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
-        
-        cellCmp.CarPartCellRenderer.transform.localPosition = (Vector3Int)GridUtils.GetEdgePointFromCarPart(needList[cellEntity]) +
-                                                              new Vector3((carPartSize.x - containersSize.x) / 2f,
-                                                                  (carPartSize.y - containersSize.y) / 2f);
-        carCmp.CurrentWeight += carPartConfig.Weight;
-        cellCmp.CarPartCellRenderer.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
     }
 
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {

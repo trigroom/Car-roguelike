@@ -27,6 +27,8 @@ public class InventoryUIView : MonoBehaviour
     public TMP_Text _pageNumberText { get;private set; }
 
     [field: SerializeField]
+    public Image _draggedInventoryCellUp { get;private set; }
+    [field: SerializeField]
     public Image _draggedInventoryCell { get;private set; }
     [field: SerializeField]
     public Button _backInventoryCellsButton { get;private set; }

@@ -24,6 +24,10 @@ MonoBehaviour:
   <DefaultModuleCount>k__BackingField: 2
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
+  UpPartSprite: {fileID: 0}
+  UpPartPosition: {x: 0, y: 0}
+  MaxRotateAngle: 0
+  RotateSpeed: 0
   Damage: 16
   AttackCouldown: 1
   BulletsCountInMagazine: 7

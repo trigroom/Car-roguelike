@@ -3,6 +3,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GunConfig", menuName = "CarPartConfigs/GunConfig")]
 public class GunConfig : CarPartConfig
 {
+    public Sprite UpPartSprite;
+    public Vector2 UpPartPosition;
+    
+    public float MaxRotateAngle;
+    public float RotateSpeed;
+    
     public float Damage;
     public float AttackCouldown;
     public int BulletsCountInMagazine;
