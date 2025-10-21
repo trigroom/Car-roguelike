@@ -59,6 +59,23 @@ using UnityEngine.UI;
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(_carPartComponentsPool.Value.Get(gunEntity).CarPartId);
 
                 gunCmp.CurrentCouldown -= deltaTime;
+
+
+                if (gunCmp.UpPartContainer != null) {
+                    gunCmp.currentRotateDegrees += Time.deltaTime * gunConfig.RotateSpeed;
+
+                    // Используем PingPong для плавного движения между -maxAngle и maxAngle
+                    float pingPongValue = Mathf.PingPong(gunCmp.currentRotateDegrees, 1f); // значение от 0 до 1
+
+                    // Преобразуем в угол от -maxAngle до maxAngle
+                    float targetAngle = Mathf.Lerp(-gunConfig.MaxRotateAngle, gunConfig.MaxRotateAngle, pingPongValue);
+
+                    // Применяем поворот
+                    gunCmp.UpPartContainer.localEulerAngles = new Vector3(0, 0, targetAngle);
+                }
+             
+                
+                
                 if (gunCmp.CurrentCouldown <= 0) {
                     if (gunConfig.MissleType != MissleType.laser)
                         SpawnProjectile(gunEntity);
@@ -83,7 +100,7 @@ using UnityEngine.UI;
             }
 
             foreach (var cellEntity in _constructMeleeCellEventsFilter.Value) {
-               return;
+               continue;
                
                 ConstructMeleeWeaponCell(cellEntity);
             }
@@ -125,16 +142,17 @@ using UnityEngine.UI;
                 }
             }
         }
-
         private void TrySpawnLaser(int entity) {
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(entity);
             //ref var gunCmp = ref _gunComponentsPool.Value.Get(entity);
             var laserLineRenderer = _laserComponentsPool.Value.Get(entity).LaserLineRenderer;
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             float laserRange = gunConfig.BulletSpeed;
-            Vector2 worldFirePoint = carPartCmp.CarPartCellRenderer.transform.TransformPoint(gunConfig.FirePointPosition);
+            var firePoint = _gunComponentsPool.Value.Get(entity).FirePointTransform;
+            
+            Vector2 worldFirePoint = firePoint.position;
 
-            Vector2 direction = carPartCmp.CarPartCellRenderer.transform.up;
+            Vector2 direction = firePoint.up;
 
             RaycastHit2D hit = Physics2D.Raycast(worldFirePoint, direction, laserRange,
                 LayerMask.GetMask(carPartCmp.MainEntity == _sceneData.Value.PlayerEntity ? "Enemy" : "Player"));
@@ -236,9 +254,10 @@ using UnityEngine.UI;
             for (int i = 0; i < gunConfig.BulletsCount; i++) {
                 if(carPartCmp.CellCarPartsStuffViews == null)return;
                 
-                Vector2 worldFirePoint = carPartCmp.CarPartCellRenderer.transform.TransformPoint(gunConfig.FirePointPosition);
+                Vector2 worldFirePoint = /*carPartCmp.CarPartCellRenderer.transform.TransformPoint(gunConfig.FirePointPosition)*/
+                    gunCmp.FirePointTransform.position;
 
-                Vector2 direction = carPartCmp.CarPartCellRenderer.transform.up;
+                Vector2 direction = gunCmp.FirePointTransform.up;
 
                 // Добавляем случайный разброс
                 float randomSpread = Random.Range(-gunConfig.SpreadAngle, gunConfig.SpreadAngle);

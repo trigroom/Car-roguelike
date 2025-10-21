@@ -8,6 +8,8 @@
        public int CurrentMagazineCount;
        public SpriteRenderer GunSpriteRenderer;
        public Image GunSpriteImage;
-       public float cuurentRotateDegrees;
+       public float currentRotateDegrees;
        public float currentRotateSide;
+       public Transform UpPartContainer;
+       public Transform FirePointTransform;
    }

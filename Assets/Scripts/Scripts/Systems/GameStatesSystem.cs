@@ -624,12 +624,24 @@ Debug.Log(startX + " " + startY);
             var gunCmp = _gunComponentsPool.Value.Has(cellEntity)? _gunComponentsPool.Value.Get(cellEntity): _gunComponentsPool.Value.Add(cellEntity);
             var gunConfig = _sceneData.Value.GetGunFromCarPart(cellCmp.CarPartId);
             if (gunConfig.UpPartSprite != null) {
-                gunCmp.GunSpriteRenderer = _sceneData.Value.GetCarPartSpriteRenderer(cellCmp.CarPartCellRenderer.transform);
+                
+                gunCmp.UpPartContainer = _sceneData.Value.GetGunContainer(cellCmp.CarPartCellRenderer.transform);
+                gunCmp.UpPartContainer.transform.localPosition = gunConfig.GunContainerPosition;
+                
+                gunCmp.FirePointTransform = _sceneData.Value.GetGunContainer(gunCmp.UpPartContainer);
+                gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition - gunConfig.GunContainerPosition;
+                
+                gunCmp.GunSpriteRenderer = _sceneData.Value.GetCarPartSpriteRenderer(gunCmp.UpPartContainer);
                 gunCmp.GunSpriteRenderer.sprite = gunConfig.UpPartSprite;
                 gunCmp.GunSpriteRenderer.sortingOrder = 3;
-                gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition;
+                gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition-gunConfig.GunContainerPosition;
+                
+            } else {
+                gunCmp.FirePointTransform = _sceneData.Value.GetGunContainer(cellCmp.CarPartCellRenderer.transform);
+                gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition;
             }
 
+            
             gunCmp.CurrentCouldown = gunConfig.ReloadDuration;
             gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
             //   carPart.transform.localPosition = Vector3.zero;

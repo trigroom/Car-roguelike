@@ -321,15 +321,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             upDragCell.transform.localPosition = position;
             upDragCell.rectTransform.sizeDelta = size;
             var gunConfig = _sceneData.Value.GetGunFromCarPart(partInfo.Id);
-            var sizeMultiplyer = partInfo.PartSprite.rect.size / gunConfig.UpPartSprite.rect.size;
-            
-         /*   cellSize = cell.sizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;*/
-            var needPosition = cellSize / Math.Max(partSize.x, partSize.y) * gunConfig.UpPartPosition;
-            
-            inventoryCmp.CurrentTween.Join(upDragCell.rectTransform.DOSizeDelta(cellSize * sizeMultiplyer, 0.3f)
-                .SetEase(Ease.OutBack));
-            inventoryCmp.CurrentTween.Join(upDragCell.transform.DOLocalMove(needPosition, 0.3f)
-                .SetEase(Ease.OutBack));
+            if (gunConfig.UpPartSprite != null) {
+                var sizeMultiplyer = partInfo.PartSprite.rect.size / gunConfig.UpPartSprite.rect.size;
+
+                /*   cellSize = cell.sizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;*/
+                var needPosition = cellSize / Math.Max(partSize.x, partSize.y) * gunConfig.UpPartPosition;
+
+                inventoryCmp.CurrentTween.Join(upDragCell.rectTransform.DOSizeDelta(cellSize * sizeMultiplyer, 0.3f).SetEase(Ease.OutBack));
+                inventoryCmp.CurrentTween.Join(upDragCell.transform.DOLocalMove(needPosition, 0.3f).SetEase(Ease.OutBack));
+            }
+          
             
             //  inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, upSprite, size, position);
         } else

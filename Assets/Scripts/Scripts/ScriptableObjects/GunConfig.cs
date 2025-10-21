@@ -18,6 +18,7 @@ public class GunConfig : CarPartConfig
     public MissleType MissleType;
     public Sprite MissleSprite;
     public Vector2 FirePointPosition;
+    public Vector2 GunContainerPosition;
     public float SpreadAngle;
     public float ExplosionRadius;
     public float ImpulseForce;

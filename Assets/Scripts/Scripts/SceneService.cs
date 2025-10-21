@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
+    [field: SerializeField] public Transform _gunContainerPrefab { get; private set; }
   [field: SerializeField] public SubGridView _subGridTransform { get; private set; }
   [field: SerializeField] public RectTransform _gridMaskRect { get; private set; }
     [field: SerializeField] public RectTransform _carPartsContainersContainer { get; private set; }
@@ -100,6 +101,9 @@ public class SceneService : MonoBehaviour
     }
     public SpriteRenderer GetCarPartSpriteRenderer(Transform parent) {
         return Instantiate(_carPartSpriteRenderer, parent);
+    }
+    public Transform GetGunContainer(Transform parent) {
+        return Instantiate(_gunContainerPrefab, parent);
     }
     public Image GetCarPartUISprite(Transform parent, Vector2 position) {
         return Instantiate(_carPartUIImage, position, Quaternion.identity, parent);
