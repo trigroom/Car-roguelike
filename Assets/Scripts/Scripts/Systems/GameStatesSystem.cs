@@ -398,19 +398,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetEnemiesCars() {
-        return;
-        
-        
-        
         var currentRoundCarStuff = _sceneData.Value._gameProcessConfig.GameRounds[_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound];
 
-        Dictionary<CarPartType, List<int>> currentCarPartsList = new Dictionary<CarPartType, List<int>>();
-        foreach (var carPartId in currentRoundCarStuff.CarParts) {
-            var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartId);
-            if (!currentCarPartsList.TryAdd(carPartConfig.PartType, new List<int> { carPartId }))
-                currentCarPartsList[carPartConfig.PartType].Add(carPartId);
-        }
-//return;
         for (int i = 0; i < 3; i++) {
             int enemyEntity = _world.Value.NewEntity();
             ref var moveCmp = ref _movementComponentsPool.Value.Add(enemyEntity);
@@ -421,37 +410,64 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             carCmp.CarId = carVariables.CarId;
             int currentMainPartCount = 0;
             var carView = CarViewSetup(enemyEntity);
+            
             carView.transform.position = new Vector2(Random.Range(-20, 20), Random.Range(-20, 20));
-            var carMap = carVariables.MapsForCar[Random.Range(0, carVariables.MapsForCar.Length)];
-           // int[,] GridCarPartsEntities = new int[carMap.CarPartTypeGrid.Length, carMap.CarPartTypeGrid[0].types.Length];
-          //  for (int j = 0; j < carMap.CarPartTypeGrid.Length; j++) {
-           //     for (int k = 0; k < carMap.CarPartTypeGrid[0].types.Length; k++) {
-                   /* var currentCarType = carMap.CarPartTypeGrid[j].types[k];
-                    if (currentCarType == CarPartType.None) continue;
-                    int carPartCellEntity = _world.Value.NewEntity();
-                    GridCarPartsEntities[j, k] = carPartCellEntity;
-                 
-                    ref var cellCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
-                    cellCmp.CarPartsId = new List<int>();
+            
+            carCmp.CarPartGroupsGrid = new int[carVariables.GridSize.x, carVariables.GridSize.y];
+            carCmp.CarPartContainerGroupsGrid = new int[carVariables.GridSize.x, carVariables.GridSize.y];
+            carCmp.CarPartViewsGrid = new CarPartStuffView[carVariables.GridSize.x, carVariables.GridSize.y];
+            
+            carCmp.CarPartContainerGroupsList = new Dictionary<int, List<Vector2Int>>();
+            carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
+            
+            foreach (var carContainer in carVariables.CarPartDownLevelGrid) {
+                var carPartConfig = _sceneData.Value.GetCarPartConfig(carContainer.partId);
+                var currentCarType = carPartConfig.PartType;
+                
+                if (currentCarType == CarPartType.None) continue;
+                
+                int carPartCellEntity = _world.Value.NewEntity();
+                var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
+                    carCmp.CarPartContainerGroupsGrid);
+                carCmp.CarPartContainerGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
+                
+                foreach (var cell in placedCells) {
+                    carCmp.CarPartContainerGroupsGrid[cell.x, cell.y] = carPartCellEntity;
+                    carCmp.CarPartContainerGroupsList[carPartCellEntity].Add(cell);
+                }
 
-                    cellCmp.MainEntity = enemyEntity;
-                    if (currentCarType != CarPartType.Main) {
-                        if (currentCarType == CarPartType.Gun || currentCarType == CarPartType.MeleeWeapon)
-                            cellCmp.CarPartsId.Add(currentCarPartsList[CarPartType.WeaponContainer][
-                                Random.Range(0, currentCarPartsList[CarPartType.WeaponContainer].Count)]);
-                        cellCmp.CarPartsId.Add(currentCarPartsList[currentCarType][Random.Range(0, currentCarPartsList[currentCarType].Count)]);
-                    } else {
-                        if (currentMainPartCount == 0)
-                            cellCmp.CarPartsId.Add(_sceneData.Value.GetCarConfig(carCmp.CarId).CarEngine.Id);
-                        else if (currentMainPartCount == 1)
-                            cellCmp.CarPartsId.Add(_sceneData.Value.GetCarConfig(carCmp.CarId).DriverCabine.Id);
-                        currentMainPartCount++;
-                    }
+                ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
 
-                    SpawnCarPartCellView(carPartCellEntity, carView, k, j, 0, false);*/
-              //  }
-          //  }
+                carPartCmp.MainEntity = enemyEntity;
+                carPartCmp.CarPartId = carContainer.partId;
 
+                SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
+            }
+            
+            foreach (var carContainer in carVariables.CarPartUpLevelGrid) {
+                var carPartConfig = _sceneData.Value.GetCarPartConfig(carContainer.partId);
+                var currentCarType = carPartConfig.PartType;
+                
+                if (currentCarType == CarPartType.None) continue;
+                
+                int carPartCellEntity = _world.Value.NewEntity();
+                var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
+                    carCmp.CarPartGroupsGrid);
+                carCmp.CarPartGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
+                
+                foreach (var cell in placedCells) {
+                    carCmp.CarPartGroupsGrid[cell.x, cell.y] = carPartCellEntity;
+                    carCmp.CarPartGroupsList[carPartCellEntity].Add(cell);
+                }
+
+                ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
+
+                carPartCmp.MainEntity = enemyEntity;
+                carPartCmp.CarPartId = carContainer.partId;
+
+                SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
+            }
+            SetupWheels(enemyEntity, carView);
             SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
         }
     }
@@ -463,11 +479,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
-            SpawnCarPartCellView(carPartInfo.Key, carView, true);
+            SpawnCarPartCellView(carPartInfo.Key, carView, true,
+                (int)_carPartComponentsPool.Value.Get(carPartInfo.Key).carPartCellImage.transform.eulerAngles.z);
         }
 
         foreach (var carPartInfo in carCmp.CarPartGroupsList) {
-            SpawnCarPartCellView(carPartInfo.Key, carView, true);
+            SpawnCarPartCellView(carPartInfo.Key, carView, true,
+                (int)_carPartComponentsPool.Value.Get(carPartInfo.Key).carPartCellImage.transform.eulerAngles.z);
         }
 
         SetupWheels(_sceneData.Value.PlayerEntity, carView);
@@ -567,7 +585,7 @@ Debug.Log(startX + " " + startY);
         return false;
     }
 
-    private void SpawnCarPartCellView(int cellEntity, CarView carView, bool isPlayer) {
+    private void SpawnCarPartCellView(int cellEntity, CarView carView, bool isPlayer, int rotateAngle) {
         ref var cellCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(cellCmp.MainEntity);
         var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[cellCmp.CarPartId];
@@ -582,7 +600,7 @@ Debug.Log(startX + " " + startY);
         var containersSize = new Vector2(carCmp.CarPartContainerGroupsGrid.GetLength(0),carCmp.CarPartContainerGroupsGrid.GetLength(1));
         bool isContainer = carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer;
         int needSpriteLevel = isContainer ? 1 : 2;
-        int needRotate = (int)cellCmp.carPartCellImage.transform.eulerAngles.z; 
+        int needRotate = rotateAngle; 
         var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;
          Vector2Int carPartSize = GridUtils.GetCarPartSize(carPartConfig);
         cellCmp.MaxHealth = carPartConfig.MaxHealth;

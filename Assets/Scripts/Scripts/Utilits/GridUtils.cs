@@ -136,4 +136,24 @@ public class GridUtils : MonoBehaviour
 
         return normalizedOffset;
     }
+    
+    public static List<Vector2Int> GetCellsFromField( Vector2Int position, CarPartConfig carPartConfig, int rotateAngle, int[,] grid = null) {
+        List<Vector2Int> returnedCells = new List<Vector2Int>();
+        var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
+        var form = carPartConfig.PartForm;
+        foreach (var cell in form) {
+            var addedCell = cell;
+            if(rotateAngle == 90)
+                addedCell = new Vector2Int(-cell.y-1+carPartSize.y, cell.x);
+            else if(rotateAngle == 180)
+                addedCell = new Vector2Int(-cell.x-1+carPartSize.x, -cell.y-1+carPartSize.y);
+            else if(rotateAngle == 270)
+                addedCell = new Vector2Int(cell.y, -cell.x-1+carPartSize.x);
+            var checkedCell = position + addedCell;
+            if (grid == null || (checkedCell.y >= 0 && checkedCell.y <grid.GetLength(1) && checkedCell.x >= 0 &&
+                                 checkedCell.x < grid.GetLength(0)))returnedCells.Add(checkedCell);
+        }
+        return returnedCells;
+       
+    }
 }

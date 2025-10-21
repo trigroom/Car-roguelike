@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: 1RoundEnemyStuffConfig
   m_EditorClassIdentifier: 
   CarPresets:
-  - {fileID: 11400000, guid: d2b3f684400e04f4e8459512a0b274f3, type: 2}
-  - {fileID: 11400000, guid: d44b02c93c919e145bf3cae72d9babe7, type: 2}
-  - {fileID: 11400000, guid: 9468d33af83e908449f072275484ae9d, type: 2}
+  - {fileID: 11400000, guid: 93121ed606881274baa77776181b43d8, type: 2}
   CarParts: 00000000010000001200000011000000090000000500000007000000
   MoneyCount: 20

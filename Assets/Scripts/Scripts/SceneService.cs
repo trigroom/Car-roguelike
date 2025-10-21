@@ -8,8 +8,9 @@ using UnityEngine.Pool;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
-public class SceneService : MonoBehaviour
-{
+public class SceneService : MonoBehaviour {
+    [SerializeField]
+    private RenderTexture _pixelEffectsLayerTexture;
     [field: SerializeField] public EvemiesCarBuilderView _enemiesCarBuilderView { get; private set; }
     [field: SerializeField] public Transform _gunContainerPrefab { get; private set; }
   [field: SerializeField] public SubGridView _subGridTransform { get; private set; }
@@ -93,6 +94,9 @@ public class SceneService : MonoBehaviour
         _explosionEffectsPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_explosionEffectPrefab));
         _сarPartInGameUIViewsPool =
             new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsDownLevelHealthContainer));
+       
+            _pixelEffectsLayerTexture.width = Screen.width;
+        _pixelEffectsLayerTexture.height = Screen.height;
     }
 
     public CarPartInGameUIView GetCarPartInGameUIView() {

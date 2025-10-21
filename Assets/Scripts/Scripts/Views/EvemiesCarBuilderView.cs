@@ -19,17 +19,17 @@ public class EvemiesCarBuilderView : MonoBehaviour {
         AdminPanelContainer.gameObject.SetActive(!AdminPanelContainer.gameObject.activeInHierarchy);
     }
 
-    public void SaveEnemyCarConfig(int carId,List<CarPartTypeRow> inputGridDownLevel, List<CarPartTypeRow> inputGridUpLevel) {
+    public void SaveEnemyCarConfig(int carId,List<CarPartTypeRow> inputGridDownLevel, List<CarPartTypeRow> inputGridUpLevel, Vector2Int gridSize) {
         if (EnemyConfigNameInputField.text == "") return;
         EnemyCarPartsMaps config = ScriptableObject.CreateInstance<EnemyCarPartsMaps>();
-        config.CreateGrid(carId,inputGridDownLevel, inputGridUpLevel);
+        config.CreateGrid(carId,inputGridDownLevel, inputGridUpLevel, gridSize);
 
         string assetPath = _filePath + "/" + EnemyConfigNameInputField.text + ".asset";
 
         EnemyCarPartsMaps existingConfig = AssetDatabase.LoadAssetAtPath<EnemyCarPartsMaps>(assetPath);
 
         if (existingConfig != null) {
-            existingConfig.CreateGrid(carId,inputGridDownLevel, inputGridUpLevel);
+            existingConfig.CreateGrid(carId,inputGridDownLevel, inputGridUpLevel, gridSize);
             EditorUtility.SetDirty(existingConfig);
         } else
             AssetDatabase.CreateAsset(config, assetPath);

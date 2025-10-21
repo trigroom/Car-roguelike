@@ -88,7 +88,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
     private void UpdateCameraPosition(Vector2 needPosition) {
         _sceneData.Value.mainCamera.transform.position = Vector3.Slerp(_sceneData.Value.mainCamera.transform.position,
-            new Vector3(needPosition.x, needPosition.y, _sceneData.Value.mainCamera.transform.position.z), Time.deltaTime * 2);
+            new Vector3(needPosition.x, needPosition.y, -10), Time.deltaTime * 2);
     }
     private void UseFuel(int entity) {
         ref var playerFuelCmp = ref _fuelComponentsPool.Value.Get(entity);
