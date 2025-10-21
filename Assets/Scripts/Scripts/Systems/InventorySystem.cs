@@ -80,6 +80,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                   Debug.Log(gun.BulletsCount);
               }
           }*/
+        
+        
+        
+        
+        _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(SaveEnemyCarConfig);
     }
 
     public void Run(IEcsSystems systems) {
@@ -337,6 +342,27 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._draggedInventoryCellUp.sprite = _sceneData.Value._transparentPixel;
 
         _sceneData.Value._gridMaskRect.sizeDelta = cellSize + currentCellSize * 1.8f;
+    }
+
+    private void SaveEnemyCarConfig() {
+       var carCmp  =_carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+       
+       List<CarPartTypeRow> upLevelGrid = new List<CarPartTypeRow>();
+       List<CarPartTypeRow> downLevelGrid = new List<CarPartTypeRow>();
+
+       foreach (var partsContainer in carCmp.CarPartContainerGroupsList) {
+           var edgePosition = GridUtils.GetEdgePointFromCarPart(partsContainer.Value);
+           var carPartCmp = _carPartComponentsPool.Value.Get(partsContainer.Key);
+           downLevelGrid.Add(new CarPartTypeRow(edgePosition, carPartCmp.CarPartId,0));
+       }
+       
+       foreach (var part in carCmp.CarPartContainerGroupsList) {
+           var carPartCmp = _carPartComponentsPool.Value.Get(part.Key);
+           var edgePosition = GridUtils.GetEdgePointFromCarPart(part.Value);
+           downLevelGrid.Add(new CarPartTypeRow(edgePosition, carPartCmp.CarPartId,(int)carPartCmp.carPartCellImage.transform.localEulerAngles.z));
+       }
+       
+       _sceneData.Value._enemiesCarBuilderView.SaveEnemyCarConfig(carCmp.CarId, downLevelGrid,upLevelGrid);
     }
 
     private void RotateCarPart() {

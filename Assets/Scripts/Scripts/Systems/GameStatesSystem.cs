@@ -423,9 +423,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var carView = CarViewSetup(enemyEntity);
             carView.transform.position = new Vector2(Random.Range(-20, 20), Random.Range(-20, 20));
             var carMap = carVariables.MapsForCar[Random.Range(0, carVariables.MapsForCar.Length)];
-            int[,] GridCarPartsEntities = new int[carMap.CarPartTypeGrid.Length, carMap.CarPartTypeGrid[0].types.Length];
-            for (int j = 0; j < carMap.CarPartTypeGrid.Length; j++) {
-                for (int k = 0; k < carMap.CarPartTypeGrid[0].types.Length; k++) {
+           // int[,] GridCarPartsEntities = new int[carMap.CarPartTypeGrid.Length, carMap.CarPartTypeGrid[0].types.Length];
+          //  for (int j = 0; j < carMap.CarPartTypeGrid.Length; j++) {
+           //     for (int k = 0; k < carMap.CarPartTypeGrid[0].types.Length; k++) {
                    /* var currentCarType = carMap.CarPartTypeGrid[j].types[k];
                     if (currentCarType == CarPartType.None) continue;
                     int carPartCellEntity = _world.Value.NewEntity();
@@ -449,8 +449,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     }
 
                     SpawnCarPartCellView(carPartCellEntity, carView, k, j, 0, false);*/
-                }
-            }
+              //  }
+          //  }
 
             SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
         }

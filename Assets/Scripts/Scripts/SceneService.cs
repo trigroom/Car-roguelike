@@ -10,6 +10,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour
 {
+    [field: SerializeField] public EvemiesCarBuilderView _enemiesCarBuilderView { get; private set; }
     [field: SerializeField] public Transform _gunContainerPrefab { get; private set; }
   [field: SerializeField] public SubGridView _subGridTransform { get; private set; }
   [field: SerializeField] public RectTransform _gridMaskRect { get; private set; }

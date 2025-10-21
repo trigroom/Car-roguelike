@@ -120,10 +120,10 @@ public class StartFieldCustomRedactor : MonoBehaviour {
 
     public void SaveConfigButton()
     {
-            SaveStartGameFieldToConfig();
+           // SaveStartGameFieldToConfig();
     }
     
-    private void SaveStartGameFieldToConfig() {
+    /*private void SaveStartGameFieldToConfig() {
         if (FieldInput.text == "") return;
         EnemyCarPartsMaps config = ScriptableObject.CreateInstance<EnemyCarPartsMaps>();
         config.CreateGrid(_fieldCellTypes);
@@ -140,6 +140,6 @@ public class StartFieldCustomRedactor : MonoBehaviour {
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-    }
+    }*/
 #endif
 }
