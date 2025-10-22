@@ -632,15 +632,19 @@ Debug.Log(startX + " " + startY);
             var carPart =  isContainer ? _sceneData.Value.GetCarPartCell(carView.CarPartsContainer): carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y];
             cellCmp.CellCarPartsStuffViews.Add(carPart);
             if (isContainer) {
-                carPart.SetupCarPart(carPartInfo, "CarBase", cellCmp.MainEntity);
+                string needLayer = isPlayer ? "CarBase" : "CarBaseEnemy";
+                carPart.SetupCarPart(carPartInfo, needLayer, cellCmp.MainEntity);
                 carPart.transform.localPosition = new Vector2(carPartInfo.x, carPartInfo.y)
                                                   - new Vector2(containersSize.x/2f, containersSize.y/2f);
               //  carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
                 carPart.SetColliderEnableState(true);
                 carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
                 carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y] = carPart;
-            } else
-                carPart.SetupCarPart(carPartInfo, "CarBase", cellCmp.MainEntity);
+            } else {
+                string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
+                   carPart.SetupCarPart(carPartInfo, needLayer, cellCmp.MainEntity);
+            }
+             
             // need check
         }
 

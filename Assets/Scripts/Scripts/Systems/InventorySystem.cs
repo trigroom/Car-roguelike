@@ -1231,7 +1231,6 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
 
     private void SetCarPartInfo(Vector2 worldPosition, CarPartConfig partInfo, int carPartCmpEntity, Vector2Int gridPosition,
         Vector2 imageOffset) {
-        Debug.Log("CellIsPlaced2 in that position");
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartCmpEntity);
         _sceneData.Value._inventoryUIView._draggedInventoryCell.gameObject.SetActive(false);
         _sceneData.Value._gridMaskRect.gameObject.SetActive(false);
@@ -1243,7 +1242,6 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
         var needCells = GridUtils.GetCellsFromField(gridPosition, partInfo, inventoryCmp.CurrentRotateDegrees,carCmp.CarPartGroupsGrid);
         
         foreach (var cell in needCells) {
-            Debug.Log("CellIsPlaced:" + cell);
             carCmp.CarPartGroupsGrid[cell.x, cell.y] = carPartCmpEntity;
             // _carPartCellComponentsPool.Value.Get(inventoryCmp.GridCarPartCellsEntities[cell.x, cell.y]).CellView._imageCarPart.sprite =
             //     _sceneData.Value._transparentPixel;

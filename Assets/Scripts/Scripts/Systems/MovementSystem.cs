@@ -116,12 +116,11 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         if (leftSide > 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Left;
             enemyAiCmp.LastCheckedTime += 0.5f;
-            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
             return;
-        } else if (leftSide > 0) {
+        } 
+        if (leftSide > 0) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
-            enemyAiCmp.LastCheckedTime += 0.5f;
-            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
+            enemyAiCmp.LastCheckedTime += 1f;
             return;
         }
 
@@ -130,18 +129,12 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         if (rightSide > 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Right;
             enemyAiCmp.LastCheckedTime += 0.5f;
-            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
-            return;
         } else if (rightSide > 0) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
-            enemyAiCmp.LastCheckedTime += 0.5f;
-            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
-            return;
+            enemyAiCmp.LastCheckedTime += 1f;
         } else {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.None;
             enemyAiCmp.LastCheckedTime += 0.2f;
-            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
-            return;
         }
 
     }
