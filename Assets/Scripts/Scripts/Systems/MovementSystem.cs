@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
@@ -11,6 +12,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<FuelComponent> _fuelComponentsPool;
     private EcsPoolInject<CarComponent> _carComponentsPool;
     private EcsPoolInject<PlayerDeathEvent> _playerDeathEventsPool;
+    private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
 
@@ -26,10 +28,22 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             ref var movementCmp = ref _movementComponentsPool.Value.Get(movementEntity);
             if (movementCmp.MovableObjectRigidbody == null) continue;
 
+            bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity;
             var deltaTime = Time.deltaTime;
+
+            if (!isPlayer) {
+                ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
+                enemyAiCmp.LastCheckedTime -= deltaTime;
+
+                if (enemyAiCmp.LastCheckedTime <= 0) {
+                    CheckForObstacles(movementEntity);
+                }
+            }
+
             ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
-            movementCmp.Velocity = ((Vector2)movementCmp.MovableObjectRigidbody.transform.position - movementCmp.PreviousPosition) / deltaTime;
-            movementCmp.PreviousPosition = movementCmp.MovableObjectRigidbody.transform.position;
+            var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
+            movementCmp.Velocity = ((Vector2)moveObjectTransform.position - movementCmp.PreviousPosition) / deltaTime;
+            movementCmp.PreviousPosition = moveObjectTransform.position;
             if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0) {
                 Vector3 directionToTarget = (movementCmp.TargetPosition - movementCmp.MovableObjectRigidbody.position).normalized;
                 float distanceToTarget = Vector3.Distance(movementCmp.MovableObjectRigidbody.position, movementCmp.TargetPosition);
@@ -38,15 +52,25 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 if (distanceToTarget > 3f && _fuelComponentsPool.Value.Get(movementEntity).CurrentFuel > 0) {
                     var needTargetRotation = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg - 90f;
 
-                    float angleToTarget =
-                        Vector3.SignedAngle(movementCmp.MovableObjectRigidbody.transform.up, directionToTarget, Vector3.forward);
-                    isReversing = movementEntity == _sceneData.Value.PlayerEntity && Mathf.Abs(angleToTarget) > 90f;
+                    float angleToTarget = Vector3.SignedAngle(moveObjectTransform.up, directionToTarget, Vector3.forward);
+                    isReversing = isPlayer && Mathf.Abs(angleToTarget) > 90f;
                     if (isReversing)
                         needTargetRotation = Mathf.Atan2(-directionToTarget.y, -directionToTarget.x) * Mathf.Rad2Deg - 90f;
-                    float angleDifference = Mathf.DeltaAngle(movementCmp.MovableObjectRigidbody.transform.eulerAngles.z, needTargetRotation);
+                    else if (!isPlayer && _enemyAIComponentsPool.Value.Get(movementEntity).CurrentEnemyDirection != EnemyDirection.None) {
+                        var aiCmp = _enemyAIComponentsPool.Value.Get(movementEntity);
+                        if(aiCmp.CurrentEnemyDirection== EnemyDirection.Back)
+                            isReversing = true;
+                        var needDir =aiCmp.CurrentEnemyDirection== EnemyDirection.Back?-moveObjectTransform.up.normalized: moveObjectTransform.right.normalized;
+                        if (aiCmp.CurrentEnemyDirection == EnemyDirection.Left)
+                            needTargetRotation = Mathf.Atan2(-needDir.y, -needDir.x) * Mathf.Rad2Deg - 90f;
+                        else
+                            needTargetRotation = Mathf.Atan2(needDir.y, needDir.x) * Mathf.Rad2Deg - 90f;
+                    }
+                    float angleDifference = Mathf.DeltaAngle(moveObjectTransform.eulerAngles.z, needTargetRotation);
                     float rotationInput = Mathf.Clamp(angleDifference / 45f, -1f, 1f);
                     float targetAngularSpeed = rotationInput * movementCmp.RotateSpeed;
 
+                    
                     if (Mathf.Abs(angleDifference) > 1f) {
                         movementCmp.CurrentRotateSpeed = Mathf.MoveTowards(movementCmp.CurrentRotateSpeed, targetAngularSpeed,
                             movementCmp.RotateSpeed * Time.fixedDeltaTime);
@@ -74,18 +98,72 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
                 movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
                 movementCmp.MovableObjectRigidbody.linearVelocity =
-                    movementCmp.MovableObjectRigidbody.transform.up * movementCmp.CurrentMoveSpeed;
+                    moveObjectTransform.up * movementCmp.CurrentMoveSpeed;
             } else
                 movementCmp.CantMoveTime -= deltaTime;
 
             carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
             carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
 
-            if (movementEntity == _sceneData.Value.PlayerEntity)
+            if (isPlayer)
                 UpdateCameraPosition(carCmp.CarView.transform.position);
         }
     }
 
+    private void CheckForObstacles(int entity) {
+        ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
+        var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints);
+        if (leftSide > 2) {
+            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Left;
+            enemyAiCmp.LastCheckedTime += 0.5f;
+            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
+            return;
+        } else if (leftSide > 0) {
+            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
+            enemyAiCmp.LastCheckedTime += 0.5f;
+            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
+            return;
+        }
+
+        var rightSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyRightPoints);
+      
+        if (rightSide > 2) {
+            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Right;
+            enemyAiCmp.LastCheckedTime += 0.5f;
+            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
+            return;
+        } else if (rightSide > 0) {
+            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
+            enemyAiCmp.LastCheckedTime += 0.5f;
+            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
+            return;
+        } else {
+            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.None;
+            enemyAiCmp.LastCheckedTime += 0.2f;
+            Debug.Log(enemyAiCmp.CurrentEnemyDirection + " enemyAiCmp.CurrentEnemyDirection");
+            return;
+        }
+
+    }
+
+    private float CheckOneSideForObstacles(List<Transform> pointsToCheck) {
+        foreach (var point in pointsToCheck) {
+            Vector3[] rayDirections = {
+                point.up, // Прямо
+                Quaternion.Euler(0, 0, 30) * point.up, // Под углом 30°
+                Quaternion.Euler(0, 0, -30) * point.up
+            };
+
+            foreach (Vector3 direction in rayDirections) {
+                RaycastHit2D hit = Physics2D.Raycast(point.position, direction, 5, LayerMask.GetMask("Obstacle"));
+
+                if (hit.collider != null)
+                    return Vector2.Distance(point.position, hit.point);
+            }
+        }
+
+        return 0f;
+    }
     private void UpdateCameraPosition(Vector2 needPosition) {
         _sceneData.Value.mainCamera.transform.position = Vector3.Slerp(_sceneData.Value.mainCamera.transform.position,
             new Vector3(needPosition.x, needPosition.y, -10), Time.deltaTime * 2);

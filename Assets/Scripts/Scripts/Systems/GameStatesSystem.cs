@@ -32,6 +32,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<FromPointToPointRoundComponent> _fromPointToPointRoundComponentsPool;
     private EcsPoolInject<StartRoundEvent> _startRoundEventsPool;
     private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
+    private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -57,7 +58,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             TriggerFilledZone();
         }
 
-        
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
                 curGameCmp.RoundTime -= Time.deltaTime;
@@ -73,8 +73,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) return;
                 ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
                 var moveCmp = _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-                if(moveCmp.MovableObjectRigidbody != null)
-                UpdateArrowDirection(pointToPointRound.PointsToCheck[0], moveCmp.MovableObjectRigidbody.gameObject.transform.position);
+                if (moveCmp.MovableObjectRigidbody != null)
+                    UpdateArrowDirection(pointToPointRound.PointsToCheck[0], moveCmp.MovableObjectRigidbody.gameObject.transform.position);
 
                 break;
         }
@@ -402,6 +402,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         for (int i = 0; i < 3; i++) {
             int enemyEntity = _world.Value.NewEntity();
+        
             ref var moveCmp = ref _movementComponentsPool.Value.Add(enemyEntity);
             ref var fuelCmp = ref _fuelComponentsPool.Value.Add(enemyEntity);
             fuelCmp.CurrentFuel = 200;
@@ -469,6 +470,25 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
             SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
             SetupWheels(enemyEntity, carView);
+
+            ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Add(enemyEntity);
+            enemyAiCmp.CheckedEnemyLeftPoints = new List<Transform>();
+            enemyAiCmp.CheckedEnemyRightPoints = new List<Transform>();
+            enemyAiCmp.LastCheckedTime = 1f;
+            for (int j = 0; j < carCmp.CarPartContainerGroupsGrid.GetLength(0); j++) {
+                for (int k = 0; k < carCmp.CarPartContainerGroupsGrid.GetLength(1); k++) {
+                    if (carCmp.CarPartContainerGroupsGrid[j, k] != 0) {
+                        var obstacleCheckerTransform = _sceneData.Value.GetGunContainer(carView.CarPartsContainer);
+                        obstacleCheckerTransform.localPosition = new Vector3(j - carCmp.CarPartContainerGroupsGrid.GetLength(0) / 2f,
+                            k + carCmp.CarPartContainerGroupsGrid.GetLength(1) / 2f, 0);
+                        if (j > carCmp.CarPartContainerGroupsGrid.GetLength(0) / 2)
+                            enemyAiCmp.CheckedEnemyLeftPoints.Add(obstacleCheckerTransform);
+                        else
+                            enemyAiCmp.CheckedEnemyRightPoints.Add(obstacleCheckerTransform);
+                        break;
+                    }
+                }
+            }
             
         }
     }

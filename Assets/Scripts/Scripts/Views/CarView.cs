@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CarView : MonoBehaviour {
-    public Transform[] Wheels;
-
     public Rigidbody2D Rigidbody;
     public Transform MainCarContainer;
     public Transform CarPartsContainer;
@@ -21,6 +19,6 @@ public class CarView : MonoBehaviour {
     }
 
     private void OnCollisionEnter2D(Collision2D other) {
-        _collisionHitAction.Invoke(_entity,other.gameObject.GetComponent<CarView>()._entity); 
+     //   _collisionHitAction.Invoke(_entity,other.gameObject.GetComponent<CarView>()._entity); 
     }
 }
