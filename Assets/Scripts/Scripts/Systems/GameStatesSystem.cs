@@ -467,8 +467,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
                 SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
             }
-            SetupWheels(enemyEntity, carView);
             SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
+            SetupWheels(enemyEntity, carView);
+            
         }
     }
 
@@ -783,7 +784,7 @@ Debug.Log(startX + " " + startY);
                 var wheelConfig = _sceneData.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
                 foreach (var wheelPos in wheelConfig.WheelsPositions) {
                     Debug.Log(wheelConfig.WheelId);
-                    var wheel = CreateWheel(wheelConfig.WheelId, carView, (Vector2)carPartCmp.CarPartCellRenderer.transform.position + wheelPos,
+                    var wheel = CreateWheel(wheelConfig.WheelId, carView, (Vector2)carPartCmp.CarPartCellRenderer.transform.position + wheelPos-(Vector2)carView.transform.position,
                         wheelPos.x > 0);
                     if (maxYposWheels == carPartContainer.Value[0].y)
                         carCmp.ForwardWheels.Add(wheel.transform);
