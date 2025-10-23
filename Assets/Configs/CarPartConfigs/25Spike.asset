@@ -25,5 +25,5 @@ MonoBehaviour:
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   Damage: 5
-  AttackCouldown: 1
+  AttackCountdown: 0.6
   DamageAddedFromOneSpeed: 1.2

@@ -19,6 +19,7 @@ public class CarPartInfoUIView : MonoBehaviour
     [field: SerializeField] public TMP_Text _descriptionText { get; private set; }
     public TMP_Text CarDescriptionText;
     [field: SerializeField] public Image _carPartIcon { get; private set; }
+    [field: SerializeField] public Image _carPartIconUpLevel { get; private set; }
 
     public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade,Action moveToInventory) {
         _backButton.onClick.AddListener(() => backCarPart?.Invoke());
@@ -35,30 +36,50 @@ public class CarPartInfoUIView : MonoBehaviour
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
         _currentPartInfoId = carPartConfig.Id; 
         _carPartIcon.sprite = carPartConfig.PartSprite;
-        _descriptionText.text = $"{carPartConfig.MaxHealth} HP \n Part type: {carPartConfig.PartType}\n Weight: {carPartConfig.Weight}";
+        _descriptionText.text = $"{carPartConfig.MaxHealth} HP \nPart type: {carPartConfig.PartType}\nWeight: {carPartConfig.Weight}";
         _nameText.text = carPartConfig.PartName;
-
+        _carPartIconUpLevel.gameObject.SetActive(false);
         if (carPartConfig.PartType == CarPartType.Gun) {
             if (carPartConfig is GunConfig gunConfig) {
-                if (gunConfig.MissleType == MissleType.laser) {
-                    
-                } else {
-                    _descriptionText.text += $"\n Damage: {gunConfig.Damage}";
-                    if (gunConfig.BulletsCount > 1)
-                        _descriptionText.text += $"x{gunConfig.BulletsCount}";
-                    _descriptionText.text += $" \n Projectile speed: {gunConfig.BulletSpeed} \n Spread angle: {gunConfig.SpreadAngle}\n" +
-                                             $"Reload duration: {gunConfig.ReloadDuration}s\n" +
-                                             $"Bullets in mag: {gunConfig.BulletsCountInMagazine}\n Rate of fire: {60f/gunConfig.AttackCouldown}/min ";
-                }
-
-                if (gunConfig.MaxRotateAngle != 0) {
-                     _descriptionText.text += $"\n Max rotate angle: {gunConfig.MaxRotateAngle} ";
-                }
-                
-                if(gunConfig.ExplosionRadius != 0)
-                    _descriptionText.text += $"\nExplosion radius: {gunConfig.ExplosionRadius}\n Explosion damage: {gunConfig.ExplosionDamage}";
-               
+                SetGunInfo(carPartConfig, gunConfig);
             }
+        }
+        else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
+            if (carPartConfig is MeleeWeaponConfig meleeConfig) {
+                _descriptionText.text += $"\nDamage: {meleeConfig.Damage}/s \nAdded damage: {meleeConfig.DamageAddedFromOneSpeed}/1 m/s\n" +
+                                         $"Attack countdown: {meleeConfig.AttackCountdown}s";
+            }
+        }
+    }
+
+    private void SetGunInfo(CarPartConfig carPartConfig, GunConfig gunConfig) {
+        if (gunConfig.UpPartSprite != null) {
+            var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
+            _carPartIconUpLevel.rectTransform.sizeDelta = _carPartIcon.rectTransform.sizeDelta /
+                (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;
+            _carPartIconUpLevel.transform.localPosition = _carPartIcon.rectTransform.sizeDelta /
+                Math.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
+            _carPartIconUpLevel.sprite = gunConfig.UpPartSprite;
+            _carPartIconUpLevel.gameObject.SetActive(true);
+        }
+                
+        if (gunConfig.MissleType == MissleType.laser) {
+            _descriptionText.text += $"\nDamage: {gunConfig.Damage}/s \nLaser range: {gunConfig.BulletSpeed}\nReload: {gunConfig.ReloadDuration}s\n" +
+                                     $"Laser time: {gunConfig.AttackCouldown}s";
+        } else {
+            _descriptionText.text += $"\n Damage: {gunConfig.Damage}";
+            if (gunConfig.BulletsCount > 1)
+                _descriptionText.text += $"x{gunConfig.BulletsCount}";
+            _descriptionText.text += $" \nProjectile speed: {gunConfig.BulletSpeed} \nSpread angle: {gunConfig.SpreadAngle}\n" +
+                                     $"Reload duration: {gunConfig.ReloadDuration}s\n" +
+                                     $"Bullets in mag: {gunConfig.BulletsCountInMagazine}\nRate of fire: {60f / gunConfig.AttackCouldown}/min ";
+            if (gunConfig.ExplosionRadius != 0)
+                _descriptionText.text +=
+                    $"\nExplosion radius: {gunConfig.ExplosionRadius}\nExplosion damage: {gunConfig.ExplosionDamage}";
+        }
+
+        if (gunConfig.MaxRotateAngle != 0) {
+            _descriptionText.text += $"\nMax rotate angle: {gunConfig.MaxRotateAngle} \nRotate speed: {gunConfig.RotateSpeed}";
         }
     }
 }

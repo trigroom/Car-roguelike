@@ -401,7 +401,7 @@ using UnityEngine.UI;
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(weaponCellEntity);
                 if (meleeCmp.couldown > 0) return;
                 var meleeWeaponConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(weaponId);
-                meleeCmp.couldown += meleeWeaponConfig.AttackCouldown;
+                meleeCmp.couldown += meleeWeaponConfig.AttackCountdown;
 
                 damagePoints = meleeWeaponConfig.Damage +
                                (_movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity)
