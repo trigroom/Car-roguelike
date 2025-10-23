@@ -17,6 +17,7 @@
         public CarPartType SortedCarPartType;
         public int[,] GridCarPartCellsEntities;
         public Sequence CurrentTween;
+        public Sequence CurrentTweenChangeModeButton;
         public int CurrentRotateDegrees;
         public Vector3 StartMouseInputPosition;
         public Vector2 onCarCellSize;

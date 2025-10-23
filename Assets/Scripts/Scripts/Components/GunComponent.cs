@@ -9,7 +9,8 @@
        public SpriteRenderer GunSpriteRenderer;
        public Image GunSpriteImage;
        public float currentRotateDegrees;
-       public float currentRotateSide;
+       public bool GunOnTarget;
+       public float GunOnTargetTime;
        public Transform UpPartContainer;
        public Transform FirePointTransform;
    }

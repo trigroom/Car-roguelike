@@ -37,5 +37,24 @@ public class CarPartInfoUIView : MonoBehaviour
         _carPartIcon.sprite = carPartConfig.PartSprite;
         _descriptionText.text = $"{carPartConfig.MaxHealth} HP \n Part type: {carPartConfig.PartType}\n Weight: {carPartConfig.Weight}";
         _nameText.text = carPartConfig.PartName;
+
+        if (carPartConfig.PartType == CarPartType.Gun) {
+            if (carPartConfig is GunConfig gunConfig) {
+                if (gunConfig.MissleType == MissleType.laser) {
+                    
+                } else {
+                    _descriptionText.text += $"\n Damage: {gunConfig.Damage}";
+                    if (gunConfig.BulletsCount > 1)
+                        _descriptionText.text += $"x{gunConfig.BulletsCount}";
+                    _descriptionText.text += $" \n Projectile speed: {gunConfig.BulletSpeed}\n Reload duration: {gunConfig.ReloadDuration}s\n" +
+                                             $"Bullets in mag: {gunConfig.BulletsCountInMagazine}\n Rate of fire: {60f/gunConfig.AttackCouldown}/min ";
+                }
+
+                if (gunConfig.MaxRotateAngle != 0) {
+                     _descriptionText.text += $"\n Max rotate angle: {gunConfig.MaxRotateAngle}\n ";
+                }
+               
+            }
+        }
     }
 }

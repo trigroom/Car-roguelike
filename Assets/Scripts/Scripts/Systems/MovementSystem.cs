@@ -58,14 +58,18 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                         needTargetRotation = Mathf.Atan2(-directionToTarget.y, -directionToTarget.x) * Mathf.Rad2Deg - 90f;
                     else if (!isPlayer && _enemyAIComponentsPool.Value.Get(movementEntity).CurrentEnemyDirection != EnemyDirection.None) {
                         var aiCmp = _enemyAIComponentsPool.Value.Get(movementEntity);
-                        if(aiCmp.CurrentEnemyDirection== EnemyDirection.Back)
+                        if (aiCmp.CurrentEnemyDirection == EnemyDirection.Back)
                             isReversing = true;
-                        var needDir =aiCmp.CurrentEnemyDirection== EnemyDirection.Back?-moveObjectTransform.up.normalized: moveObjectTransform.right.normalized;
-                        if (aiCmp.CurrentEnemyDirection == EnemyDirection.Left)
-                            needTargetRotation = Mathf.Atan2(-needDir.y, -needDir.x) * Mathf.Rad2Deg - 90f;
+                        var needDir = aiCmp.CurrentEnemyDirection == EnemyDirection.Back
+                            ? -moveObjectTransform.up.normalized
+                            : (Quaternion.Euler(0, 0, 30) * moveObjectTransform.up).normalized;
+                        if (aiCmp.CurrentEnemyDirection == EnemyDirection.Right)
+                            needTargetRotation = Mathf.Atan2((Quaternion.Euler(0, 0, -30) * moveObjectTransform.up).normalized.y,
+                                (Quaternion.Euler(0, 0, -30) * moveObjectTransform.up).normalized.x) * Mathf.Rad2Deg - 90f;
                         else
                             needTargetRotation = Mathf.Atan2(needDir.y, needDir.x) * Mathf.Rad2Deg - 90f;
                     }
+
                     float angleDifference = Mathf.DeltaAngle(moveObjectTransform.eulerAngles.z, needTargetRotation);
                     float rotationInput = Mathf.Clamp(angleDifference / 45f, -1f, 1f);
                     float targetAngularSpeed = rotationInput * movementCmp.RotateSpeed;
@@ -115,7 +119,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints);
         if (leftSide > 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Left;
-            enemyAiCmp.LastCheckedTime += 0.5f;
+            enemyAiCmp.LastCheckedTime += 0.3f;
             return;
         } 
         if (leftSide > 0) {
@@ -128,13 +132,13 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
       
         if (rightSide > 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Right;
-            enemyAiCmp.LastCheckedTime += 0.5f;
+            enemyAiCmp.LastCheckedTime += 0.3f;
         } else if (rightSide > 0) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
             enemyAiCmp.LastCheckedTime += 1f;
         } else {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.None;
-            enemyAiCmp.LastCheckedTime += 0.2f;
+            enemyAiCmp.LastCheckedTime += 0.15f;
         }
 
     }
@@ -148,7 +152,8 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             };
 
             foreach (Vector3 direction in rayDirections) {
-                RaycastHit2D hit = Physics2D.Raycast(point.position, direction, 5, LayerMask.GetMask("Obstacle"));
+                RaycastHit2D hit = Physics2D.Raycast(point.position, direction, 5,
+                    LayerMask.GetMask(new[] { "Obstacle", "UpCarPartEnemy", "CarBaseEnemy" }));
 
                 if (hit.collider != null)
                     return Vector2.Distance(point.position, hit.point);

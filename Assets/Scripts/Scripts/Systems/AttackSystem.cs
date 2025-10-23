@@ -54,28 +54,40 @@ using UnityEngine.UI;
             ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             if (curGameCmp.CurrentRoundType == RoundType.None) return;
             foreach (var gunEntity in _gunComponentsFilter.Value) {
-                if (_shockEffectComponentsPool.Value.Has(gunEntity)) continue;
+                if (_shockEffectComponentsPool.Value.Has(gunEntity)) {
+                    if (_laserComponentsPool.Value.Has(gunEntity))
+                        _laserComponentsPool.Value.Get(gunEntity).LaserLineRenderer.gameObject.SetActive(false);
+                    continue;
+                }
+
                 ref var gunCmp = ref _gunComponentsPool.Value.Get(gunEntity);
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(_carPartComponentsPool.Value.Get(gunEntity).CarPartId);
 
                 gunCmp.CurrentCouldown -= deltaTime;
 
+                if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0) {
+                    gunCmp.GunOnTargetTime -= deltaTime;
+                    if (gunCmp.GunOnTargetTime <= 0) {
+                        var needLayer = gunCmp.MainEntity == _sceneData.Value.PlayerEntity
+                            ? LayerMask.GetMask("UpCarPartEnemy")
+                            : LayerMask.GetMask("UpCarPart");
+                        RaycastHit2D hit = Physics2D.Raycast(gunCmp.UpPartContainer.position, gunCmp.UpPartContainer.up, 7, needLayer);
+                      
+                        gunCmp.GunOnTarget = hit.collider != null;
+                        gunCmp.GunOnTargetTime += 0.2f;
+                    }
 
-                if (gunCmp.UpPartContainer != null) {
-                    gunCmp.currentRotateDegrees += Time.deltaTime * gunConfig.RotateSpeed;
+                    if (!gunCmp.GunOnTarget) {
+                        gunCmp.currentRotateDegrees += Time.deltaTime * gunConfig.RotateSpeed;
 
-                    // Используем PingPong для плавного движения между -maxAngle и maxAngle
-                    float pingPongValue = Mathf.PingPong(gunCmp.currentRotateDegrees, 1f); // значение от 0 до 1
+                        float pingPongValue = Mathf.PingPong(gunCmp.currentRotateDegrees, 1f);
 
-                    // Преобразуем в угол от -maxAngle до maxAngle
-                    float targetAngle = Mathf.Lerp(-gunConfig.MaxRotateAngle, gunConfig.MaxRotateAngle, pingPongValue);
+                        float targetAngle = Mathf.Lerp(-gunConfig.MaxRotateAngle, gunConfig.MaxRotateAngle, pingPongValue);
 
-                    // Применяем поворот
-                    gunCmp.UpPartContainer.localEulerAngles = new Vector3(0, 0, targetAngle);
+                        gunCmp.UpPartContainer.localEulerAngles = new Vector3(0, 0, targetAngle);
+                    }
                 }
-             
-                
-                
+
                 if (gunCmp.CurrentCouldown <= 0) {
                     if (gunConfig.MissleType != MissleType.laser)
                         SpawnProjectile(gunEntity);
@@ -100,8 +112,8 @@ using UnityEngine.UI;
             }
 
             foreach (var cellEntity in _constructMeleeCellEventsFilter.Value) {
-               continue;
-               
+                continue;
+
                 ConstructMeleeWeaponCell(cellEntity);
             }
 
@@ -126,7 +138,7 @@ using UnityEngine.UI;
                 ref var fireCmp = ref _fireComponentsPool.Value.Get(burnedEntity);
                 fireCmp.Duration -= deltaTime;
                 fireCmp.LastFireSeconds += deltaTime;
-                if ( fireCmp.LastFireSeconds >= 1) {
+                if (fireCmp.LastFireSeconds >= 1) {
                     fireCmp.LastFireSeconds--;
                     int damage = Mathf.CeilToInt(fireCmp.Duration);
                     ChangeHealth(damage, burnedEntity);
@@ -134,14 +146,17 @@ using UnityEngine.UI;
                         _fireComponentsPool.Value.Del(burnedEntity);
                         continue;
                     }
-                    _sceneData.Value.GetFloatingTextPrefab(_carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer.transform.position,
-                        damage.ToString(), new Color(1,0.5f,0.1f, 1 ));
+
+                    _sceneData.Value.GetFloatingTextPrefab(
+                        _carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer.transform.position, damage.ToString(),
+                        new Color(1, 0.5f, 0.1f, 1));
                     if (damage <= 1) {
                         _fireComponentsPool.Value.Del(burnedEntity);
                     }
                 }
             }
         }
+
         private void TrySpawnLaser(int entity) {
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(entity);
             ref var gunCmp = ref _gunComponentsPool.Value.Get(entity);
@@ -149,27 +164,28 @@ using UnityEngine.UI;
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             float laserRange = gunConfig.BulletSpeed;
             var firePoint = gunCmp.FirePointTransform;
-            
-           // gunCmp.
-           
+
+            // gunCmp.
+
             Vector2 worldFirePoint = firePoint.position;
 
             Vector2 direction = firePoint.up;
 
-            LayerMask layerMask = carPartCmp.MainEntity != _sceneData.Value.PlayerEntity ? LayerMask.GetMask(new string[]{
-               /* "CarBase",*/ "UpCarPart"
-            }): LayerMask.GetMask(new string[]{
-                /*"EnemyCarBase",*/ "UpCarPartEnemy"
-            });
-            RaycastHit2D hit = Physics2D.Raycast(worldFirePoint, direction, laserRange,layerMask);
+            LayerMask layerMask = carPartCmp.MainEntity != _sceneData.Value.PlayerEntity
+                ? LayerMask.GetMask(new string[] {
+                    /* "CarBase",*/ "UpCarPart"
+                })
+                : LayerMask.GetMask(new string[] {
+                    /*"EnemyCarBase",*/ "UpCarPartEnemy"
+                });
+            RaycastHit2D hit = Physics2D.Raycast(worldFirePoint, direction, laserRange, layerMask);
             Vector2 endPoint;
             if (hit.collider != null) {
                 endPoint = hit.point;
 
-                    var damagedCarPart = hit.collider.GetComponent<CarPartStuffView>();
-                    ProjectileHit(AttackType.Laser, gunConfig.Id, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point, null,
-                        entity);
-            
+                var damagedCarPart = hit.collider.GetComponent<CarPartStuffView>();
+                ProjectileHit(AttackType.Laser, gunConfig.Id, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point, null,
+                    entity);
             } else {
                 // Если не попали, конечная точка на максимальной дистанции
                 endPoint = worldFirePoint + direction * laserRange;
@@ -255,7 +271,7 @@ using UnityEngine.UI;
             ref var gunCmp = ref _gunComponentsPool.Value.Get(gunEntity);
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             for (int i = 0; i < gunConfig.BulletsCount; i++) {
-                if(carPartCmp.CellCarPartsStuffViews == null)return;
+                if(carPartCmp.CellCarPartsStuffViews == null || gunCmp.FirePointTransform == null)return;
                 
                 Vector2 worldFirePoint = /*carPartCmp.CarPartCellRenderer.transform.TransformPoint(gunConfig.FirePointPosition)*/
                     gunCmp.FirePointTransform.position;
@@ -483,7 +499,7 @@ using UnityEngine.UI;
             if (carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer) {
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
-                    var gridPos = carCmp.CarPartGroupsList[cellEntity][i];
+                    var gridPos = carCmp.CarPartContainerGroupsList[cellEntity][i];
                     if (carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] != 0)
                         DestroyCarPartCell(carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y]);
                     _sceneData.Value.ReleaseCarPartCell(carPart);
@@ -497,6 +513,8 @@ using UnityEngine.UI;
                     carPart.SetupCarPart(gridPos, needLayer,carPartCmp.MainEntity);
                 }
             }
+
+            _sceneData.Value.DestroyGameobject(carPartCmp.CarPartCellRenderer.transform); 
 
             if (carPartCmp.MainEntity != _sceneData.Value.PlayerEntity) {
                 _destroyEntityEventsPool.Value.Add(cellEntity);

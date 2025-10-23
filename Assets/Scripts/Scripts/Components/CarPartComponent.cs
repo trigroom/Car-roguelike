@@ -7,9 +7,9 @@ using UnityEngine.UI;
         public int CarPartId;
         public float CurrentHealth;
         public float MaxHealth;
-        public int CurrentRotateAngle;
         public int MainEntity;
         public List<CarPartStuffView> CellCarPartsStuffViews;
         public Image carPartCellImage;
         public SpriteRenderer CarPartCellRenderer;
+        public int PartLevel;
     }
