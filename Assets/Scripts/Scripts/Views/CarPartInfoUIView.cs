@@ -46,13 +46,17 @@ public class CarPartInfoUIView : MonoBehaviour
                     _descriptionText.text += $"\n Damage: {gunConfig.Damage}";
                     if (gunConfig.BulletsCount > 1)
                         _descriptionText.text += $"x{gunConfig.BulletsCount}";
-                    _descriptionText.text += $" \n Projectile speed: {gunConfig.BulletSpeed}\n Reload duration: {gunConfig.ReloadDuration}s\n" +
+                    _descriptionText.text += $" \n Projectile speed: {gunConfig.BulletSpeed} \n Spread angle: {gunConfig.SpreadAngle}\n" +
+                                             $"Reload duration: {gunConfig.ReloadDuration}s\n" +
                                              $"Bullets in mag: {gunConfig.BulletsCountInMagazine}\n Rate of fire: {60f/gunConfig.AttackCouldown}/min ";
                 }
 
                 if (gunConfig.MaxRotateAngle != 0) {
-                     _descriptionText.text += $"\n Max rotate angle: {gunConfig.MaxRotateAngle}\n ";
+                     _descriptionText.text += $"\n Max rotate angle: {gunConfig.MaxRotateAngle} ";
                 }
+                
+                if(gunConfig.ExplosionRadius != 0)
+                    _descriptionText.text += $"\nExplosion radius: {gunConfig.ExplosionRadius}\n Explosion damage: {gunConfig.ExplosionDamage}";
                
             }
         }

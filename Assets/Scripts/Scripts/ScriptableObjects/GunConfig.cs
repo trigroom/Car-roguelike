@@ -21,6 +21,7 @@ public class GunConfig : CarPartConfig
     public Vector2 GunContainerPosition;
     public float SpreadAngle;
     public float ExplosionRadius;
+    public float ExplosionDamage;
     public float ImpulseForce;
     public EffectType EffectType;
     public float EffectDuration;
