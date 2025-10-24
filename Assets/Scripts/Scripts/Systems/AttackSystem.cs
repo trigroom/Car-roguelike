@@ -61,19 +61,22 @@ using UnityEngine.UI;
                 }
 
                 ref var gunCmp = ref _gunComponentsPool.Value.Get(gunEntity);
-                var gunConfig = _sceneData.Value.GetGunFromCarPart(_carPartComponentsPool.Value.Get(gunEntity).CarPartId);
+                var carPartCmp = _carPartComponentsPool.Value.Get(gunEntity);
+                var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
 
                 gunCmp.CurrentCouldown -= deltaTime;
 
                 if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0) {
                     gunCmp.GunOnTargetTime -= deltaTime;
                     if (gunCmp.GunOnTargetTime <= 0) {
-                        var needLayer = gunCmp.MainEntity == _sceneData.Value.PlayerEntity
+                        var needLayer = carPartCmp.MainEntity == _sceneData.Value.PlayerEntity
                             ? LayerMask.GetMask("UpCarPartEnemy")
                             : LayerMask.GetMask("UpCarPart");
-                        RaycastHit2D hit = Physics2D.Raycast(gunCmp.UpPartContainer.position, gunCmp.UpPartContainer.up, 7, needLayer);
+                        RaycastHit2D hit = Physics2D.Raycast(gunCmp.FirePointTransform.position, gunCmp.FirePointTransform.up, 7, needLayer);
                       
                         gunCmp.GunOnTarget = hit.collider != null;
+                       
+                       
                         gunCmp.GunOnTargetTime += 0.2f;
                     }
 

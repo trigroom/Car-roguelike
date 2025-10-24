@@ -467,6 +467,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 carPartCmp.CarPartId = carContainer.partId;
 
                 SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
+                Debug.Log(carPartCmp.MainEntity);
             }
             SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
             SetupWheels(enemyEntity, carView);
