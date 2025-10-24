@@ -62,7 +62,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         movementComponent.RotateSpeed = carConfig.RotateSpeed;
         movementComponent.Acceleration = carConfig.Acceleration;
         movementComponent.Deceleration = carConfig.Deceleration;
-        SortCarParts(CarPartType.None);
+
+        SortCarParts(CarPartType.All);
 
         SetCarGrid();
 
@@ -1471,16 +1472,56 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
     private void SetSortButtons() {
         for (int i = 0; i < _sceneData.Value._inventoryUIView._sortButtons.Length; i++) {
             CarPartType sortType = (CarPartType)i;
-            _sceneData.Value._inventoryUIView._sortButtons[i].onClick.AddListener(() => SortCarParts(sortType));
+            _sceneData.Value._inventoryUIView._sortButtons[i].sortButton.onClick.AddListener(() => SortCarParts(sortType));
         }
 
-        _sceneData.Value._inventoryUIView._nextInventoryCellsButton.onClick.AddListener(() => NextInventoryPage());
-        _sceneData.Value._inventoryUIView._backInventoryCellsButton.onClick.AddListener(() => LastInventoryPage());
+        _sceneData.Value._inventoryUIView._nextInventoryCellsButton.onClick.AddListener(NextInventoryPage);
+        _sceneData.Value._inventoryUIView._backInventoryCellsButton.onClick.AddListener(LastInventoryPage);
     }
 
     private void SortCarParts(CarPartType carPartType) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        inventoryCmp.SortedCarPartType = carPartType;
+        if (carPartType == CarPartType.None) {
+            inventoryCmp.SortedCarPartType = new List<CarPartType>();
+            
+            int index = 0;
+            foreach (var sortButton in _sceneData.Value._inventoryUIView._sortButtons) {
+                sortButton.buttonImage.sprite = index != 0 ? sortButton.unactiveSprite : sortButton.activeSprite;
+                index++;
+            }
+        } 
+        else if (carPartType == CarPartType.All) {
+            inventoryCmp.SortedCarPartType = new List<CarPartType>() {
+                CarPartType.Armor,
+                CarPartType.CarStuffContainer,
+                CarPartType.Gun,
+                CarPartType.Main,
+                CarPartType.Support,
+                CarPartType.WheelsContainer,
+                CarPartType.MeleeWeapon
+            };
+            int index = 0;
+            foreach (var sortButton in _sceneData.Value._inventoryUIView._sortButtons) {
+                sortButton.buttonImage.sprite = index == 0 ? sortButton.unactiveSprite : sortButton.activeSprite;
+                index++;
+            }
+        }
+        else {
+            if (inventoryCmp.SortedCarPartType.Contains(carPartType)) {
+                 inventoryCmp.SortedCarPartType.Remove(carPartType);
+                 var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
+                 sortButton.buttonImage.sprite = sortButton.unactiveSprite;
+            } else {
+                 inventoryCmp.SortedCarPartType.Add(carPartType);
+                 var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
+                 sortButton.buttonImage.sprite = sortButton.activeSprite;
+            }
+            var noneButton = _sceneData.Value._inventoryUIView._sortButtons[0];
+            var allButton = _sceneData.Value._inventoryUIView._sortButtons[(int)CarPartType.All];
+            noneButton.buttonImage.sprite =inventoryCmp.SortedCarPartType.Count==0? noneButton.activeSprite:noneButton.unactiveSprite;
+            allButton.buttonImage.sprite =inventoryCmp.SortedCarPartType.Count==7? allButton.activeSprite:allButton.unactiveSprite;
+        }
+     
         inventoryCmp.CurrentInventoryPage = 0;
 
         SetInventoryCells();
@@ -1490,13 +1531,9 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
         var SortedPartsInInventory = new List<int>();
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
 
-        if (inventoryCmp.SortedCarPartType == CarPartType.None)
-            SortedPartsInInventory = inventoryCmp.PartsInInventory;
-        else {
-            foreach (var partId in inventoryCmp.PartsInInventory) {
-                if (GetCarPartConfig(partId).PartType == inventoryCmp.SortedCarPartType)
-                    SortedPartsInInventory.Add(partId);
-            }
+        foreach (var partId in inventoryCmp.PartsInInventory) {
+            if (inventoryCmp.SortedCarPartType.Contains(GetCarPartConfig(partId).PartType))
+                SortedPartsInInventory.Add(partId);
         }
 
         return SortedPartsInInventory;
@@ -1571,13 +1608,13 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
     private void SetInventoryCells() {
         //check arrow buttons
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        if (inventoryCmp.SortedCarPartType != CarPartType.None)
+       /* if (inventoryCmp.SortedCarPartType != CarPartType.None)
             _sceneData.Value._inventoryUIView._pageNumberText.text = inventoryCmp.SortedCarPartType + " ";
         else
-            _sceneData.Value._inventoryUIView._pageNumberText.text = "";
+            _sceneData.Value._inventoryUIView._pageNumberText.text = "";*/
         if ((float)GetSortedCarPartList().Count / _sceneData.Value._inventoryUIView._inventoryCellViews.Length > 1.1f) {
             _sceneData.Value._inventoryUIView._inventoryArrowsContainer.gameObject.SetActive(true);
-            _sceneData.Value._inventoryUIView._pageNumberText.text += inventoryCmp.CurrentInventoryPage + "/" +
+            _sceneData.Value._inventoryUIView._pageNumberText.text = inventoryCmp.CurrentInventoryPage + "/" +
                                                                       (Mathf.FloorToInt((float)GetSortedCarPartList().Count /
                                                                                         _sceneData.Value._inventoryUIView._inventoryCellViews
                                                                                             .Length));

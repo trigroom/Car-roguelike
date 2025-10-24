@@ -14,7 +14,7 @@
         
         public int CurrentDraggedCellEntity;
         public CellView CurrentCellCarPart;
-        public CarPartType SortedCarPartType;
+        public List<CarPartType> SortedCarPartType;
         public int[,] GridCarPartCellsEntities;
         public Sequence CurrentTween;
         public Sequence CurrentTweenChangeModeButton;

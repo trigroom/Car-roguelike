@@ -39,5 +39,6 @@ public enum CarPartType {
     WheelsContainer,
     CarStuffContainer,
     Gun,
-    MeleeWeapon
+    MeleeWeapon,
+    All
 }

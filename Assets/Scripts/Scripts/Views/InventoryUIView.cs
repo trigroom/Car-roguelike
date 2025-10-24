@@ -43,7 +43,11 @@ public class InventoryUIView : MonoBehaviour
     public Transform _inventoryArrowsContainer { get;private set; }
     
     [field: SerializeField]
-        public Button[] _sortButtons { get;private set; }
+        public ButtonWithSpritesView[] _sortButtons { get;private set; }
+    [field: SerializeField]
+    public Sprite[] _sortButtonsActiveSprites { get;private set; }
+    [field: SerializeField]
+    public Sprite[] _sortButtonsUnactiveSprites { get;private set; }
     [field: SerializeField]
     public CellView[] _cancelCellPlaceButtons { get;private set; }
     [field: SerializeField]
