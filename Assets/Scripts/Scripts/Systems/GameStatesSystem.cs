@@ -33,6 +33,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<StartRoundEvent> _startRoundEventsPool;
     private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
     private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
+    private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -769,7 +770,7 @@ Debug.Log(startX + " " + startY);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
        // carView.CarPartsContainer.localPosition = new Vector3(-(float)carConfig.Width / 2, (float)carConfig.Height / 2, 0);
         carCmp.CurrentWeight += carConfig.MaxWeight / 5f;
-        carCmp.ForwardWheels = new List<Transform>();
+        carCmp.ForwardWheels = new List<Animator>();
         carCmp.ForwardWheelsParticles = new List<ParticleSystem>();
         carCmp.CurrentWeight = carConfig.CarWeight;
       
@@ -807,12 +808,15 @@ Debug.Log(startX + " " + startY);
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
             if (carPartConfig.PartType == CarPartType.WheelsContainer) {
                 var wheelConfig = _sceneData.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
+                ref var wheelCmp  = ref _wheelContainerComponentsPool.Value.Add(carPartContainer.Key);
+                wheelCmp.Wheels = new List<Animator>();
                 foreach (var wheelPos in wheelConfig.WheelsPositions) {
                     Debug.Log(wheelConfig.WheelId);
                     var wheel = CreateWheel(wheelConfig.WheelId, carView, (Vector2)carPartCmp.CarPartCellRenderer.transform.position + wheelPos-(Vector2)carView.transform.position,
                         wheelPos.x > 0);
+                    wheelCmp.Wheels.Add(wheel);
                     if (maxYposWheels == carPartContainer.Value[0].y)
-                        carCmp.ForwardWheels.Add(wheel.transform);
+                        carCmp.ForwardWheels.Add(wheel);
                     carCmp.ForwardWheelsParticles.Add(wheel.GetComponentInChildren<ParticleSystem>());
                 }
             }
@@ -820,7 +824,7 @@ Debug.Log(startX + " " + startY);
     }
 
     private Animator CreateWheel(int wheelId, CarView carView, Vector2 pos, bool isLeftSide) {
-        var wheelTransform = _sceneData.Value.InstantiateAnimator(_sceneData.Value._carStuffListsConfig.Wheels[wheelId],
+        var wheelTransform = _sceneData.Value.InstantiateAnimator(_sceneData.Value._carStuffListsConfig.Wheels[wheelId].WheelAnimator,
             carView.ForwardWheelsContainer.transform);
         AnimatorClipInfo[] clipInfo = wheelTransform.GetCurrentAnimatorClipInfo(0);
         float clipLength = clipInfo[0].clip.length;

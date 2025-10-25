@@ -188,7 +188,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         ref var carCmp = ref _carComponentsPool.Value.Get(debug);
         var wheels = carCmp.ForwardWheels;
         if (wheels == null || wheels.Count > 0 && wheels[0] == null) return;
-        var currentWheelAngle = wheels[0].localRotation;
+        var currentWheelAngle = wheels[0].transform.localRotation;
 
         targetWheelAngle = Mathf.Clamp(targetWheelAngle, -40, 40);
         var needRot = Quaternion.Euler(0, 0, targetWheelAngle);
@@ -198,7 +198,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
       
 
         foreach (var wheel in wheels)
-            wheel.localRotation = currentWheelAngle;
+            wheel.transform.localRotation = currentWheelAngle;
     }
 
     private void SetWheelParticleSystemState(int entity, bool needParticles) {

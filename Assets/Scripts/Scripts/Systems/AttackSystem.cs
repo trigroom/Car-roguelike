@@ -32,6 +32,7 @@ using UnityEngine.UI;
         private EcsPoolInject<PlayerCurrencyComponent> _playerCurrencyComponentsPool;
         private EcsPoolInject<FireComponent> _fireComponentsPool;
         private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
+        private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
         private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -145,7 +146,7 @@ using UnityEngine.UI;
                     fireCmp.LastFireSeconds--;
                     int damage = Mathf.CeilToInt(fireCmp.Duration);
                     ChangeHealth(damage, burnedEntity);
-                    if (_carPartComponentsPool.Value.Get(burnedEntity).CurrentHealth <= 0) {
+                    if (_carPartComponentsPool.Value.Get(burnedEntity).CurrentHealth <= 0 || _carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer == null) {
                         _fireComponentsPool.Value.Del(burnedEntity);
                         continue;
                     }
@@ -492,6 +493,9 @@ using UnityEngine.UI;
              //   _sceneData.Value.ReleaseCarPartCell(carPartCmp.CellCarPartsStuffViews[0].transform.GetChild(0)
               //      .GetComponent<CarPartStuffView>());
                 // if (carPartCellCmp.MainEntity != _sceneData.Value.PlayerEntity)
+                ref var gunCmp  = ref  _gunComponentsPool.Value.Get(cellEntity);
+                if (gunCmp.UpPartContainer != null)
+                    gunCmp.UpPartContainer.gameObject.GetComponentInChildren<SpriteRenderer>().sortingOrder -= 5;
                 _gunComponentsPool.Value.Del(cellEntity);
 
                 if (_laserComponentsPool.Value.Has(cellEntity)) {
@@ -518,7 +522,20 @@ using UnityEngine.UI;
                     if (carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] != 0)
                         DestroyCarPartCell(carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y]);
                     _sceneData.Value.ReleaseCarPartCell(carPart);
+                    
                 }
+
+                if (carPartConfig.PartType == CarPartType.WheelsContainer) {
+                    var wheelContainer = _wheelContainerComponentsPool.Value.Get(cellEntity);
+                    foreach (var wheel in wheelContainer.Wheels) {
+                        wheel.transform.GetChild(0).gameObject.SetActive(false);
+                        wheel.enabled = false;
+                        wheel.gameObject.GetComponent<SpriteRenderer>().sprite = _sceneData.Value._carStuffListsConfig
+                            .Wheels[_sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).WheelId].UpWheelSprite;
+                        wheel.transform.parent =_sceneData.Value._notUsedCarPartsContainer;
+                    }
+                }
+                carCmp.CarPartContainerGroupsList.Remove(cellEntity);
             } else {
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
@@ -527,11 +544,13 @@ using UnityEngine.UI;
                     string needLayer = carPartCmp.MainEntity == _sceneData.Value.PlayerEntity? "CarBase":"CarBaseEnemy";
                     carPart.SetupCarPart(gridPos, needLayer,carPartCmp.MainEntity);
                 }
+                carCmp.CarPartGroupsList.Remove(cellEntity);
             }
-
-            _sceneData.Value.DestroyGameobject(carPartCmp.CarPartCellRenderer.transform); 
-
-            if (carPartCmp.MainEntity != _sceneData.Value.PlayerEntity) {
+            Debug.Log(" des cell"+cellEntity);
+            carPartCmp.CarPartCellRenderer.transform.parent = _sceneData.Value._notUsedCarPartsContainer;
+            carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
+            carPartCmp.CarPartCellRenderer = null;
+            if (carPartCmp.MainEntity != _sceneData.Value.PlayerEntity && !_destroyEntityEventsPool.Value.Has(cellEntity)) {
                 _destroyEntityEventsPool.Value.Add(cellEntity);
                 //   _carPartCellComponentsPool.Value.Del(cellEntity);
                 CheckTasks(TaskType.BrokenParts);
@@ -541,25 +560,41 @@ using UnityEngine.UI;
                 Debug.Log("des player part");
             }
         }
+
         private void DestroyNeedCar(int carEntity) {
-            foreach (var carPartEntity in _carPartCellComponentsFilter.Value) {
-                ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
-                if (carPartCmp.MainEntity == carEntity && carPartCmp.CurrentHealth > 0) {
-                    DestroyCarPartCell(carPartEntity);
-                }
+            ref var carCmp = ref _carComponentsPool.Value.Get(carEntity);
+            carCmp.ForwardWheels = new List<Animator>();
+            var containersList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
+
+            foreach (var carPartEntity in containersList) {
+                Debug.Log(" delete cell" + carPartEntity.Key);
+                if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CurrentHealth > 0)
+                    DestroyCarPartCell(carPartEntity.Key);
             }
 
-            ref var carCmp = ref _carComponentsPool.Value.Get(carEntity); 
-          
+            var partsList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartGroupsList);
+            foreach (var carPartEntity in partsList) {
+                Debug.Log(" delete cell" + carPartEntity.Key);
+                if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CurrentHealth > 0)
+                    DestroyCarPartCell(carPartEntity.Key);
+            }
+
+            /*   foreach (var carPartEntity in _carPartCellComponentsFilter.Value) {
+                    ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
+                    if (carPartCmp.MainEntity == carEntity && carPartCmp.CurrentHealth > 0) {
+
+                    }
+                }*/
+
             _sceneData.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
-           Debug.Log("startDestroy");
-            if(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType == RoundType.None)return;
+            // Debug.Log("startDestroy");
+            if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType == RoundType.None) return;
             if (carEntity != _sceneData.Value.PlayerEntity) {
-               // _movementComponentsPool.Value.Del(carEntity);
-               // _carComponentsPool.Value.Del(carEntity);
-               _destroyEntityEventsPool.Value.Add(carEntity);
+                // _movementComponentsPool.Value.Del(carEntity);
+                // _carComponentsPool.Value.Del(carEntity);
+                _destroyEntityEventsPool.Value.Add(carEntity);
                 CheckTasks(TaskType.Kills);
-            } 
+            }
         }
         
         public void CheckTasks(TaskType taskType) {

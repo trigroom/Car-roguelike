@@ -110,8 +110,8 @@ MonoBehaviour:
   - PartId: 32
     Price: 5
   <Wheels>k__BackingField:
-  - {fileID: 2498112913210683398, guid: 8ad101f6cb99ad943b97d55010c1fe45, type: 3}
-  - {fileID: 2498112913210683398, guid: be901b55b6b1e8d47a7e34211e6d036c, type: 3}
+  - {fileID: 11400000, guid: 1208631f66901204fa513de339a00789, type: 2}
+  - {fileID: 11400000, guid: e8a27ede46ac37f46a3bf45d715abf5c, type: 2}
   <CarPartUIBordersSprites>k__BackingField:
   - {fileID: -688540141, guid: ac6064b026fc61f4698d486316f3d117, type: 3}
   - {fileID: 2003889111, guid: ac6064b026fc61f4698d486316f3d117, type: 3}

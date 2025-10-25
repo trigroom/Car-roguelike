@@ -22,7 +22,7 @@ public class CarStuffListsConfig : ScriptableObject
     public ShopItem[] ShopItems { get;private set; }
     
     [field: SerializeField]
-    public Animator[] Wheels { get;private set; }
+    public WheelPrefabConfig[] Wheels { get;private set; }
     
     [field: SerializeField]
     public Sprite[] CarPartUIBordersSprites { get;private set; }
