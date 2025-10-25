@@ -70,8 +70,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BlendAmount: 0.06
-    - _BlendMode: 0.5
+    - _BlendAmount: 0.23
+    - _BlendMode: -3.23
     - _EnableExternalAlpha: 0
     - _ZWrite: 0
     m_Colors:
