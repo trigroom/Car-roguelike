@@ -4,6 +4,12 @@ using UnityEngine;
 public class CarStuffListsConfig : ScriptableObject
 {
     [field: SerializeField]
+    public Material DefaultMaterial { get;private set; }
+    [field: SerializeField]
+    public Material LowDamagedMaterial { get;private set; }
+    [field: SerializeField]
+    public Material HighDamagedMaterial { get;private set; }
+    [field: SerializeField]
     public CarConfig[] CarConfigs { get;private set; }
     [field: SerializeField]
     public CarPartConfig[] CarPartConfigs { get;private set; }

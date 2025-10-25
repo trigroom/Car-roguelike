@@ -447,11 +447,22 @@ using UnityEngine.UI;
         }
         private void ChangeHealth(float health, int cellEntity) {
             ref var carPartCellCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
+            
             carPartCellCmp.CurrentHealth -= health;
-
+            var healthPercent = carPartCellCmp.CurrentHealth / carPartCellCmp.MaxHealth;
+            Debug.Log(healthPercent);
+            if (carPartCellCmp.HealthMaterialIndex == 0 && healthPercent < 0.6f) {
+                carPartCellCmp.CarPartCellRenderer.material = _sceneData.Value._carStuffListsConfig.LowDamagedMaterial;
+                carPartCellCmp.HealthMaterialIndex = 1;
+            }
+            else if (carPartCellCmp.HealthMaterialIndex == 1 && healthPercent < 0.15f) {
+                carPartCellCmp.CarPartCellRenderer.material = _sceneData.Value._carStuffListsConfig.HighDamagedMaterial;
+                carPartCellCmp.HealthMaterialIndex = 2;
+            }
+    
             if (_carPartInGameUIComponentsPool.Value.Has(cellEntity)) {
                 _carPartInGameUIComponentsPool.Value.Get(cellEntity).view.SetHealthCount(
-                    _sceneData.Value._healthGradient.Evaluate(carPartCellCmp.CurrentHealth / carPartCellCmp.MaxHealth),
+                    _sceneData.Value._healthGradient.Evaluate(healthPercent),
                     (int)carPartCellCmp.CurrentHealth);
             }
            

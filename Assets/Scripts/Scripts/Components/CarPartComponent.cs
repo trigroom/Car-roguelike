@@ -12,4 +12,6 @@ using UnityEngine.UI;
         public Image carPartCellImage;
         public SpriteRenderer CarPartCellRenderer;
         public int PartLevel;
+
+        public int HealthMaterialIndex;
     }

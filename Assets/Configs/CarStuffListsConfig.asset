@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbc630e95a4084347ae0c5ce458b732d, type: 3}
   m_Name: CarStuffListsConfig
   m_EditorClassIdentifier: 
+  <DefaultMaterial>k__BackingField: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  <LowDamagedMaterial>k__BackingField: {fileID: 2100000, guid: c4c785079a585d54f8bd17ba9a5e8c23, type: 2}
+  <HighDamagedMaterial>k__BackingField: {fileID: 2100000, guid: 3392145bcbb5ec847af29db9af7efbbb, type: 2}
   <CarConfigs>k__BackingField:
   - {fileID: 11400000, guid: 927f08791d5064d45b1e42f88b2686e5, type: 2}
   - {fileID: 11400000, guid: 35fbc3960db601a40a032ba933c11903, type: 2}
