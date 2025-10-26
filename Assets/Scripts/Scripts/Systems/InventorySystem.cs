@@ -761,10 +761,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private int GetCarPartEntityFromField() {
         var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var gridPosition = GetCurrentDragCarPartContainerGridPosition(Input.mousePosition);
+        bool redactCarPartMode = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsCarPartsRedactorMode;
         if ((gridPosition.y < 0 && gridPosition.y >= carCmp.CarPartContainerGroupsGrid.GetLength(1) && gridPosition.x < 0 &&
              gridPosition.x >= carCmp.CarPartContainerGroupsGrid.GetLength(0))) return 0;
         int carPartEntity = 0;
-        if (carCmp.CarPartGroupsGrid != null && carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y] != 0)
+        if (redactCarPartMode && carCmp.CarPartGroupsGrid != null && carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y] != 0)
             carPartEntity = carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y];
         else if (carCmp.CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y] != 0)
             carPartEntity = carCmp.CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
@@ -849,7 +850,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 //destroyMarkedCarPartContainer
             _sceneData.Value.DestroyGameobject(carPartCmp.carPartCellImage.transform);
        
-            _carPartComponentsPool.Value.Del(carPartEntity);
+            _world.Value.DelEntity(carPartEntity);
         }
 
         CloseShowInfoPanel();

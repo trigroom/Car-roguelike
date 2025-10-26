@@ -83,8 +83,10 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void UpdateMapPoint() {
+        _sceneData.Value._mapPointPrefab.WasTriggered = false;
         ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         pointToPointRound.PointsToCheck.RemoveAt(0);
+        
         Debug.Log("complete point");
         if (pointToPointRound.PointsToCheck.Count == 0) {
             EndPointToPointRound();
@@ -93,6 +95,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             _sceneData.Value._mapPointPrefab.transform.position = pointToPointRound.PointsToCheck[0];
             //smth particle effect
         }
+        
     }
 
     private void SetSaleShopRound() {
@@ -141,7 +144,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.None;
         _endRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
-        
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneData.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_sceneData.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
@@ -335,9 +337,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private void SetFilledZoneRound() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        
         _sceneData.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(true);
         _sceneData.Value._mapFilledZoneView.gameObject.SetActive(true);
-       _filledZoneComponentsPool.Value.Add(_sceneData.Value.PlayerEntity).NeedZoneTime = 10;
+       _filledZoneComponentsPool.Value.Add(_sceneData.Value.PlayerEntity).NeedZoneTime = 10+curGameCmp.CurrentRound*3;
         _sceneData.Value._mapFilledZoneView.ChangeZonePosition(GetRandomPointAround(Vector2.zero, 10));
     }
     private void SetNewPointToPointRound() {
@@ -347,7 +351,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         pointToPointRoundCmp.PointsToCheck = new List<Vector2>();
         int pointsCount = 2+curGameCmp.CurrentRound/5;
-        Debug.Log(pointsCount + "pointscount"); 
         Vector2 posToSpawn = Vector2.zero;
         for (int i = 0; i < pointsCount; i++) {
             posToSpawn = GetRandomPointAround(posToSpawn, 15);

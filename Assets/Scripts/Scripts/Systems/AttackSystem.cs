@@ -201,6 +201,8 @@ using UnityEngine.UI;
         private void EndRound() {
             DestroyAllProjectiles();
             DestroyAllCars();
+
+            DestroyBrokenParts();
         }
 
         private void LoseGame() {
@@ -219,12 +221,20 @@ using UnityEngine.UI;
             }
           
         }
+        private void SetPlayerCarPartsGridFromList() {
+            ref var carCmp= ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+            foreach (var carPart in carCmp.CarPartGroupsList) {
+                foreach (var cellPos in carPart.Value) {
+                    carCmp.CarPartGroupsGrid[cellPos.x, cellPos.y]  = carPart.Key;
+                }
+            }
+        }
         private void DestroyAllCars() {
             
             foreach (var carEntity in _carComponentsFilter.Value) 
                DestroyNeedCar(carEntity);
-            
-         
+
+            SetPlayerCarPartsGridFromList();
         }
         private void ConstructMeleeWeaponCell(int entity) {
             var carPartComponent = _carPartComponentsPool.Value.Get(entity);
@@ -493,14 +503,17 @@ using UnityEngine.UI;
         }
 
         private void DestroyCarPartCell(int cellEntity) {
-            CarPartComponent carPartCmp = _carPartComponentsPool.Value.Get(cellEntity);
+            ref CarPartComponent carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
+            carPartCmp.CurrentHealth = 0;
             if (!carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
+            bool isPlayer = carPartCmp.MainEntity == _sceneData.Value.PlayerEntity;
             //  if (carPartCellCmp.CarPartId.Count > 1) {
             if (carPartConfig.PartType == CarPartType.Gun) {
              //   _sceneData.Value.ReleaseCarPartCell(carPartCmp.CellCarPartsStuffViews[0].transform.GetChild(0)
               //      .GetComponent<CarPartStuffView>());
                 // if (carPartCellCmp.MainEntity != _sceneData.Value.PlayerEntity)
+                Debug.Log(carPartConfig.PartName + "  "+carPartCmp.MainEntity);
                 ref var gunCmp  = ref  _gunComponentsPool.Value.Get(cellEntity);
                 if (gunCmp.UpPartContainer != null) {
                     gunCmp.GunSpriteRenderer.sortingOrder -= 5;
@@ -548,22 +561,25 @@ using UnityEngine.UI;
                         wheelSpriteRenderer.sprite = _sceneData.Value._carStuffListsConfig
                             .Wheels[_sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).WheelId].UpWheelSprite;
                         wheelSpriteRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
-                        wheel.transform.parent =_sceneData.Value._notUsedCarPartsContainer;
+                        wheel.transform.parent =_sceneData.Value._brokenCarPartsContainer;
+                        _wheelContainerComponentsPool.Value.Del(cellEntity);
                     }
                 }
+                if(!isPlayer)
                 carCmp.CarPartContainerGroupsList.Remove(cellEntity);
             } else {
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
                     var gridPos = carCmp.CarPartGroupsList[cellEntity][i];
                     carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] = 0;
-                    string needLayer = carPartCmp.MainEntity == _sceneData.Value.PlayerEntity? "CarBase":"CarBaseEnemy";
+                    string needLayer = isPlayer? "CarBase":"CarBaseEnemy";
                     carPart.SetupCarPart(gridPos, needLayer,carPartCmp.MainEntity);
                 }
+                if(!isPlayer)
                 carCmp.CarPartGroupsList.Remove(cellEntity);
             }
             Debug.Log(" des cell"+cellEntity);
-            carPartCmp.CarPartCellRenderer.transform.parent = _sceneData.Value._notUsedCarPartsContainer;
+            carPartCmp.CarPartCellRenderer.transform.parent = _sceneData.Value._brokenCarPartsContainer;
             carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
             carPartCmp.CarPartCellRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
             carPartCmp.CarPartCellRenderer = null;
@@ -575,6 +591,13 @@ using UnityEngine.UI;
 
             if (carPartCmp.MainEntity == _sceneData.Value.PlayerEntity) {
                 Debug.Log("des player part");
+            }
+        }
+        
+        private void DestroyBrokenParts() {
+            foreach (Transform child in _sceneData.Value._brokenCarPartsContainer)
+            {
+                _sceneData.Value.DestroyGameobject(child.transform);
             }
         }
 
@@ -594,6 +617,7 @@ using UnityEngine.UI;
                 Debug.Log(" delete cell" + carPartEntity.Key);
                 if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CurrentHealth > 0)
                     DestroyCarPartCell(carPartEntity.Key);
+                //fix double delete
             }
 
             /*   foreach (var carPartEntity in _carPartCellComponentsFilter.Value) {

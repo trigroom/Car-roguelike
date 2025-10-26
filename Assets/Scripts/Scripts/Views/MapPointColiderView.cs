@@ -5,6 +5,7 @@ public class MapPointColiderView : MonoBehaviour {
     [SerializeField]
     private CircleCollider2D _pointCollider;
     private Action _triggerEnterAction;
+    public bool WasTriggered;
 
     public void SetupPoint(Action triggerEnterAction) {
         
@@ -16,6 +17,9 @@ public class MapPointColiderView : MonoBehaviour {
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
+        if(WasTriggered)return;
+        WasTriggered = true;
         _triggerEnterAction.Invoke();
+       
     }
 }

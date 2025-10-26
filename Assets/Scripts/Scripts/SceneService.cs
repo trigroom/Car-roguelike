@@ -9,6 +9,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
+    [field: SerializeField] public Transform _brokenCarPartsContainer { get; private set; }
     [SerializeField]
     private RenderTexture _pixelEffectsLayerTexture;
     [field: SerializeField] public EvemiesCarBuilderView _enemiesCarBuilderView { get; private set; }
