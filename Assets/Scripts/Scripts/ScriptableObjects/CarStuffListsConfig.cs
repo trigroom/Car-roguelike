@@ -26,6 +26,8 @@ public class CarStuffListsConfig : ScriptableObject
     
     [field: SerializeField]
     public Sprite[] CarPartUIBordersSprites { get;private set; }
+    [field: SerializeField]
+    public Color DestroyedCarPartColor { get;private set; }
 }
 [System.Serializable]
 public struct ShopItem {

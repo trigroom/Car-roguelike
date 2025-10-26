@@ -31,6 +31,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<CurrentGameComponent> _currentGameComponentsPool;
     private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
     private EcsPoolInject<GunComponent> _gunComponentsPool;
+    private EcsPoolInject<MeleeWeaponComponent> _meleeWeaponComponentsPool;
  //   private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
 
     private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
@@ -328,7 +329,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         Vector2 currentCellSize = /*inventoryCmp.IsCarPartsRedactorMode ? inventoryCmp.onCarCellSize :*/
             new Vector2(200, 200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1));
         Vector2 cellSize = partSize * currentCellSize;
-        
+
         _sceneData.Value._subGridTransform.gameObject.SetActive(true);
         _sceneData.Value._gridMaskRect.gameObject.SetActive(true);
         _sceneData.Value._subGridTransform.SetSubGridSize(Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
@@ -337,27 +338,32 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         inventoryCmp.CurrentTween.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(cellSize, 0.3f)
             .SetEase(Ease.OutBack));
-        if (partInfo.PartType == CarPartType.Gun) {
+        if (partInfo.PartType == CarPartType.Gun || partInfo.PartType == CarPartType.MeleeWeapon) {
             (Sprite upSprite, Vector2 size, Vector2 position) =
-                GetUpperPartSizesForUI(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform, partInfo);
+                GetUpperPartSizesForUI(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.sizeDelta, partInfo);
 
             var upDragCell = _sceneData.Value._inventoryUIView._draggedInventoryCellUp;
             upDragCell.sprite = upSprite;
             upDragCell.transform.localPosition = position;
             upDragCell.rectTransform.sizeDelta = size;
-            var gunConfig = _sceneData.Value.GetGunFromCarPart(partInfo.Id);
-            if (gunConfig.UpPartSprite != null) {
-                var sizeMultiplyer = partInfo.PartSprite.rect.size / gunConfig.UpPartSprite.rect.size;
+            if (partInfo.PartType == CarPartType.Gun) {
+                var gunConfig = _sceneData.Value.GetGunFromCarPart(partInfo.Id);
+                if (gunConfig.UpPartSprite != null) {
+                    var needPosition = cellSize / Math.Max(partSize.x, partSize.y) * gunConfig.UpPartPosition;
 
-                /*   cellSize = cell.sizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;*/
-                var needPosition = cellSize / Math.Max(partSize.x, partSize.y) * gunConfig.UpPartPosition;
+                    inventoryCmp.CurrentTween.Join(upDragCell.rectTransform.DOSizeDelta(currentCellSize / 16f * gunConfig.UpPartSprite.rect.size, 0.3f).SetEase(Ease.OutBack));
+                    inventoryCmp.CurrentTween.Join(upDragCell.transform.DOLocalMove(needPosition, 0.3f).SetEase(Ease.OutBack));
+                }
+            } else {
+                var meleeConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(partInfo.Id);
+                if (meleeConfig.UpSprite != null) {
+                    var needPosition = cellSize / Math.Max(partSize.x, partSize.y) * meleeConfig.UpSpritePosition;
 
-                inventoryCmp.CurrentTween.Join(upDragCell.rectTransform.DOSizeDelta(cellSize * sizeMultiplyer, 0.3f).SetEase(Ease.OutBack));
-                inventoryCmp.CurrentTween.Join(upDragCell.transform.DOLocalMove(needPosition, 0.3f).SetEase(Ease.OutBack));
+                    inventoryCmp.CurrentTween.Join(upDragCell.rectTransform
+                        .DOSizeDelta(currentCellSize / 16f * meleeConfig.UpSprite.rect.size, 0.3f).SetEase(Ease.OutBack));
+                    inventoryCmp.CurrentTween.Join(upDragCell.transform.DOLocalMove(needPosition, 0.3f).SetEase(Ease.OutBack));
+                }
             }
-          
-            
-            //  inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, upSprite, size, position);
         } else
             _sceneData.Value._inventoryUIView._draggedInventoryCellUp.sprite = _sceneData.Value._transparentPixel;
 
@@ -560,8 +566,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             if (yOffsetDown < 0)
                 currentGridPosition.y -= yOffsetDown;
 
-          //  float gridCellSize = 200 / MathF.Max(carPartContainerGridSize.x, carPartContainerGridSize.y);
-     //       gridCellNewSize = new (gridCellSize, gridCellSize);
             
             SetCarContainersContainerSize();
             Vector2 gridCellNewSize = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).onCarCellSize;
@@ -608,7 +612,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void SetNewGridsFromLists(int xOffsetDown, int yOffsetDown, Vector2 gridCellNewSize) {
-        Debug.Log(" offset move"+xOffsetDown+" "+yOffsetDown);
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var cellGroup in carCmp.CarPartContainerGroupsList) {
             for (int i = 0; i < cellGroup.Value.Count; i++) {
@@ -652,13 +655,26 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var oldCarPartSize = GridUtils.GetCarPartSize(oldCarPartConfig);
             Vector2 oldFiguresOffset = (oldCarPartSize - Vector2Int.one) * gridCellNewSize;
             if (oldCarPartSize != Vector2Int.one)
-            oldFiguresOffset = new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1)/2 * gridCellNewSize * _sceneData.Value.mainCanvas.localScale.x;
+                oldFiguresOffset = new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1) / 2 * gridCellNewSize *
+                                   _sceneData.Value.mainCanvas.localScale.x;
             Sequence returnSequence = DOTween.Sequence();
             returnSequence.Append(carPartOldCmp.carPartCellImage.rectTransform.DOSizeDelta(gridCellNewSize * oldCarPartSize, 0.2f)
                 .SetEase(Ease.InOutQuad));
             returnSequence.Join(carPartOldCmp.carPartCellImage.transform
-                .DOMove(GetWorldPositionFromGrid(GridUtils.GetEdgePointFromCarPart(carCmp.CarPartGroupsList[carParts.Key])) + oldFiguresOffset, 0.2f)
-                .SetEase(Ease.InOutQuad));
+                .DOMove(GetWorldPositionFromGrid(GridUtils.GetEdgePointFromCarPart(carCmp.CarPartGroupsList[carParts.Key])) + oldFiguresOffset,
+                    0.2f).SetEase(Ease.InOutQuad));
+            if (oldCarPartConfig.PartType == CarPartType.Gun || oldCarPartConfig.PartType == CarPartType.MeleeWeapon) {
+                Debug.Log(carParts.Key + " gun ent");
+                var currentImage = oldCarPartConfig.PartType == CarPartType.Gun
+                    ? _gunComponentsPool.Value.Get(carParts.Key).GunSpriteImage
+                    : _meleeWeaponComponentsPool.Value.Get(carParts.Key).MeleeSpriteImage;
+                if (currentImage == null) continue;
+                (Sprite upSprite, Vector2 upSize, Vector2 upPosition) =GetUpperPartSizesForUI(gridCellNewSize * oldCarPartSize, oldCarPartConfig);
+                
+                returnSequence.Join(currentImage.rectTransform.DOSizeDelta(upSize, 0.2f).SetEase(Ease.InOutQuad));
+                returnSequence.Join(currentImage.transform
+                    .DOLocalMove( upPosition,0.2f).SetEase(Ease.InOutQuad));
+            }
         }
     }
 
@@ -714,8 +730,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
             shopCellCmp.CurrentBuyItem = randomItem;
             var carPartConfig = GetCarPartConfig(randomItem.PartId);
-            if (carPartConfig.PartType == CarPartType.Gun) {
-                (Sprite upSprite, Vector2 size, Vector2 position) = GetUpperPartSizesForUI(shopButton.ItemSprite.rectTransform, carPartConfig);
+            if (carPartConfig.PartType == CarPartType.Gun || carPartConfig.PartType == CarPartType.MeleeWeapon) {
+                (Sprite upSprite, Vector2 size, Vector2 position) = GetUpperPartSizesForUI(shopButton.ItemSprite.rectTransform.sizeDelta, carPartConfig);
                 shopButton.SetShopCellInfo(price, carPartConfig.PartSprite, upSprite, position, size);
             } else
                 shopButton.SetShopCellInfo(price, carPartConfig.PartSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero);
@@ -847,9 +863,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         MoveToInventoryCellNeededCarPart(entity);
-        //
-        //move all grid to new positions if need
-Debug.Log(carCmp.CarPartContainerGroupsList.Count + "carCmp.CarPartContainerGroupsList.Count");
+
         if (carCmp.CarPartContainerGroupsList.Count == 0) {
             carCmp.CarPartContainerGroupsGrid = new int[3, 3];
             _sceneData.Value._carPartsContainersContainer.gameObject.GetComponent<CellView>()._gridPosition = -Vector2Int.one * 999;
@@ -858,13 +872,11 @@ Debug.Log(carCmp.CarPartContainerGroupsList.Count + "carCmp.CarPartContainerGrou
         }
 
         (int xOffsetUp, int yOffsetUp, int xOffsetDown, int yOffsetDown) = GetNonZeroOffsets(carCmp.CarPartContainerGroupsGrid);
-Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xOffsetDown"+yOffsetDown + "yOffsetDown" );
         if (xOffsetUp != 0 || yOffsetUp != 0 || xOffsetDown != 0 || yOffsetDown != 0)
             carCmp.CarPartContainerGroupsGrid =
                 new int[carCmp.CarPartContainerGroupsGrid.GetLength(0) - Mathf.Abs(yOffsetUp) - Mathf.Abs(yOffsetDown),
                     carCmp.CarPartContainerGroupsGrid.GetLength(1) - Mathf.Abs(xOffsetUp) - Mathf.Abs(xOffsetDown)];
 
-        //  carPartContainerGridSize = new(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1));
         carCmp.CarPartGroupsGrid = new int[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
         SetCarContainersContainerSize();
         Vector2 gridCellNewSize = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).onCarCellSize;
@@ -1280,16 +1292,24 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
         carPartCmp.MainEntity = _sceneData.Value.PlayerEntity;
         carPartCmp.carPartCellImage.rectTransform.sizeDelta = inventoryCmp.onCarCellSize * carPartSize;
         if (partInfo.PartType == CarPartType.Gun) {
-            (Sprite upSprite, Vector2 upSize, Vector2 upPosition) = GetUpperPartSizesForUI(carPartCmp.carPartCellImage.rectTransform, partInfo);
+            ref var gunCmp = ref _gunComponentsPool.Value.Add(carPartCmpEntity);
+            (Sprite upSprite, Vector2 upSize, Vector2 upPosition) = GetUpperPartSizesForUI(carPartCmp.carPartCellImage.rectTransform.sizeDelta, partInfo);
             if (upSprite != _sceneData.Value._transparentPixel) {
-                ref var gunCmp = ref _gunComponentsPool.Value.Add(carPartCmpEntity);
-
-                gunCmp.GunSpriteImage =
-                    _sceneData.Value.GetCarPartUISprite(carPartCmp.carPartCellImage.rectTransform, Vector2.zero);
+                gunCmp.GunSpriteImage = _sceneData.Value.GetCarPartUISprite(carPartCmp.carPartCellImage.rectTransform, Vector2.zero);
                 gunCmp.GunSpriteImage.transform.localRotation = Quaternion.identity;
                 gunCmp.GunSpriteImage.transform.localPosition = upPosition;
                 gunCmp.GunSpriteImage.sprite = upSprite;
                 gunCmp.GunSpriteImage.rectTransform.sizeDelta = upSize;
+            }
+        } else if (partInfo.PartType == CarPartType.MeleeWeapon) {
+            ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Add(carPartCmpEntity);
+            (Sprite upSprite, Vector2 upSize, Vector2 upPosition) = GetUpperPartSizesForUI(carPartCmp.carPartCellImage.rectTransform.sizeDelta, partInfo);
+            if (upSprite != _sceneData.Value._transparentPixel) {
+                meleeCmp.MeleeSpriteImage = _sceneData.Value.GetCarPartUISprite(carPartCmp.carPartCellImage.rectTransform, Vector2.zero);
+                meleeCmp.MeleeSpriteImage.transform.localRotation = Quaternion.identity;
+                meleeCmp.MeleeSpriteImage.transform.localPosition = upPosition;
+                meleeCmp.MeleeSpriteImage.sprite = upSprite;
+                meleeCmp.MeleeSpriteImage.rectTransform.sizeDelta = upSize;
             }
         }
     }
@@ -1432,15 +1452,15 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
         var inventoryCell = _sceneData.Value._inventoryUIView._inventoryCellViews[cellNumber];
         inventoryCell.gameObject.SetActive(true);
         var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[partId];
-        if (carPartConfig.PartType == CarPartType.Gun) {
+        if (carPartConfig.PartType == CarPartType.Gun || carPartConfig.PartType == CarPartType.MeleeWeapon) {
             (Sprite upSprite, Vector2 size, Vector2 position) =
-                GetUpperPartSizesForUI(inventoryCell._inventoryCellImage.rectTransform, carPartConfig);
+                GetUpperPartSizesForUI(inventoryCell._inventoryCellImage.rectTransform.sizeDelta, carPartConfig);
             inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, upSprite, size, position);
         } else 
             inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero);
     }
 
-    private ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(RectTransform cell, CarPartConfig carPartConfig) {
+    private ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(Vector2 cellSizeDelta, CarPartConfig carPartConfig) {
         Vector2 cellSize = Vector2.zero;
         Vector2 needPosition = Vector2.zero;
         Sprite upSprite = _sceneData.Value._transparentPixel;
@@ -1448,9 +1468,18 @@ Debug.Log(xOffsetUp + " xOffsetUp" + yOffsetUp + " yOffsetUp"+ xOffsetDown + "xO
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartConfig.Id);
             if (gunConfig.UpPartSprite != null) {
                 var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
-                cellSize = cell.sizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;
-                needPosition = cell.sizeDelta / Math.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
+                cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;
+                needPosition = cellSizeDelta / Math.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
                 upSprite = gunConfig.UpPartSprite != null? gunConfig.UpPartSprite : _sceneData.Value._transparentPixel;
+            }
+        }
+        if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
+            var meleeConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(carPartConfig.Id);
+            if (meleeConfig.UpSprite != null) {
+                var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
+                cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * meleeConfig.UpSprite.rect.size;
+                needPosition = cellSizeDelta / Math.Max(carPartSize.x, carPartSize.y) * meleeConfig.UpSpritePosition;
+                upSprite = meleeConfig.UpSprite != null? meleeConfig.UpSprite : _sceneData.Value._transparentPixel;
             }
         }
 

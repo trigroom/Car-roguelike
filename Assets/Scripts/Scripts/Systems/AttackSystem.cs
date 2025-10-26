@@ -65,7 +65,7 @@ using UnityEngine.UI;
                 var carPartCmp = _carPartComponentsPool.Value.Get(gunEntity);
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
 
-                gunCmp.CurrentCouldown -= deltaTime;
+                gunCmp.CurrentCountdown -= deltaTime;
 
                 if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0) {
                     gunCmp.GunOnTargetTime -= deltaTime;
@@ -82,9 +82,9 @@ using UnityEngine.UI;
                     }
 
                     if (!gunCmp.GunOnTarget) {
-                        gunCmp.currentRotateDegrees += Time.deltaTime * gunConfig.RotateSpeed;
+                        gunCmp.CurrentRotateDegrees += Time.deltaTime * gunConfig.RotateSpeed;
 
-                        float pingPongValue = Mathf.PingPong(gunCmp.currentRotateDegrees, 1f);
+                        float pingPongValue = Mathf.PingPong(gunCmp.CurrentRotateDegrees, 1f);
 
                         float targetAngle = Mathf.Lerp(-gunConfig.MaxRotateAngle, gunConfig.MaxRotateAngle, pingPongValue);
 
@@ -92,13 +92,13 @@ using UnityEngine.UI;
                     }
                 }
 
-                if (gunCmp.CurrentCouldown <= 0) {
+                if (gunCmp.CurrentCountdown <= 0) {
                     if (gunConfig.MissleType != MissleType.laser)
                         SpawnProjectile(gunEntity);
                     else {
                         TrySpawnLaser(gunEntity);
-                        if (gunCmp.CurrentCouldown < -gunConfig.AttackCouldown) {
-                            gunCmp.CurrentCouldown = gunConfig.ReloadDuration;
+                        if (gunCmp.CurrentCountdown < -gunConfig.AttackCouldown) {
+                            gunCmp.CurrentCountdown = gunConfig.ReloadDuration;
                             _laserComponentsPool.Value.Get(gunEntity).LaserLineRenderer.gameObject.SetActive(false);
                         }
                     }
@@ -123,8 +123,8 @@ using UnityEngine.UI;
 
             foreach (var cellEntity in _meleeWeaponComponentsFilter.Value) {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(cellEntity);
-                if (meleeCmp.couldown > 0)
-                    meleeCmp.couldown -= deltaTime;
+                if (meleeCmp.Countdown > 0)
+                    meleeCmp.Countdown -= deltaTime;
             }
 
             foreach (var shockEntity in _shockEffectComponentsFilter.Value) {
@@ -316,10 +316,10 @@ using UnityEngine.UI;
 
             gunCmp.CurrentMagazineCount--;
             if (gunCmp.CurrentMagazineCount > 0)
-                gunCmp.CurrentCouldown += gunConfig.AttackCouldown;
+                gunCmp.CurrentCountdown += gunConfig.AttackCouldown;
             else {
                 gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
-                gunCmp.CurrentCouldown += gunConfig.ReloadDuration;
+                gunCmp.CurrentCountdown += gunConfig.ReloadDuration;
             }
         }
 
@@ -403,9 +403,9 @@ using UnityEngine.UI;
                 SetEffectComponent(damagedEntity, gunConfig.EffectType, gunConfig.EffectDuration);
             } else if (attackType == AttackType.Melee) {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(weaponCellEntity);
-                if (meleeCmp.couldown > 0) return;
+                if (meleeCmp.Countdown > 0) return;
                 var meleeWeaponConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(weaponId);
-                meleeCmp.couldown += meleeWeaponConfig.AttackCountdown;
+                meleeCmp.Countdown += meleeWeaponConfig.AttackCountdown;
 
                 damagePoints = meleeWeaponConfig.Damage +
                                (_movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity)
@@ -494,8 +494,11 @@ using UnityEngine.UI;
               //      .GetComponent<CarPartStuffView>());
                 // if (carPartCellCmp.MainEntity != _sceneData.Value.PlayerEntity)
                 ref var gunCmp  = ref  _gunComponentsPool.Value.Get(cellEntity);
-                if (gunCmp.UpPartContainer != null)
-                    gunCmp.UpPartContainer.gameObject.GetComponentInChildren<SpriteRenderer>().sortingOrder -= 5;
+                if (gunCmp.UpPartContainer != null) {
+                    gunCmp.GunSpriteRenderer.sortingOrder -= 5;
+                    gunCmp.GunSpriteRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
+                }
+                   
                 _gunComponentsPool.Value.Del(cellEntity);
 
                 if (_laserComponentsPool.Value.Has(cellEntity)) {
@@ -507,6 +510,9 @@ using UnityEngine.UI;
             if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
                 _sceneData.Value.ReleaseMeleeCarPartCell(carPartCmp.CellCarPartsStuffViews[0].transform.GetChild(0)
                     .GetComponent<MeleeCarPartStuffView>());
+                ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(cellEntity);
+                meleeCmp.MeleeWeaponRenderer.sortingOrder -= 5;
+                meleeCmp.MeleeWeaponRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
                 //if (carPartCellCmp.MainEntity != _sceneData.Value.PlayerEntity)
                 _meleeWeaponComponentsPool.Value.Del(cellEntity);
             }
@@ -530,8 +536,10 @@ using UnityEngine.UI;
                     foreach (var wheel in wheelContainer.Wheels) {
                         wheel.transform.GetChild(0).gameObject.SetActive(false);
                         wheel.enabled = false;
-                        wheel.gameObject.GetComponent<SpriteRenderer>().sprite = _sceneData.Value._carStuffListsConfig
+                        var wheelSpriteRenderer = wheel.gameObject.GetComponent<SpriteRenderer>();
+                        wheelSpriteRenderer.sprite = _sceneData.Value._carStuffListsConfig
                             .Wheels[_sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).WheelId].UpWheelSprite;
+                        wheelSpriteRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
                         wheel.transform.parent =_sceneData.Value._notUsedCarPartsContainer;
                     }
                 }
@@ -549,6 +557,7 @@ using UnityEngine.UI;
             Debug.Log(" des cell"+cellEntity);
             carPartCmp.CarPartCellRenderer.transform.parent = _sceneData.Value._notUsedCarPartsContainer;
             carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
+            carPartCmp.CarPartCellRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
             carPartCmp.CarPartCellRenderer = null;
             if (carPartCmp.MainEntity != _sceneData.Value.PlayerEntity && !_destroyEntityEventsPool.Value.Has(cellEntity)) {
                 _destroyEntityEventsPool.Value.Add(cellEntity);

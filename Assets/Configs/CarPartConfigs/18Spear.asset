@@ -15,7 +15,7 @@ MonoBehaviour:
   <Id>k__BackingField: 18
   <MaxHealth>k__BackingField: 150
   <Weight>k__BackingField: 1
-  <PartSprite>k__BackingField: {fileID: 21300000, guid: fc1349c10765ef4448b76ea89965e31f, type: 3}
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 29c91cd2bdb5257468adf38011f5c190, type: 3}
   <PartType>k__BackingField: 7
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
@@ -24,8 +24,8 @@ MonoBehaviour:
   <DefaultModuleCount>k__BackingField: 2
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  - {x: 0, y: 1}
-  - {x: 0, y: 2}
   Damage: 5
   AttackCountdown: 0.7
   DamageAddedFromOneSpeed: 1.5
+  UpSprite: {fileID: 21300000, guid: fc1349c10765ef4448b76ea89965e31f, type: 3}
+  UpSpritePosition: {x: 0, y: 0.4}

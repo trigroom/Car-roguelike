@@ -5,4 +5,6 @@ public class MeleeWeaponConfig : CarPartConfig {
     public float Damage;
     public float AttackCountdown;
     public float DamageAddedFromOneSpeed;
+    public Sprite UpSprite;
+    public Vector2 UpSpritePosition;
 }

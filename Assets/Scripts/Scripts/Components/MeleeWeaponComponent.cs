@@ -1,7 +1,10 @@
 
    using UnityEngine;
+   using UnityEngine.UI;
 
    public struct MeleeWeaponComponent {
-       public float couldown;
-       public SpriteRenderer meleeWeaponRenderer;
+       public float Countdown;
+       public SpriteRenderer MeleeWeaponRenderer;
+       public float CurrentRotateDegrees;
+       public Image MeleeSpriteImage;
    }

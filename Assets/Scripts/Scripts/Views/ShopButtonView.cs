@@ -36,7 +36,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     public void SetShopSaleInfo(int percent) {
         ItemSaleText.gameObject.transform.parent.gameObject.SetActive(percent > 0);
         if (percent == 0) return;
-        ItemSaleText.fontSize = 7 + (10f / 100f * percent);
+        ItemSaleText.fontSize = 10 + (10f / 80f * percent);
         ItemSaleText.text = percent + "%";
     }
 

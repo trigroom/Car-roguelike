@@ -33,6 +33,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<StartRoundEvent> _startRoundEventsPool;
     private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
     private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
+    private EcsPoolInject<MeleeWeaponComponent> _meleeWeaponComponentsPool;
     private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
@@ -687,7 +688,7 @@ Debug.Log(startX + " " + startY);
             }
 
             
-            gunCmp.CurrentCouldown = gunConfig.ReloadDuration;
+            gunCmp.CurrentCountdown = gunConfig.ReloadDuration;
             gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
             //   carPart.transform.localPosition = Vector3.zero;
             //  carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
@@ -697,6 +698,16 @@ Debug.Log(startX + " " + startY);
             
             _gunComponentsPool.Value.Get(cellEntity) = gunCmp;
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
+            var meleeWeaponCmp = _meleeWeaponComponentsPool.Value.Has(cellEntity)? _meleeWeaponComponentsPool.Value.Get(cellEntity): _meleeWeaponComponentsPool.Value.Add(cellEntity);
+            var meleeWeaponConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(cellCmp.CarPartId);
+            if (meleeWeaponConfig.UpSprite != null) {
+                meleeWeaponCmp.MeleeWeaponRenderer = _sceneData.Value.GetCarPartSpriteRenderer(cellCmp.CarPartCellRenderer.transform);
+                meleeWeaponCmp.MeleeWeaponRenderer.sprite = meleeWeaponConfig.UpSprite;
+                meleeWeaponCmp.MeleeWeaponRenderer.sortingOrder = 3;
+                meleeWeaponCmp.MeleeWeaponRenderer.transform.localPosition = meleeWeaponConfig.UpSpritePosition;
+                
+            }
+            
             //  carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
             // carPart.transform.localPosition = Vector3.zero;
             //  carPart.MakeTriggerCollider();
