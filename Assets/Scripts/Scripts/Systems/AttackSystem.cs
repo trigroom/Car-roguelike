@@ -116,8 +116,6 @@ using UnityEngine.UI;
             }
 
             foreach (var cellEntity in _constructMeleeCellEventsFilter.Value) {
-                continue;
-
                 ConstructMeleeWeaponCell(cellEntity);
             }
 
@@ -230,10 +228,10 @@ using UnityEngine.UI;
         }
         private void ConstructMeleeWeaponCell(int entity) {
             var carPartComponent = _carPartComponentsPool.Value.Get(entity);
-              var meleeStuffCarPart =   carPartComponent.CarPartCellRenderer.transform.GetChild(0)
-                .GetComponent<MeleeCarPartStuffView>();
-              _meleeWeaponComponentsPool.Value.Add(entity);
-            meleeStuffCarPart.ConstructMelee(carPartComponent.CarPartCellRenderer,ProjectileHit, carPartComponent.MainEntity == _sceneData.Value.PlayerEntity?"Enemy":"Player",carPartComponent.CarPartId, entity);
+            var meleeConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(carPartComponent.CarPartId);
+              var meleeStuffCarPart =  _meleeWeaponComponentsPool.Value.Get(entity).MeleeStuff;
+              
+            meleeStuffCarPart.ConstructMelee(meleeConfig.UpSprite ,ProjectileHit, carPartComponent.MainEntity == _sceneData.Value.PlayerEntity?"Enemy":"Player",carPartComponent.CarPartId, entity);
         }
 
         private void CreateExplosionEffect(float radius, Vector2 position, EffectType effectType) {
@@ -411,6 +409,7 @@ using UnityEngine.UI;
                                (_movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity)
                                    .CurrentMoveSpeed + _movementComponentsPool.Value.Get(damagedMainEntity).CurrentMoveSpeed) *
                                meleeWeaponConfig.DamageAddedFromOneSpeed;
+                Debug.Log(damagePoints);
             } else /*laser*/ {
                 float distanceBetween =
                     Vector2.Distance(_carPartComponentsPool.Value.Get(weaponCellEntity).CarPartCellRenderer.transform.position, collisionPoint);
@@ -446,42 +445,51 @@ using UnityEngine.UI;
             if (moveCmp.CurrentMoveSpeed < 0)
                 moveCmp.CurrentMoveSpeed = 0;
         }
+
         private void ChangeHealth(float health, int cellEntity) {
             ref var carPartCellCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
-            
+
             carPartCellCmp.CurrentHealth -= health;
             var healthPercent = carPartCellCmp.CurrentHealth / carPartCellCmp.MaxHealth;
-            Debug.Log(healthPercent);
+            var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCellCmp.CarPartId);
             if (carPartCellCmp.HealthMaterialIndex == 0 && healthPercent < 0.6f) {
-                carPartCellCmp.CarPartCellRenderer.material = _sceneData.Value._carStuffListsConfig.LowDamagedMaterial;
+                var needMaterial = _sceneData.Value._carStuffListsConfig.LowDamagedMaterial;
                 carPartCellCmp.HealthMaterialIndex = 1;
-            }
-            else if (carPartCellCmp.HealthMaterialIndex == 1 && healthPercent < 0.15f) {
-                carPartCellCmp.CarPartCellRenderer.material = _sceneData.Value._carStuffListsConfig.HighDamagedMaterial;
+                ChangeCarPartMaterial(cellEntity, carPartCellCmp, needMaterial, carPartConfig);
+            } 
+            if (carPartCellCmp.HealthMaterialIndex == 1 && healthPercent < 0.15f) {
                 carPartCellCmp.HealthMaterialIndex = 2;
+                var needMaterial = _sceneData.Value._carStuffListsConfig.HighDamagedMaterial;
+                ChangeCarPartMaterial(cellEntity, carPartCellCmp, needMaterial, carPartConfig);
             }
-    
+
             if (_carPartInGameUIComponentsPool.Value.Has(cellEntity)) {
                 _carPartInGameUIComponentsPool.Value.Get(cellEntity).view.SetHealthCount(
-                    _sceneData.Value._healthGradient.Evaluate(healthPercent),
-                    (int)carPartCellCmp.CurrentHealth);
+                    _sceneData.Value._healthGradient.Evaluate(healthPercent), (int)carPartCellCmp.CurrentHealth);
             }
-           
+
             if (carPartCellCmp.CurrentHealth <= 0 && carPartCellCmp.CellCarPartsStuffViews != null) {
                 carPartCellCmp.CurrentHealth = 0;
                 DestroyCarPartCell(cellEntity);
 
-                if (_sceneData.Value.GetCarPartConfig(carPartCellCmp.CarPartId).PartType == CarPartType.Main) {
+                if (carPartConfig.PartType == CarPartType.Main) {
                     DestroyNeedCar(carPartCellCmp.MainEntity);
                     if (carPartCellCmp.MainEntity == _sceneData.Value.PlayerEntity)
                         LoseGame();
                 }
-                   
-                   
+
                 carPartCellCmp.CellCarPartsStuffViews = null;
-                
             }
-           
+        }
+
+        private void ChangeCarPartMaterial(int cellEntity, CarPartComponent carPartCellCmp, Material needMaterial, CarPartConfig carPartConfig) {
+            carPartCellCmp.CarPartCellRenderer.material = needMaterial;
+
+            if (carPartConfig.PartType == CarPartType.MeleeWeapon) 
+                _meleeWeaponComponentsPool.Value.Get(cellEntity).MeleeWeaponRenderer.material = needMaterial;
+                
+            else if (carPartConfig.PartType == CarPartType.Gun && _gunComponentsPool.Value.Get(cellEntity).GunSpriteRenderer != null) 
+                _gunComponentsPool.Value.Get(cellEntity).GunSpriteRenderer.material = needMaterial;
         }
 
         private void DestroyCarPartCell(int cellEntity) {
@@ -508,9 +516,9 @@ using UnityEngine.UI;
             }
 
             if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
-                _sceneData.Value.ReleaseMeleeCarPartCell(carPartCmp.CellCarPartsStuffViews[0].transform.GetChild(0)
-                    .GetComponent<MeleeCarPartStuffView>());
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(cellEntity);
+                _sceneData.Value.ReleaseMeleeCarPartCell(meleeCmp.MeleeStuff);
+               
                 meleeCmp.MeleeWeaponRenderer.sortingOrder -= 5;
                 meleeCmp.MeleeWeaponRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
                 //if (carPartCellCmp.MainEntity != _sceneData.Value.PlayerEntity)

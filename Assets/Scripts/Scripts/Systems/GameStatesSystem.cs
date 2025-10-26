@@ -347,13 +347,14 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         pointToPointRoundCmp.PointsToCheck = new List<Vector2>();
         int pointsCount = 2+curGameCmp.CurrentRound/5;
+        Debug.Log(pointsCount + "pointscount"); 
         Vector2 posToSpawn = Vector2.zero;
         for (int i = 0; i < pointsCount; i++) {
             posToSpawn = GetRandomPointAround(posToSpawn, 15);
                    pointToPointRoundCmp.PointsToCheck.Add(posToSpawn);
         }
 
-        var carPartsGrid = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).GridCarPartCellsEntities;
+        var carPartsGrid = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CarPartContainerGroupsGrid;
         _sceneData.Value._playerUIView._arrowImageTransform.parent.transform.position =
             _sceneData.Value.mainCamera.WorldToScreenPoint(Vector3.zero);
         float arrowPos =
@@ -698,20 +699,25 @@ Debug.Log(startX + " " + startY);
             
             _gunComponentsPool.Value.Get(cellEntity) = gunCmp;
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
-            var meleeWeaponCmp = _meleeWeaponComponentsPool.Value.Has(cellEntity)? _meleeWeaponComponentsPool.Value.Get(cellEntity): _meleeWeaponComponentsPool.Value.Add(cellEntity);
+            var meleeWeaponCmp = _meleeWeaponComponentsPool.Value.Has(cellEntity)
+                ? _meleeWeaponComponentsPool.Value.Get(cellEntity)
+                : _meleeWeaponComponentsPool.Value.Add(cellEntity);
             var meleeWeaponConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(cellCmp.CarPartId);
             if (meleeWeaponConfig.UpSprite != null) {
                 meleeWeaponCmp.MeleeWeaponRenderer = _sceneData.Value.GetCarPartSpriteRenderer(cellCmp.CarPartCellRenderer.transform);
                 meleeWeaponCmp.MeleeWeaponRenderer.sprite = meleeWeaponConfig.UpSprite;
                 meleeWeaponCmp.MeleeWeaponRenderer.sortingOrder = 3;
                 meleeWeaponCmp.MeleeWeaponRenderer.transform.localPosition = meleeWeaponConfig.UpSpritePosition;
-                
             }
-            
-            //  carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
-            // carPart.transform.localPosition = Vector3.zero;
-            //  carPart.MakeTriggerCollider();
-            //  carPart.SetColliderEnableState(true);
+
+            var meleeStuff = _sceneData.Value.GetMeleeCarPartCell(meleeWeaponCmp.MeleeWeaponRenderer.transform);
+            meleeWeaponCmp.MeleeStuff = meleeStuff;
+            meleeStuff.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            meleeStuff.transform.localPosition = Vector3.zero;
+            meleeStuff.MakeTriggerCollider();
+            meleeStuff.SetColliderEnableState(true);
+
+            _meleeWeaponComponentsPool.Value.Get(cellEntity) = meleeWeaponCmp;
             _constructMeleeCellEventsPool.Value.Add(cellEntity);
         } else if (carPartConfig.PartType == CarPartType.Support) {
             var supportCarPartConfig = _sceneData.Value.GetSupportModuleFromCarPart(cellCmp.CarPartId);

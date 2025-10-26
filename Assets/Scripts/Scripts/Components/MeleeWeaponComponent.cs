@@ -7,4 +7,5 @@
        public SpriteRenderer MeleeWeaponRenderer;
        public float CurrentRotateDegrees;
        public Image MeleeSpriteImage;
+       public MeleeCarPartStuffView MeleeStuff;
    }

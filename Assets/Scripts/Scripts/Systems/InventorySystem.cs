@@ -410,6 +410,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryComponent.CurrentTween = DOTween.Sequence();
         inventoryComponent.CurrentTween.Append(cellView.transform
                                                            .DORotate(new Vector3(0, 0, inventoryComponent.CurrentRotateDegrees), 0.3f, RotateMode.Fast).SetEase(Ease.OutBack));
+        inventoryComponent.LastCheckedGridCellPosition = -Vector2Int.one;
     }
 
     private void StartupShopCells() {
