@@ -361,7 +361,13 @@ using UnityEngine.UI;
 
         private void ProjectileHit(AttackType attackType, int weaponId, Vector2Int damagedEntityGridPosition, int damagedMainEntity,
             Vector2 collisionPoint, ProjectileView projectile = null, int weaponCellEntity = -1, string layerName = null) {
+            
             float damagePoints;
+                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
+                    ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
+                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+                
             if /*gunProjectile*/ (attackType == AttackType.Projectile) {
                 if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
                 _projectileComponentsPool.Value.Get(projectile.entity).IsActive = false;
@@ -370,10 +376,6 @@ using UnityEngine.UI;
                     _sceneData.Value._bulletSprites);
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(weaponId);
                 damagePoints = gunConfig.Damage;
-                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
-                    ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
-                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
                 if (gunConfig.ImpulseForce != 0)
                     ProjectileImpulse(gunConfig.ImpulseForce, damagedEntity, projectile.rigidbody2D.linearVelocity.normalized);
                 projectile.rigidbody2D.linearVelocity = Vector2.zero;
@@ -381,28 +383,39 @@ using UnityEngine.UI;
                 LayerMask layerMask = layerName != "Player"
                     ? LayerMask.GetMask(new string[] { "CarBase", "UpCarPart" })
                     : LayerMask.GetMask(new string[] { "CarBaseEnemy", "UpCarPartEnemy" });
+                var carPartDamagedCmp = _carPartComponentsPool.Value.Get(damagedEntity);
 
-                if (gunConfig.ExplosionRadius != 0) {
+                if (gunConfig.ExplosionRadius != 0 &&
+                    (_sceneData.Value.GetCarPartConfig(carPartDamagedCmp.CarPartId).PartType != CarPartType.Armor ||
+                     !_sceneData.Value.GetArmorFromCarPart(carPartDamagedCmp.CarPartId).ExplosionDefence)) {
                     CreateExplosionEffect(gunConfig.ExplosionRadius, collisionPoint, gunConfig.EffectType);
                     var castedObjects = Physics2D.OverlapCircleAll(collisionPoint, gunConfig.ExplosionRadius, layerMask);
 
                     foreach (var castedObject in castedObjects) {
                         float explosionDamagePoints = gunConfig.ExplosionDamage *
                             Vector2.Distance(castedObject.transform.position, collisionPoint) / gunConfig.ExplosionRadius;
-                        Debug.Log(Vector2.Distance(castedObject.transform.position, collisionPoint) / gunConfig.ExplosionRadius + "exp mult");
-                        if (_carPartComponentsPool.Value.Get(damagedEntity).MainEntity == _sceneData.Value.PlayerEntity)
+                        //    Debug.Log(Vector2.Distance(castedObject.transform.position, collisionPoint) / gunConfig.ExplosionRadius + "exp mult");
+                        if (carPartDamagedCmp.MainEntity == _sceneData.Value.PlayerEntity)
                             explosionDamagePoints *= _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).RoundMoneyMultiplayer;
 
                         Vector2Int currentDamagedEntityGridPos = castedObject.GetComponent<CarPartStuffView>()._gridPosition;
                         var currentCarCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                        Debug.Log(currentDamagedEntityGridPos + " damage grid pos");
+                        //   Debug.Log(currentDamagedEntityGridPos + " damage grid pos");
                         int currentDamagedEntity =
                             currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y] == 0
                                 ? currentCarCmpDamaged.CarPartContainerGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y]
                                 : currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y];
-                        _sceneData.Value.GetFloatingTextPrefab(
-                            _carPartComponentsPool.Value.Get(currentDamagedEntity).CarPartCellRenderer.transform.position,
+                        var damagedCarPartCmp = _carPartComponentsPool.Value.Get(currentDamagedEntity);
+
+                        if (_sceneData.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
+                            var armorConfig = _sceneData.Value.GetArmorFromCarPart(damagedCarPartCmp.CarPartId);
+                            if (GetBulletDirection(castedObject.transform, collisionPoint, armorConfig))
+                                explosionDamagePoints -= explosionDamagePoints * armorConfig.DefencePercent;
+                        }
+
+                        _sceneData.Value.GetFloatingTextPrefab(castedObject.transform.position,
                             explosionDamagePoints.ToString("F2"), Color.white);
+
                         ChangeHealth(explosionDamagePoints, currentDamagedEntity);
 
                         SetEffectComponent(currentDamagedEntity, gunConfig.EffectType, gunConfig.EffectDuration);
@@ -437,11 +450,21 @@ using UnityEngine.UI;
                 damagePoints *= _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).RoundMoneyMultiplayer;
 
             if (damagePoints > 0) {
+                var damagedCarPartCmp = _carPartComponentsPool.Value.Get(damagedEntity);
+              
+                if (_sceneData.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
+                    var damagedCell = carCmpDamaged.CarPartViewsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+                    var armorConfig = _sceneData.Value.GetArmorFromCarPart(damagedCarPartCmp.CarPartId);
+                    if (GetBulletDirection(damagedCell.transform, collisionPoint,
+                            armorConfig))
+                        damagePoints -= damagePoints * armorConfig.DefencePercent;
+                }
+                
                 _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
-                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+             /*   var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
                 int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
                     ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
-                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];*/
                 ChangeHealth(damagePoints, damagedEntity);
             }
         }
@@ -600,6 +623,26 @@ using UnityEngine.UI;
             if (carPartCmp.MainEntity == _sceneData.Value.PlayerEntity) {
                 Debug.Log("des player part");
             }
+        }
+        public bool GetBulletDirection(Transform targetObject, Vector2 bulletPosition, ArmorConfig armorConfig)
+        {
+            Vector2 localBulletPos = targetObject.InverseTransformPoint(bulletPosition);
+        
+            // Нормализуем направление в локальном пространстве
+            Vector2 localDirection = localBulletPos.normalized;
+
+            // Определяем сторону на основе локальных координат
+            float angle = Mathf.Atan2(localDirection.y, localDirection.x) * Mathf.Rad2Deg;
+
+            // Определяем сторону на основе угла
+            if (Mathf.Abs(angle) <= 45f)
+                return armorConfig.DefenceDirections.Contains(DefenceDirection.Right); // В 2D "вперед" обычно направлено вправо
+            else if (Mathf.Abs(angle) >= 135f)
+                return armorConfig.DefenceDirections.Contains(DefenceDirection.Left);
+            else if (angle > 0f)
+                return armorConfig.DefenceDirections.Contains(DefenceDirection.Up);
+            else
+                return armorConfig.DefenceDirections.Contains(DefenceDirection.Down);
         }
         
         private void DestroyBrokenParts() {

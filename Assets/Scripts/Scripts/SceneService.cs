@@ -185,6 +185,12 @@ public class SceneService : MonoBehaviour {
         return null; 
     }
     
+    public ArmorConfig GetArmorFromCarPart(int id)
+    {
+        if (GetCarPartConfig(id) is ArmorConfig armor)
+            return armor;
+        return null; 
+    }
     public WeaponContainerConfig GetWeaponContainerFromCarPart(int id)
     {
         if (GetCarPartConfig(id) is WeaponContainerConfig container)

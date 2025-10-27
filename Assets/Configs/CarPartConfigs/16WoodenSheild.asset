@@ -9,18 +9,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3830405935787ac478b4297647258f68, type: 3}
-  m_Name: 16WoodenDefence
+  m_Script: {fileID: 11500000, guid: d569a8de01075864785b5d73317f0a00, type: 3}
+  m_Name: 16WoodenSheild
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 16
-  <MaxHealth>k__BackingField: 600
-  <Weight>k__BackingField: 2.7
-  <PartSprite>k__BackingField: {fileID: 21300000, guid: 501ac5494e2312f478d3a6e96ea40b7c, type: 3}
+  <MaxHealth>k__BackingField: 500
+  <Weight>k__BackingField: 10
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 8a608304091341741bce70ffe1e9e5f4, type: 3}
   <PartType>k__BackingField: 1
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 0
-  <PartName>k__BackingField: Wooden defence
+  <PartName>k__BackingField: Small shield
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
+  DefencePercent: 0.5
+  DefenceDirections: 00000000
+  ExplosionDefence: 1

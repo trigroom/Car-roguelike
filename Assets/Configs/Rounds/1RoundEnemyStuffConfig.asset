@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CarPresets:
   - {fileID: 11400000, guid: 93121ed606881274baa77776181b43d8, type: 2}
+  - {fileID: 11400000, guid: e414c8448051e09448f90b5fb8834048, type: 2}
   CarParts: 00000000010000001200000011000000090000000500000007000000
   MoneyCount: 20

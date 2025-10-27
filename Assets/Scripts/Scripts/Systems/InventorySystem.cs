@@ -184,7 +184,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position = Vector3.Slerp(
                     _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position, targetCellPosition, Time.deltaTime * 10f);
                 if (Input.GetMouseButtonDown(1) && (GetCurrentDraggedCellCarPart().PartType == CarPartType.Gun ||
-                                                    GetCurrentDraggedCellCarPart().PartType == CarPartType.MeleeWeapon))
+                                                    GetCurrentDraggedCellCarPart().PartType == CarPartType.MeleeWeapon || GetCurrentDraggedCellCarPart().PartType == CarPartType.Armor))
                     RotateCarPart();
                 if (Input.GetMouseButtonUp(0)) {
                     if (inventoryCmp.IsCarPartsRedactorMode) {

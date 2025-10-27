@@ -163,6 +163,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void ChangeRoundInfo() {
+        Debug.Log(CanStartRound() + "CanStartRound()");
         if (!CanStartRound()) return;
         _sceneData.Value._mapUIView.gameObject.SetActive(true);
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -650,6 +651,7 @@ Debug.Log(startX + " " + startY);
             } else {
                 string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
                    carPart.SetupCarPart(carPartInfo, needLayer, cellCmp.MainEntity);
+                   carPart.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
             }
              
             // need check
@@ -753,6 +755,7 @@ Debug.Log(startX + " " + startY);
         movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed * (1-_carComponentsPool.Value.Get(enemyEntity).CurrentWeight / carConfig.MaxWeight);
         if (movementComponent.MaxMoveSpeed < 4)
             movementComponent.MaxMoveSpeed = 4;
+        
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {
         ref var firstMovementCmp = ref _movementComponentsPool.Value.Get(entityOne);
