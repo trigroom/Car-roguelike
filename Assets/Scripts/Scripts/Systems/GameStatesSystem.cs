@@ -83,7 +83,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void UpdateMapPoint() {
-        _sceneData.Value._mapPointPrefab.WasTriggered = false;
+        
         ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         pointToPointRound.PointsToCheck.RemoveAt(0);
         
@@ -95,7 +95,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             _sceneData.Value._mapPointPrefab.transform.position = pointToPointRound.PointsToCheck[0];
             //smth particle effect
         }
-        
+        _sceneData.Value._mapPointPrefab.WasTriggered = false;
     }
 
     private void SetSaleShopRound() {

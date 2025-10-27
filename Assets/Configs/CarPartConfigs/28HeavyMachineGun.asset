@@ -15,7 +15,7 @@ MonoBehaviour:
   <Id>k__BackingField: 28
   <MaxHealth>k__BackingField: 650
   <Weight>k__BackingField: 16
-  <PartSprite>k__BackingField: {fileID: 21300000, guid: 4c2a366a6ab1d444397c78a2d90aaa9c, type: 3}
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 9cb7520109930594bafd703fab1c194b, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
@@ -24,8 +24,9 @@ MonoBehaviour:
   <DefaultModuleCount>k__BackingField: 4
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  UpPartSprite: {fileID: 0}
-  UpPartPosition: {x: 0, y: 0}
+  - {x: 0, y: 1}
+  UpPartSprite: {fileID: 21300000, guid: 4c2a366a6ab1d444397c78a2d90aaa9c, type: 3}
+  UpPartPosition: {x: -0.06, y: 0.1}
   MaxRotateAngle: 0
   RotateSpeed: 0
   Damage: 10
@@ -36,8 +37,8 @@ MonoBehaviour:
   ReloadDuration: 2.5
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
-  FirePointPosition: {x: 0.06, y: 0.845}
-  GunContainerPosition: {x: 0, y: 0}
+  FirePointPosition: {x: 0, y: 0.845}
+  GunContainerPosition: {x: -0.06, y: -0.2}
   SpreadAngle: 3
   ExplosionRadius: 0.2
   ExplosionDamage: 10

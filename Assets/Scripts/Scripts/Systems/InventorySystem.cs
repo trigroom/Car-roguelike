@@ -1295,12 +1295,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartCmp.carPartCellImage.rectTransform.sizeDelta = inventoryCmp.onCarCellSize * carPartSize;
         if (partInfo.PartType == CarPartType.Gun) {
             ref var gunCmp = ref _gunComponentsPool.Value.Add(carPartCmpEntity);
+            Debug.Log("carPartCmp.carPartCellImage.rectTransform.sizeDelta"+carPartCmp.carPartCellImage.rectTransform.sizeDelta); 
             (Sprite upSprite, Vector2 upSize, Vector2 upPosition) = GetUpperPartSizesForUI(carPartCmp.carPartCellImage.rectTransform.sizeDelta, partInfo);
             if (upSprite != _sceneData.Value._transparentPixel) {
                 gunCmp.GunSpriteImage = _sceneData.Value.GetCarPartUISprite(carPartCmp.carPartCellImage.rectTransform, Vector2.zero);
                 gunCmp.GunSpriteImage.transform.localRotation = Quaternion.identity;
                 gunCmp.GunSpriteImage.transform.localPosition = upPosition;
                 gunCmp.GunSpriteImage.sprite = upSprite;
+                Debug.Log("upSize"+upSize);
                 gunCmp.GunSpriteImage.rectTransform.sizeDelta = upSize;
             }
         } else if (partInfo.PartType == CarPartType.MeleeWeapon) {
@@ -1470,6 +1472,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartConfig.Id);
             if (gunConfig.UpPartSprite != null) {
                 var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
+                cellSizeDelta = new Vector2(Math.Max(cellSizeDelta.x, cellSizeDelta.y), Math.Max(cellSizeDelta.x, cellSizeDelta.y));
                 cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;
                 needPosition = cellSizeDelta / Math.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
                 upSprite = gunConfig.UpPartSprite != null? gunConfig.UpPartSprite : _sceneData.Value._transparentPixel;
@@ -1479,6 +1482,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var meleeConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(carPartConfig.Id);
             if (meleeConfig.UpSprite != null) {
                 var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
+                cellSizeDelta = new Vector2(Math.Max(cellSizeDelta.x, cellSizeDelta.y), Math.Max(cellSizeDelta.x, cellSizeDelta.y));
                 cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * 16) * meleeConfig.UpSprite.rect.size;
                 needPosition = cellSizeDelta / Math.Max(carPartSize.x, carPartSize.y) * meleeConfig.UpSpritePosition;
                 upSprite = meleeConfig.UpSprite != null? meleeConfig.UpSprite : _sceneData.Value._transparentPixel;

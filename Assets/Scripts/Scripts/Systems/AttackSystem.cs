@@ -32,6 +32,7 @@ using UnityEngine.UI;
         private EcsPoolInject<PlayerCurrencyComponent> _playerCurrencyComponentsPool;
         private EcsPoolInject<FireComponent> _fireComponentsPool;
         private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
+        private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
@@ -394,6 +395,7 @@ using UnityEngine.UI;
 
                         Vector2Int currentDamagedEntityGridPos = castedObject.GetComponent<CarPartStuffView>()._gridPosition;
                         var currentCarCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                        Debug.Log(currentDamagedEntityGridPos + " damage grid pos");
                         int currentDamagedEntity =
                             currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y] == 0
                                 ? currentCarCmpDamaged.CarPartContainerGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y]
@@ -520,11 +522,11 @@ using UnityEngine.UI;
                     gunCmp.GunSpriteRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
                 }
                    
-                _gunComponentsPool.Value.Del(cellEntity);
+               // _gunComponentsPool.Value.Del(cellEntity);
 
                 if (_laserComponentsPool.Value.Has(cellEntity)) {
                     _sceneData.Value.ReleaseLaserLineRenderer(_laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer);
-                    _laserComponentsPool.Value.Del(cellEntity);
+                  //  _laserComponentsPool.Value.Del(cellEntity);
                 }
             }
 
@@ -535,21 +537,24 @@ using UnityEngine.UI;
                 meleeCmp.MeleeWeaponRenderer.sortingOrder -= 5;
                 meleeCmp.MeleeWeaponRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
                 //if (carPartCellCmp.MainEntity != _sceneData.Value.PlayerEntity)
-                _meleeWeaponComponentsPool.Value.Del(cellEntity);
+            //    _meleeWeaponComponentsPool.Value.Del(cellEntity);
             }
-
+  ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             //  }
             ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
             if (_shockEffectComponentsPool.Value.Has(cellEntity))
                 _shockEffectComponentsPool.Value.Del(cellEntity);
             if (carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer) {
+              
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
                     var gridPos = carCmp.CarPartContainerGroupsList[cellEntity][i];
+                    
                     if (carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] != 0)
                         DestroyCarPartCell(carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y]);
                     _sceneData.Value.ReleaseCarPartCell(carPart);
-                    
+                    if(isPlayer)
+                      _sceneData.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]);
                 }
 
                 if (carPartConfig.PartType == CarPartType.WheelsContainer) {
@@ -557,6 +562,7 @@ using UnityEngine.UI;
                     foreach (var wheel in wheelContainer.Wheels) {
                         wheel.transform.GetChild(0).gameObject.SetActive(false);
                         wheel.enabled = false;
+                      
                         var wheelSpriteRenderer = wheel.gameObject.GetComponent<SpriteRenderer>();
                         wheelSpriteRenderer.sprite = _sceneData.Value._carStuffListsConfig
                             .Wheels[_sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).WheelId].UpWheelSprite;
@@ -574,6 +580,8 @@ using UnityEngine.UI;
                     carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] = 0;
                     string needLayer = isPlayer? "CarBase":"CarBaseEnemy";
                     carPart.SetupCarPart(gridPos, needLayer,carPartCmp.MainEntity);
+                    if(isPlayer)
+                    _sceneData.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]);
                 }
                 if(!isPlayer)
                 carCmp.CarPartGroupsList.Remove(cellEntity);
