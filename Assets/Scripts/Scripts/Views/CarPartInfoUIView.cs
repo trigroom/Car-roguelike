@@ -49,6 +49,17 @@ public class CarPartInfoUIView : MonoBehaviour
                 _descriptionText.text += $"\nDamage: {meleeConfig.Damage}/s \nAdded damage: {meleeConfig.DamageAddedFromOneSpeed}/1 m/s\n" +
                                          $"Attack countdown: {meleeConfig.AttackCountdown}s";
             }
+        } else if (carPartConfig.PartType == CarPartType.Armor) {
+            if (carPartConfig is ArmorConfig armorConfig) {
+                _descriptionText.text += $"\nDefence: {armorConfig.DefencePercent * 100}%";
+                if (armorConfig.DefenceDirections.Count == 4)
+                    _descriptionText.text += "\nDefence from all directions";
+                else
+                    _descriptionText.text += "\nDefence from: " + string.Join(", ", armorConfig.DefenceDirections);
+
+                if (armorConfig.ExplosionDefence)
+                    _descriptionText.text += " \nPrevents explosion";
+            }
         }
     }
 

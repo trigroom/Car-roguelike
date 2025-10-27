@@ -755,7 +755,7 @@ Debug.Log(startX + " " + startY);
         movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed * (1-_carComponentsPool.Value.Get(enemyEntity).CurrentWeight / carConfig.MaxWeight);
         if (movementComponent.MaxMoveSpeed < 4)
             movementComponent.MaxMoveSpeed = 4;
-        
+
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {
         ref var firstMovementCmp = ref _movementComponentsPool.Value.Get(entityOne);
