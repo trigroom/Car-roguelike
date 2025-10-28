@@ -864,7 +864,7 @@ Debug.Log(startX + " " + startY);
 
     private bool MainPartIsPlaced(InventoryComponent inventoryCmp) {
         foreach (var partId in inventoryCmp.PartsInInventory) {
-            if (_sceneData.Value._carStuffListsConfig.CarPartConfigs[partId].PartType == CarPartType.Main)
+            if (_sceneData.Value._carStuffListsConfig.CarPartConfigs[partId.Item1].PartType == CarPartType.Main)
                 return false;
         }
 

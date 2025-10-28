@@ -4580,7 +4580,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 125.76466, y: 200}
+  m_AnchoredPosition: {x: 125.76466, y: 136.3}
   m_SizeDelta: {x: 108.4708, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &691582855
@@ -5814,6 +5814,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f78016b762c8714084372afd56401ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_carPartLevelText>k__BackingField: {fileID: 691582855}
   <_moveToInventoryButton>k__BackingField: {fileID: 755910409}
   <_upgradeButton>k__BackingField: {fileID: 1392459257}
   <_upgradeButtonText>k__BackingField: {fileID: 2083283739}

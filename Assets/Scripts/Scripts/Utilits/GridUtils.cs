@@ -156,4 +156,28 @@ public class GridUtils : MonoBehaviour
         return returnedCells;
        
     }
+
+    public static (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) GetGunLevelMultipliers(GunConfig gunConfig, int level) {
+        float damageMultiplier;
+        float reloadMultiplier;
+        float attackCountdownMultiplayer;
+
+        if (gunConfig.MissleType == MissleType.laser) {
+            damageMultiplier=0;
+            reloadMultiplier=0;
+            attackCountdownMultiplayer=0;
+        }
+        else if (gunConfig.MissleType == MissleType.bullet) {
+            damageMultiplier=0;
+            reloadMultiplier=0;
+            attackCountdownMultiplayer=0;
+        } 
+        else {
+            damageMultiplier=0;
+            reloadMultiplier=0;
+            attackCountdownMultiplayer=0;
+        }
+        
+        return (damageMultiplier, reloadMultiplier, attackCountdownMultiplayer);
+    }
 }

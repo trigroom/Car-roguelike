@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class CarPartInfoUIView : MonoBehaviour
 {
+    [field: SerializeField] public TMP_Text _carPartLevelText { get; private set; }
     [field: SerializeField] public Button _moveToInventoryButton { get; private set; }
     [field: SerializeField] public Button _upgradeButton { get; private set; }
     [field: SerializeField] public TMP_Text _upgradeButtonText { get; private set; }
@@ -20,6 +21,7 @@ public class CarPartInfoUIView : MonoBehaviour
     public TMP_Text CarDescriptionText;
     [field: SerializeField] public Image _carPartIcon { get; private set; }
     [field: SerializeField] public Image _carPartIconUpLevel { get; private set; }
+    public int level{ get; private set; }
 
     public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade,Action moveToInventory) {
         _backButton.onClick.AddListener(() => backCarPart?.Invoke());
@@ -28,12 +30,18 @@ public class CarPartInfoUIView : MonoBehaviour
         _upgradeButton.onClick.AddListener(() => upgrade?.Invoke());
     }
 
-    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton) {
+    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
+        level = carPartLevel;
         if (carPartConfig.UpgradedPartCost != 0)
             _upgradeButtonText.text = $"{carPartConfig.UpgradedPartCost.ToString()}$ to upgrade";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
+        if (carPartLevel == 0)
+            _carPartLevelText.text = "";
+        else {
+            _carPartLevelText.text = $"{carPartLevel} lvl.";
+        }
         _currentPartInfoId = carPartConfig.Id; 
         _carPartIcon.sprite = carPartConfig.PartSprite;
         _descriptionText.text = $"{carPartConfig.MaxHealth} HP \nPart type: {carPartConfig.PartType}\nWeight: {carPartConfig.Weight}";
