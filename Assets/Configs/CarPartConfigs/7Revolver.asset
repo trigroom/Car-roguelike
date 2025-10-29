@@ -19,7 +19,7 @@ MonoBehaviour:
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Revolver
   <DefaultModuleCount>k__BackingField: 2
   <PartForm>k__BackingField:
@@ -40,6 +40,7 @@ MonoBehaviour:
   GunContainerPosition: {x: 0, y: 0}
   SpreadAngle: 20
   ExplosionRadius: 0
+  ExplosionDamage: 0
   ImpulseForce: 400
   EffectType: 0
   EffectDuration: 0

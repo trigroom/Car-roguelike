@@ -19,7 +19,7 @@ MonoBehaviour:
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Laser gun
   <DefaultModuleCount>k__BackingField: 4
   <PartForm>k__BackingField:
@@ -37,8 +37,10 @@ MonoBehaviour:
   MissleType: 2
   MissleSprite: {fileID: 0}
   FirePointPosition: {x: -0.225, y: 0.5}
+  GunContainerPosition: {x: 0, y: 0}
   SpreadAngle: 0
   ExplosionRadius: 0.3
+  ExplosionDamage: 0
   ImpulseForce: 0
   EffectType: 0
   EffectDuration: 0

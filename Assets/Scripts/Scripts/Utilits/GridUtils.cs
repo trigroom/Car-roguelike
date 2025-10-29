@@ -158,24 +158,24 @@ public class GridUtils : MonoBehaviour
     }
 
     public static (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) GetGunLevelMultipliers(GunConfig gunConfig, int level) {
-        float damageMultiplier;
-        float reloadMultiplier;
-        float attackCountdownMultiplayer;
+        float damageMultiplier=1;
+        float reloadMultiplier=1;
+        float attackCountdownMultiplayer=1;
 
         if (gunConfig.MissleType == MissleType.laser) {
-            damageMultiplier=0;
-            reloadMultiplier=0;
-            attackCountdownMultiplayer=0;
+            damageMultiplier+=level*0.35f;
+            reloadMultiplier+=level*0.2f;
+            attackCountdownMultiplayer+=level*0.3f;
         }
         else if (gunConfig.MissleType == MissleType.bullet) {
-            damageMultiplier=0;
-            reloadMultiplier=0;
-            attackCountdownMultiplayer=0;
+            damageMultiplier+=level*0.3f;
+            reloadMultiplier+=level*0.3f;
+            attackCountdownMultiplayer+=level*0.2f;
         } 
         else {
-            damageMultiplier=0;
-            reloadMultiplier=0;
-            attackCountdownMultiplayer=0;
+            damageMultiplier+=level*0.4f;
+            reloadMultiplier+=level*0.15f;
+            attackCountdownMultiplayer+=level*0.25f;
         }
         
         return (damageMultiplier, reloadMultiplier, attackCountdownMultiplayer);

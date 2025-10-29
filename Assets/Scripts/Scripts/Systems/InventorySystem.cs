@@ -69,7 +69,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         SetCarGrid();
 
         SetSortButtons();
-        _sceneData.Value._carPartInfoUIView.SetupButtonsInfoPanel(BackCarPartInPanelInfo, DestroyMarkedCarPart, UpgradeMarkedCarPartLevel,MoveToInventoryCell);
+        _sceneData.Value._carPartInfoUIView.SetupButtonsInfoPanel(BackCarPartInPanelInfo, DestroyMarkedCarPart, UpgradeMarkedCarPartLevel,
+            UpdateButtonEnter, UpdateButtonExit, MoveToInventoryCell);
         _sceneData.Value._inventoryUIView._changeToRedactModeButton.onClick.AddListener(SetCarPartRedactorMode);
         SetupInventoryCells();
 
@@ -228,6 +229,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
     }
 
+    private void UpdateButtonEnter() {
+        Debug.Log("enter");
+        _sceneData.Value._carPartInfoUIView.SetDescriptionInfo(true);
+    }
+    private void UpdateButtonExit() {
+        Debug.Log("exit");
+        _sceneData.Value._carPartInfoUIView.SetDescriptionInfo(false);
+    }
     private void SetCarPartRedactorMode() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (!inventoryCmp.IsCarPartsRedactorMode && !CanUseThisCarPartContainers())
@@ -782,7 +791,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         // made -999 entity when tap on field grid
         Debug.Log("Upgrade"+inventoryCmp.CurrentMarkedCellForPanelInfo);
         if ( _carPartComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
-            var carPartConfig = _sceneData.Value.GetCarPartConfig(_sceneData.Value._carPartInfoUIView._currentPartInfoId);
+            var carPartConfig = _sceneData.Value.GetCarPartConfig(_sceneData.Value._carPartInfoUIView._currentCarPartConfig.Id);
 
             int carPartEntity = inventoryCmp.CurrentMarkedCellForPanelInfo;
             if (carPartEntity == 0) return;
@@ -875,7 +884,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         if (_inventoryCellComponentsPool.Value.Has(carPartEntity)) {
             var iventoryCellCmp = _inventoryCellComponentsPool.Value.Get(carPartEntity);
             _sceneData.Value._carPartInfoUIView._switchButtonsContainer.gameObject.SetActive(false);
-          inventoryCmp.PartsInInventory.Remove((_sceneData.Value._carPartInfoUIView._currentPartInfoId, _sceneData.Value._carPartInfoUIView.level));
+          inventoryCmp.PartsInInventory.Remove((_sceneData.Value._carPartInfoUIView._currentCarPartConfig.Id, _sceneData.Value._carPartInfoUIView._level));
             if (inventoryCmp.CurrentInventoryPage != 0 &&
                 !_sceneData.Value._inventoryUIView._inventoryCellViews[1].gameObject.activeInHierarchy)
                 inventoryCmp.CurrentInventoryPage--;
@@ -1095,7 +1104,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             showMoveButton = !isContainer || AreNonZeroAndNonDeletedConnected(
                 _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CarPartContainerGroupsGrid, carPartEntity);
             level = cellCmp.PartLevel;
-            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(GetCarPartConfig(needCarPartId).UpgradedPartId != 0);
+            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(true);
             _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
                 GetCarPartConfig(needCarPartId).UpgradedPartCost <= playerCurrencyCmp.moneyCount;
             inventoryCmp.CurrentMarkedCellForPanelInfo = carPartEntity;
@@ -1111,7 +1120,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length + invCellCmp.CellId];
             Debug.Log(level);
             _sceneData.Value._carPartInfoUIView._switchButtonsContainer.gameObject.SetActive(false);
-            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(GetCarPartConfig(needCarPartId).UpgradedPartId != 0);
+            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(true);
             _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
                 GetCarPartConfig(needCarPartId).UpgradedPartCost <= playerCurrencyCmp.moneyCount;
             inventoryCmp.CurrentMarkedCellForPanelInfo = entity;
