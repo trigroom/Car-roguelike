@@ -1,5 +1,6 @@
 
   
 public struct PlayerCurrencyComponent {
-    public float moneyCount;
+    public float MoneyCount;
+    public float VisibleMoneyCount;
 }

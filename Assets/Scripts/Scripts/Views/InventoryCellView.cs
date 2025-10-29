@@ -33,11 +33,11 @@ public class InventoryCellView : MonoBehaviour, IPointerDownHandler
         _inventoryUpCellImage.rectTransform.localPosition = position;
     }
 
-    public void Construct( /*EcsWorld _world,*/ int _entity, Action<int> _takeItemFromInventory, int _cellId, Action<int> SetPanelInfo) {
+    public void Construct( /*EcsWorld _world,*/ int _entity, Action<int> _takeItemFromInventory, int _cellId, Action<int, bool> SetPanelInfo) {
          this._entity = _entity;
          /*this._world = _world;*/
 
-        _buttonInventoryCell.onClick.AddListener(() => SetPanelInfo?.Invoke(_entity));
+        _buttonInventoryCell.onClick.AddListener(() => SetPanelInfo?.Invoke(_entity, true));
         this.TakeItemFromInventory = _takeItemFromInventory;
         this._cellId = _cellId;
     }

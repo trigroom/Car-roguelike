@@ -697,7 +697,7 @@ using UnityEngine.UI;
                 TaskUtilits.UpdateTaskText(taskCmp);
                 if (taskCmp.CurrentCount >= taskCmp.NeedCount) {
                     taskCmp.TaskText.gameObject.SetActive(false);
-                    _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).moneyCount += taskCmp.MoneyReward;
+                    _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount += taskCmp.MoneyReward;
                 }
             }
         }

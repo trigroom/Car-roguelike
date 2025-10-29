@@ -15,9 +15,9 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
 
     public Action<int> TakeItemFromInventory;
 
-    public void Construct(int _entity, Action<int> _onBuy, Action<int> _onShowInfo, Action<int> _takeItemFromInventory) {
+    public void Construct(int _entity, Action<int> _onBuy, Action<int, bool> _onShowInfo, Action<int> _takeItemFromInventory) {
         BuyButton.onClick.AddListener(() => _onBuy?.Invoke(_entity));
-        ShowInfoButton.onClick.AddListener(() => _onShowInfo?.Invoke(_entity));
+        ShowInfoButton.onClick.AddListener(() => _onShowInfo?.Invoke(_entity, true));
         this._entity = _entity;
         this.TakeItemFromInventory = _takeItemFromInventory;
     }

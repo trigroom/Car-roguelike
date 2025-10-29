@@ -27,6 +27,7 @@
         public CarPartInGameUIView[,] CarPartInfoUIViewsUpLevelGrid;
         public Vector2 StartOffsetFromCell;
         public Vector3 EdgeInputPosition;
+        public Tween CurrentMoneyTween;
         
         public Vector2Int LastCheckedGridCellPosition;
         public bool IsSnappingToGrid;

@@ -23,12 +23,12 @@ public class CellView : MonoBehaviour, IPointerEnterHandler
         Debug.Log("On pointer");
         SetPartFromInventory?.Invoke(this);
     }
-    public void Construct(Vector2Int _gridPosition, Action<CellView> SetPartFromInventory, int _entity, Action<int> SetPanelInfo)
-    {
+
+    public void Construct(Vector2Int _gridPosition, Action<CellView> SetPartFromInventory, int _entity, Action<int, bool> SetPanelInfo) {
         this._gridPosition = _gridPosition;
         this.SetPartFromInventory = SetPartFromInventory;
         this._entity = _entity;
-        if(_carPartButton != null)
-        _carPartButton.onClick.AddListener(() => SetPanelInfo?.Invoke(_entity));
+        if (_carPartButton != null)
+            _carPartButton.onClick.AddListener(() => SetPanelInfo?.Invoke(_entity, true));
     }
 }

@@ -137,7 +137,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     private void SetMoneyText() {
         _sceneData.Value._shopUIView._moneyCountText.text =
-            _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).moneyCount + "$";
+            _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount + "$";
     }
 
     private void EndRound() {
@@ -148,7 +148,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneData.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_sceneData.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
         curGameCmp.RoundMoneyMultiplayer = 1;
-        _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).moneyCount += moneyCount;
+        _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount += moneyCount;
         SetMoneyText();
         _sceneData.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
         ChangeInventoryState(true);

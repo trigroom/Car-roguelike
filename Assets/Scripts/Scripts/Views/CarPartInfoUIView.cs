@@ -22,7 +22,7 @@ public class CarPartInfoUIView : MonoBehaviour
     public TMP_Text CarDescriptionText;
     [field: SerializeField] public Image _carPartIcon { get; private set; }
     [field: SerializeField] public Image _carPartIconUpLevel { get; private set; }
-    public int _level{ get; private set; }
+    public int _level;
 
     public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade, Action upgradeTriggerEnter, Action upgradeTriggerExit,
         Action moveToInventory) {
@@ -56,16 +56,16 @@ public class CarPartInfoUIView : MonoBehaviour
         if (carPartConfig.UpgradedPartCost != 0)
             _upgradeButtonText.text = $"{carPartConfig.UpgradedPartCost.ToString()}$ to upgrade";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
-        if (carPartLevel == 0)
-            _carPartLevelText.text = "";
-        else {
-            _carPartLevelText.text = $"{carPartLevel} lvl.";
-        }
+
         _nameText.text = carPartConfig.PartName;
-                 _carPartIconUpLevel.gameObject.SetActive(false);
-        _currentCarPartConfig = carPartConfig; 
+       
+        if (carPartLevel != 0)
+            _nameText.text += $"\n{carPartLevel} lvl.";
+
+        _carPartIconUpLevel.gameObject.SetActive(false);
+        _currentCarPartConfig = carPartConfig;
         _carPartIcon.sprite = carPartConfig.PartSprite;
-        
+
         SetDescriptionInfo(false);
     }
 
@@ -81,6 +81,17 @@ public class CarPartInfoUIView : MonoBehaviour
             }
         } else if (_currentCarPartConfig.PartType == CarPartType.MeleeWeapon) {
             if (_currentCarPartConfig is MeleeWeaponConfig meleeConfig) {
+                
+                if (meleeConfig.UpSprite != null) {
+                    var carPartSize = GridUtils.GetCarPartSize(meleeConfig);
+                    _carPartIconUpLevel.rectTransform.sizeDelta = _carPartIcon.rectTransform.sizeDelta /
+                        (Math.Max(carPartSize.x, carPartSize.y) * 16) * meleeConfig.UpSprite.rect.size;
+                    _carPartIconUpLevel.transform.localPosition = _carPartIcon.rectTransform.sizeDelta /
+                        Math.Max(carPartSize.x, carPartSize.y) * meleeConfig.UpSpritePosition;
+                    _carPartIconUpLevel.sprite = meleeConfig.UpSprite;
+                    _carPartIconUpLevel.gameObject.SetActive(true);
+                }
+                
                 _descriptionText.text += $"\nDamage: {meleeConfig.Damage}/s \nAdded damage: {meleeConfig.DamageAddedFromOneSpeed:F2}/1 m/s\n" +
                                          $"Attack countdown: {meleeConfig.AttackCountdown:F2}s";
             }
@@ -114,23 +125,31 @@ public class CarPartInfoUIView : MonoBehaviour
         if (gunConfig.MissleType == MissleType.laser) {
             if (isUpdate)
                 _descriptionText.text +=
-                    $"\nDamage:<color=#00FF00> {gunConfig.Damage * damageMultiplier}</color>/s \nLaser range: {gunConfig.BulletSpeed}\nReload: <color=#00FF00>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>\n" +
-                    $"Laser time: <color=#00FF00>{gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}</color>s";
+                    $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>/s \nLaser range: {gunConfig.BulletSpeed}" +
+                    $"\nReload: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>\n" +
+                    $"Laser time: <color=#5bca4a>{gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}</color>s";
 
             else
                 _descriptionText.text +=
                     $"\nDamage: {gunConfig.Damage * damageMultiplier}/s \nLaser range: {gunConfig.BulletSpeed}\nReload: {gunConfig.ReloadDuration / reloadMultiplier:F2}s\n" +
                     $"Laser time: {gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}s";
         } else {
-            _descriptionText.text += $"\n Damage: {gunConfig.Damage*damageMultiplier}";
+            if (isUpdate) {
+                _descriptionText.text += $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>" +
+                                         $"\nReload duration: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}</color>s" +
+                                         $"\nRate of fire: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}</color>/min ";
+            } else {
+                _descriptionText.text += $"\nDamage: {gunConfig.Damage * damageMultiplier}" +
+                                         $"\nReload duration: {gunConfig.ReloadDuration / reloadMultiplier:F2}s" +
+                                         $"\nRate of fire: {60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min ";
+            }
+            
             if (gunConfig.BulletsCount > 1)
                 _descriptionText.text += $"x{gunConfig.BulletsCount}";
             _descriptionText.text += $" \nProjectile speed: {gunConfig.BulletSpeed} \nSpread angle: {gunConfig.SpreadAngle}\n" +
-                                     $"Reload duration: {gunConfig.ReloadDuration/reloadMultiplier}s\n" +
-                                     $"Bullets in mag: {gunConfig.BulletsCountInMagazine}\nRate of fire: {60f / (gunConfig.AttackCouldown/attackCountdownMultiplayer)}/min ";
+                                     $"Bullets in mag: {gunConfig.BulletsCountInMagazine}";
             if (gunConfig.ExplosionRadius != 0)
-                _descriptionText.text +=
-                    $"\nExplosion radius: {gunConfig.ExplosionRadius}\nExplosion damage: {gunConfig.ExplosionDamage}";
+                _descriptionText.text += $"\nExplosion radius: {gunConfig.ExplosionRadius}\nExplosion damage: {gunConfig.ExplosionDamage}";
         }
 
         if (gunConfig.MaxRotateAngle != 0) {
