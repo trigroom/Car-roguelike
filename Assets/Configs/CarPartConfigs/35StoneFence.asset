@@ -25,6 +25,6 @@ MonoBehaviour:
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
-  DefencePercent: 0.8
+  DefencePercent: 75
   DefenceDirections: 0000000001000000
   ExplosionDefence: 1

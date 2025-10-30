@@ -91,13 +91,33 @@ public class CarPartInfoUIView : MonoBehaviour
                     _carPartIconUpLevel.sprite = meleeConfig.UpSprite;
                     _carPartIconUpLevel.gameObject.SetActive(true);
                 }
-                
-                _descriptionText.text += $"\nDamage: {meleeConfig.Damage}/s \nAdded damage: {meleeConfig.DamageAddedFromOneSpeed:F2}/1 m/s\n" +
-                                         $"Attack countdown: {meleeConfig.AttackCountdown:F2}s";
+                (float damageMultiplier, float damageBySpeedMultiplier) = GridUtils.GetMeleeLevelMultipliers(meleeConfig,needLevel);
+                if (isUpdate) {
+                    if (damageMultiplier != 1)
+                        _descriptionText.text += $"\nDamage: <color=#5bca4a>{meleeConfig.Damage * damageMultiplier}/s</color> ";
+                    else
+                        _descriptionText.text += $"\nDamage: {meleeConfig.Damage * damageMultiplier}/s ";
+                    if (damageBySpeedMultiplier != 1)
+                        _descriptionText.text +=
+                            $"\nAdded damage: <color=#5bca4a>{meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s</color>\n";
+                    else
+                        _descriptionText.text += $"\nAdded damage: {meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s\n";
+                    _descriptionText.text += $"Attack countdown: {meleeConfig.AttackCountdown:F2}s";
+                } else
+                    _descriptionText.text +=
+                        $"\nDamage: {meleeConfig.Damage * damageMultiplier}/s \nAdded damage: {meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s\n" +
+                        $"Attack countdown: {meleeConfig.AttackCountdown:F2}s";
             }
         } else if (_currentCarPartConfig.PartType == CarPartType.Armor) {
             if (_currentCarPartConfig is ArmorConfig armorConfig) {
-                _descriptionText.text += $"\nDefence: {armorConfig.DefencePercent * 100}%";
+                float defenceMultiplayer = GridUtils.GetArmorLevelMultipliers(needLevel);
+                float defencePoints = armorConfig.DefencePercent * defenceMultiplayer;
+                if (!isUpdate)
+                    _descriptionText.text += $"\nDefence: {defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)";
+                else
+                    _descriptionText.text +=
+                        $"\nDefence: <color=#5bca4a>{defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)</color>";
+
                 if (armorConfig.DefenceDirections.Count == 4)
                     _descriptionText.text += "\nDefence from all directions";
                 else
@@ -125,9 +145,9 @@ public class CarPartInfoUIView : MonoBehaviour
         if (gunConfig.MissleType == MissleType.laser) {
             if (isUpdate)
                 _descriptionText.text +=
-                    $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>/s \nLaser range: {gunConfig.BulletSpeed}" +
+                    $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}/s</color> \nLaser range: {gunConfig.BulletSpeed}" +
                     $"\nReload: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>\n" +
-                    $"Laser time: <color=#5bca4a>{gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}</color>s";
+                    $"Laser time: <color=#5bca4a>{gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}s</color>";
 
             else
                 _descriptionText.text +=
@@ -136,8 +156,8 @@ public class CarPartInfoUIView : MonoBehaviour
         } else {
             if (isUpdate) {
                 _descriptionText.text += $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>" +
-                                         $"\nReload duration: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}</color>s" +
-                                         $"\nRate of fire: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}</color>/min ";
+                                         $"\nReload duration: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>" +
+                                         $"\nRate of fire: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min</color> ";
             } else {
                 _descriptionText.text += $"\nDamage: {gunConfig.Damage * damageMultiplier}" +
                                          $"\nReload duration: {gunConfig.ReloadDuration / reloadMultiplier:F2}s" +

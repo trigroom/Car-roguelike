@@ -451,13 +451,13 @@ using UnityEngine.UI;
 
             if (damagePoints > 0) {
                 var damagedCarPartCmp = _carPartComponentsPool.Value.Get(damagedEntity);
-              
+
                 if (_sceneData.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
                     var damagedCell = carCmpDamaged.CarPartViewsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
                     var armorConfig = _sceneData.Value.GetArmorFromCarPart(damagedCarPartCmp.CarPartId);
-                    if (GetBulletDirection(damagedCell.transform, collisionPoint,
-                            armorConfig))
-                        damagePoints -= damagePoints * armorConfig.DefencePercent;
+                    if (GetBulletDirection(damagedCell.transform, collisionPoint, armorConfig))
+                        
+                    damagePoints *= 1f - armorConfig.DefencePercent / (armorConfig.DefencePercent + 100f);
                 }
                 
                 _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);

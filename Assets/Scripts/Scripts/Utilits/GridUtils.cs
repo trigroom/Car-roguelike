@@ -180,4 +180,32 @@ public class GridUtils : MonoBehaviour
         
         return (damageMultiplier, reloadMultiplier, attackCountdownMultiplayer);
     }
+    
+    public static (float damageMultiplier, float damageBySpeedMultiplier) GetMeleeLevelMultipliers(MeleeWeaponConfig meleeConfig, int level) {
+        float damageMultiplier=1;
+        float damageBySpeedMultiplier=1;
+
+        if ((meleeConfig.Damage/10f) > meleeConfig.DamageAddedFromOneSpeed) {
+            damageMultiplier+=level*0.4f;
+        }
+        else if ((meleeConfig.Damage/8f) > meleeConfig.DamageAddedFromOneSpeed) {
+            damageMultiplier+=level*0.2f;
+            damageBySpeedMultiplier+=level*0.2f;
+        } 
+        else {
+            damageBySpeedMultiplier+=level*0.4f;
+        }
+        
+        return (damageMultiplier, damageBySpeedMultiplier);
+    }
+    
+    public static float GetArmorLevelMultipliers(int level) {
+      //  float healthMultiplier=1;
+        float defenceMultiplier=1;
+
+       // healthMultiplier *= level * 0.15f;
+        defenceMultiplier += level * 0.15f;
+        
+        return defenceMultiplier;
+    }
 }
