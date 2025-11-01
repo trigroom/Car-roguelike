@@ -255,18 +255,18 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         switch (roundType) {
             case RoundType.BattleDefault:
-                SetEnemiesCars();
                 SetPlayerCarPrefab();
+                SetEnemiesCars();
                 SetGameTimer();
                 break;
-            case RoundType.FromAToB:
-                SetEnemiesCars();
+            case RoundType.FromAToB:   
                 SetPlayerCarPrefab();
+                SetEnemiesCars();
                 SetNewPointToPointRound();
                 break;
             case RoundType.ZoneDefence:
-                SetEnemiesCars();
                 SetPlayerCarPrefab();
+                SetEnemiesCars();
                 SetFilledZoneRound();
                 break;
             case RoundType.Chest:
@@ -405,8 +405,14 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetEnemiesCars() {
-        var currentRoundCarStuff = _sceneData.Value._gameProcessConfig.GameRounds[_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound];
-
+        var currentRoundCarStuff =
+            _sceneData.Value._gameProcessConfig.GameRounds[_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound];
+        List<Transform> playerMainParts = new List<Transform>();
+        var playerCarCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        foreach (var carPartCmpEntity in playerCarCmp.CarPartGroupsList) {
+            playerMainParts.Add(_carPartComponentsPool.Value.Get(carPartCmpEntity.Key).CellCarPartsStuffViews[0].transform);
+        }
+        
         for (int i = 0; i < 3; i++) {
             int enemyEntity = _world.Value.NewEntity();
         
@@ -483,6 +489,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             enemyAiCmp.CheckedEnemyLeftPoints = new List<Transform>();
             enemyAiCmp.CheckedEnemyRightPoints = new List<Transform>();
             enemyAiCmp.LastCheckedTime = 1f;
+            enemyAiCmp.TargetToMove = playerMainParts[Random.Range(0, playerMainParts.Count)];
             for (int j = 0; j < carCmp.CarPartContainerGroupsGrid.GetLength(0); j++) {
                 for (int k = 0; k < carCmp.CarPartContainerGroupsGrid.GetLength(1); k++) {
                     if (carCmp.CarPartContainerGroupsGrid[j, k] != 0) {
@@ -688,11 +695,6 @@ Debug.Log(startX + " " + startY);
                 gunCmp.GunSpriteRenderer.sortingOrder = 3;
                 gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition-gunConfig.GunContainerPosition;
 
-            
-                
-             
-
-                Debug.Log( gunCmp.CurrentMaxAttackCountdown+"rel and att"+gunCmp.CurrentReloadSpeed );
             } else {
                 gunCmp.FirePointTransform = _sceneData.Value.GetGunContainer(carPartCmp.CarPartCellRenderer.transform);
                 gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition;
@@ -703,7 +705,6 @@ Debug.Log(startX + " " + startY);
             gunCmp.CurrentReloadSpeed = gunConfig.ReloadDuration / reloadMultiplier;
             gunCmp.CurrentMaxAttackCountdown = gunConfig.AttackCouldown / attackCountdownMultiplayer;
             gunCmp.CurrentDamage = gunConfig.Damage * damageMultiplier;
-            
             gunCmp.CurrentCountdown = gunCmp.CurrentReloadSpeed;
             gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
             //   carPart.transform.localPosition = Vector3.zero;
@@ -713,6 +714,7 @@ Debug.Log(startX + " " + startY);
             }
             
             _gunComponentsPool.Value.Get(cellEntity) = gunCmp;
+            Debug.Log(_gunComponentsPool.Value.Get(cellEntity).CurrentMaxAttackCountdown +"attackCountdownMultiplayer");
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
             var meleeWeaponCmp = _meleeWeaponComponentsPool.Value.Has(cellEntity)
                 ? _meleeWeaponComponentsPool.Value.Get(cellEntity)

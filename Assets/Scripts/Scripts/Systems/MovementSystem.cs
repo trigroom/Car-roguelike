@@ -33,6 +33,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
             if (!isPlayer) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
+                movementCmp.TargetPosition = enemyAiCmp.TargetToMove.position;
                 enemyAiCmp.LastCheckedTime -= deltaTime;
 
                 if (enemyAiCmp.LastCheckedTime <= 0) {

@@ -308,6 +308,7 @@ using UnityEngine.UI;
                     ref var projectileCmp = ref _projectileComponentsPool.Value.Get(currentProjectile.entity);
                     projectileCmp.IsActive = true;
                     projectileCmp.LifeTime = 50f / gunConfig.BulletSpeed;
+                    projectileCmp.Damage = gunCmp.CurrentDamage;
                 } else {
                     int newEntity = _world.Value.NewEntity();
                     currentProjectile.entity = newEntity;
@@ -331,11 +332,8 @@ using UnityEngine.UI;
             }
 
             gunCmp.CurrentMagazineCount--;
-            if (carPartCmp.MainEntity == _sceneData.Value.PlayerEntity)
-            Debug.Log("curMag" + gunCmp.CurrentMagazineCount);
             if (gunCmp.CurrentMagazineCount > 0) {
                 gunCmp.CurrentCountdown += gunCmp.CurrentMaxAttackCountdown;
-                Debug.Log(gunCmp.CurrentMaxAttackCountdown + "gunCmp.CurrentMaxAttackCountdown" + gunCmp.CurrentMagazineCount);
             } else {
                 gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
                 gunCmp.CurrentCountdown += gunCmp.CurrentReloadSpeed;
@@ -387,11 +385,13 @@ using UnityEngine.UI;
                     _sceneData.Value._bulletSprites);
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(weaponId);
                 damagePoints = projectileCmp.Damage;
+                if(layerName == "Player")
+                Debug.Log("proj damage"+damagePoints);
                 if (gunConfig.ImpulseForce != 0)
                     ProjectileImpulse(gunConfig.ImpulseForce, damagedEntity, projectile.rigidbody2D.linearVelocity.normalized);
                 projectile.rigidbody2D.linearVelocity = Vector2.zero;
 
-                LayerMask layerMask = layerName != "Player"
+                LayerMask layerMask = layerName == "Player"
                     ? LayerMask.GetMask(new string[] { "CarBase", "UpCarPart" })
                     : LayerMask.GetMask(new string[] { "CarBaseEnemy", "UpCarPartEnemy" });
                 var carPartDamagedCmp = _carPartComponentsPool.Value.Get(damagedEntity);
@@ -399,7 +399,7 @@ using UnityEngine.UI;
                 if (gunConfig.ExplosionRadius != 0 &&
                     (_sceneData.Value.GetCarPartConfig(carPartDamagedCmp.CarPartId).PartType != CarPartType.Armor ||
                      !_sceneData.Value.GetArmorFromCarPart(carPartDamagedCmp.CarPartId).ExplosionDefence)) {
-                    Debug.Log("Explosion");
+                    
                     CreateExplosionEffect(gunConfig.ExplosionRadius, collisionPoint, gunConfig.EffectType);
                     var castedObjects = Physics2D.OverlapCircleAll(collisionPoint, gunConfig.ExplosionRadius, layerMask);
 
@@ -521,9 +521,16 @@ using UnityEngine.UI;
                 ChangeCarPartMaterial(cellEntity, carPartCellCmp, needMaterial, carPartConfig);
             }
 
-            if (_carPartInGameUIComponentsPool.Value.Has(cellEntity)) {
-                _carPartInGameUIComponentsPool.Value.Get(cellEntity).view.SetHealthCount(
-                    _sceneData.Value._healthGradient.Evaluate(healthPercent), (int)carPartCellCmp.CurrentHealth);
+            if (carPartCellCmp.MainEntity == _sceneData.Value.PlayerEntity) {
+                var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+                foreach (var carPartStuff in carPartCellCmp.CellCarPartsStuffViews) {
+                    if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.CarStuffContainer)
+                        inventoryCmp.CarPartInfoUIViewsGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
+                            .SetHealthCount(_sceneData.Value._healthGradient.Evaluate(healthPercent), (int)carPartCellCmp.CurrentHealth);
+                    else 
+                        inventoryCmp.CarPartInfoUIViewsUpLevelGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
+                            .SetHealthCount(_sceneData.Value._healthGradient.Evaluate(healthPercent), (int)carPartCellCmp.CurrentHealth);
+                }
             }
 
             if (carPartCellCmp.CurrentHealth <= 0 && carPartCellCmp.CellCarPartsStuffViews != null) {

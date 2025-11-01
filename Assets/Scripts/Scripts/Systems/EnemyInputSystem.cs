@@ -18,8 +18,8 @@ namespace Client {
             foreach (var entity in _movementComponentsFilter.Value) {
                 if(entity == _sceneData.Value.PlayerEntity) continue;
                 ref var moveCmp = ref _movementComponentsPool.Value.Get(entity);
-                if(_movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody != null)
-                moveCmp.TargetPosition = _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.position;
+              /*  if(_movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody != null)
+                moveCmp.TargetPosition = _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.position;*/
             }
         }
     }
