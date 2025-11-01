@@ -258,6 +258,7 @@ public class SceneService : MonoBehaviour {
     }
 
     public void RelaseProjectileYourself(ProjectileView projectile) {
+        if(!projectile.gameObject.activeInHierarchy)return;
         projectile.gameObject.SetActive(false);
                 _projectilesPool.Release(projectile);
     }

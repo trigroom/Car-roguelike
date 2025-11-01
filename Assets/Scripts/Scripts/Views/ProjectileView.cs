@@ -64,6 +64,7 @@ public class ProjectileView : MonoBehaviour {
     
     Vector2 EstimateCollisionPoint(Collider2D colliderA, Collider2D colliderB)
     {
+       
         // Получаем bounds обоих коллайдеров
         Bounds boundsA = colliderA.bounds;
         Bounds boundsB = colliderB.bounds;
@@ -75,7 +76,8 @@ public class ProjectileView : MonoBehaviour {
         return boundsA.ClosestPoint(boundsB.center);
     }
 
-    public void PlayHitAnimation(Sprite[] animationSprites, float radius, Action<ProjectileView> hideAction) {
+    public void PlayHitAnimation(Sprite[] animationSprites, float radius, Action<ProjectileView> hideAction) { 
+        collider.enabled = false;
         var main = particleSystem.main;
         main.startSpeed = radius * 1.5f + 2;
         var emission = particleSystem.emission;
@@ -83,22 +85,26 @@ public class ProjectileView : MonoBehaviour {
         emission.SetBursts(new ParticleSystem.Burst[] {
             new ParticleSystem.Burst(0f, 10 + (int)radius * 5) 
         });
-        particleSystem.Play();
-        animationSequence = DOTween.Sequence();
-
-        for (int i = 0; i < animationSprites.Length; i++) {
-            int index = i;
-
-            animationSequence.AppendCallback(() => {
-                if (index < animationSprites.Length)
-                    spriteRenderer.sprite = animationSprites[index];
-            });
-
-            animationSequence.AppendInterval(0.15f);
+        if (animationSprites != null) {
+             particleSystem.Play();
+                    animationSequence = DOTween.Sequence();
+            
+                    for (int i = 0; i < animationSprites.Length; i++) {
+                        int index = i;
+            
+                        animationSequence.AppendCallback(() => {
+                            if (index < animationSprites.Length)
+                                spriteRenderer.sprite = animationSprites[index];
+                        });
+            
+                        animationSequence.AppendInterval(0.15f);
+                    }
+            
+                    animationSequence.OnComplete(() => { hideAction?.Invoke(this); });
+            
+                    animationSequence.Play();
+        } else {
+            hideAction?.Invoke(this);
         }
-
-        animationSequence.OnComplete(() => { hideAction?.Invoke(this); });
-
-        animationSequence.Play();
     }
 }

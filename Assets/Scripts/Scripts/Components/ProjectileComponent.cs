@@ -5,6 +5,8 @@
 
         public float ImpulseForce;
         public float ExplosionRadius;
+
+        public float Damage;
             
         public ProjectileView ProjectileView;
     }

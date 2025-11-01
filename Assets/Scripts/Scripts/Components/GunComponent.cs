@@ -12,4 +12,8 @@
        public float GunOnTargetTime;
        public Transform UpPartContainer;
        public Transform FirePointTransform;
+
+       public float CurrentReloadSpeed;
+       public float CurrentMaxAttackCountdown;
+       public float CurrentDamage;
    }

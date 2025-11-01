@@ -5,7 +5,10 @@
    public struct MeleeWeaponComponent {
        public float Countdown;
        public SpriteRenderer MeleeWeaponRenderer;
-       public float CurrentRotateDegrees;
+    //   public float CurrentRotateDegrees;
        public Image MeleeSpriteImage;
        public MeleeCarPartStuffView MeleeStuff;
+
+       public float CurrentDamage;
+       public float DamageBySpeed;
    }
