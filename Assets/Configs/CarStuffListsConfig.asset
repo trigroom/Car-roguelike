@@ -57,6 +57,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 352938a9e17d0a34484dac8f0fecb462, type: 2}
   - {fileID: 11400000, guid: ebe698387422dce4cb847a4ce8ebdb3a, type: 2}
   - {fileID: 11400000, guid: 70c118f9119a0084a830c33fedd1ebe7, type: 2}
+  - {fileID: 11400000, guid: 58403666f03dc054da3743e2d1400aed, type: 2}
   <CarPartStuffView>k__BackingField: {fileID: -6712694133279507477, guid: e61c40a5a84f28a48be59a1d252c12e1, type: 3}
   <MeleeCarPartStuffView>k__BackingField: {fileID: 5055266588798338170, guid: b5905cdd0149c9f41920c02fc4fc69ff, type: 3}
   <ShopItems>k__BackingField:
@@ -111,6 +112,8 @@ MonoBehaviour:
   - PartId: 32
     Price: 5
   - PartId: 35
+    Price: 5
+  - PartId: 36
     Price: 5
   <Wheels>k__BackingField:
   - {fileID: 11400000, guid: 1208631f66901204fa513de339a00789, type: 2}

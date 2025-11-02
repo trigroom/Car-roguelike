@@ -170,6 +170,9 @@ public class CarPartInfoUIView : MonoBehaviour
                                      $"Bullets in mag: {gunConfig.BulletsCountInMagazine}";
             if (gunConfig.ExplosionRadius != 0)
                 _descriptionText.text += $"\nExplosion radius: {gunConfig.ExplosionRadius}\nExplosion damage: {gunConfig.ExplosionDamage}";
+            
+            if (gunConfig.BreakingThroughCount > 1)
+                _descriptionText.text += $"\nPierce count: {gunConfig.BreakingThroughCount}";
         }
 
         if (gunConfig.MaxRotateAngle != 0) {

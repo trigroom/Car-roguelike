@@ -8,6 +8,7 @@ public class ProjectileView : MonoBehaviour {
     private Action<AttackType,int, Vector2Int,int,Vector2,ProjectileView,int, string> hitTargetAction;
     [SerializeField]
     private SpriteRenderer spriteRenderer;
+    [SerializeField]
     private string needTag;
     [SerializeField]
     private Collider2D collider;
@@ -16,6 +17,7 @@ public class ProjectileView : MonoBehaviour {
     [field: SerializeField]
     public Rigidbody2D rigidbody2D { get; private set; }
     private Sequence animationSequence;
+    private Collider2D lastCollider;
 
     public void Construct( Action<AttackType,int, Vector2Int,int,Vector2, ProjectileView, int, string> hitTargetAction, int gunId, Sprite sprite, string tag) {
         this.hitTargetAction = hitTargetAction;
@@ -27,41 +29,46 @@ public class ProjectileView : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag(needTag)) {
-            Vector2 direction = other.bounds.center - transform.position;
-        
-            // Определяем ближайшую сторону квадрата
-            Vector2 localDir = other.transform.InverseTransformDirection(direction);
-            float absX = Mathf.Abs(localDir.x);
-            float absY = Mathf.Abs(localDir.y);
-        
-            float targetAngle = 0f;
-        
-            // Определяем сторону столкновения
-            if (absX > absY) // Боковые стороны
-            {
-                bool isRightSide = localDir.x > 0;
-                targetAngle = isRightSide ? 90f : 270f;
-            
-            }
-            else // Верх/низ
-            {
-                bool isTopSide = localDir.y > 0;
-                targetAngle = isTopSide ? 0f : 180f;
-            
-            }
-
-            targetAngle += other.transform.eulerAngles.z-180;
-            if(targetAngle >= 360)
-                targetAngle -= 360;
+            if (gunId == 31)
+                Debug.Log(other.name + " collided with " + needTag);
+            lastCollider = other;
             var damagedCarPart = other.gameObject.GetComponent<CarPartStuffView>();
-            transform.eulerAngles = new Vector3(0, 0, + targetAngle);
+            
              hitTargetAction?.Invoke (AttackType.Projectile,gunId, damagedCarPart._gridPosition,damagedCarPart._mainEntity,EstimateCollisionPoint(other, collider)
                  ,this, entity, needTag);
              
         }
            
     }
-    
+
+    public void AnimateProjectile() {
+        if(lastCollider == null)return;
+        var other = lastCollider;
+        Vector2 direction = other.bounds.center - transform.position;
+
+        // Определяем ближайшую сторону квадрата
+        Vector2 localDir = other.transform.InverseTransformDirection(direction);
+        float absX = Mathf.Abs(localDir.x);
+        float absY = Mathf.Abs(localDir.y);
+
+        float targetAngle = 0f;
+
+        // Определяем сторону столкновения
+        if (absX > absY) // Боковые стороны
+        {
+            bool isRightSide = localDir.x > 0;
+            targetAngle = isRightSide ? 90f : 270f;
+        } else // Верх/низ
+        {
+            bool isTopSide = localDir.y > 0;
+            targetAngle = isTopSide ? 0f : 180f;
+        }
+
+        targetAngle += other.transform.eulerAngles.z - 180;
+        if (targetAngle >= 360)
+            targetAngle -= 360;
+        transform.eulerAngles = new Vector3(0, 0, +targetAngle);
+    }    
     Vector2 EstimateCollisionPoint(Collider2D colliderA, Collider2D colliderB)
     {
        
@@ -76,7 +83,9 @@ public class ProjectileView : MonoBehaviour {
         return boundsA.ClosestPoint(boundsB.center);
     }
 
-    public void PlayHitAnimation(Sprite[] animationSprites, float radius, Action<ProjectileView> hideAction) { 
+    public void PlayHitAnimation(Sprite[] animationSprites, float radius, Action<ProjectileView> hideAction) {
+        AnimateProjectile();
+        lastCollider = null;
         collider.enabled = false;
         var main = particleSystem.main;
         main.startSpeed = radius * 1.5f + 2;

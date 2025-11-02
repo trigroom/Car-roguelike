@@ -309,6 +309,7 @@ using UnityEngine.UI;
                     projectileCmp.IsActive = true;
                     projectileCmp.LifeTime = 50f / gunConfig.BulletSpeed;
                     projectileCmp.Damage = gunCmp.CurrentDamage;
+                    projectileCmp.CurrentBreakingThroughCount = gunConfig.BreakingThroughCount;
                 } else {
                     int newEntity = _world.Value.NewEntity();
                     currentProjectile.entity = newEntity;
@@ -317,6 +318,7 @@ using UnityEngine.UI;
                     projectileCmp.ProjectileView = currentProjectile;
                     projectileCmp.LifeTime = 50f / gunConfig.BulletSpeed;
                     projectileCmp.Damage = gunCmp.CurrentDamage;
+                    projectileCmp.CurrentBreakingThroughCount = gunConfig.BreakingThroughCount;
                 }
 
                 if (carPartCmp.MainEntity == _sceneData.Value.PlayerEntity)
@@ -369,37 +371,40 @@ using UnityEngine.UI;
 
         private void ProjectileHit(AttackType attackType, int weaponId, Vector2Int damagedEntityGridPosition, int damagedMainEntity,
             Vector2 collisionPoint, ProjectileView projectile = null, int weaponCellEntity = -1, string layerName = null) {
-            
             float damagePoints;
-                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
-                    ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
-                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
-                
+            var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+            int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
+                ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
+                : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+
             if /*gunProjectile*/ (attackType == AttackType.Projectile) {
                 if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
-                var projectileCmp = _projectileComponentsPool.Value.Get(projectile.entity);
-                projectileCmp.IsActive = false;
+                ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectile.entity);
+               
+                projectileCmp.CurrentBreakingThroughCount--;
+                if (projectileCmp.CurrentBreakingThroughCount <= 0) {
+                    projectileCmp.IsActive = false;
+                    _sceneData.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius, _sceneData.Value._bulletSprites);
+                    projectile.rigidbody2D.linearVelocity = Vector2.zero; 
+                }
 
-                _sceneData.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius,
-                    _sceneData.Value._bulletSprites);
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(weaponId);
                 damagePoints = projectileCmp.Damage;
-                if(layerName == "Player")
-                Debug.Log("proj damage"+damagePoints);
+
                 if (gunConfig.ImpulseForce != 0)
                     ProjectileImpulse(gunConfig.ImpulseForce, damagedEntity, projectile.rigidbody2D.linearVelocity.normalized);
-                projectile.rigidbody2D.linearVelocity = Vector2.zero;
 
                 LayerMask layerMask = layerName == "Player"
                     ? LayerMask.GetMask(new string[] { "CarBase", "UpCarPart" })
                     : LayerMask.GetMask(new string[] { "CarBaseEnemy", "UpCarPartEnemy" });
                 var carPartDamagedCmp = _carPartComponentsPool.Value.Get(damagedEntity);
 
-                if (gunConfig.ExplosionRadius != 0 &&
+                if (layerName != "Player") {
+                    Debug.Log(projectileCmp.CurrentBreakingThroughCount + "projectileCmp.CurrentBreakingThroughCount");
+                }
+                if (projectileCmp.CurrentBreakingThroughCount <= 0 && gunConfig.ExplosionRadius != 0 &&
                     (_sceneData.Value.GetCarPartConfig(carPartDamagedCmp.CarPartId).PartType != CarPartType.Armor ||
                      !_sceneData.Value.GetArmorFromCarPart(carPartDamagedCmp.CarPartId).ExplosionDefence)) {
-                    
                     CreateExplosionEffect(gunConfig.ExplosionRadius, collisionPoint, gunConfig.EffectType);
                     var castedObjects = Physics2D.OverlapCircleAll(collisionPoint, gunConfig.ExplosionRadius, layerMask);
 
@@ -413,7 +418,7 @@ using UnityEngine.UI;
                         Vector2Int currentDamagedEntityGridPos = castedObject.GetComponent<CarPartStuffView>()._gridPosition;
                         var currentCarCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
                         //   Debug.Log(currentDamagedEntityGridPos + " damage grid pos");
-                        if(currentCarCmpDamaged.CarPartGroupsGrid == null)break;
+                        if (currentCarCmpDamaged.CarPartGroupsGrid == null) break;
                         int currentDamagedEntity =
                             currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y] == 0
                                 ? currentCarCmpDamaged.CarPartContainerGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y]
@@ -428,11 +433,10 @@ using UnityEngine.UI;
 
                                 explosionDamagePoints *= 1f - defencePercent / (defencePercent + 100f);
                             }
-                               
                         }
 
-                        _sceneData.Value.GetFloatingTextPrefab(castedObject.transform.position,
-                            explosionDamagePoints.ToString("F2"), Color.white);
+                        _sceneData.Value.GetFloatingTextPrefab(castedObject.transform.position, explosionDamagePoints.ToString("F2"),
+                            Color.white);
 
                         ChangeHealth(explosionDamagePoints, currentDamagedEntity);
 
@@ -478,16 +482,13 @@ using UnityEngine.UI;
                         float defencePercent = armorConfig.DefencePercent * GridUtils.GetArmorLevelMultipliers(damagedCarPartCmp.PartLevel);
                         damagePoints *= 1f - defencePercent / (defencePercent + 100f);
                     }
-                    
-                        
-                       
                 }
-                
+
                 _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
-             /*   var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
-                    ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
-                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];*/
+                /*   var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                   int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
+                       ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
+                       : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];*/
                 ChangeHealth(damagePoints, damagedEntity);
             }
         }

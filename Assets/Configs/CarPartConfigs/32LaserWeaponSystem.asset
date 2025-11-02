@@ -46,3 +46,4 @@ MonoBehaviour:
   ImpulseForce: 20
   EffectType: 0
   EffectDuration: 0
+  BreakingThroughCount: 1

@@ -253,6 +253,7 @@ public class SceneService : MonoBehaviour {
         if (animation == null) 
             RelaseProjectileYourself(projectile);
         else {
+            
             projectile.PlayHitAnimation(animation,radius, RelaseProjectileYourself);
         }
     }
