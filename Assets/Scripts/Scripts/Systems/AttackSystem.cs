@@ -33,6 +33,7 @@ using UnityEngine.UI;
         private EcsPoolInject<FireComponent> _fireComponentsPool;
         private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
         private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
+        private EcsPoolInject<FuelComponent> _fuelComponentsPool;
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
@@ -103,7 +104,13 @@ using UnityEngine.UI;
                         TrySpawnLaser(gunEntity);
                         if (gunCmp.CurrentCountdown < -gunCmp.CurrentMaxAttackCountdown) {
                             gunCmp.CurrentCountdown = gunCmp.CurrentReloadSpeed;
-                            _laserComponentsPool.Value.Get(gunEntity).LaserLineRenderer.gameObject.SetActive(false);
+                            ref var laserCmp  = ref _laserComponentsPool.Value.Get(gunEntity);
+                            laserCmp.LaserLineRenderer.gameObject.SetActive(false);
+                         //   _sceneData.Value.ReleaseFloatingText(laserCmp.LaserDamageText);
+                            laserCmp.CurrentSequence = null;
+                            laserCmp.LaserDamageText = null;
+                            laserCmp.LastDamagedEntity = 0;
+                            laserCmp.DamageCountForLastPart = 0;
                         }
                     }
                 }
@@ -171,8 +178,6 @@ using UnityEngine.UI;
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             float laserRange = gunConfig.BulletSpeed;
             var firePoint = gunCmp.FirePointTransform;
-
-            // gunCmp.
 
             Vector2 worldFirePoint = firePoint.position;
 
@@ -322,9 +327,9 @@ using UnityEngine.UI;
                 }
 
                 if (carPartCmp.MainEntity == _sceneData.Value.PlayerEntity)
-                    currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Enemy");
+                    currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Enemy", _sceneData.Value._carStuffListsConfig.DefaultMaterial);
                 else
-                    currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Player");
+                    currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Player", _sceneData.Value._carStuffListsConfig.EnemyProjectilesMaterial);
 
                 currentProjectile.rigidbody2D.linearVelocity = direction * gunConfig.BulletSpeed;
 
@@ -484,11 +489,23 @@ using UnityEngine.UI;
                     }
                 }
 
-                _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
-                /*   var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                   int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
-                       ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
-                       : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];*/
+                if (weaponCellEntity > 0 && _laserComponentsPool.Value.Has(weaponCellEntity)) {
+                    ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
+                    if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity || !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
+                        laserCmp.DamageCountForLastPart = 0;
+                        Debug.Log("Try get new anim");
+                        laserCmp.LastDamagedEntity = damagedEntity;
+                        (laserCmp.LaserDamageText ,laserCmp.CurrentSequence)=
+                            _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                    } else {
+                        laserCmp.CurrentSequence.Kill();
+                        laserCmp.CurrentSequence = _sceneData.Value.SetFloatingText(collisionPoint,
+                            laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText, laserCmp.CurrentSequence);
+                        laserCmp.DamageCountForLastPart += damagePoints;
+                    }
+                } else
+                    _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+               
                 ChangeHealth(damagePoints, damagedEntity);
             }
         }
@@ -562,12 +579,11 @@ using UnityEngine.UI;
         private void DestroyCarPartCell(int cellEntity) {
             ref CarPartComponent carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
             carPartCmp.CurrentHealth = 0;
-            if (!carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return;
+            if (carPartCmp.CarPartCellRenderer == null || !carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
             bool isPlayer = carPartCmp.MainEntity == _sceneData.Value.PlayerEntity;
            
             if (carPartConfig.PartType == CarPartType.Gun) {
-                Debug.Log(carPartConfig.PartName + "  " + carPartCmp.MainEntity);
                 ref var gunCmp = ref _gunComponentsPool.Value.Get(cellEntity);
                 if (gunCmp.UpPartContainer != null) {
                     gunCmp.GunSpriteRenderer.sortingOrder -= 5;
@@ -575,8 +591,11 @@ using UnityEngine.UI;
                 }
 
 
-                if (_laserComponentsPool.Value.Has(cellEntity)) 
+                if (_laserComponentsPool.Value.Has(cellEntity)) {
                     _sceneData.Value.ReleaseLaserLineRenderer(_laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer);
+                    _laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer = null;
+                }
+                  
                 
             }
 
@@ -633,6 +652,21 @@ using UnityEngine.UI;
                         _sceneData.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]);
                 }
 
+                if (carPartConfig.PartType == CarPartType.Support) {
+                    var supportCarPartConfig = _sceneData.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
+                    switch (supportCarPartConfig.ModuleType) {
+                        case SupportModuleType.Fuel:
+                            ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
+                            fuelCmp.MaxFuel -= supportCarPartConfig.FirstCount;
+                            fuelCmp.CurrentFuel = Mathf.Min(fuelCmp.MaxFuel,fuelCmp.CurrentFuel);
+                            break;
+                        case SupportModuleType.Turbine:
+                            _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption -= supportCarPartConfig.FirstCount;
+                            _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed -= supportCarPartConfig.SecondCount;
+                            break;
+                    }
+                }
+                
                 if (!isPlayer)
                     carCmp.CarPartGroupsList.Remove(cellEntity);
             }

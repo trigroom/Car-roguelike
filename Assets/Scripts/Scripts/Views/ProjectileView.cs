@@ -11,7 +11,7 @@ public class ProjectileView : MonoBehaviour {
     [SerializeField]
     private string needTag;
     [SerializeField]
-    private Collider2D collider;
+    private BoxCollider2D collider;
     [SerializeField]
     private ParticleSystem particleSystem;
     [field: SerializeField]
@@ -19,12 +19,20 @@ public class ProjectileView : MonoBehaviour {
     private Sequence animationSequence;
     private Collider2D lastCollider;
 
-    public void Construct( Action<AttackType,int, Vector2Int,int,Vector2, ProjectileView, int, string> hitTargetAction, int gunId, Sprite sprite, string tag) {
+    [SerializeField]
+    private Material _defaultMaterial;
+
+    public void Construct(Action<AttackType, int, Vector2Int, int, Vector2, ProjectileView, int, string> hitTargetAction, int gunId,
+        Sprite sprite, string tag, Material projectileMaterial) {
         this.hitTargetAction = hitTargetAction;
         this.gunId = gunId;
         spriteRenderer.sprite = sprite;
+        spriteRenderer.material = projectileMaterial;
         needTag = tag;
         collider.enabled = true;
+        Bounds spriteBounds = spriteRenderer.bounds;
+
+        collider.size = spriteBounds.size-new Vector3(2f/16,2f/16,0);
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
@@ -43,6 +51,7 @@ public class ProjectileView : MonoBehaviour {
 
     public void AnimateProjectile() {
         if(lastCollider == null)return;
+        spriteRenderer.material = _defaultMaterial;
         var other = lastCollider;
         Vector2 direction = other.bounds.center - transform.position;
 

@@ -114,21 +114,26 @@ public class SceneService : MonoBehaviour {
     public Image GetCarPartUISprite(Transform parent, Vector2 position) {
         return Instantiate(_carPartUIImage, position, Quaternion.identity, parent);
     }
-    public void GetFloatingTextPrefab(Vector2 position, string text, Color textColor) {
+    public (TMP_Text, Sequence) GetFloatingTextPrefab(Vector2 position, string text, Color textColor) {
         var floatingText = _floatingTextsPool.Get();
+        var curSequence = SetFloatingText(position, text, textColor, floatingText);
+        return (floatingText,curSequence);
+    }
+
+    public Sequence SetFloatingText(Vector2 position, string text, Color textColor, TMP_Text floatingText, Sequence needSequence = null) {
         floatingText.text = text;
         floatingText.transform.position = position;
         floatingText.color = textColor;
         floatingText.gameObject.SetActive(true);
-        Sequence sequence = DOTween.Sequence();
-
+        Sequence sequence =DOTween.Sequence();
         sequence.Append(floatingText.transform.DOLocalMoveY(position.y+1, 0.7f)
             .SetEase(Ease.OutCubic));
         sequence.Join(floatingText.DOColor(new Color(textColor.r, textColor.g, textColor.b,0), 0.7f));
         sequence.OnComplete(()=>ReleaseFloatingText(floatingText));
         sequence.Play();
+        return sequence;
     }
-    
+
     public void ReleaseFloatingText(TMP_Text floatingText) {
         floatingText.gameObject.SetActive(false);
         _floatingTextsPool.Release(floatingText);

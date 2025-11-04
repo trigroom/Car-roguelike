@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: CarStuffListsConfig
   m_EditorClassIdentifier: 
   <DefaultMaterial>k__BackingField: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  <EnemyProjectilesMaterial>k__BackingField: {fileID: 2100000, guid: ac9662e825c0b1344840f44fb2f4f571, type: 2}
   <LowDamagedMaterial>k__BackingField: {fileID: 2100000, guid: c4c785079a585d54f8bd17ba9a5e8c23, type: 2}
   <HighDamagedMaterial>k__BackingField: {fileID: 2100000, guid: 3392145bcbb5ec847af29db9af7efbbb, type: 2}
   <CarConfigs>k__BackingField:
