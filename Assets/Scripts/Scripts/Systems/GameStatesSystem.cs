@@ -336,6 +336,21 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneData.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(false);
         _sceneData.Value._mapFilledZoneView.gameObject.SetActive(false);
     }
+
+    private Vector2 GetPositionAroundPlayer() {
+        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        Vector2 carSize = new Vector2(carCmp.CarPartContainerGroupsGrid.GetLength(0)/2f, carCmp.CarPartContainerGroupsGrid.GetLength(1)/2f); 
+            float randomX = Random.Range(0,2);
+            float randomY = Random.Range(0, 2);
+            randomX = randomX == 0
+                ? carCmp.CarView.gameObject.transform.position.x + carSize.x + Random.Range(2f, 7f)
+                : carCmp.CarView.gameObject.transform.position.x - carSize.x - Random.Range(2f, 7f);
+            randomY = randomY == 0
+                ? carCmp.CarView.gameObject.transform.position.y + carSize.y + Random.Range(2f, 7f)
+                : carCmp.CarView.gameObject.transform.position.y - carSize.y - Random.Range(2f, 7f);
+            Vector2 spawnPosition = new Vector2(randomX, randomY);
+        return spawnPosition;
+    }
     
     private void SetFilledZoneRound() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -404,7 +419,27 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
     }
 
+    private void BuildBorder(int entity) {
+        var carCmp = _carComponentsPool.Value.Get(entity);
+        PolygonCollider2D collider = carCmp.CarView.CarBaseCollider;
+        var cellSize = 1;
+        
+        var grid = carCmp.CarPartContainerGroupsGrid;
+      
+        List<Vector2> contour = GridUtils.FindBorderContour(grid);
+       
+        collider.SetPath(0, contour.ToArray());
+    }
+
+    
+    
+    
+    
+    
+
     private void SetEnemiesCars() {
+      
+        
         var currentRoundCarStuff =
             _sceneData.Value._gameProcessConfig.GameRounds[_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound];
         List<Transform> playerMainParts = new List<Transform>();
@@ -425,7 +460,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             int currentMainPartCount = 0;
             var carView = CarViewSetup(enemyEntity);
             
-            carView.transform.position = new Vector2(Random.Range(-20, 20), Random.Range(-20, 20));
+            carView.transform.position = GetPositionAroundPlayer();
             
             carCmp.CarPartGroupsGrid = new int[carVariables.GridSize.x, carVariables.GridSize.y];
             carCmp.CarPartContainerGroupsGrid = new int[carVariables.GridSize.x, carVariables.GridSize.y];
@@ -504,7 +539,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     }
                 }
             }
-            
+            BuildBorder(enemyEntity);
         }
     }
 
@@ -534,7 +569,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
           }*/
 
         ArrangeImagesInGrid();
-
+        BuildBorder(_sceneData.Value.PlayerEntity);
         //_sceneData.Value.mainCamera.orthographicSize = 15 + Mathf.Max(inventoryCmp.GridCarPartsEntities.GetLength(0), inventoryCmp.GridCarPartsEntities.GetLength(1));
 
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;

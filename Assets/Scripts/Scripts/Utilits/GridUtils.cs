@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GridUtils : MonoBehaviour
@@ -208,4 +209,201 @@ public class GridUtils : MonoBehaviour
         
         return defenceMultiplier;
     }
+
+    public static List<Vector2> FindBorderContour(int[,] grid) {
+        List<Vector2> contour = new List<Vector2>();
+        int width = grid.GetLength(0);
+        int height = grid.GetLength(1);
+
+        // Находим стартовую точку (верхний левый угол фигуры)
+        Vector2 start = FindStartPoint(grid);
+        if (start.x == -1) return contour;
+
+
+
+        // Направления: вправо, вниз, влево, вверх (по часовой стрелке)
+        Vector2Int[] directions = {
+            new Vector2Int(1, 0), // вправо
+            new Vector2Int(0, -1), // вниз  
+            new Vector2Int(-1, 0), // влево
+            new Vector2Int(0, 1) // вверх
+        };
+
+        Vector2 current = start;
+        int currentDir = 0; // Начинаем движение up 
+        contour.Add(current);
+        int testIterations = 0;
+        do {
+            Vector2Int dir = directions[currentDir];
+         //   var currentBeforeMove = current + directions[currentDir];
+            var lastDir = currentDir;
+            currentDir = IsBorderEdge(grid, current, dir, out Vector2 nextPos);
+            if (lastDir != currentDir) 
+                contour.Add(current);
+                
+            current += directions[currentDir];
+            
+            
+            testIterations++;
+        } while ((contour.Count == 1 || Vector2.Distance(contour[0] , contour[^1]) > 0.1f));
+
+        for (int i = 0; i < contour.Count; i++) {
+            contour[i] -= new Vector2(width/2f-0.5f, height/2f-0.5f);
+        }
+        // Убираем дубликаты и оптимизируем
+        return contour;
+    }
+
+    private static Vector2 FindStartPoint(int[,] grid)
+    {
+        int width = grid.GetLength(0);
+        int height = grid.GetLength(1);
+
+        // Ищем первую заполненную клетку с пустым верхним соседом
+        for (int y = height - 1; y >= 0; y--)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (grid[x, y] != 0 && (y == height - 1 || grid[x, y + 1] == 0))
+                {
+                    return new Vector2(x-0.5f, y+0.5f);
+                }
+            }
+        }
+        return new Vector2(-1, -1);
+    }
+
+    private static int IsBorderEdge(int[,] grid, Vector2 currentPos, Vector2Int dir, out Vector2 nextPos)
+    {
+        nextPos = currentPos;
+
+        // Определяем тип движения и проверяем границу
+        if (dir.x != 0) // Горизонтальное движение
+        {
+            float newY = currentPos.y;
+            float newX = currentPos.x;
+
+            int checkedX = dir.x == 1 ? Mathf.FloorToInt(newX + dir.x) : Mathf.CeilToInt(newX + dir.x);
+         
+            bool firstCellIsEmpty = !IsPositionInGrid(new Vector2Int(checkedX, Mathf.CeilToInt(newY)), grid) ||
+                                    grid[checkedX, Mathf.CeilToInt(newY)] == 0;
+            bool secondCellIsEmpty = !IsPositionInGrid(new Vector2Int(checkedX, Mathf.FloorToInt(newY)), grid) ||
+                                     grid[checkedX, Mathf.FloorToInt(newY)] == 0;
+
+            if (firstCellIsEmpty != secondCellIsEmpty) {
+               
+                newX += dir.x;
+                return dir.x == 1 ? 0:2;
+            } else {
+                int checkedXsecond = dir.x == 1 ? Mathf.CeilToInt(newX - dir.x): Mathf.FloorToInt(newX - dir.x) ;
+                bool upCellIsEmpty = !IsPositionInGrid(new Vector2Int(checkedXsecond, Mathf.CeilToInt(newY)), grid) ||
+                                     grid[checkedXsecond, Mathf.CeilToInt(newY)] == 0;
+                
+              
+                
+                bool downCellIsEmpty = !IsPositionInGrid(new Vector2Int(checkedXsecond, Mathf.FloorToInt(newY)), grid) ||
+                                       grid[checkedXsecond, Mathf.FloorToInt(newY)] == 0;
+                if (firstCellIsEmpty && secondCellIsEmpty) {
+                    if (upCellIsEmpty){
+                        newY--;
+                        return 1;
+                    }
+                    else{
+                        newY++;
+                        return 3;
+                    }
+                } else if (!firstCellIsEmpty && !secondCellIsEmpty) {
+                    if (upCellIsEmpty) {
+                        newY++;
+                        return 3;
+                    }
+                        
+                    else {
+                        newY--;
+                        return 1;
+                    }
+                        
+                }
+            }
+
+            nextPos = new Vector2(newX, newY);
+            
+        }
+        else // Вертикальное движение
+        {
+            float newY = currentPos.y;
+            float newX = currentPos.x;
+
+            int checkedY = dir.y == 1 ? Mathf.FloorToInt(newY + dir.y) : Mathf.CeilToInt(newY + dir.y);
+            
+            bool firstCellIsEmpty = !IsPositionInGrid(new Vector2Int(Mathf.CeilToInt(newX), checkedY), grid) ||
+                                    grid[Mathf.CeilToInt(newX), checkedY] == 0;
+            bool secondCellIsEmpty = !IsPositionInGrid(new Vector2Int(Mathf.FloorToInt(newX), checkedY), grid) ||
+                                     grid[Mathf.FloorToInt(newX), checkedY] == 0;
+
+            if (firstCellIsEmpty != secondCellIsEmpty) {
+                newY += dir.y;
+                return dir.y == 1 ? 3 : 1;
+            } else {
+                int checkedYsecond = dir.y == 1 ? Mathf.CeilToInt(newY - dir.y) : Mathf.FloorToInt(newY - dir.y);
+                bool upCellIsEmpty = !IsPositionInGrid(new Vector2Int(Mathf.CeilToInt(newX), checkedYsecond), grid) ||
+                                     grid[Mathf.CeilToInt(newX), checkedYsecond] == 0;
+               /* bool downCellIsEmpty = !IsPositionInGrid(new Vector2Int(checkedYsecond, Mathf.FloorToInt(newY)), grid) ||
+                                       grid[checkedYsecond, Mathf.FloorToInt(newY)] == 0;*/
+                if (firstCellIsEmpty && secondCellIsEmpty) {
+                    if (upCellIsEmpty) {
+                         newX--;
+                         return 2;
+                    } else {
+                        newX++;
+                        return 0;
+                    }
+                        
+                } else if (!firstCellIsEmpty && !secondCellIsEmpty) {
+                    if (upCellIsEmpty) {
+                          newX++;
+                          return 0;
+                    } else {
+                        
+                        newX--;
+                        return 2;
+                    }
+                        
+                }
+            }
+
+        }
+
+        return 0;
+    }
+
+    private static List<Vector2> OptimizeContour(List<Vector2> contour)
+    {
+        if (contour.Count < 3) return contour;
+
+        List<Vector2> optimized = new List<Vector2>();
+
+        for (int i = 0; i < contour.Count; i++)
+        {
+            Vector2 current = contour[i];
+            Vector2 prev = contour[(i - 1 + contour.Count) % contour.Count];
+            Vector2 next = contour[(i + 1) % contour.Count];
+
+            // Проверяем, лежат ли три точки на одной прямой
+            if (!IsCollinear(prev, current, next) || i == 0)
+            {
+                optimized.Add(current);
+            }
+        }
+
+        return optimized;
+    }
+
+    private static bool IsCollinear(Vector2 a, Vector2 b, Vector2 c)
+    {
+        float area = Mathf.Abs((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
+        return area < 0.001f;
+    }
 }
+
+

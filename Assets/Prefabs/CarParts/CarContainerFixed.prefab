@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 6001121987794851216}
   - component: {fileID: 6669162380463978342}
   - component: {fileID: 4397821262879654343}
-  - component: {fileID: 9176414897181522736}
+  - component: {fileID: 1987510469409826561}
   m_Layer: 11
   m_Name: CarContainerRigidbody
   m_TagString: Untagged
@@ -79,12 +79,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b6941205be4f444cbceb42565667f98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Wheels: []
   Rigidbody: {fileID: 4397821262879654343}
   MainCarContainer: {fileID: 5873621609195199634}
   CarPartsContainer: {fileID: 5091351911720482923}
   ForwardWheelsContainer: {fileID: 8540389430050388459}
-  CarBaseCollider: {fileID: 9176414897181522736}
+  CarBaseCollider: {fileID: 1987510469409826561}
 --- !u!50 &4397821262879654343
 Rigidbody2D:
   serializedVersion: 5
@@ -112,14 +111,14 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!61 &9176414897181522736
-BoxCollider2D:
+--- !u!60 &1987510469409826561
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4855423031333165716}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -135,13 +134,13 @@ BoxCollider2D:
     m_Bits: 4294967295
   m_ForceReceiveLayers:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 4294967295
   m_ContactCaptureLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 8193
   m_CallbackLayers:
     serializedVersion: 2
-    m_Bits: 2103
+    m_Bits: 8193
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
@@ -156,8 +155,14 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0, y: 1}
+      - {x: -0.95105654, y: 0.30901697}
+      - {x: -0.5877852, y: -0.80901706}
+      - {x: 0.58778536, y: -0.80901694}
+      - {x: 0.9510565, y: 0.30901712}
+  m_UseDelaunayMesh: 0
 --- !u!1 &6219642165694712161
 GameObject:
   m_ObjectHideFlags: 0

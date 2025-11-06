@@ -10,7 +10,7 @@ public class CarView : MonoBehaviour {
     public int _entity { get;private set;}
     private Action<int, int> _collisionHitAction;
     
-    public BoxCollider2D CarBaseCollider;
+    public PolygonCollider2D CarBaseCollider;
 
     public void Construct(int entity, Action<int, int> CollisionHitAction, string tag) {
         _entity = entity;

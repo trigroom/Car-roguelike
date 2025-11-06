@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 4254942818886922455}
   - component: {fileID: 1690302248361954307}
   - component: {fileID: 6054031657993321369}
-  - component: {fileID: 7392837261497383077}
+  - component: {fileID: 56047523570085441}
   m_Layer: 0
   m_Name: CarContainer
   m_TagString: Untagged
@@ -78,11 +78,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b6941205be4f444cbceb42565667f98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Wheels: []
   Rigidbody: {fileID: 6054031657993321369}
+  MainCarContainer: {fileID: 0}
   CarPartsContainer: {fileID: 8872105550565319146}
-  CarBaseSpriteRenderer: {fileID: 4737626997415864778}
-  CarBaseCollider: {fileID: 7392837261497383077}
+  ForwardWheelsContainer: {fileID: 0}
+  CarBaseCollider: {fileID: 56047523570085441}
 --- !u!50 &6054031657993321369
 Rigidbody2D:
   serializedVersion: 5
@@ -110,8 +110,8 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!61 &7392837261497383077
-BoxCollider2D:
+--- !u!60 &56047523570085441
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -133,13 +133,13 @@ BoxCollider2D:
     m_Bits: 4294967295
   m_ForceReceiveLayers:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 4294967295
   m_ContactCaptureLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 8193
   m_CallbackLayers:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 8193
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
@@ -154,8 +154,14 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0, y: 1}
+      - {x: -0.95105654, y: 0.30901697}
+      - {x: -0.5877852, y: -0.80901706}
+      - {x: 0.58778536, y: -0.80901694}
+      - {x: 0.9510565, y: 0.30901712}
+  m_UseDelaunayMesh: 0
 --- !u!1 &3153714265227460557
 GameObject:
   m_ObjectHideFlags: 0
