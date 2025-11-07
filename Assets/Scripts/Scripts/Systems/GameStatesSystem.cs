@@ -154,7 +154,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ChangeInventoryState(true);
         ChangePlayerUIState(false);
         ReleaseAllCarPartUI();
-        Debug.Log("end round" + curGameCmp.CurrentRoundType);
     }
 
     private void ReleaseAllCarPartUI() {
@@ -163,7 +162,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void ChangeRoundInfo() {
-        Debug.Log(CanStartRound() + "CanStartRound()");
         if (!CanStartRound()) return;
         _sceneData.Value._mapUIView.gameObject.SetActive(true);
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -422,7 +420,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void BuildBorder(int entity) {
         var carCmp = _carComponentsPool.Value.Get(entity);
         PolygonCollider2D collider = carCmp.CarView.CarBaseCollider;
-        var cellSize = 1;
         
         var grid = carCmp.CarPartContainerGroupsGrid;
       
@@ -430,12 +427,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        
         collider.SetPath(0, contour.ToArray());
     }
-
-    
-    
-    
-    
-    
 
     private void SetEnemiesCars() {
       

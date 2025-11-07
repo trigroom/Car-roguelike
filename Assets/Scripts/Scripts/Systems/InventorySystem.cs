@@ -8,6 +8,7 @@ using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -1627,13 +1628,50 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetSortButtons() {
         for (int i = 0; i < _sceneData.Value._inventoryUIView._sortButtons.Length; i++) {
             CarPartType sortType = (CarPartType)i;
-            _sceneData.Value._inventoryUIView._sortButtons[i].sortButton.onClick.AddListener(() => SortCarParts(sortType));
+            
+            var sortButton = _sceneData.Value._inventoryUIView._sortButtons[i];
+            EventTrigger.Entry clickEntry = new EventTrigger.Entry();
+            clickEntry.eventID = EventTriggerType.PointerClick;
+            clickEntry.callback.AddListener((data) => { SortCarParts(sortType); });
+
+            EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+            enterEntry.eventID = EventTriggerType.PointerEnter;
+            enterEntry.callback.AddListener((data) => { AnimateSortButton(sortButton.transform, sortType, true, (PointerEventData)data); });
+
+            EventTrigger.Entry exitEntry = new EventTrigger.Entry();
+            exitEntry.eventID = EventTriggerType.PointerExit;
+            exitEntry.callback.AddListener((data) => { AnimateSortButton(sortButton.transform, sortType, false, (PointerEventData)data); });
+
+            sortButton.SortEventTrigger.triggers.Add(clickEntry);
+            sortButton.SortEventTrigger.triggers.Add(enterEntry);
+            sortButton.SortEventTrigger.triggers.Add(exitEntry);
         }
 
         _sceneData.Value._inventoryUIView._nextInventoryCellsButton.onClick.AddListener(NextInventoryPage);
         _sceneData.Value._inventoryUIView._backInventoryCellsButton.onClick.AddListener(LastInventoryPage);
     }
 
+    private void AnimateSortButton(Transform animateButton, CarPartType sortType, bool isEntry, PointerEventData data) {
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        if (isEntry) {
+            if (inventoryCmp.SortedCarPartType.Contains(sortType) ||
+                (sortType == CarPartType.All && inventoryCmp.SortedCarPartType.Count == 7) ||
+                (sortType == CarPartType.None && inventoryCmp.SortedCarPartType.Count == 0))
+                animateButton.DOLocalMoveY(70, 0.3f);
+            else
+                animateButton.DOLocalMoveY(63, 0.3f);
+        } else {
+            if (inventoryCmp.SortedCarPartType.Contains(sortType)||
+                (sortType == CarPartType.All && inventoryCmp.SortedCarPartType.Count == 7) ||
+                (sortType == CarPartType.None && inventoryCmp.SortedCarPartType.Count == 0))
+                animateButton.DOLocalMoveY(67, 0.3f);
+            else
+                animateButton.DOLocalMoveY(60, 0.3f);
+        }
+        
+        Debug.Log(" sort"+sortType + " entry"+isEntry);
+        
+    }
     private void SortCarParts(CarPartType carPartType) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (carPartType == CarPartType.None) {
@@ -1641,7 +1679,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             
             int index = 0;
             foreach (var sortButton in _sceneData.Value._inventoryUIView._sortButtons) {
-                sortButton.buttonImage.sprite = index != 0 ? sortButton.unactiveSprite : sortButton.activeSprite;
+                if (index == 0) {
+                    sortButton.buttonImage.sprite = sortButton.activeSprite;
+                    sortButton.transform.DOLocalMoveY(70, 0.3f);
+                } else {
+                    sortButton.buttonImage.sprite = sortButton.unactiveSprite;
+                    sortButton.transform.DOLocalMoveY(60, 0.3f);
+                }
+               
                 index++;
             }
         } 
@@ -1657,7 +1702,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             };
             int index = 0;
             foreach (var sortButton in _sceneData.Value._inventoryUIView._sortButtons) {
-                sortButton.buttonImage.sprite = index == 0 ? sortButton.unactiveSprite : sortButton.activeSprite;
+                if (index == (int)CarPartType.All) {
+                    sortButton.buttonImage.sprite = sortButton.activeSprite;
+                    sortButton.transform.DOLocalMoveY(70, 0.3f);
+                } else if (index != 0) {
+                    sortButton.buttonImage.sprite = sortButton.activeSprite;
+                    sortButton.transform.DOLocalMoveY(67, 0.3f);
+                } else {
+                    sortButton.buttonImage.sprite = sortButton.unactiveSprite;
+                    sortButton.transform.DOLocalMoveY(60, 0.3f);
+                }
                 index++;
             }
         }
@@ -1666,15 +1720,30 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                  inventoryCmp.SortedCarPartType.Remove(carPartType);
                  var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
                  sortButton.buttonImage.sprite = sortButton.unactiveSprite;
+                 sortButton.transform.DOLocalMoveY(63, 0.3f);
             } else {
                  inventoryCmp.SortedCarPartType.Add(carPartType);
                  var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
                  sortButton.buttonImage.sprite = sortButton.activeSprite;
+                 sortButton.transform.DOLocalMoveY(70, 0.3f);
             }
             var noneButton = _sceneData.Value._inventoryUIView._sortButtons[0];
             var allButton = _sceneData.Value._inventoryUIView._sortButtons[(int)CarPartType.All];
-            noneButton.buttonImage.sprite =inventoryCmp.SortedCarPartType.Count==0? noneButton.activeSprite:noneButton.unactiveSprite;
-            allButton.buttonImage.sprite =inventoryCmp.SortedCarPartType.Count==7? allButton.activeSprite:allButton.unactiveSprite;
+            if (inventoryCmp.SortedCarPartType.Count == 0) {
+                noneButton.buttonImage.sprite = noneButton.activeSprite;
+                noneButton.transform.DOLocalMoveY(67, 0.3f);
+            } else {
+                noneButton.buttonImage.sprite = noneButton.unactiveSprite;
+                noneButton.transform.DOLocalMoveY(60, 0.3f);
+            }
+            
+            if (inventoryCmp.SortedCarPartType.Count == 7) {
+                allButton.buttonImage.sprite = allButton.activeSprite;
+                allButton.transform.DOLocalMoveY(67, 0.3f);
+            } else {
+                allButton.buttonImage.sprite = allButton.unactiveSprite;
+                allButton.transform.DOLocalMoveY(60, 0.3f);
+            }
         }
      
         inventoryCmp.CurrentInventoryPage = 0;
