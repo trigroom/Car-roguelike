@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class PlayerUIView : MonoBehaviour
 {
     [field: SerializeField]
-    public Image _fuelFillImage { get; private set; }
+    public Transform _fuelArrowImage { get; private set; }
 
     [field: SerializeField]
     public TMP_Text _fuelText { get; private set; }

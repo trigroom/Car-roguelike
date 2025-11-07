@@ -179,8 +179,9 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         if (entity != _sceneData.Value.PlayerEntity) return;
-        _sceneData.Value._playerUIView._fuelFillImage.fillAmount = playerFuelCmp.CurrentFuel / playerFuelCmp.MaxFuel;
-        _sceneData.Value._playerUIView._fuelText.text = $"{(int)playerFuelCmp.CurrentFuel}/{playerFuelCmp.MaxFuel}";
+       // _sceneData.Value._playerUIView._fuelFillImage.fillAmount = playerFuelCmp.CurrentFuel / playerFuelCmp.MaxFuel;
+       _sceneData.Value._playerUIView._fuelArrowImage.transform.eulerAngles = new Vector3(0,0,-65f+130f*playerFuelCmp.CurrentFuel / playerFuelCmp.MaxFuel) ;
+        _sceneData.Value._playerUIView._fuelText.text = $"{(int)playerFuelCmp.CurrentFuel}";
     }
 
     private void RotateWheels(float targetWheelAngle, float rotateSpeed, int debug) {

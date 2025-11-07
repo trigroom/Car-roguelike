@@ -199,6 +199,10 @@ public class GridUtils : MonoBehaviour
         
         return (damageMultiplier, damageBySpeedMultiplier);
     }
+
+    public static float GetUpgradeCost(int level, CarPartConfig carPartConfig) {
+        return Mathf.FloorToInt(carPartConfig.UpgradedPartCost * (1+level*0.2f));
+    }
     
     public static float GetArmorLevelMultipliers(int level) {
       //  float healthMultiplier=1;

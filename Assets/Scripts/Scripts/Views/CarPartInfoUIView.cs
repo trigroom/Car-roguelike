@@ -53,8 +53,8 @@ public class CarPartInfoUIView : MonoBehaviour
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
-        if (carPartConfig.UpgradedPartCost != 0)
-            _upgradeButtonText.text = $"{carPartConfig.UpgradedPartCost.ToString()}$ to upgrade";
+        if (GridUtils.GetUpgradeCost(carPartLevel,carPartConfig) != 0)
+            _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel,carPartConfig).ToString()}$ to upgrade";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
 
         _nameText.text = carPartConfig.PartName;
@@ -126,9 +126,30 @@ public class CarPartInfoUIView : MonoBehaviour
                 if (armorConfig.ExplosionDefence)
                     _descriptionText.text += " \nPrevents explosion";
             }
+        } else if (_currentCarPartConfig.PartType == CarPartType.Support) {
+            if (_currentCarPartConfig is SupportModuleCarPartConfig supportConfig) {
+                SetSupportPartInfo(supportConfig, needLevel, isUpdate);
+            }
+        }
+        else if (_currentCarPartConfig.PartType == CarPartType.WheelsContainer) {
+            if (_currentCarPartConfig is WheelsContainerConfig wheelConfig) {
+                _descriptionText.text += $"\nCar max weight: {wheelConfig.MaxWeight}";
+            }
         }
     }
 
+    private void SetSupportPartInfo(SupportModuleCarPartConfig supportConfig, int level, bool isUpdate) {
+        //now level doesnt scale stats
+
+        switch (supportConfig.ModuleType) {
+            case SupportModuleType.Fuel:
+                _descriptionText.text += $"\nAdded fuel: {supportConfig.FirstCount}";
+                break;
+            case SupportModuleType.Turbine:
+                _descriptionText.text += $"\nAdded fuel consumption: {supportConfig.FirstCount}\n Added max move speed: {supportConfig.SecondCount}";
+                break;
+        }
+    }
     private void SetGunInfo(GunConfig gunConfig, int level, bool isUpdate) {
         (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) = GridUtils.GetGunLevelMultipliers(gunConfig,level);
         

@@ -8,8 +8,6 @@ public class CarConfig : ScriptableObject {
     public string CarName { get; private set; }
     [field: SerializeField]
     public Sprite CarBackground { get; private set; }
-[field: SerializeField]
-    public float CarWeight { get; private set; }
     [field: SerializeField]
     public float MaxWeight { get; private set; }
     [field: SerializeField]

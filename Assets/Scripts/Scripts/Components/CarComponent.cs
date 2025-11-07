@@ -5,6 +5,7 @@ public struct CarComponent {
     public int CarId; //
 
     public float CurrentWeight;
+    public float CurrentMaxWeight;
     public int ShockedMainPartsCount;
 
     public List<ParticleSystem> ForwardWheelsParticles;

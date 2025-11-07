@@ -637,6 +637,8 @@ using UnityEngine.UI;
                         wheel.transform.parent = _sceneData.Value._brokenCarPartsContainer;
                         _wheelContainerComponentsPool.Value.Del(cellEntity);
                     }
+
+                    carCmp.CurrentMaxWeight -= _sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).MaxWeight;
                 }
 
                 if (!isPlayer)
@@ -674,7 +676,7 @@ using UnityEngine.UI;
             carCmp.CurrentWeight -= carPartConfig.Weight;
             var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
             _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed = carConfig.DefaultMaxSpeed *
-                                                                                    (1 - carCmp.CurrentWeight / carConfig.MaxWeight);
+                                                                                    (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
 
             carPartCmp.CarPartCellRenderer.transform.parent = _sceneData.Value._brokenCarPartsContainer;
             carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
