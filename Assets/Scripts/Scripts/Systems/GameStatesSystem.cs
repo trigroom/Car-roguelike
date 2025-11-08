@@ -35,6 +35,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
     private EcsPoolInject<MeleeWeaponComponent> _meleeWeaponComponentsPool;
     private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
+    private EcsPoolInject<SettingsComponent> _settingsComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -48,9 +49,19 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
+        _settingsComponentsPool.Value.Add(_sceneData.Value.PlayerEntity).pixelizedEffectIsUsed = true;
         _sceneData.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
         _sceneData.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
         _sceneData.Value._mapFilledZoneView.SetupFilledZone(SetFeelingZoneState);
+        
+        var settingsView = _sceneData.Value._settingsView;
+        settingsView._settingsChangeStateButton.onClick.AddListener(SetSettingsState);
+        settingsView._saveSettingsButton.onClick.AddListener(SaveSettings);
+        settingsView._blueColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
+        settingsView._redColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
+        settingsView._greenColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
+
+        SetColorSliderEnemyProjectilesValues();
     }
 
     public void Run(IEcsSystems systems) {
@@ -80,6 +91,42 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
                 break;
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
+    }
+
+    private void SetSettingsState() {
+        _sceneData.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneData.Value._settingsView._settingsContainer.gameObject.activeInHierarchy);
+    }
+
+    private void SetColorSliderEnemyProjectilesValues() {
+        var settingsView = _sceneData.Value._settingsView;
+        var needColor = _sceneData.Value._carStuffListsConfig.EnemyProjectilesMaterial.GetColor("_OffsetColor");
+        settingsView._redColorSlider.value = needColor.r*settingsView._redColorSlider.maxValue;
+            settingsView._greenColorSlider.value = needColor.g*settingsView._greenColorSlider.maxValue;
+                settingsView._blueColorSlider.value = needColor.b*settingsView._blueColorSlider.maxValue;
+    }
+
+    private void SaveSettings() {
+        var settingsView = _sceneData.Value._settingsView;
+
+        var newColor = new Color(settingsView._redColorSlider.normalizedValue, settingsView._blueColorSlider.normalizedValue,
+            settingsView._greenColorSlider.normalizedValue);
+        _sceneData.Value._carStuffListsConfig.EnemyProjectilesMaterial.SetColor("_OffsetColor", newColor);
+    }
+
+    private void ChangePixelizedEffectsMode() {
+        
+    }
+
+    private void ChangePickedEnemyProjectilesColor(float value) {
+        var settingsView = _sceneData.Value._settingsView;
+        settingsView._projectilesOffsetColorImage.color = new Color(settingsView._redColorSlider.normalizedValue,
+            settingsView._blueColorSlider.normalizedValue, settingsView._greenColorSlider.normalizedValue);
+        
+        settingsView._redColorText.text = settingsView._redColorSlider.value.ToString();
+        settingsView._greenColorText.text = settingsView._greenColorSlider.value.ToString();
+        settingsView._blueColorText.text = settingsView._blueColorSlider.value.ToString();
     }
 
     private void UpdateMapPoint() {
