@@ -97,6 +97,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         foreach (var startRound in _startRoundEventsFilter.Value) {
             SetShopCells(false);
+            var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+            Debug.Log(gameCmp.CurrentRound + " CurrentRound");
+            if(gameCmp.CurrentRound == 5)
+                AddRareToShopItems(CarPartRare.Medium);
+            else if(gameCmp.CurrentRound == 10)
+                AddRareToShopItems(CarPartRare.High);
+            else if(gameCmp.CurrentRound == 15)
+                AddRareToShopItems(CarPartRare.VeryHigh);
             //     _endRoundEventsPool.Value.Del(endRound);
         }
 
@@ -434,6 +442,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryComponent.LastCheckedGridCellPosition = -Vector2Int.one;
     }
 
+    private void AddRareToShopItems(CarPartRare carPartRare) {
+        ref var shopCmp = ref _shopComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        foreach (var shopItem in shopCmp.AllUnlockedShopItems) {
+            if (GetCarPartConfig(shopItem.PartId).RartRare == carPartRare)
+                shopCmp.CurrentShopItems.Add(shopItem);
+        }
+    }
     private void StartupShopCells() {
         ref var shopCmp = ref _shopComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         shopCmp.AllUnlockedShopItems = new List<ShopItem>();
@@ -737,12 +752,22 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 carPartsForTypes[_sceneData.Value.GetCarPartConfig(shopItem.PartId).PartType].Add(shopItem);
         }
 
-        int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsShop.Length);
+        List<ShopItem> shopItems = new();
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
-            var shopButton = _sceneData.Value._shopUIView._buttonsShop[i];
             var randomItem = i >= _firstCarPartTypesForShop.Length
                 ? shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)]
                 : carPartsForTypes[_firstCarPartTypesForShop[i]][Random.Range(0, carPartsForTypes[_firstCarPartTypesForShop[i]].Count)];
+            shopItems.Add(randomItem);
+        }
+
+        int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsShop.Length);
+        for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
+            var shopButton = _sceneData.Value._shopUIView._buttonsShop[i];
+
+            int randomItemIndex = Random.Range(0, shopItems.Count);
+            var randomItem = shopItems[randomItemIndex];
+            shopItems.RemoveAt(randomItemIndex);
+            
             ref var shopCellCmp = ref _shopCellComponentsPool.Value.Get(shopButton._entity);
             int price = randomItem.Price;
             if (i == saleIndex || isShopSaleRound) {

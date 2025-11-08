@@ -297,7 +297,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentRoundType = roundType;
         //curGameCmp.RoundWithMoneyMultiplayer = -1;
         _sceneData.Value._mapUIView.gameObject.SetActive(false);
-        ChangePlayerUIState(true);
         
         curGameCmp.CurrentRound++;
         _startRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
@@ -534,6 +533,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetPlayerCarPrefab() {
+        
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carView = CarViewSetup(_sceneData.Value.PlayerEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -556,6 +556,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         BuildBorder(_sceneData.Value.PlayerEntity);
        
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;
+        ChangePlayerUIState(true);
     }
 
     private void ArrangeImagesInGrid() {
