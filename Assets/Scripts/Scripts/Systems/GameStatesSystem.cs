@@ -60,7 +60,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         settingsView._blueColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._redColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._greenColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
-
+        settingsView._setPixelizedEffectModeButton.onClick.AddListener(ChangePixelizedEffectsMode);
         SetColorSliderEnemyProjectilesValues();
     }
 
@@ -116,7 +116,17 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void ChangePixelizedEffectsMode() {
-        
+        var settingsView = _sceneData.Value._settingsView; 
+       
+        bool isPixelized = !settingsView._setPixelizedEffectModeChecker.gameObject.activeInHierarchy;
+        settingsView._setPixelizedEffectModeChecker.gameObject.SetActive(isPixelized);
+        _sceneData.Value._pixelizedEffectsImage.gameObject.SetActive(isPixelized);
+        if (!isPixelized) {
+            _sceneData.Value.mainCamera.cullingMask |= (1 << 9);
+        } else {
+            _sceneData.Value.mainCamera.cullingMask &= ~(1 << 9);
+        }
+      
     }
 
     private void ChangePickedEnemyProjectilesColor(float value) {

@@ -7227,6 +7227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47a5551cc11d45d46b1963fc225b00d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_pixelizedEffectsImage>k__BackingField: {fileID: 1735295381}
   <_settingsView>k__BackingField: {fileID: 277869914}
   <_givingCarPartsUIView>k__BackingField: {fileID: 686068779}
   <_brokenCarPartsContainer>k__BackingField: {fileID: 536468873}
@@ -15118,7 +15119,7 @@ GameObject:
   - component: {fileID: 1735295383}
   - component: {fileID: 1735295382}
   m_Layer: 5
-  m_Name: Image
+  m_Name: PixelizedEffectsImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
