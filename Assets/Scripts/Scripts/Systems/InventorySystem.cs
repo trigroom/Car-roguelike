@@ -59,7 +59,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryCmp.PartsInInventory = new List<(int,int)>();
         inventoryCmp.CurrentDraggedCellEntity = -1;
         inventoryCmp.CurrentCellCarPart = null;
-//test
+        inventoryCmp.CurrentGivenItems = new List<int>();
+    //test
         ref var movementComponent = ref _movementComponentsPool.Value.Add(playerEntity);
         //movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed;
         movementComponent.RotateSpeed = carConfig.RotateSpeed;
@@ -88,7 +89,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         
          SetMoneyCount(100);
         
-        
+         _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
+         _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(DestroyCarPartAndActiveNext);
         _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(SaveEnemyCarConfig);
     }
 
@@ -105,6 +107,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 AddRareToShopItems(CarPartRare.High);
             else if(gameCmp.CurrentRound == 15)
                 AddRareToShopItems(CarPartRare.VeryHigh);
+
+            ActivateGiveCarPartsWindow();
             //     _endRoundEventsPool.Value.Del(endRound);
         }
 
@@ -233,10 +237,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             inventoryCmp.IsTryDraggedCell = false;
         }
 
-        foreach (var addItem in _addInventoryItemEventsFilter.Value) {
+       /* foreach (var addItem in _addInventoryItemEventsFilter.Value) {
           AddInventoryItem(_addInventoryItemEventsPool.Value.Get(addItem).CarPartId,1);
           _addInventoryItemEventsPool.Value.Del(addItem);
-        }
+        }*/
     }
 
     private void UpdateButtonEnter() {
@@ -1847,12 +1851,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void SetInventoryCells() {
-        //check arrow buttons
+      
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-       /* if (inventoryCmp.SortedCarPartType != CarPartType.None)
-            _sceneData.Value._inventoryUIView._pageNumberText.text = inventoryCmp.SortedCarPartType + " ";
-        else
-            _sceneData.Value._inventoryUIView._pageNumberText.text = "";*/
+     
         if ((float)GetSortedCarPartList().Count / _sceneData.Value._inventoryUIView._inventoryCellViews.Length > 1.1f) {
             _sceneData.Value._inventoryUIView._inventoryArrowsContainer.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._pageNumberText.text = inventoryCmp.CurrentInventoryPage + "/" +
@@ -1872,5 +1873,57 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             } else
                 _sceneData.Value._inventoryUIView._inventoryCellViews[i].gameObject.SetActive(false);
         }
+    }
+
+    private void ActivateGiveCarPartsWindow() {
+       
+        var giveCarPartsUiView = _sceneData.Value._givingCarPartsUIView;
+       
+        
+        giveCarPartsUiView.gameObject.SetActive(ChangeGiveCarPartWindowInfo());
+    }
+
+    private void GetCarPartAndActiveNext() {
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        AddInventoryItem(inventoryCmp.CurrentGivenItems[0], 1);
+        inventoryCmp.CurrentGivenItems.RemoveAt(0);
+        ActivateGiveCarPartsWindow();
+    }
+    
+    private void DestroyCarPartAndActiveNext() {
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        inventoryCmp.CurrentGivenItems.RemoveAt(0);
+        ActivateGiveCarPartsWindow();
+    }
+
+    private bool ChangeGiveCarPartWindowInfo() {
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);     
+        if (inventoryCmp.CurrentGivenItems.Count == 0) return false;
+        
+        var giveCarPartsUiView = _sceneData.Value._givingCarPartsUIView;
+   
+       var carPartConfig = _sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]);
+
+       giveCarPartsUiView._carPartImageDown.sprite = carPartConfig.PartSprite;
+       
+       giveCarPartsUiView._carPartImageDown.transform.localScale = Vector3.zero; 
+       giveCarPartsUiView._carPartImageDown.transform.DOScale(1f, 0.3f);
+       
+       if (carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun) {
+           (Sprite upSprite, Vector2 size, Vector2 position) =
+               GetUpperPartSizesForUI(giveCarPartsUiView._carPartImageDown.rectTransform.sizeDelta, carPartConfig);
+
+           giveCarPartsUiView._carPartImageUp.sprite = upSprite;
+           giveCarPartsUiView._carPartImageUp.rectTransform.sizeDelta = size;
+           giveCarPartsUiView._carPartImageUp.transform.localPosition = position;
+       } else {
+           giveCarPartsUiView._carPartImageUp.sprite = _sceneData.Value._transparentPixel;
+       }
+       
+       giveCarPartsUiView._remainingCarPartsText.text = inventoryCmp.CurrentGivenItems.Count > 1
+           ? $"Remaining car parts: \n{inventoryCmp.CurrentGivenItems.Count}"
+           : "";
+       
+       return true;
     }
 }

@@ -31,4 +31,6 @@
         
         public Vector2Int LastCheckedGridCellPosition;
         public bool IsSnappingToGrid;
+
+        public List<int> CurrentGivenItems;
     }

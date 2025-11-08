@@ -268,9 +268,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 break;
             case RoundType.Chest:
                 var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-                _addInventoryItemEventsPool.Value.Add(_sceneData.Value.PlayerEntity).CarPartId =
-                    shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)].PartId;
-                //visual
+                _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentGivenItems
+                    .Add(shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)].PartId);
                 ChangeInventoryState(true);
                 break;
             case RoundType.Shop:

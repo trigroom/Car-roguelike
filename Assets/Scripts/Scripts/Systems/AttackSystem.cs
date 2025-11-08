@@ -641,6 +641,7 @@ using UnityEngine.UI;
                     carCmp.CurrentMaxWeight -= _sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).MaxWeight;
                 }
 
+                BuildNewBorder(carPartCmp.MainEntity);
                 if (!isPlayer)
                     carCmp.CarPartContainerGroupsList.Remove(cellEntity);
             } else {
@@ -736,24 +737,24 @@ using UnityEngine.UI;
                 //fix double delete
             }
 
-            /*   foreach (var carPartEntity in _carPartCellComponentsFilter.Value) {
-                    ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
-                    if (carPartCmp.MainEntity == carEntity && carPartCmp.CurrentHealth > 0) {
-
-                    }
-                }*/
 
             _sceneData.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
-            // Debug.Log("startDestroy");
             if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType == RoundType.None) return;
             if (carEntity != _sceneData.Value.PlayerEntity) {
-                // _movementComponentsPool.Value.Del(carEntity);
-                // _carComponentsPool.Value.Del(carEntity);
                 _destroyEntityEventsPool.Value.Add(carEntity);
                 CheckTasks(TaskType.Kills);
             }
         }
+        private void BuildNewBorder(int entity) {
+            var carCmp = _carComponentsPool.Value.Get(entity);
+            PolygonCollider2D collider = carCmp.CarView.CarBaseCollider;
         
+            var grid = carCmp.CarPartContainerGroupsGrid;
+      
+            List<Vector2> contour = GridUtils.FindBorderContour(grid);
+       
+            collider.SetPath(0, contour.ToArray());
+        }
         public void CheckTasks(TaskType taskType) {
             foreach (var taskEntity in _taskComponentsFilter.Value) {
                 ref var taskCmp = ref _taskComponentsPool.Value.Get(taskEntity);
