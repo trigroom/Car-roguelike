@@ -19,4 +19,6 @@ public class PlayerUIView : MonoBehaviour
     public TMP_Text[] _taskTexts { get; private set; }
     [field: SerializeField]
     public Transform _arrowImageTransform { get; private set; }
+    [field: SerializeField]
+    public Image _lampLightImage { get; private set; }
 }

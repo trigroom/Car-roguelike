@@ -395,11 +395,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             float randomX = Random.Range(0,2);
             float randomY = Random.Range(0, 2);
             randomX = randomX == 0
-                ? carCmp.CarView.gameObject.transform.position.x + carSize.x + Random.Range(2f, 7f)
-                : carCmp.CarView.gameObject.transform.position.x - carSize.x - Random.Range(2f, 7f);
+                ? carCmp.CarView.gameObject.transform.position.x + carSize.x + Random.Range(7f, 15f)
+                : carCmp.CarView.gameObject.transform.position.x - carSize.x - Random.Range(7f, 15f);
             randomY = randomY == 0
-                ? carCmp.CarView.gameObject.transform.position.y + carSize.y + Random.Range(2f, 7f)
-                : carCmp.CarView.gameObject.transform.position.y - carSize.y - Random.Range(2f, 7f);
+                ? carCmp.CarView.gameObject.transform.position.y + carSize.y + Random.Range(7f, 15f)
+                : carCmp.CarView.gameObject.transform.position.y - carSize.y - Random.Range(7f, 15f);
             Vector2 spawnPosition = new Vector2(randomX, randomY);
         return spawnPosition;
     }
@@ -560,7 +560,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 carPartCmp.CarPartId = carContainer.partId;
 
                 SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
-                Debug.Log(carPartCmp.MainEntity);
             }
             SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
             SetupWheels(enemyEntity, carView);
@@ -788,7 +787,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
             
             _gunComponentsPool.Value.Get(cellEntity) = gunCmp;
-            Debug.Log(_gunComponentsPool.Value.Get(cellEntity).CurrentMaxAttackCountdown +"attackCountdownMultiplayer");
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
             var meleeWeaponCmp = _meleeWeaponComponentsPool.Value.Has(cellEntity)
                 ? _meleeWeaponComponentsPool.Value.Get(cellEntity)
@@ -925,7 +923,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 ref var wheelCmp  = ref _wheelContainerComponentsPool.Value.Add(carPartContainer.Key);
                 wheelCmp.Wheels = new List<Animator>();
                 foreach (var wheelPos in wheelConfig.WheelsPositions) {
-                    Debug.Log(wheelConfig.WheelId);
                     var wheel = CreateWheel(wheelConfig.WheelId, carView, (Vector2)carPartCmp.CarPartCellRenderer.transform.position + wheelPos-(Vector2)carView.transform.position,
                         wheelPos.x > 0);
                     wheelCmp.Wheels.Add(wheel);

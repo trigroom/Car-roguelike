@@ -15,7 +15,6 @@ MonoBehaviour:
   <CarId>k__BackingField: 3
   <CarName>k__BackingField: 4x6car
   <CarBackground>k__BackingField: {fileID: 21300000, guid: 9b6f38ae3cf667e45810d10b4e86d591, type: 3}
-  <CarWeight>k__BackingField: 60
   <MaxWeight>k__BackingField: 120
   <Height>k__BackingField: 6
   <Width>k__BackingField: 4
@@ -38,3 +37,8 @@ MonoBehaviour:
   <Acceleration>k__BackingField: 7
   <Deceleration>k__BackingField: 12
   <DefaultMaxFuel>k__BackingField: 250
+  CarPartForLevel:
+    _serializedList:
+    - Key: 1
+      Value: 0000000001000000
+  <CarUpgradeCost>k__BackingField: 20

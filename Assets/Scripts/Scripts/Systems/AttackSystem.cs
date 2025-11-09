@@ -185,19 +185,23 @@ using UnityEngine.UI;
 
             LayerMask layerMask = carPartCmp.MainEntity != _sceneData.Value.PlayerEntity
                 ? LayerMask.GetMask(new string[] {
-                    /* "CarBase",*/ "UpCarPart"
+                    /* "CarBase",*/ "Obstacle","UpCarPart"
                 })
                 : LayerMask.GetMask(new string[] {
-                    /*"EnemyCarBase",*/ "UpCarPartEnemy"
+                    /*"EnemyCarBase",*/ "Obstacle","UpCarPartEnemy"
                 });
             RaycastHit2D hit = Physics2D.Raycast(worldFirePoint, direction, laserRange, layerMask);
             Vector2 endPoint;
             if (hit.collider != null) {
                 endPoint = hit.point;
 
-                var damagedCarPart = hit.collider.GetComponent<CarPartStuffView>();
-                ProjectileHit(AttackType.Laser, gunConfig.Id, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point, null,
-                    entity);
+                if (hit.collider.gameObject.layer != 13) {
+                     var damagedCarPart = hit.collider.GetComponent<CarPartStuffView>();
+                                    ProjectileHit(AttackType.Laser, gunConfig.Id, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point, null,
+                                        entity);
+                }
+                
+               
             } else {
                 // Если не попали, конечная точка на максимальной дистанции
                 endPoint = worldFirePoint + direction * laserRange;
@@ -218,6 +222,7 @@ using UnityEngine.UI;
             Debug.Log("LoseGame");
             if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType != RoundType.None)
                 EndRound();
+            Time.timeScale = 0;
             _sceneData.Value._endGameScreenView.SetLoseScreenInfo(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound);
             //go to meta
         }
@@ -374,9 +379,23 @@ using UnityEngine.UI;
             }
         }
 
+        private void ReleaseProjectileForObstacle(ProjectileView projectile) {
+            if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
+            ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectile.entity);
+
+            projectileCmp.IsActive = false;
+            _sceneData.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius, _sceneData.Value._bulletSprites);
+            projectile.rigidbody2D.linearVelocity = Vector2.zero;
+        }
         private void ProjectileHit(AttackType attackType, int weaponId, Vector2Int damagedEntityGridPosition, int damagedMainEntity,
             Vector2 collisionPoint, ProjectileView projectile = null, int weaponCellEntity = -1, string layerName = null) {
             float damagePoints;
+            
+            if (damagedEntityGridPosition == -Vector2Int.one) {
+                ReleaseProjectileForObstacle(projectile);
+                return;
+            }
+            
             var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
             int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
                 ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
@@ -385,12 +404,12 @@ using UnityEngine.UI;
             if /*gunProjectile*/ (attackType == AttackType.Projectile) {
                 if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
                 ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectile.entity);
-               
+
                 projectileCmp.CurrentBreakingThroughCount--;
                 if (projectileCmp.CurrentBreakingThroughCount <= 0) {
                     projectileCmp.IsActive = false;
                     _sceneData.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius, _sceneData.Value._bulletSprites);
-                    projectile.rigidbody2D.linearVelocity = Vector2.zero; 
+                    projectile.rigidbody2D.linearVelocity = Vector2.zero;
                 }
 
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(weaponId);
@@ -404,9 +423,6 @@ using UnityEngine.UI;
                     : LayerMask.GetMask(new string[] { "CarBaseEnemy", "UpCarPartEnemy" });
                 var carPartDamagedCmp = _carPartComponentsPool.Value.Get(damagedEntity);
 
-                if (layerName != "Player") {
-                    Debug.Log(projectileCmp.CurrentBreakingThroughCount + "projectileCmp.CurrentBreakingThroughCount");
-                }
                 if (projectileCmp.CurrentBreakingThroughCount <= 0 && gunConfig.ExplosionRadius != 0 &&
                     (_sceneData.Value.GetCarPartConfig(carPartDamagedCmp.CarPartId).PartType != CarPartType.Armor ||
                      !_sceneData.Value.GetArmorFromCarPart(carPartDamagedCmp.CarPartId).ExplosionDefence)) {
@@ -416,13 +432,13 @@ using UnityEngine.UI;
                     foreach (var castedObject in castedObjects) {
                         float explosionDamagePoints = gunConfig.ExplosionDamage *
                             Vector2.Distance(castedObject.transform.position, collisionPoint) / gunConfig.ExplosionRadius;
-                        //    Debug.Log(Vector2.Distance(castedObject.transform.position, collisionPoint) / gunConfig.ExplosionRadius + "exp mult");
+                    
                         if (carPartDamagedCmp.MainEntity == _sceneData.Value.PlayerEntity)
                             explosionDamagePoints *= _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).RoundMoneyMultiplayer;
 
                         Vector2Int currentDamagedEntityGridPos = castedObject.GetComponent<CarPartStuffView>()._gridPosition;
                         var currentCarCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                        //   Debug.Log(currentDamagedEntityGridPos + " damage grid pos");
+                       
                         if (currentCarCmpDamaged.CarPartGroupsGrid == null) break;
                         int currentDamagedEntity =
                             currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y] == 0
@@ -491,11 +507,12 @@ using UnityEngine.UI;
 
                 if (weaponCellEntity > 0 && _laserComponentsPool.Value.Has(weaponCellEntity)) {
                     ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
-                    if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity || !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
+                    if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
+                        !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
                         laserCmp.DamageCountForLastPart = 0;
                         Debug.Log("Try get new anim");
                         laserCmp.LastDamagedEntity = damagedEntity;
-                        (laserCmp.LaserDamageText ,laserCmp.CurrentSequence)=
+                        (laserCmp.LaserDamageText, laserCmp.CurrentSequence) =
                             _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
                     } else {
                         laserCmp.CurrentSequence.Kill();
@@ -505,7 +522,7 @@ using UnityEngine.UI;
                     }
                 } else
                     _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
-               
+
                 ChangeHealth(damagePoints, damagedEntity);
             }
         }
@@ -545,9 +562,15 @@ using UnityEngine.UI;
                     if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.CarStuffContainer)
                         inventoryCmp.CarPartInfoUIViewsGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
                             .SetHealthCount(_sceneData.Value._healthGradient.Evaluate(healthPercent), (int)carPartCellCmp.CurrentHealth);
-                    else 
+                    else {
+                        if (carPartConfig.PartType == CarPartType.Main) {
+                            _sceneData.Value._playerUIView._lampLightImage.DOColor(new Color(1, 0, 0, 0.6f), 0.45f)
+                                .OnComplete( ()=>_sceneData.Value._playerUIView._lampLightImage?.DOColor(new Color(1, 0, 0, 0), 0.45f));
+                        }
                         inventoryCmp.CarPartInfoUIViewsUpLevelGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
-                            .SetHealthCount(_sceneData.Value._healthGradient.Evaluate(healthPercent), (int)carPartCellCmp.CurrentHealth);
+                                                    .SetHealthCount(_sceneData.Value._healthGradient.Evaluate(healthPercent), (int)carPartCellCmp.CurrentHealth);
+                    }
+                        
                 }
             }
 

@@ -36,17 +36,17 @@ public class ProjectileView : MonoBehaviour {
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (other.CompareTag(needTag)) {
-            if (gunId == 31)
-                Debug.Log(other.name + " collided with " + needTag);
+        if (other.gameObject.layer == LayerMask.NameToLayer("Obstacle")) {
+            hitTargetAction?.Invoke(AttackType.Projectile, gunId, -Vector2Int.one, -1, EstimateCollisionPoint(other, collider), this, entity,
+                needTag);
+        } else if (other.CompareTag(needTag)) {
             lastCollider = other;
+
             var damagedCarPart = other.gameObject.GetComponent<CarPartStuffView>();
-            
-             hitTargetAction?.Invoke (AttackType.Projectile,gunId, damagedCarPart._gridPosition,damagedCarPart._mainEntity,EstimateCollisionPoint(other, collider)
-                 ,this, entity, needTag);
-             
+
+            hitTargetAction?.Invoke(AttackType.Projectile, gunId, damagedCarPart._gridPosition, damagedCarPart._mainEntity,
+                EstimateCollisionPoint(other, collider), this, entity, needTag);
         }
-           
     }
 
     public void AnimateProjectile() {

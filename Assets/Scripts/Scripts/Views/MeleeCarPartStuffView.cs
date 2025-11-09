@@ -29,7 +29,6 @@ public class MeleeCarPartStuffView : CarPartStuffView {
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
-        Debug.Log(" melee trigger");
         if ((_layerMask & (1 << other.gameObject.layer)) != 0) {
             var damagedCarPart = other.gameObject.GetComponent<CarPartStuffView>();
 

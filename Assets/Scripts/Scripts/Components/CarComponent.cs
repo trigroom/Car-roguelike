@@ -4,6 +4,8 @@ using UnityEngine;
 public struct CarComponent {
     public int CarId; //
 
+    public int CarLevel;
+    
     public float CurrentWeight;
     public float CurrentMaxWeight;
     public int ShockedMainPartsCount;

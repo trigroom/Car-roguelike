@@ -66,7 +66,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         movementComponent.RotateSpeed = carConfig.RotateSpeed;
         movementComponent.Acceleration = carConfig.Acceleration;
         movementComponent.Deceleration = carConfig.Deceleration;
-
+        SetCarUpgradeButtonInfo();
         SortCarParts(CarPartType.All);
 
         SetCarGrid();
@@ -92,6 +92,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
          _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
          _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(DestroyCarPartAndActiveNext);
         _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(SaveEnemyCarConfig);
+        _sceneData.Value._inventoryUIView._upgradeCarButton.onClick.AddListener(IncriseCarLevel);
     }
 
     public void Run(IEcsSystems systems) {
@@ -804,9 +805,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private bool RemoveMoneyForBuy(ShopCellComponent shopCellCmp) {
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (shopCellCmp.Price > playerCurrencyCmp.MoneyCount) return true;
-       // playerCurrencyCmp.MoneyCount -= shopCellCmp.Price;
         _sceneData.Value._shopUIView._buttonsShop[shopCellCmp.ShopButtonIndex].SoldItemChangeButton();
-        //SetMoneyText();
+     
         SetMoneyCount(-shopCellCmp.Price);
         return false;
     }
@@ -1146,7 +1146,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             showMoveButton = !isContainer || AreNonZeroAndNonDeletedConnected(
                 _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CarPartContainerGroupsGrid, carPartEntity);
             level = cellCmp.PartLevel;
-            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(true);
+            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(currentCarPartConfig.PartType != CarPartType.Main);
             _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
                GridUtils.GetUpgradeCost(level,GetCarPartConfig(needCarPartId)) <= playerCurrencyCmp.MoneyCount;
             inventoryCmp.CurrentMarkedCellForPanelInfo = carPartEntity;
@@ -1162,7 +1162,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length + invCellCmp.CellId];
             
             _sceneData.Value._carPartInfoUIView._switchButtonsContainer.gameObject.SetActive(false);
-            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(true);
+            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(GetCarPartConfig(needCarPartId).PartType != CarPartType.Main);
             _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
                 GridUtils.GetUpgradeCost(level,GetCarPartConfig(needCarPartId)) <= playerCurrencyCmp.MoneyCount;
             inventoryCmp.CurrentMarkedCellForPanelInfo = entity;
@@ -1925,5 +1925,47 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
            : "";
        
        return true;
+    }
+
+    private void SetCarUpgradeButtonInfo() {
+        ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        var upgradeCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * (1 + carCmp.CarLevel * 0.3f));
+        _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"Upgrade car {upgradeCost}$";
+    }
+
+    private void IncriseCarLevel() {
+        ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var upgradeCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * (1 + carCmp.CarLevel * 0.3f));
+        if (playerCurrencyCmp.MoneyCount > upgradeCost) {
+            SetMoneyCount(-upgradeCost);
+            carCmp.CarLevel++;
+            SetCarUpgradeButtonInfo();
+            ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+            foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+                ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartInfo.Key);
+                var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
+
+                if (carPartConfig.PartType == CarPartType.Main)
+                    carPartCmp.PartLevel = carCmp.CarLevel + 1;
+            }
+
+            for (int i = 0; i < inventoryCmp.PartsInInventory.Count; i++) {
+                if (_sceneData.Value.GetCarPartConfig(inventoryCmp.PartsInInventory[i].Id).PartType == CarPartType.Main)
+                    inventoryCmp.PartsInInventory[i] = (inventoryCmp.PartsInInventory[i].Id, carCmp.CarLevel + 1);
+            }
+
+            //upgrade main car parts
+
+            if (carConfig.CarPartForLevel.ContainsKey(carCmp.CarLevel)) {
+                var carPartsList = carConfig.CarPartForLevel[carCmp.CarLevel];
+
+                inventoryCmp.CurrentGivenItems.AddRange(carPartsList);
+
+                ActivateGiveCarPartsWindow();
+            }
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Client;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
@@ -11,6 +12,10 @@ public class EcsStartUp : MonoBehaviour
     EcsWorld _world;
     IEcsSystems _systemsUpdate;
     IEcsSystems _systemsLateUpdate;
+
+    private void Awake() {
+        Time.timeScale = 1;
+    }
 
     void Start()
     {

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using AYellowpaper.SerializedCollections;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CarConfig", menuName = "Scriptable Objects/CarConfig")]
@@ -40,4 +42,9 @@ public class CarConfig : ScriptableObject {
     public float Deceleration { get; private set; }
     [field: SerializeField]
     public float DefaultMaxFuel { get; private set; }
+    
+    [SerializedDictionary]
+    public SerializedDictionary<int, List<int>> CarPartForLevel = new SerializedDictionary<int, List<int>>();
+    [field: SerializeField]
+    public float CarUpgradeCost { get; private set; }
 }

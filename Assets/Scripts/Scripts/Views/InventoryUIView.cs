@@ -5,6 +5,10 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour
 {
     [field: SerializeField]
+    public TMP_Text _upgradeCarButtonText { get;private set; }
+    [field: SerializeField]
+    public Button _upgradeCarButton { get;private set; }
+    [field: SerializeField]
     public CanvasGroup _carPartsUpLevelContainer { get;private set; }
     [field: SerializeField]
     public TMP_Text _changeToRedactModeText { get;private set; }
