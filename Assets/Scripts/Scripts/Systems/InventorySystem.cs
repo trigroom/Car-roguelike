@@ -108,7 +108,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 AddRareToShopItems(CarPartRare.High);
             else if(gameCmp.CurrentRound == 15)
                 AddRareToShopItems(CarPartRare.VeryHigh);
-
+            UpdateCarDescription();
             ActivateGiveCarPartsWindow();
             //     _endRoundEventsPool.Value.Del(endRound);
         }
@@ -283,8 +283,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             SortCarParts(CarPartType.None);
         }
 
-        SortCarParts(CarPartType.CarStuffContainer);
-        SortCarParts(CarPartType.WheelsContainer);
+        SortCarParts(CarPartType.CarStuffContainer, false);
+        SortCarParts(CarPartType.WheelsContainer, false);
     }
 
     private void StartDragShopCell(ref InventoryComponent inventoryCmp) {
@@ -1083,7 +1083,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float speedBoostFuelConsumption = carConfig.AccelerationFuelСonsumption;
         float defaultFuelConsumption = carConfig.FuelСonsumption;
        // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        foreach (var carPart in _carPartComponentsFilter.Value) {
+        foreach (var carPart in carCmp.CarPartGroupsList.Keys) {
             var carPartCellCmp = _carPartComponentsPool.Value.Get(carPart);
             int carPartId = carPartCellCmp.CarPartId;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartId);
@@ -1099,8 +1099,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 }
             }
         }
-
-        carCmp.CurrentWeight = 0;
+        foreach (var carPart in carCmp.CarPartContainerGroupsList.Keys) {
+            var carPartCellCmp = _carPartComponentsPool.Value.Get(carPart);
+            int carPartId = carPartCellCmp.CarPartId;
+            var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartId);
+            carWeight += carPartConfig.Weight;
+        }
+        carCmp.CurrentWeight = carWeight;
         
         float weightFactor =carCmp.CurrentMaxWeight == 0 ? 0: carWeight / carCmp.CurrentMaxWeight;
         defaultMaxCarSpeed *= 1-weightFactor;
@@ -1112,6 +1117,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             $" \n Default fuel consumption {defaultFuelConsumption} \n Rotate speed: {carRotateSpeed} m/s " +
             $"\n Weight: {carWeight:F1}/{carCmp.CurrentMaxWeight} kg \n Fuel: {maxFuel}";
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MaxMoveSpeed = defaultMaxCarSpeed;
+        Debug.Log("player move speed is "+_movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MaxMoveSpeed);
     }
 
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
@@ -1693,7 +1699,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 animateButton.DOLocalMoveY(60, 0.3f);
         }
     }
-    private void SortCarParts(CarPartType carPartType) {
+    private void SortCarParts(CarPartType carPartType, bool isInteractWithMouse = true) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (carPartType == CarPartType.None) {
             inventoryCmp.SortedCarPartType = new List<CarPartType>();
@@ -1735,19 +1741,25 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 }
                 index++;
             }
-        }
-        else {
+        } else {
             if (inventoryCmp.SortedCarPartType.Contains(carPartType)) {
-                 inventoryCmp.SortedCarPartType.Remove(carPartType);
-                 var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
-                 sortButton.buttonImage.sprite = sortButton.unactiveSprite;
-                 sortButton.transform.DOLocalMoveY(63, 0.3f);
+                inventoryCmp.SortedCarPartType.Remove(carPartType);
+                var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
+                sortButton.buttonImage.sprite = sortButton.unactiveSprite;
+                if (isInteractWithMouse)
+                    sortButton.transform.DOLocalMoveY(63, 0.3f);
+                else
+                    sortButton.transform.DOLocalMoveY(60, 0.3f);
             } else {
-                 inventoryCmp.SortedCarPartType.Add(carPartType);
-                 var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
-                 sortButton.buttonImage.sprite = sortButton.activeSprite;
-                 sortButton.transform.DOLocalMoveY(70, 0.3f);
+                inventoryCmp.SortedCarPartType.Add(carPartType);
+                var sortButton = _sceneData.Value._inventoryUIView._sortButtons[(int)carPartType];
+                sortButton.buttonImage.sprite = sortButton.activeSprite;
+                if (isInteractWithMouse)
+                    sortButton.transform.DOLocalMoveY(70, 0.3f);
+                else
+                    sortButton.transform.DOLocalMoveY(67, 0.3f);
             }
+
             var noneButton = _sceneData.Value._inventoryUIView._sortButtons[0];
             var allButton = _sceneData.Value._inventoryUIView._sortButtons[(int)CarPartType.All];
             if (inventoryCmp.SortedCarPartType.Count == 0) {
@@ -1757,7 +1769,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 noneButton.buttonImage.sprite = noneButton.unactiveSprite;
                 noneButton.transform.DOLocalMoveY(60, 0.3f);
             }
-            
+
             if (inventoryCmp.SortedCarPartType.Count == 7) {
                 allButton.buttonImage.sprite = allButton.activeSprite;
                 allButton.transform.DOLocalMoveY(67, 0.3f);

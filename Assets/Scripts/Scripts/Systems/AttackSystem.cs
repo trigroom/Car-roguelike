@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client;
 using DG.Tweening;
@@ -7,8 +8,9 @@ using Leopotam.EcsLite.ExtendedSystems;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
-    public enum AttackType {
+public enum AttackType {
             Melee,
             Projectile,
             Laser
@@ -510,7 +512,6 @@ using UnityEngine.UI;
                     if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
                         !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
                         laserCmp.DamageCountForLastPart = 0;
-                        Debug.Log("Try get new anim");
                         laserCmp.LastDamagedEntity = damagedEntity;
                         (laserCmp.LaserDamageText, laserCmp.CurrentSequence) =
                             _sceneData.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
@@ -717,15 +718,12 @@ using UnityEngine.UI;
         {
             Vector2 localBulletPos = targetObject.InverseTransformPoint(bulletPosition);
         
-            // Нормализуем направление в локальном пространстве
             Vector2 localDirection = localBulletPos.normalized;
 
-            // Определяем сторону на основе локальных координат
             float angle = Mathf.Atan2(localDirection.y, localDirection.x) * Mathf.Rad2Deg;
 
-            // Определяем сторону на основе угла
             if (Mathf.Abs(angle) <= 45f)
-                return armorConfig.DefenceDirections.Contains(DefenceDirection.Right); // В 2D "вперед" обычно направлено вправо
+                return armorConfig.DefenceDirections.Contains(DefenceDirection.Right); 
             else if (Mathf.Abs(angle) >= 135f)
                 return armorConfig.DefenceDirections.Contains(DefenceDirection.Left);
             else if (angle > 0f)
@@ -747,21 +745,19 @@ using UnityEngine.UI;
             var containersList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
 
             foreach (var carPartEntity in containersList) {
-                Debug.Log(" delete cell" + carPartEntity.Key);
                 if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CurrentHealth > 0)
                     DestroyCarPartCell(carPartEntity.Key);
             }
 
             var partsList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartGroupsList);
             foreach (var carPartEntity in partsList) {
-                Debug.Log(" delete cell" + carPartEntity.Key);
                 if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CurrentHealth > 0)
                     DestroyCarPartCell(carPartEntity.Key);
                 //fix double delete
             }
 
-
-            _sceneData.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
+            if (carCmp.CarView.MainCarContainer)
+                _sceneData.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
             if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType == RoundType.None) return;
             if (carEntity != _sceneData.Value.PlayerEntity) {
                 _destroyEntityEventsPool.Value.Add(carEntity);

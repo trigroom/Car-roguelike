@@ -294,7 +294,7 @@ public class SceneService : MonoBehaviour {
     }
     public void DestroyGameobject(Transform objectToDestroy)
     {
-        Debug.Log(objectToDestroy.name);
+      //  Debug.Log(objectToDestroy.name);
         Destroy(objectToDestroy.gameObject);
     }
 

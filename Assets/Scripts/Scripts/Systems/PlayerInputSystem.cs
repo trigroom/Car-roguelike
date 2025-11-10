@@ -24,6 +24,7 @@ sealed class PlayerInputSystem : IEcsRunSystem {
             moveCmp.MaxMoveSpeed += carConfig.BoostSpeedMultiplayer;
             fuelCmp.FuelConsumption = carConfig.AccelerationFuelСonsumption;
             fuelCmp.UseSpeedBoost = true;
+            Debug.Log("Use speed boost"+moveCmp.MaxMoveSpeed);
         }
 
         if ((Input.GetMouseButtonUp(0) || fuelCmp.CurrentFuel <= 0) && fuelCmp.UseSpeedBoost) {
@@ -32,6 +33,7 @@ sealed class PlayerInputSystem : IEcsRunSystem {
             moveCmp.MaxMoveSpeed -= carConfig.BoostSpeedMultiplayer;
             fuelCmp.FuelConsumption = carConfig.FuelСonsumption;
             fuelCmp.UseSpeedBoost = false;
+            Debug.Log("Dont Use speed boost"+  moveCmp.MaxMoveSpeed);
         }
     }
 }

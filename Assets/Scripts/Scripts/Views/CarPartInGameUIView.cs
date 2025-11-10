@@ -9,14 +9,19 @@ public class CarPartInGameUIView : MonoBehaviour
     [SerializeField]
     private TMP_Text CarPartHealthCount;
 
-    public void SetHealthCount(Color needColor, int healthCount) {
+    public void SetHealthCount(Color needColor, int healthCount, bool ignoreTextActive = false) {
         if (healthCount < 0)
             healthCount = 0;
-        CarPartHealthCount.text = healthCount.ToString();
+        if (ignoreTextActive || CarPartHealthCount.gameObject.activeInHierarchy ) {
+            CarPartHealthCount.text = healthCount.ToString();
+            CarPartHealthCount.color = needColor;
+        }
+
         CarPartImage.color = needColor;
     }
 
-    public void SetSize(Vector2 size, Vector2 position, Sprite sprite) {
+    public void SetSize(Vector2 size, Vector2 position, Sprite sprite, bool hasText) {
+        CarPartHealthCount.gameObject.SetActive(hasText);
         CarPartImage.rectTransform.sizeDelta = size;
         CarPartImage.transform.localPosition = position;
         CarPartImage.sprite = sprite;

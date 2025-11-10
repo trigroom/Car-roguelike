@@ -4,4 +4,5 @@
 
     public struct FromPointToPointRoundComponent {
         public List<Vector2> PointsToCheck;
+        public float TimeAfterMarkPoint;
     }

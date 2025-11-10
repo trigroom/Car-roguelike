@@ -102,6 +102,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 }
 
                 movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
+              
                 movementCmp.MovableObjectRigidbody.linearVelocity =
                     moveObjectTransform.up * movementCmp.CurrentMoveSpeed;
             } else

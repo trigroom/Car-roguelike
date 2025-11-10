@@ -3799,7 +3799,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 120.599976, y: 210.20001}
+  m_AnchoredPosition: {x: 120.6001, y: 210.19995}
   m_SizeDelta: {x: 239.8371, y: 397.7045}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &428371367
@@ -13609,11 +13609,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6011307260143131045, guid: d3a65472ce684094790914c5049ed061, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -9.442879
+      value: -45.1
       objectReference: {fileID: 0}
     - target: {fileID: 6011307260143131045, guid: d3a65472ce684094790914c5049ed061, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.3763461
+      value: -37.2
       objectReference: {fileID: 0}
     - target: {fileID: 6011307260143131045, guid: d3a65472ce684094790914c5049ed061, type: 3}
       propertyPath: m_LocalPosition.z
@@ -13701,7 +13701,7 @@ CircleCollider2D:
     m_Bits: 6144
   m_CallbackLayers:
     serializedVersion: 2
-    m_Bits: 6144
+    m_Bits: 2048
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
