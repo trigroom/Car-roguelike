@@ -62,6 +62,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         settingsView._greenColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._setPixelizedEffectModeButton.onClick.AddListener(ChangePixelizedEffectsMode);
         SetColorSliderEnemyProjectilesValues();
+        GenerateMap();
     }
 
     public void Run(IEcsSystems systems) {
@@ -951,6 +952,64 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return true;
     }
 
+    private void GenerateMap() {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                GenerateObstaclesInCell(i, j);
+            }
+        }
+    }
+    
+    private void GenerateObstaclesInCell(int cellX, int cellY)
+    {
+        // Получаем значение шума Перлина для центра клетки
+        float noiseValue = PerlinNoiseUtil.GetFractalNoise(
+            cellX * 20 + 20 / 2f,
+            cellY * 20 + 20 / 2f 
+        );
+        Debug.Log(noiseValue + " noise value" + (cellY * 20 + 20 / 2f) + " x/y " + (cellY * 20 + 20 / 2f));
+        // Определяем количество препятствий на основе шума
+        int obstacleCount = GetObstacleCountFromNoise(noiseValue);
+        // Генерируем препятствия в клетке
+        for (int k = 0; k < obstacleCount; k++)
+        {
+            Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);
+            SpawnObstacle(randomPosition);
+        }
+    }
+    
+    private void SpawnObstacle(Vector2 position)
+    {
+        Transform obstaclePrefab = _sceneData.Value._mountains[Random.Range(0, _sceneData.Value._mountains.Length)];
+        
+        Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4)*90);
+        
+        Transform obstacle = _sceneData.Value.InstantiateObject(obstaclePrefab, new Vector3(position.x, position.y, 0f));
+       obstacle.localRotation = randomRotation;
+       
+    }
+    
+    private Vector2 GetRandomPositionInCell(int cellX, int cellY)
+    {
+        // Случайная позиция внутри клетки 10x10 единиц
+        float randomX = Random.Range(0f, 20f);
+        float randomY = Random.Range(0f, 20f);
+        
+        // Переводим в глобальные координаты (центрируем карту)
+        float worldX = cellX * 20f + randomX - 200f / 2f;
+        float worldY = cellY * 20f + randomY - 200f / 2f;
+        
+        return new Vector2(worldX, worldY);
+    }
+
+    
+    private int GetObstacleCountFromNoise(float noiseValue)
+    {
+        if (noiseValue < 0.47f) return 0;
+        else if (noiseValue < 0.7f) return 1;
+        else if (noiseValue < 0.9f) return 2;
+        else return 3;
+    }
     private void ChangeInventoryState(bool state) => _sceneData.Value._inventoryUIView.gameObject.SetActive(state);
     private void ChangePlayerUIState(bool state) => _sceneData.Value._playerUIView.gameObject.SetActive(state);
 }
