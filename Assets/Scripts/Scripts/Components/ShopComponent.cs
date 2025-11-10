@@ -4,4 +4,5 @@
     struct ShopComponent {
         public List<ShopItem> AllUnlockedShopItems;
         public List<ShopItem> CurrentShopItems;
+        public int CurrentUpdateCountInRound;
     }

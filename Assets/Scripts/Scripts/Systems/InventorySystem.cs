@@ -61,6 +61,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryCmp.CurrentCellCarPart = null;
         inventoryCmp.CurrentGivenItems = new List<int>();
     //test
+    _currentGameComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         ref var movementComponent = ref _movementComponentsPool.Value.Add(playerEntity);
         //movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed;
         movementComponent.RotateSpeed = carConfig.RotateSpeed;
@@ -110,6 +111,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 AddRareToShopItems(CarPartRare.VeryHigh);
             UpdateCarDescription();
             ActivateGiveCarPartsWindow();
+            _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(0)}$";
+            _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentUpdateCountInRound = 0;
             //     _endRoundEventsPool.Value.Del(endRound);
         }
 
@@ -474,18 +477,34 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             shopCell.Construct(shopCellEntity, BuyShopItem, SetCarPartInfoPanel, TakeItemFromInventory);
         }
 
+        _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(0)}$";
         SetShopCells(false);
     }
 
+    private float GetShopUpdateCost(int curUpdateCount) {
+        return curUpdateCount + _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
+    }
     private void UpdateShopItems() {
-        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        _sceneData.Value._shopUIView._updateItemsText.text = "update for 5$";
-        if (playerCurrencyCmp.MoneyCount >= 5) {
-          //  playerCurrencyCmp.MoneyCount -= 5;
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);   
+        ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        
+        float updateCost = GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound);
+     
+        if (playerCurrencyCmp.MoneyCount >= updateCost) {
+            
+            _sceneData.Value._shopUIView._buttonUpdateShop.transform.localEulerAngles = Vector3.zero;
+            shopCmp.CurrentUpdateCountInRound++;
+            // Анимация вращения на 360 градусов
+            _sceneData.Value._shopUIView._buttonUpdateShop.transform.DORotate(
+                new Vector3(0, 0, -360f), // Отрицательное значение для вращения по часовой стрелке
+                0.7f, RotateMode.LocalAxisAdd).SetEase(Ease.OutBack);
+            
             SetShopCells(false);
-            SetMoneyCount(-5);
+            SetMoneyCount(-updateCost);
             
         }
+        
+        _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound)}$";
     }
 
     private void SetCarContainersContainerSize() {
@@ -1078,6 +1097,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float defaultMaxCarSpeed = carConfig.DefaultMaxSpeed;
         float carRotateSpeed = carConfig.RotateSpeed;
         float carWeight = 0;
+        float carMaxWeight = 0;
         float maxFuel = carConfig.DefaultMaxFuel;
         float speedBoost = carConfig.BoostSpeedMultiplayer;
         float speedBoostFuelConsumption = carConfig.AccelerationFuelСonsumption;
@@ -1099,14 +1119,17 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 }
             }
         }
+
         foreach (var carPart in carCmp.CarPartContainerGroupsList.Keys) {
             var carPartCellCmp = _carPartComponentsPool.Value.Get(carPart);
             int carPartId = carPartCellCmp.CarPartId;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartId);
             carWeight += carPartConfig.Weight;
+            if (carPartConfig is WheelsContainerConfig wheels)
+                carMaxWeight += wheels.MaxWeight;
         }
         carCmp.CurrentWeight = carWeight;
-        
+        carCmp.CurrentMaxWeight = carMaxWeight;
         float weightFactor =carCmp.CurrentMaxWeight == 0 ? 0: carWeight / carCmp.CurrentMaxWeight;
         defaultMaxCarSpeed *= 1-weightFactor;
         defaultMaxCarSpeed = Mathf.Max(defaultMaxCarSpeed, 0);

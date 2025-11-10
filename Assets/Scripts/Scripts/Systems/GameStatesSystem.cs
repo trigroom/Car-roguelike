@@ -46,7 +46,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
     public void Init(IEcsSystems systems) {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         _settingsComponentsPool.Value.Add(_sceneData.Value.PlayerEntity).pixelizedEffectIsUsed = true;
@@ -598,7 +598,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _fuelComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).UseSpeedBoost = false;
         var carView = CarViewSetup(_sceneData.Value.PlayerEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        Debug.Log("weight state 1: "+carCmp.CurrentWeight);
+        
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
         carCmp.CurrentMaxWeight = 0;
@@ -611,14 +611,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             SpawnCarPartCellView(carPartInfo.Key, carView, true,
                 (int)_carPartComponentsPool.Value.Get(carPartInfo.Key).carPartCellImage.transform.eulerAngles.z);
         }
-        Debug.Log("weight state 2: "+carCmp.CurrentWeight);
+        
         SetupWheels(_sceneData.Value.PlayerEntity, carView);
 
         ArrangeImagesInGrid();
         BuildBorder(_sceneData.Value.PlayerEntity);
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;
         ChangePlayerUIState(true);
-        Debug.Log(_movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.mass+"weight state 3: "+carCmp.CurrentWeight);
     }
 
     private void ArrangeImagesInGrid() {

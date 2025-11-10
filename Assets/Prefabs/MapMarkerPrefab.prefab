@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7110551388611242694}
   - component: {fileID: 7302100644219703077}
   - component: {fileID: 5435058591544813367}
+  - component: {fileID: -6331142899737929562}
   m_Layer: 5
   m_Name: MapMarkerPrefab
   m_TagString: Untagged
@@ -97,3 +98,20 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls: []
+--- !u!114 &-6331142899737929562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5604276016884877156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.06
+  clickScale: 0.97
+  normalScale: {x: 0, y: 0, z: 0}
+  duration: 0.2
+  easeType: 27
