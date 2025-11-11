@@ -455,10 +455,45 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     public Vector2 GetRandomPointAround(Vector2 startPoint, float distance)
     {
-        float randomAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        Vector2 direction = new Vector2(Mathf.Cos(randomAngle), Mathf.Sin(randomAngle));
+        int maxAttempts = 10;
+        int attempts = 0;
+    
+        while (attempts < maxAttempts)
+        {
+            float randomAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            Vector2 direction = new Vector2(Mathf.Cos(randomAngle), Mathf.Sin(randomAngle));
+            Vector2 targetPoint = startPoint + direction * distance;
         
-        return startPoint + direction * distance;
+            // Проверяем границы
+            if (targetPoint.x > 50f || targetPoint.x < -50f || 
+                targetPoint.y > 50f || targetPoint.y < -50f)
+            {
+                attempts++;
+                continue;
+            }
+        
+            // Проверяем коллайды в целевой точке
+            if (!HasObstacleAtPoint(targetPoint))
+            {
+                return targetPoint;
+            }
+        
+            attempts++;
+        }
+    
+        Debug.LogWarning("Не удалось найти валидную точку после " + maxAttempts + " попыток");
+        return startPoint;
+    }
+
+    private bool HasObstacleAtPoint(Vector2 point)
+    {
+        // Создаем маску для слоя Obstacle
+        int obstacleLayerMask = 1 << LayerMask.NameToLayer("Obstacle");
+    
+        // Проверяем, есть ли коллайдер Obstacle в точке
+        Collider2D hit = Physics2D.OverlapCircle(point, 0.1f, obstacleLayerMask);
+    
+        return hit != null;
     }
 
     private TMP_Text GetTextForTask() {
