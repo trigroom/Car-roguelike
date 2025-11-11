@@ -13,13 +13,14 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
     [SerializeField] private float duration = 0.2f;
     [SerializeField] private Ease easeType = Ease.OutBack;
     
-    private RectTransform _rectTransform;
+    [SerializeField] private RectTransform _rectTransform;
     private Tween _currentTween;
     private bool _buttonIsDisabled;
     
     private void Awake()
     {
-        _rectTransform = GetComponent<RectTransform>();
+        if (!_rectTransform)
+            _rectTransform = GetComponent<RectTransform>();
         normalScale = _rectTransform.localScale;
         _rectTransform.localScale = normalScale;
     }

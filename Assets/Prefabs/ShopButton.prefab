@@ -588,6 +588,7 @@ GameObject:
   - component: {fileID: 3592605604703402681}
   - component: {fileID: 6049228664639487450}
   - component: {fileID: 7526418419655710581}
+  - component: {fileID: 5630610653994722331}
   m_Layer: 5
   m_Name: ShopButton
   m_TagString: Untagged
@@ -688,6 +689,24 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5630610653994722331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7785176363392586498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.035
+  clickScale: 0.97
+  normalScale: {x: 0, y: 0, z: 0}
+  duration: 0.2
+  easeType: 27
+  _rectTransform: {fileID: 7294678704315383402}
 --- !u!1 &8280294049808394194
 GameObject:
   m_ObjectHideFlags: 0

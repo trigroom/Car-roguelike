@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 8538691368041012104}
   - component: {fileID: 7500416264971848582}
   - component: {fileID: 1970343123421212564}
+  - component: {fileID: 1873522831368259526}
   m_Layer: 5
   m_Name: InventoryCell
   m_TagString: Untagged
@@ -245,3 +246,21 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 2, y: -2}
   m_UseGraphicAlpha: 1
+--- !u!114 &1873522831368259526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5050533870020644957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.05
+  clickScale: 0.97
+  normalScale: {x: 0, y: 0, z: 0}
+  duration: 0.2
+  easeType: 27
+  _rectTransform: {fileID: 5867161994052791872}

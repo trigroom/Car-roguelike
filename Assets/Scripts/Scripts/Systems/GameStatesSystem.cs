@@ -953,21 +953,22 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void GenerateMap() {
+    Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                GenerateObstaclesInCell(i, j);
+                GenerateObstaclesInCell(i, j,randomOffset);
             }
         }
     }
     
-    private void GenerateObstaclesInCell(int cellX, int cellY)
+    private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise)
     {
         // Получаем значение шума Перлина для центра клетки
         float noiseValue = PerlinNoiseUtil.GetFractalNoise(
-            cellX * 20 + 20 / 2f,
-            cellY * 20 + 20 / 2f 
+            cellX * 20 + 20 / 2f+randomOffsetForNoise.x,
+            cellY * 20 + 20 / 2f+randomOffsetForNoise.y 
         );
-        Debug.Log(noiseValue + " noise value" + (cellY * 20 + 20 / 2f) + " x/y " + (cellY * 20 + 20 / 2f));
+        Debug.Log(noiseValue + " noise value" + (cellY * 20 + 20 / 2f) + " x/y " + (cellY * 20 + 20 / 2f) + "  "+randomOffsetForNoise);
         // Определяем количество препятствий на основе шума
         int obstacleCount = GetObstacleCountFromNoise(noiseValue);
         // Генерируем препятствия в клетке

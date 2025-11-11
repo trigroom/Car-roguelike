@@ -49,6 +49,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     public void OnPointerDown(PointerEventData eventData) {
         if (BuyButton.enabled && Input.GetMouseButtonDown(0))
             TakeItemFromInventory?.Invoke(_entity);
+        Debug.Log("Buy button down");
         // _world.GetPool<TakeInventoryItemEvent>().Add(_entity);
     }
 }
