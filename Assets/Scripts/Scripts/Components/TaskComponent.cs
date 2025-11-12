@@ -11,6 +11,7 @@
 
     public enum TaskType {
         Kills,
-        BrokenParts
+        BrokenParts,
+        CarIntegrity
     }
     

@@ -59,15 +59,17 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                         needTargetRotation = Mathf.Atan2(-directionToTarget.y, -directionToTarget.x) * Mathf.Rad2Deg - 90f;
                     else if (!isPlayer && _enemyAIComponentsPool.Value.Get(movementEntity).CurrentEnemyDirection != EnemyDirection.None) {
                         var aiCmp = _enemyAIComponentsPool.Value.Get(movementEntity);
-                        if (aiCmp.CurrentEnemyDirection == EnemyDirection.Back)
+                        if (aiCmp.CurrentEnemyDirection == EnemyDirection.Back) {
                             isReversing = true;
+                        }
+
                         var needDir = aiCmp.CurrentEnemyDirection == EnemyDirection.Back
                             ? -moveObjectTransform.up.normalized
                             : (Quaternion.Euler(0, 0, 30) * moveObjectTransform.up).normalized;
                         if (aiCmp.CurrentEnemyDirection == EnemyDirection.Right)
                             needTargetRotation = Mathf.Atan2((Quaternion.Euler(0, 0, -30) * moveObjectTransform.up).normalized.y,
                                 (Quaternion.Euler(0, 0, -30) * moveObjectTransform.up).normalized.x) * Mathf.Rad2Deg - 90f;
-                        else
+                        else if (aiCmp.CurrentEnemyDirection == EnemyDirection.Left)
                             needTargetRotation = Mathf.Atan2(needDir.y, needDir.x) * Mathf.Rad2Deg - 90f;
                     }
 
@@ -89,11 +91,12 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                     if (!isReversing) {
                         movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, movementCmp.MaxMoveSpeed,
                             movementCmp.Acceleration * deltaTime);
-                        UseFuel(movementEntity);
+                       
                     } else {
                         movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, -movementCmp.MaxMoveSpeed / 2f,
                             movementCmp.Deceleration * deltaTime);
-                    }
+                    } 
+                    UseFuel(movementEntity);
                 } else {
                     SetWheelParticleSystemState(movementEntity, false);
                     movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, 0f, movementCmp.Deceleration * deltaTime);
@@ -119,30 +122,30 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     private void CheckForObstacles(int entity) {
         ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
         var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints);
-        if (leftSide > 2) {
-            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Left;
-            enemyAiCmp.LastCheckedTime += 0.3f;
-            return;
-        } 
-        if (leftSide > 0) {
+        if (leftSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
-            enemyAiCmp.LastCheckedTime += 1f;
+            enemyAiCmp.LastCheckedTime += 1.2f;
+            return;
+        }
+
+        if (leftSide < 5.1f) {
+            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Left;
+            enemyAiCmp.LastCheckedTime += 0.35f;
             return;
         }
 
         var rightSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyRightPoints);
-      
-        if (rightSide > 2) {
-            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Right;
-            enemyAiCmp.LastCheckedTime += 0.3f;
-        } else if (rightSide > 0) {
+
+        if (rightSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
-            enemyAiCmp.LastCheckedTime += 1f;
+            enemyAiCmp.LastCheckedTime += 1.2f;
+        } else if (rightSide < 5.1f) {
+            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Right;
+            enemyAiCmp.LastCheckedTime += 0.35f;
         } else {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.None;
             enemyAiCmp.LastCheckedTime += 0.15f;
         }
-
     }
 
     private float CheckOneSideForObstacles(List<Transform> pointsToCheck) {
@@ -162,7 +165,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
 
-        return 0f;
+        return 6f;
     }
     private void UpdateCameraPosition(Vector2 needPosition) {
         _sceneData.Value.mainCamera.transform.position = Vector3.Slerp(_sceneData.Value.mainCamera.transform.position,

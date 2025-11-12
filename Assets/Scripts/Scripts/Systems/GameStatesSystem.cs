@@ -212,6 +212,16 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneData.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_sceneData.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
         curGameCmp.RoundMoneyMultiplayer = 1;
+        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+            var supportModule = _sceneData.Value.GetSupportModuleFromCarPart(_carPartComponentsPool.Value.Get(carPartInfo.Key).CarPartId);
+            if (supportModule && _carPartComponentsPool.Value.Get(carPartInfo.Key).CurrentHealth > 0 &&
+                supportModule.ModuleType == SupportModuleType.Money) {
+                moneyCount += (int)supportModule.FirstCount;
+                Debug.Log($"+ money end round {supportModule.FirstCount}");
+            }
+                
+        }
         _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount += moneyCount;
         SetMoneyText();
         _sceneData.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
@@ -399,16 +409,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private Vector2 GetPositionAroundPlayer() {
         var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Vector2 carSize = new Vector2(carCmp.CarPartContainerGroupsGrid.GetLength(0)/2f, carCmp.CarPartContainerGroupsGrid.GetLength(1)/2f); 
-            float randomX = Random.Range(0,2);
-            float randomY = Random.Range(0, 2);
-            randomX = randomX == 0
-                ? carCmp.CarView.gameObject.transform.position.x + carSize.x + Random.Range(7f, 15f)
-                : carCmp.CarView.gameObject.transform.position.x - carSize.x - Random.Range(7f, 15f);
-            randomY = randomY == 0
-                ? carCmp.CarView.gameObject.transform.position.y + carSize.y + Random.Range(7f, 15f)
-                : carCmp.CarView.gameObject.transform.position.y - carSize.y - Random.Range(7f, 15f);
-            Vector2 spawnPosition = new Vector2(randomX, randomY);
-        return spawnPosition;
+        
+        return GetRandomPointAround(carCmp.CarView.CarPartsContainer.transform.position, 10+Mathf.Max(carSize.x,carSize.y));
     }
     
     private void SetFilledZoneRound() {
@@ -610,21 +612,25 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             enemyAiCmp.CheckedEnemyRightPoints = new List<Transform>();
             enemyAiCmp.LastCheckedTime = 1f;
             enemyAiCmp.TargetToMove = playerMainParts[Random.Range(0, playerMainParts.Count)];
-            for (int j = 0; j < carCmp.CarPartContainerGroupsGrid.GetLength(0); j++) {
-                for (int k = 0; k < carCmp.CarPartContainerGroupsGrid.GetLength(1); k++) {
-                    if (carCmp.CarPartContainerGroupsGrid[j, k] != 0) {
-                        var obstacleCheckerTransform = _sceneData.Value.GetGunContainer(carView.CarPartsContainer);
-                        obstacleCheckerTransform.localPosition = new Vector3(j - carCmp.CarPartContainerGroupsGrid.GetLength(0) / 2f,
-                            k + carCmp.CarPartContainerGroupsGrid.GetLength(1) / 2f, 0);
-                        if (j > carCmp.CarPartContainerGroupsGrid.GetLength(0) / 2)
-                            enemyAiCmp.CheckedEnemyLeftPoints.Add(obstacleCheckerTransform);
-                        else
-                            enemyAiCmp.CheckedEnemyRightPoints.Add(obstacleCheckerTransform);
-                        break;
-                    }
+            SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView,ref enemyAiCmp);
+            BuildBorder(enemyEntity);
+        }
+    }
+
+    private void SetEnemyCollisionCheckers(int[,] grid, CarView carView, ref EnemyAIComponent enemyAiCmp) {
+        for (int j = 0; j < grid.GetLength(0); j++) {
+            for (int k = 0; k < grid.GetLength(1); k++) {
+                if (grid[j, k] != 0) {
+                    var obstacleCheckerTransform = _sceneData.Value.GetGunContainer(carView.CarPartsContainer);
+                    obstacleCheckerTransform.localPosition = new Vector3(j - grid.GetLength(0) / 2f,
+                        k + grid.GetLength(1) / 2f, 0);
+                    if (j > grid.GetLength(0) / 2)
+                        enemyAiCmp.CheckedEnemyLeftPoints.Add(obstacleCheckerTransform);
+                    else
+                        enemyAiCmp.CheckedEnemyRightPoints.Add(obstacleCheckerTransform);
+                    break;
                 }
             }
-            BuildBorder(enemyEntity);
         }
     }
 
@@ -887,7 +893,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         if (movementComponent.MaxMoveSpeed < 1)
             movementComponent.MaxMoveSpeed = 1;
 
-        Debug.Log("enemy move speed is "+movementComponent.MaxMoveSpeed);
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {
         ref var firstMovementCmp = ref _movementComponentsPool.Value.Get(entityOne);

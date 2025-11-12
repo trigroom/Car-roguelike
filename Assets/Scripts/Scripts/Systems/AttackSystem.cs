@@ -35,6 +35,7 @@ public enum AttackType {
         private EcsPoolInject<FireComponent> _fireComponentsPool;
         private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
         private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
+        private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
         private EcsPoolInject<FuelComponent> _fuelComponentsPool;
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         
@@ -175,7 +176,7 @@ public enum AttackType {
         private void TrySpawnLaser(int entity) {
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(entity);
             ref var gunCmp = ref _gunComponentsPool.Value.Get(entity);
-            if(gunCmp.FirePointTransform == null)return;
+            if(gunCmp.FirePointTransform == null || !_laserComponentsPool.Value.Has(entity))return;
             var laserLineRenderer = _laserComponentsPool.Value.Get(entity).LaserLineRenderer;
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             float laserRange = gunConfig.BulletSpeed;
@@ -606,7 +607,7 @@ public enum AttackType {
             if (carPartCmp.CarPartCellRenderer == null || !carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
             bool isPlayer = carPartCmp.MainEntity == _sceneData.Value.PlayerEntity;
-           
+
             if (carPartConfig.PartType == CarPartType.Gun) {
                 ref var gunCmp = ref _gunComponentsPool.Value.Get(cellEntity);
                 if (gunCmp.UpPartContainer != null) {
@@ -614,13 +615,11 @@ public enum AttackType {
                     gunCmp.GunSpriteRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
                 }
 
-
                 if (_laserComponentsPool.Value.Has(cellEntity)) {
                     _sceneData.Value.ReleaseLaserLineRenderer(_laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer);
                     _laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer = null;
+                    _laserComponentsPool.Value.Del(cellEntity);
                 }
-                  
-                
             }
 
             if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
@@ -632,7 +631,7 @@ public enum AttackType {
             }
 
             ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            
+
             ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
             if (_shockEffectComponentsPool.Value.Has(cellEntity))
                 _shockEffectComponentsPool.Value.Del(cellEntity);
@@ -665,6 +664,9 @@ public enum AttackType {
                     carCmp.CurrentMaxWeight -= _sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).MaxWeight;
                 }
 
+                if (!isPlayer)
+                    SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carCmp.CarView,
+                        ref _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity));
                 BuildNewBorder(carPartCmp.MainEntity);
                 if (!isPlayer)
                     carCmp.CarPartContainerGroupsList.Remove(cellEntity);
@@ -685,7 +687,7 @@ public enum AttackType {
                         case SupportModuleType.Fuel:
                             ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
                             fuelCmp.MaxFuel -= supportCarPartConfig.FirstCount;
-                            fuelCmp.CurrentFuel = Mathf.Min(fuelCmp.MaxFuel,fuelCmp.CurrentFuel);
+                            fuelCmp.CurrentFuel = Mathf.Min(fuelCmp.MaxFuel, fuelCmp.CurrentFuel);
                             break;
                         case SupportModuleType.Turbine:
                             _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption -= supportCarPartConfig.FirstCount;
@@ -693,7 +695,7 @@ public enum AttackType {
                             break;
                     }
                 }
-                
+
                 if (!isPlayer)
                     carCmp.CarPartGroupsList.Remove(cellEntity);
             }
@@ -708,11 +710,27 @@ public enum AttackType {
             carPartCmp.CarPartCellRenderer.color = _sceneData.Value._carStuffListsConfig.DestroyedCarPartColor;
             carPartCmp.CarPartCellRenderer = null;
 
-            if (carPartCmp.MainEntity != _sceneData.Value.PlayerEntity && !_destroyEntityEventsPool.Value.Has(cellEntity)) {
+            if (!isPlayer && !_destroyEntityEventsPool.Value.Has(cellEntity)) {
                 _destroyEntityEventsPool.Value.Add(cellEntity);
                 CheckTasks(TaskType.BrokenParts);
             }
-
+        }
+        
+        private void SetEnemyCollisionCheckers(int[,] grid, CarView carView, ref EnemyAIComponent enemyAiCmp) {
+            for (int j = 0; j < grid.GetLength(0); j++) {
+                for (int k = 0; k < grid.GetLength(1); k++) {
+                    if (grid[j, k] != 0) {
+                        var obstacleCheckerTransform = _sceneData.Value.GetGunContainer(carView.CarPartsContainer);
+                        obstacleCheckerTransform.localPosition = new Vector3(j - grid.GetLength(0) / 2f,
+                            k + grid.GetLength(1) / 2f, 0);
+                        if (j > grid.GetLength(0) / 2)
+                            enemyAiCmp.CheckedEnemyLeftPoints.Add(obstacleCheckerTransform);
+                        else
+                            enemyAiCmp.CheckedEnemyRightPoints.Add(obstacleCheckerTransform);
+                        break;
+                    }
+                }
+            }
         }
         public bool GetBulletDirection(Transform targetObject, Vector2 bulletPosition, ArmorConfig armorConfig)
         {
