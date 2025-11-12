@@ -25,5 +25,7 @@ MonoBehaviour:
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   Damage: 10
-  AttackCountdown: 0.3
+  AttackCountdown: 0.2
   DamageAddedFromOneSpeed: 0
+  UpSprite: {fileID: 0}
+  UpSpritePosition: {x: 0, y: 0}

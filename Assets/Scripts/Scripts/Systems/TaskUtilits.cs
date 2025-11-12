@@ -16,5 +16,7 @@ public class TaskUtilits{
             taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} broken enemy car parts. Reward {taskCmp.MoneyReward} $";
         else if (taskCmp.TaskType == TaskType.Kills)
             taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} broken enemy cars. Reward {taskCmp.MoneyReward} $";
+        else if (taskCmp.TaskType == TaskType.CarIntegrity)
+            taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} end rounds with >90% not broken car parts. Reward {taskCmp.MoneyReward} $";
     }
 }

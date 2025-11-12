@@ -148,6 +148,9 @@ public class CarPartInfoUIView : MonoBehaviour
             case SupportModuleType.Turbine:
                 _descriptionText.text += $"\nAdded fuel consumption: {supportConfig.FirstCount}\n Added max move speed: {supportConfig.SecondCount}";
                 break;
+            case SupportModuleType.Money:
+                _descriptionText.text += $"\nAdded money after end round: {supportConfig.FirstCount}";
+                break;
         }
     }
     private void SetGunInfo(GunConfig gunConfig, int level, bool isUpdate) {

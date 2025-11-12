@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: 8SMG
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 8
-  <MaxHealth>k__BackingField: 50
-  <Weight>k__BackingField: 1.5
+  <MaxHealth>k__BackingField: 120
+  <Weight>k__BackingField: 6.7
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 45613a11574d9d94b841484011450dac, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: SMG
   <DefaultModuleCount>k__BackingField: 25
   <PartForm>k__BackingField:
@@ -28,9 +28,9 @@ MonoBehaviour:
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 16
-  AttackCouldown: 1
-  BulletsCountInMagazine: 7
+  Damage: 8
+  AttackCouldown: 0.3
+  BulletsCountInMagazine: 15
   BulletsCount: 1
   BulletSpeed: 15
   ReloadDuration: 1

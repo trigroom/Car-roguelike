@@ -28,7 +28,7 @@ MonoBehaviour:
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 30
+  Damage: 23
   AttackCouldown: 1.5
   BulletsCountInMagazine: 1
   BulletsCount: 4
@@ -40,7 +40,7 @@ MonoBehaviour:
   GunContainerPosition: {x: 0, y: 0}
   SpreadAngle: 20
   ExplosionRadius: 3
-  ExplosionDamage: 0
+  ExplosionDamage: 50
   ImpulseForce: 600
   EffectType: 0
   EffectDuration: 0

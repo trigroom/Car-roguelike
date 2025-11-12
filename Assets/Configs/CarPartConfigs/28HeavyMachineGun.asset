@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 28HeavyMachineGun
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 28
-  <MaxHealth>k__BackingField: 650
+  <MaxHealth>k__BackingField: 220
   <Weight>k__BackingField: 16
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 9cb7520109930594bafd703fab1c194b, type: 3}
   <PartType>k__BackingField: 6
@@ -44,5 +44,5 @@ MonoBehaviour:
   ExplosionDamage: 10
   ImpulseForce: 150
   EffectType: 1
-  EffectDuration: 3
+  EffectDuration: 1
   BreakingThroughCount: 1

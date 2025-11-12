@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 27LaserGun
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 27
-  <MaxHealth>k__BackingField: 400
+  <MaxHealth>k__BackingField: 200
   <Weight>k__BackingField: 10
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 36f78e5e5546ec347ad0b43a9fac9f39, type: 3}
   <PartType>k__BackingField: 6

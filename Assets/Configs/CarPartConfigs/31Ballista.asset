@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: 31Ballista
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 31
-  <MaxHealth>k__BackingField: 500
-  <Weight>k__BackingField: 15
+  <MaxHealth>k__BackingField: 320
+  <Weight>k__BackingField: 35
   <PartSprite>k__BackingField: {fileID: 21300000, guid: da4348ab2f217da4ebae4b08fec7e14e, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 1
@@ -31,8 +31,8 @@ MonoBehaviour:
   UpPartPosition: {x: 0, y: 0.2}
   MaxRotateAngle: 30
   RotateSpeed: 0.2
-  Damage: 20
-  AttackCouldown: 1
+  Damage: 40
+  AttackCouldown: 1.1
   BulletsCountInMagazine: 1
   BulletsCount: 1
   BulletSpeed: 12

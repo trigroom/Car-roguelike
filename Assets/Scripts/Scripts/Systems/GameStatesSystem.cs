@@ -36,6 +36,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<MeleeWeaponComponent> _meleeWeaponComponentsPool;
     private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
     private EcsPoolInject<SettingsComponent> _settingsComponentsPool;
+    private EcsPoolInject<CompleteTaskEvent> _completeTaskEventsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -213,15 +214,29 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         int moneyCount = (int)(_sceneData.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
         curGameCmp.RoundMoneyMultiplayer = 1;
         var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        int allPartCount = 0;
+        int brokenPartCount = 0;
         foreach (var carPartInfo in carCmp.CarPartGroupsList) {
-            var supportModule = _sceneData.Value.GetSupportModuleFromCarPart(_carPartComponentsPool.Value.Get(carPartInfo.Key).CarPartId);
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+            allPartCount += carPartInfo.Value.Count;
+            if (carPartCmp.CurrentHealth <= 0)
+                brokenPartCount += carPartInfo.Value.Count;
+            var supportModule = _sceneData.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
             if (supportModule && _carPartComponentsPool.Value.Get(carPartInfo.Key).CurrentHealth > 0 &&
                 supportModule.ModuleType == SupportModuleType.Money) {
                 moneyCount += (int)supportModule.FirstCount;
-                Debug.Log($"+ money end round {supportModule.FirstCount}");
             }
                 
         }
+
+        foreach (var taskEntity in _taskComponentsFilter.Value) {
+            ref var taskCmp = ref _taskComponentsPool.Value.Get(taskEntity);
+            if (taskCmp.TaskType == TaskType.CarIntegrity && (float)brokenPartCount / allPartCount <= 0.1f) {
+                taskCmp.CurrentCount++;
+                _completeTaskEventsPool.Value.Add(taskEntity);
+            }
+        }
+        
         _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount += moneyCount;
         SetMoneyText();
         _sceneData.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
@@ -380,7 +395,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         taskCmp.CurrentCount = 0;
         taskCmp.NeedCount= Random.Range(3, 6);
         taskCmp.TaskType = TaskUtilits.GetRandomTaskType();
-        taskCmp.MoneyReward = (curGameCmp.CurrentRound+taskCmp.NeedCount) * 5;
+        taskCmp.MoneyReward = taskCmp.TaskType == TaskType.CarIntegrity? 1:(curGameCmp.CurrentRound+taskCmp.NeedCount) * 5;
         taskCmp.TaskText = GetTextForTask();
         taskCmp.TaskText.gameObject.SetActive(true);
         TaskUtilits.UpdateTaskText(taskCmp);
