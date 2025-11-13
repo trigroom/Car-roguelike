@@ -73,11 +73,16 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             TriggerFilledZone();
         }
 
+        if (curGameCmp.RoundTime / 30 > curGameCmp.RoundAddedEnemies) {
+            if(curGameCmp.CurrentRoundType == RoundType.BattleDefault && curGameCmp.RoundTime < (25+curGameCmp.CurrentRound*3))
+            SetEnemiesCars(1, false);
+            curGameCmp.RoundAddedEnemies++;
+        }
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
-                curGameCmp.RoundTime -= Time.deltaTime;
-                _sceneData.Value._playerUIView._gameTimerText.text = ((int)curGameCmp.RoundTime).ToString();
-                if (curGameCmp.RoundTime <= 0) {
+                curGameCmp.RoundTime += Time.deltaTime;
+                _sceneData.Value._playerUIView._gameTimerText.text = ((int)(30+curGameCmp.CurrentRound*3 - curGameCmp.RoundTime)).ToString();
+                if (curGameCmp.RoundTime > 30+curGameCmp.CurrentRound*3) {
                     _sceneData.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
                     EndRound();
                 }
@@ -85,6 +90,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 break;
 
             case RoundType.FromAToB:
+                curGameCmp.RoundTime += Time.deltaTime;
                 if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) return;
                 ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
                 var moveCmp = _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -93,7 +99,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 if (pointToPointRound.TimeAfterMarkPoint > 0)
                     pointToPointRound.TimeAfterMarkPoint -= Time.deltaTime;
                 break;
+            
+            case RoundType.ZoneDefence:
+                curGameCmp.RoundTime += Time.deltaTime;
+                break;
         }
+        
+        
 
         if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
 
@@ -340,21 +352,22 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         foreach (var button in curGameCmp.RoundButtons) {
             button.enabled = false;
         }
-
+        curGameCmp.RoundTime = 0;
+        curGameCmp.RoundAddedEnemies = 1;
         switch (roundType) {
             case RoundType.BattleDefault:
                 SetPlayerCarPrefab();
-                SetEnemiesCars();
+                SetEnemiesCars(3);
                 SetGameTimer();
                 break;
             case RoundType.FromAToB:   
                 SetPlayerCarPrefab();
-                SetEnemiesCars();
+                SetEnemiesCars(3);
                 SetNewPointToPointRound();
                 break;
             case RoundType.ZoneDefence:
                 SetPlayerCarPrefab();
-                SetEnemiesCars();
+                SetEnemiesCars(3);
                 SetFilledZoneRound();
                 break;
             case RoundType.Chest:
@@ -524,9 +537,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private void SetGameTimer() {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         _sceneData.Value._playerUIView._gameTimerText.gameObject.SetActive(true);
-        curGameCmp.RoundTime = 30;
+       
     }
     
     private void SetEndPoint() {
@@ -544,16 +556,20 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         collider.SetPath(0, contour.ToArray());
     }
 
-    private void SetEnemiesCars() {
+    private void SetEnemiesCars(int enemiesCount, bool onStartRoundSpawn = true) {
+        int roundNumber = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
+        if (!onStartRoundSpawn)
+            roundNumber--;
         var currentRoundCarStuff =
-            _sceneData.Value._gameProcessConfig.GameRounds[_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound];
+            _sceneData.Value._gameProcessConfig.GameRounds[roundNumber];
+        
         List<Transform> playerMainParts = new List<Transform>();
         var playerCarCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var carPartCmpEntity in playerCarCmp.CarPartGroupsList) {
             playerMainParts.Add(_carPartComponentsPool.Value.Get(carPartCmpEntity.Key).CellCarPartsStuffViews[0].transform);
         }
         
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < enemiesCount; i++) {
             int enemyEntity = _world.Value.NewEntity();
         
             ref var moveCmp = ref _movementComponentsPool.Value.Add(enemyEntity);

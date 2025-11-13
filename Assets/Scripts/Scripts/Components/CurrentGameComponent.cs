@@ -16,6 +16,7 @@
         public int RoundWithMoneyMultiplayer;
         
         public float RoundTime;
+        public int RoundAddedEnemies;
  }
 
  public enum RoundType {

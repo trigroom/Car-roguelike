@@ -240,7 +240,6 @@ public enum AttackType {
             }
         }
         private void LoseGame() {
-            Debug.Log("LoseGame");
             if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType != RoundType.None)
                 EndRound();
             Time.timeScale = 0;
