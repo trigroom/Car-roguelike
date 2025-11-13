@@ -73,11 +73,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             TriggerFilledZone();
         }
 
-        if (curGameCmp.RoundTime / 30 > curGameCmp.RoundAddedEnemies) {
-            if(curGameCmp.CurrentRoundType == RoundType.BattleDefault && curGameCmp.RoundTime < (25+curGameCmp.CurrentRound*3))
-            SetEnemiesCars(1, false);
-            curGameCmp.RoundAddedEnemies++;
-        }
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
                 curGameCmp.RoundTime += Time.deltaTime;
@@ -105,7 +100,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 break;
         }
         
-        
+        if (curGameCmp.RoundTime / 30 > curGameCmp.RoundAddedEnemies) {
+            if (curGameCmp.CurrentRoundType == RoundType.BattleDefault && curGameCmp.RoundTime < (25 + curGameCmp.CurrentRound * 3))
+                SetEnemiesCars(1, false);
+            curGameCmp.RoundAddedEnemies++;
+        }
 
         if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
 
@@ -1029,10 +1028,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void GenerateMap() {
-    Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
+        Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                GenerateObstaclesInCell(i, j,randomOffset);
+                if (i == 5 && j == 5) continue;
+                GenerateObstaclesInCell(i, j, randomOffset);
             }
         }
     }
