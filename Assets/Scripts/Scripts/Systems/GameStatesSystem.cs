@@ -97,10 +97,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
 
-        if (Input.GetKeyDown(KeyCode.A)) {
-            var carCmp  = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            Debug.Log(carCmp.CurrentWeight + " car w \n "+carCmp.CurrentMaxWeight + " car m w");
-        }
     }
 
     private void SetSettingsState() {
@@ -153,7 +149,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         if(pointToPointRound.TimeAfterMarkPoint > 0)return;
         pointToPointRound.PointsToCheck.RemoveAt(0);
         pointToPointRound.TimeAfterMarkPoint = 1;
-        Debug.Log("complete point"+_sceneData.Value._mapPointPrefab.transform.position);
         if (pointToPointRound.PointsToCheck.Count == 0) {
             EndPointToPointRound();
             EndRound();
@@ -181,7 +176,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             float targetAngle = Mathf.Atan2(directionToTarget.y,directionToTarget.x ) * Mathf.Rad2Deg;
             
             // Плавный поворот стрелки
-//            Debug.Log(directionToTarget);
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
             _sceneData.Value._playerUIView._arrowImageTransform.parent.rotation = Quaternion.Lerp(
                 _sceneData.Value._playerUIView._arrowImageTransform.parent.rotation, 
@@ -242,12 +236,20 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneData.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
         ChangeInventoryState(true);
         ChangePlayerUIState(false);
-        ReleaseAllCarPartUI();
+      //  ReleaseAllCarPartUI();
     }
 
     private void ReleaseAllCarPartUI() {
-        foreach (var carPartUiEntity in _carPartInGameUIComponentsFilter.Value) 
-            _sceneData.Value.ReleaseCarPartInGameUIView( _carPartInGameUIComponentsPool.Value.Get(carPartUiEntity).view);
+        var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        foreach (var carPartUi in inventoryCmp.CarPartInfoUIViewsGrid) {
+            if (carPartUi)
+                _sceneData.Value.ReleaseCarPartInGameUIView(carPartUi);
+        }
+        foreach (var carPartUi in inventoryCmp.CarPartInfoUIViewsUpLevelGrid) {
+            if (carPartUi)
+                _sceneData.Value.ReleaseCarPartInGameUIView(carPartUi);
+        }
+        
     }
 
     private void ChangeRoundInfo() {
@@ -703,10 +705,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         SetCarPartGroupHealthUI(carCmp.CarPartGroupsList, carCmp.CarPartGroupsGrid, startX, cellSize, startY, upLevelpartsContainer,
             ref inventoryCmp.CarPartInfoUIViewsUpLevelGrid);
+
+        GridUtils.PrintGrid(carCmp.CarPartContainerGroupsGrid);
     }
 
     private void SetCarPartGroupHealthUI(Dictionary<int, List<Vector2Int>> groupsList, int[,] groupsGrid, float startX, float cellSize,
         float startY, RectTransform parentRect, ref CarPartInGameUIView[,] inventoryCmp) {
+        
         foreach (var carPartInfo in groupsList) {
 
            var medianCell =  GridUtils.FindMedianCell(carPartInfo.Value);
@@ -1023,7 +1028,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             cellX * 20 + 20 / 2f+randomOffsetForNoise.x,
             cellY * 20 + 20 / 2f+randomOffsetForNoise.y 
         );
-        Debug.Log(noiseValue + " noise value" + (cellY * 20 + 20 / 2f) + " x/y " + (cellY * 20 + 20 / 2f) + "  "+randomOffsetForNoise);
         // Определяем количество препятствий на основе шума
         int obstacleCount = GetObstacleCountFromNoise(noiseValue);
         // Генерируем препятствия в клетке

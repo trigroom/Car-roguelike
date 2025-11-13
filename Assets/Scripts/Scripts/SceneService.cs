@@ -81,6 +81,7 @@ public class SceneService : MonoBehaviour {
     private ObjectPool<MeleeCarPartStuffView> _meleeCarPartsPool;
     private ObjectPool<CarPartInGameUIView> _сarPartInGameUIViewsPool;
     private ObjectPool<SpriteRenderer> _explosionEffectsPool;
+    private ObjectPool<Transform> _gunContainersPool;
     
 
     private void Awake() {
@@ -92,6 +93,7 @@ public class SceneService : MonoBehaviour {
         aspectRatio =(mainCanvas.rect.width / mainCanvas.rect.height)/(16f/9f) ;
         aspectRatio = 7.5f;
         mainCamera = Camera.main;
+        _gunContainersPool = new ObjectPool<Transform>(() => Instantiate(_gunContainerPrefab));
         _laserLineRenderersPool = new ObjectPool<LineRenderer>(() => Instantiate(_laserLineRenderer, _notUsedCarPartsContainer));
         _projectilesPool = new ObjectPool<ProjectileView>(() => Instantiate(_projectileView));
         _floatingTextsPool = new ObjectPool<TMP_Text>(() => Instantiate(_floatingTextPrefab, _floatingTextContainer));
@@ -114,7 +116,9 @@ public class SceneService : MonoBehaviour {
         return Instantiate(_carPartSpriteRenderer, parent);
     }
     public Transform GetGunContainer(Transform parent) {
-        return Instantiate(_gunContainerPrefab, parent);
+        var gunContainer = _gunContainersPool.Get();
+        gunContainer.parent = parent;
+        return gunContainer;
     }
     public Image GetCarPartUISprite(Transform parent, Vector2 position) {
         return Instantiate(_carPartUIImage, position, Quaternion.identity, parent);
@@ -142,6 +146,11 @@ public class SceneService : MonoBehaviour {
     public void ReleaseFloatingText(TMP_Text floatingText) {
         floatingText.gameObject.SetActive(false);
         _floatingTextsPool.Release(floatingText);
+    }
+    
+    public void ReleaseGunContainer(Transform gunContainer) {
+        gunContainer.gameObject.SetActive(false);
+        _gunContainersPool.Release(gunContainer);
     }
     
     public LineRenderer GetLaserLineRenderer() {

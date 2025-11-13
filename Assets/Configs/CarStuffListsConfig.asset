@@ -21,6 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 35fbc3960db601a40a032ba933c11903, type: 2}
   - {fileID: 11400000, guid: a1baa6a52d77f494bbd464cc149ac8c3, type: 2}
   - {fileID: 11400000, guid: 3db0763a007f2124c959d087f2d01d3f, type: 2}
+  - {fileID: 11400000, guid: aa46a55e0bf70564f880e448f6fa6d68, type: 2}
   <CarPartConfigs>k__BackingField:
   - {fileID: 11400000, guid: 5d7184ff2034fcc42ad8ea829de981e1, type: 2}
   - {fileID: 11400000, guid: d45e4a8e3b3c44746baeb23b48b21a82, type: 2}

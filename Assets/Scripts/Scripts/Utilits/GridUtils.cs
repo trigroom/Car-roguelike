@@ -369,6 +369,106 @@ public class GridUtils : MonoBehaviour
 
         return new Vector2Int(medianX, medianY);
     }
+
+    public static List<int> FindContactedValues(int[,] grid, int mainValue) {
+        List<int> contactedValues = new List<int>();
+
+        // Проверяем валидность входных данных
+        if (grid == null) {
+            Debug.LogWarning("Grid is null");
+            return contactedValues;
+        }
+
+        // Получаем размеры grid
+        int rows = grid.GetLength(0);
+        int cols = grid.GetLength(1);
+
+        // Находим первую позицию с нужным значением
+        Vector2Int? startPos = FindFirstPositionWithValue(grid, mainValue);
+
+        // Если значение не найдено в grid, возвращаем пустой список
+        if (!startPos.HasValue) {
+            return contactedValues;
+        }
+
+        // Используем очередь для BFS обхода
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+
+        // Добавляем начальную позицию
+        queue.Enqueue(startPos.Value);
+        visited.Add(startPos.Value);
+
+        // Направления для проверки соседей (вверх, вправо, вниз, влево)
+        Vector2Int[] directions = new Vector2Int[] {
+            new Vector2Int(-1, 0), // вверх
+            new Vector2Int(1, 0), // вниз
+            new Vector2Int(0, -1), // влево
+            new Vector2Int(0, 1) // вправо
+        };
+
+        // BFS обход
+        while (queue.Count > 0) {
+            Vector2Int currentPos = queue.Dequeue();
+            int currentValue = grid[currentPos.x, currentPos.y];
+
+            // Добавляем текущее значение в результат (если еще не добавлено)
+            if (!contactedValues.Contains(currentValue)) {
+                contactedValues.Add(currentValue);
+            }
+
+            // Проверяем всех соседей
+            foreach (Vector2Int direction in directions) {
+                Vector2Int neighborPos = new Vector2Int(currentPos.x + direction.x, currentPos.y + direction.y);
+
+                // Проверяем, находится ли сосед в пределах grid
+                if (neighborPos.x >= 0 && neighborPos.x < rows && neighborPos.y >= 0 && neighborPos.y < cols) {
+                    int neighborValue = grid[neighborPos.x, neighborPos.y];
+
+                    // Если сосед не посещен и его значение не равно 0
+                    if (!visited.Contains(neighborPos) && neighborValue != 0) {
+                        visited.Add(neighborPos);
+                        queue.Enqueue(neighborPos);
+                    }
+                }
+            }
+        }
+
+        return contactedValues;
+    }
+
+    // Находит первую позицию с заданным значением в grid
+    private static Vector2Int? FindFirstPositionWithValue(int[,] grid, int value) {
+        int rows = grid.GetLength(0);
+        int cols = grid.GetLength(1);
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i, j] == value) {
+                    return new Vector2Int(i, j);
+                }
+            }
+        }
+
+        return null;
+    }
+    
+    public static void PrintGrid(int[,] grid)
+    {
+        int rows = grid.GetLength(0);
+        int cols = grid.GetLength(1);
+        
+        string gridStr = "Grid:\n";
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                gridStr += grid[i, j] + " ";
+            }
+            gridStr += "\n";
+        }
+        Debug.Log(gridStr);
+    }
 }
 
 

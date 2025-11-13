@@ -8097,7 +8097,7 @@ MonoBehaviour:
   - {fileID: -331812073, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
   - {fileID: -353052342, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
   <_projectileView>k__BackingField: {fileID: 4861948939621157317, guid: f94242e099b6c1947a8e3f88ecfbd525, type: 3}
-  <_defaultCarConfigId>k__BackingField: 2
+  <_defaultCarConfigId>k__BackingField: 4
   <_gameProcessConfig>k__BackingField: {fileID: 11400000, guid: 9fd1157b9bed16445bef3f79570f869f, type: 2}
   <_carPartInfoUIView>k__BackingField: {fileID: 909077293}
   <_transparentPixel>k__BackingField: {fileID: 21300000, guid: 5edda95e25aad374e8190c6079e836aa, type: 3}
