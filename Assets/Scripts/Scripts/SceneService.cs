@@ -69,7 +69,7 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Light gloabalLight { get; set; }
     [field: SerializeField] public Camera mainCamera { get; private set; }
     public float aspectRatio;
-    public InputSystem_Actions gameInput;
+   // public InputSystem_Actions gameInput;
 
     public int PlayerEntity;
     public BuildingInfo buildingInfo;
@@ -85,10 +85,11 @@ public class SceneService : MonoBehaviour {
     
 
     private void Awake() {
+        _defaultCarConfigId = BetweenScenesService.Instance.CurrentSelectedCar;
         _endGameScreenView.OnInitialize();
         _endGameScreenView.gameObject.SetActive(false);
-        gameInput = new InputSystem_Actions();
-        gameInput.Enable();
+    //    gameInput = new InputSystem_Actions();
+  //      gameInput.Enable();
         gameVersionText.text = Application.version;
         aspectRatio =(mainCanvas.rect.width / mainCanvas.rect.height)/(16f/9f) ;
         aspectRatio = 7.5f;

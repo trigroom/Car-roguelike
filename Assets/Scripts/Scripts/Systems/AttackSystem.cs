@@ -92,7 +92,7 @@ public enum AttackType {
                     }
 
                     if (!gunCmp.GunOnTarget) {
-                        gunCmp.CurrentRotateDegrees += Time.deltaTime * gunConfig.RotateSpeed;
+                        gunCmp.CurrentRotateDegrees += deltaTime * gunConfig.RotateSpeed;
 
                         float pingPongValue = Mathf.PingPong(gunCmp.CurrentRotateDegrees, 1f);
 

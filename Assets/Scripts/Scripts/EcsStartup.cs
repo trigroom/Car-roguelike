@@ -8,6 +8,8 @@ using UnityEngine;
 public class EcsStartUp : MonoBehaviour
 {
     [SerializeField] private SceneService _sceneService;
+    [SerializeField] private BetweenScenesService _betweenSceneService;
+    
 
     EcsWorld _world;
     IEcsSystems _systemsUpdate;
@@ -19,6 +21,7 @@ public class EcsStartUp : MonoBehaviour
 
     void Start()
     {
+        _betweenSceneService = BetweenScenesService.Instance;
         _world = new EcsWorld();
         _systemsUpdate = new EcsSystems(_world);
         _systemsLateUpdate = new EcsSystems(_world);
@@ -43,10 +46,12 @@ public class EcsStartUp : MonoBehaviour
             .DelHere<StartRoundEvent>()
 
          .Inject(_sceneService)
+            .Inject(_betweenSceneService)
          .Init();
         _systemsLateUpdate
             .Add(new ForwardWheelsRotateSystem())
             .Inject(_sceneService)
+            .Inject(_betweenSceneService)
             .Init();
     }
     void Update()
