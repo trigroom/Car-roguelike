@@ -124,12 +124,13 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints);
         if (leftSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
-            enemyAiCmp.LastCheckedTime += 1.2f;
+            enemyAiCmp.LastCheckedTime += 0.8f;
             return;
         }
 
         if (leftSide < 5.1f) {
-            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Left;
+            enemyAiCmp.CurrentEnemyDirection =
+                enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back : EnemyDirection.Left;
             enemyAiCmp.LastCheckedTime += 0.35f;
             return;
         }
@@ -138,9 +139,10 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
         if (rightSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
-            enemyAiCmp.LastCheckedTime += 1.2f;
+            enemyAiCmp.LastCheckedTime += 0.8f;
         } else if (rightSide < 5.1f) {
-            enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Right;
+            enemyAiCmp.CurrentEnemyDirection =
+                enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back : EnemyDirection.Right;
             enemyAiCmp.LastCheckedTime += 0.35f;
         } else {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.None;

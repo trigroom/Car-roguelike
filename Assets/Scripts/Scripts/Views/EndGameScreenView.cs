@@ -30,13 +30,13 @@ public class EndGameScreenView : MonoBehaviour
         _moneyCountText.text = " click ro restart";
         _mainEndSreenTitle.text = $"You lose on rond {roundNumber}";
         foreach (var endGameButton in closeEndGameMenuButtons) {
-            endGameButton.onClick.AddListener(ReloadScene);
+            endGameButton.onClick.AddListener(GoToMetaScene);
         }
         gameObject.SetActive(true);
     }
 
-    private void ReloadScene() {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    private void GoToMetaScene() {
+        SceneManager.LoadScene("Scenes/MetaScene");
     }
     private void CloseEndGameUI() {
         gameObject.SetActive(false);

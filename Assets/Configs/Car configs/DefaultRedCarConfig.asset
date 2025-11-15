@@ -14,20 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 0
   <CarName>k__BackingField: Red car
-  <CarBackground>k__BackingField: {fileID: 21300000, guid: 28d1fb641609cc041889f23076cc258d, type: 3}
-  <CarWeight>k__BackingField: 60
-  <MaxWeight>k__BackingField: 150
   <Height>k__BackingField: 4
   <Width>k__BackingField: 3
-  <MaxHealth>k__BackingField: 0
   <StartCarParts>k__BackingField: 0300000004000000
-  <ForwardWheelsPositions>k__BackingField:
-  - {x: -1.345, y: 1}
-  - {x: 1.345, y: 1}
-  <BackWheelsPositions>k__BackingField:
-  - {x: -1.345, y: -1}
-  - {x: 1.345, y: -1}
-  <WheelId>k__BackingField: 0
   "<Fuel\u0421onsumption>k__BackingField": 0.3
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.5
   <RotateSpeed>k__BackingField: 150
@@ -36,3 +25,6 @@ MonoBehaviour:
   <Acceleration>k__BackingField: 5
   <Deceleration>k__BackingField: 10
   <DefaultMaxFuel>k__BackingField: 150
+  CarPartForLevel:
+    _serializedList: []
+  <CarUpgradeCost>k__BackingField: 17

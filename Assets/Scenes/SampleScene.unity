@@ -5372,6 +5372,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sceneService: {fileID: 815320983}
+  _betweenSceneService: {fileID: 0}
 --- !u!4 &582377675
 Transform:
   m_ObjectHideFlags: 0
@@ -16681,9 +16682,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5edda95e25aad374e8190c6079e836aa, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1

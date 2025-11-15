@@ -8,24 +8,15 @@ public class CarConfig : ScriptableObject {
     public int CarId { get; private set; }
     [field: SerializeField]
     public string CarName { get; private set; }
-    [field: SerializeField]
-    public Sprite CarBackground { get; private set; }
-    [field: SerializeField]
-    public float MaxWeight { get; private set; }
+    
     [field: SerializeField]
     public int Height { get; private set; }
     [field: SerializeField]
     public int Width { get; private set; }
-    [field: SerializeField]
-    public int MaxHealth { get; private set; }
+    
     [field: SerializeField]
     public int[] StartCarParts { get; private set; }
-    [field: SerializeField]
-    public Vector2[] ForwardWheelsPositions { get; private set; }
-    [field: SerializeField]
-    public Vector2[] BackWheelsPositions { get; private set; }
-    [field: SerializeField]
-    public int WheelId { get; private set; }
+    
     [field: SerializeField]
     public float FuelСonsumption { get; private set; }
     [field: SerializeField]

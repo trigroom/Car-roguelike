@@ -61,6 +61,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 70c118f9119a0084a830c33fedd1ebe7, type: 2}
   - {fileID: 11400000, guid: 58403666f03dc054da3743e2d1400aed, type: 2}
   - {fileID: 11400000, guid: 0952a60f11be6b7469efc0f35c000d9e, type: 2}
+  - {fileID: 11400000, guid: dd3a8dcab2202084da2d55ecee93ab8f, type: 2}
+  - {fileID: 11400000, guid: 2c09013f1b9788d4691732e86a0e8220, type: 2}
+  - {fileID: 11400000, guid: 57c49cf0e5f43194ebcb6e507d942dc3, type: 2}
+  - {fileID: 11400000, guid: afe33273502f62744a08ed41e863fff0, type: 2}
+  - {fileID: 11400000, guid: 318c99e05a1eb074d85a14da8e397bfd, type: 2}
+  - {fileID: 11400000, guid: e1a657eb2f321644f95e196a25c796d7, type: 2}
   <CarPartStuffView>k__BackingField: {fileID: -6712694133279507477, guid: e61c40a5a84f28a48be59a1d252c12e1, type: 3}
   <MeleeCarPartStuffView>k__BackingField: {fileID: 5055266588798338170, guid: b5905cdd0149c9f41920c02fc4fc69ff, type: 3}
   <ShopItems>k__BackingField:
@@ -121,6 +127,7 @@ MonoBehaviour:
   <Wheels>k__BackingField:
   - {fileID: 11400000, guid: 1208631f66901204fa513de339a00789, type: 2}
   - {fileID: 11400000, guid: e8a27ede46ac37f46a3bf45d715abf5c, type: 2}
+  - {fileID: 11400000, guid: 46bf359d3a2419b4cb14b3bf30cfff15, type: 2}
   <CarPartUIBordersSprites>k__BackingField:
   - {fileID: -688540141, guid: ac6064b026fc61f4698d486316f3d117, type: 3}
   - {fileID: 2003889111, guid: ac6064b026fc61f4698d486316f3d117, type: 3}

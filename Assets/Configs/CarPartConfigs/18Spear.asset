@@ -26,6 +26,6 @@ MonoBehaviour:
   - {x: 0, y: 0}
   Damage: 7
   AttackCountdown: 0.7
-  DamageAddedFromOneSpeed: 1.8
+  DamageAddedFromOneSpeed: 0.001
   UpSprite: {fileID: 21300000, guid: fc1349c10765ef4448b76ea89965e31f, type: 3}
-  UpSpritePosition: {x: 0, y: 0.4}
+  UpSpritePosition: {x: 0, y: 0.65}
