@@ -21,7 +21,7 @@ public class CarStuffListsConfig : ScriptableObject
     public MeleeCarPartStuffView MeleeCarPartStuffView { get;private set; }
     
     [field: SerializeField]
-    public ShopItem[] ShopItems { get;private set; }
+    public int[] ShopItems { get;private set; }
     
     [field: SerializeField]
     public WheelPrefabConfig[] Wheels { get;private set; }
@@ -30,11 +30,6 @@ public class CarStuffListsConfig : ScriptableObject
     public Sprite[] CarPartUIBordersSprites { get;private set; }
     [field: SerializeField]
     public Color DestroyedCarPartColor { get;private set; }
-}
-[System.Serializable]
-public struct ShopItem {
-    public int PartId;
-    public int Price;
 }
 
 

@@ -1,6 +1,6 @@
 
     struct ShopCellComponent {
         public int ShopButtonIndex;
-        public ShopItem CurrentBuyItem;
+        public int CurrentBuyItemId;
         public float Price;
     }

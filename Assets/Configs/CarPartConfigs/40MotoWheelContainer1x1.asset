@@ -19,11 +19,12 @@ MonoBehaviour:
   <PartType>k__BackingField: 4
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Wheel container moto
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
+  <MoneyCost>k__BackingField: 0
   WheelId: 1
   WheelsPositions:
   - {x: 0, y: 0}

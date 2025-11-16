@@ -375,7 +375,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.Chest:
                 var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
                 _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentGivenItems
-                    .Add(shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)].PartId);
+                    .Add(shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)]);
                 ChangeInventoryState(true);
                 break;
             case RoundType.Shop:

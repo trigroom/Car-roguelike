@@ -22,6 +22,7 @@ public class CarPartInfoUIView : MonoBehaviour
     public TMP_Text CarDescriptionText;
     [field: SerializeField] public Image _carPartIcon { get; private set; }
     [field: SerializeField] public Image _carPartIconUpLevel { get; private set; }
+    [field: SerializeField] public TMP_Text _sellCarPartText { get; private set; }
     public int _level;
 
     public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade, Action upgradeTriggerEnter, Action upgradeTriggerExit,
@@ -67,6 +68,8 @@ public class CarPartInfoUIView : MonoBehaviour
         _carPartIcon.sprite = carPartConfig.PartSprite;
 
         SetDescriptionInfo(false);
+
+        _sellCarPartText.text = $"Sell for {carPartConfig.MoneyCost / 2 + (carPartLevel - 1) * carPartConfig.UpgradedPartCost}$" ;
     }
 
     public void SetDescriptionInfo(bool isUpdate) {

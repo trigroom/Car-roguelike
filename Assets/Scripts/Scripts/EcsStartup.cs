@@ -38,8 +38,7 @@ public class EcsStartUp : MonoBehaviour
             .Add(new EnemyInputSystem())
             .Add(new AttackSystem())
             .Add(new DestroyDontUsedEntitesSystem())
-           //  .Add(new UiControlSystem())
-         //   .Add(new CellsSystem())
+      
             .DelHere<DestroyEntityEvent>()
            .DelHere<ConstructMeleeCellEvent>()
            .DelHere<EndRoundEvent>()

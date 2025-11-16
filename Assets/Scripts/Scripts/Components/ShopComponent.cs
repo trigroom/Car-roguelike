@@ -2,7 +2,7 @@
     using System.Collections.Generic;
 
     struct ShopComponent {
-        public List<ShopItem> AllUnlockedShopItems;
-        public List<ShopItem> CurrentShopItems;
+        public List<int> AllUnlockedShopItems;
+        public List<int> CurrentShopItems;
         public int CurrentUpdateCountInRound;
     }

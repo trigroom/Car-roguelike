@@ -254,7 +254,7 @@ GameObject:
   - component: {fileID: 19034129}
   - component: {fileID: 19034132}
   m_Layer: 5
-  m_Name: DestroyButton
+  m_Name: SellButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8448,6 +8448,7 @@ MonoBehaviour:
   CarDescriptionText: {fileID: 272460441}
   <_carPartIcon>k__BackingField: {fileID: 993701353}
   <_carPartIconUpLevel>k__BackingField: {fileID: 327726360}
+  <_sellCarPartText>k__BackingField: {fileID: 1183685136}
   _level: 0
 --- !u!1 &912522062
 GameObject:
@@ -11655,7 +11656,7 @@ GameObject:
   - component: {fileID: 1183685137}
   - component: {fileID: 1183685136}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: SellText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11700,7 +11701,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Destroy
+  m_text: 'Sell
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11727,7 +11730,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 22.75
+  m_fontSize: 34.4
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1

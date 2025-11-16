@@ -24,6 +24,7 @@ MonoBehaviour:
   <DefaultModuleCount>k__BackingField: 1
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
+  <MoneyCost>k__BackingField: 6
   Damage: 5
   AttackCountdown: 0.6
   DamageAddedFromOneSpeed: 0.0008
