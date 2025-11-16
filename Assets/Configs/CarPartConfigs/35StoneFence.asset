@@ -28,4 +28,4 @@ MonoBehaviour:
   <MoneyCost>k__BackingField: 8
   DefencePercent: 55
   DefenceDirections: 0000000001000000
-  ExplosionDefence: 1
+  ExplosionDefence: 0

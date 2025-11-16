@@ -44,7 +44,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     public void Init(IEcsSystems systems) {
         //test
-
+        
         int playerEntity = _world.Value.NewEntity();
         _sceneData.Value.PlayerEntity = playerEntity;
 
@@ -82,12 +82,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         StartupShopCells();
 
         UpdateCarDescription();
-        /*  foreach (var carPartId in _sceneData.Value._gameProcessConfig.GameRounds[0].CarParts) {
-              var gun = _sceneData.Value.GetGunFromCarPart(carPartId);
-              if (gun != null) {
-                  Debug.Log(gun.BulletsCount);
-              }
-          }*/
         
          SetMoneyCount(100);
         
@@ -96,9 +90,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
          }
          
          _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
-         _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(DestroyCarPartAndActiveNext);
+         _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(SellCarPartAndActiveNext);
         _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(SaveEnemyCarConfig);
         _sceneData.Value._inventoryUIView._upgradeCarButton.onClick.AddListener(IncriseCarLevel);
+        
+        
+        
+        
+        SetUpAdminButtons();
     }
 
     public void Run(IEcsSystems systems) {
@@ -955,7 +954,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 !_sceneData.Value._inventoryUIView._inventoryCellViews[1].gameObject.activeInHierarchy)
                 inventoryCmp.CurrentInventoryPage--;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartId);
-            SetMoneyCount(carPartConfig.MoneyCost /2 + (level-1)*carPartConfig.UpgradedPartCost);
+            SetMoneyCount(GridUtils.GetSellValueForCarPart(carPartConfig, level));
             SetInventoryCells();
         } else if (_carPartComponentsPool.Value.Has(carPartEntity)) {
             ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -963,7 +962,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
-            SetMoneyCount(carPartConfig.MoneyCost /2 + (carPartCmp.PartLevel-1)*carPartConfig.UpgradedPartCost);
+            SetMoneyCount(GridUtils.GetSellValueForCarPart(carPartConfig,carPartCmp.PartLevel));
             if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.CarStuffContainer) {
                 foreach (var carPartCellPosition in carCmp.CarPartContainerGroupsList[carPartEntity]) {
                     carCmp.CarPartContainerGroupsGrid[carPartCellPosition.x, carPartCellPosition.y] = 0;
@@ -1932,8 +1931,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ActivateGiveCarPartsWindow();
     }
     
-    private void DestroyCarPartAndActiveNext() {
+    private void SellCarPartAndActiveNext() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        SetMoneyCount(GridUtils.GetSellValueForCarPart(_sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]), 1));
         inventoryCmp.CurrentGivenItems.RemoveAt(0);
         ActivateGiveCarPartsWindow();
     }
@@ -2008,6 +2008,25 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
                 ActivateGiveCarPartsWindow();
             }
+        }
+    }
+    
+    //for admin 
+
+    private void SetUpAdminButtons() {
+        _sceneData.Value._enemiesCarBuilderView.GetCarPartIdButton.onClick.AddListener(GetCarPartForAdmin);
+        _sceneData.Value._enemiesCarBuilderView.GetMoneyButton.onClick.AddListener(GetMoneyForAdmin);
+    }
+    private void GetMoneyForAdmin() {
+        int.TryParse(_sceneData.Value._enemiesCarBuilderView.MoneyInputField.text, out int money);
+        SetMoneyCount(money);
+    }
+
+    private void GetCarPartForAdmin() {
+        int.TryParse(_sceneData.Value._enemiesCarBuilderView.GetCarPartIdInputField.text, out int carPartId);
+        if (_sceneData.Value._carStuffListsConfig.CarPartConfigs.Length > carPartId) {
+            _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentGivenItems.Add(carPartId);
+            ActivateGiveCarPartsWindow();
         }
     }
 }

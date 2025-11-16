@@ -69,7 +69,7 @@ public class CarPartInfoUIView : MonoBehaviour
 
         SetDescriptionInfo(false);
 
-        _sellCarPartText.text = $"Sell for {carPartConfig.MoneyCost / 2 + (carPartLevel - 1) * carPartConfig.UpgradedPartCost}$" ;
+        _sellCarPartText.text = $"Sell for {GridUtils.GetSellValueForCarPart(carPartConfig,carPartLevel)}$" ;
     }
 
     public void SetDescriptionInfo(bool isUpdate) {

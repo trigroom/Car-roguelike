@@ -15,7 +15,7 @@ MonoBehaviour:
   <Id>k__BackingField: 24
   <MaxHealth>k__BackingField: 150
   <Weight>k__BackingField: 3
-  <PartSprite>k__BackingField: {fileID: 21300000, guid: 2907c8c72d5128c4f86b49335d0b904c, type: 3}
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 438d4685b1145964f80b86d8d08e34f7, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
@@ -25,7 +25,7 @@ MonoBehaviour:
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 5
-  UpPartSprite: {fileID: 0}
+  UpPartSprite: {fileID: 21300000, guid: 2907c8c72d5128c4f86b49335d0b904c, type: 3}
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 0
   RotateSpeed: 0

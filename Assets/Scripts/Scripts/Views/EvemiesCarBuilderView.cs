@@ -9,6 +9,10 @@ public class EvemiesCarBuilderView : MonoBehaviour {
     public Button CreateEnemyConfigButton;
     public TMP_InputField EnemyConfigNameInputField;
     public Button AdminPanelSwitch;
+    public TMP_InputField MoneyInputField;
+    public Button GetMoneyButton;
+    public TMP_InputField GetCarPartIdInputField;
+    public Button GetCarPartIdButton;
     public Transform AdminPanelContainer;
     private string _filePath = "Assets/Configs/EnemyCarsConfigs";
     private void Start() {

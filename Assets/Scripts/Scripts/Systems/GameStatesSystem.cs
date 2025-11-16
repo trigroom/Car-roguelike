@@ -101,7 +101,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
         
         if (curGameCmp.RoundTime / 30 > curGameCmp.RoundAddedEnemies) {
-            if (curGameCmp.CurrentRoundType == RoundType.BattleDefault && curGameCmp.RoundTime < (25 + curGameCmp.CurrentRound * 3))
+            if (curGameCmp.CurrentRoundType != RoundType.BattleDefault || curGameCmp.RoundTime < (25 + curGameCmp.CurrentRound * 3))
                 SetEnemiesCars(1, false);
             curGameCmp.RoundAddedEnemies++;
         }
@@ -499,8 +499,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             Vector2 targetPoint = startPoint + direction * distance;
         
             // Проверяем границы
-            if (targetPoint.x > 50f || targetPoint.x < -50f || 
-                targetPoint.y > 50f || targetPoint.y < -50f)
+            if (targetPoint.x > 100f || targetPoint.x < -100f || 
+                targetPoint.y > 100f || targetPoint.y < -100f)
             {
                 attempts++;
                 continue;

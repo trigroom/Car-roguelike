@@ -469,6 +469,10 @@ public class GridUtils : MonoBehaviour
         }
         Debug.Log(gridStr);
     }
+
+    public static float GetSellValueForCarPart(CarPartConfig carPartConfig, int level) {
+        return carPartConfig.MoneyCost /2 + (level-1)*carPartConfig.UpgradedPartCost;
+    }
 }
 
 
