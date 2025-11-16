@@ -12,6 +12,7 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Transform _mapContainer{ get; private set; }
     [field: SerializeField] public Transform[] _mountains{ get; private set; }
     [field: SerializeField] public Transform _pixelizedEffectsImage{ get; private set; }
+    [field: SerializeField] public Transform _pixelizedEffectsUnderCarImage{ get; private set; }
     [field: SerializeField] public SettingsView _settingsView{ get; private set; }
     [field: SerializeField] public GivingCarPartsUIView _givingCarPartsUIView{ get; private set; }
     [field: SerializeField] public Transform _brokenCarPartsContainer { get; private set; }

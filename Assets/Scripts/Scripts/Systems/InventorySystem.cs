@@ -38,6 +38,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
     private EcsFilterInject<Inc<StartRoundEvent>> _startRoundEventsFilter;
+    private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
     private EcsFilterInject<Inc<CarPartComponent>> _carPartComponentsFilter;
     private EcsFilterInject<Inc<AddInventoryItemEvent>> _addInventoryItemEventsFilter;
 
@@ -90,6 +91,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         
          SetMoneyCount(100);
         
+         foreach (var endGameButton in _sceneData.Value._endGameScreenView.closeEndGameMenuButtons) {
+             endGameButton.onClick.AddListener(ActivateGiveCarPartsWindow);
+         }
+         
          _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
          _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(DestroyCarPartAndActiveNext);
         _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(SaveEnemyCarConfig);
@@ -102,7 +107,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var startRound in _startRoundEventsFilter.Value) {
             SetShopCells(false);
             var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            Debug.Log(gameCmp.CurrentRound + " CurrentRound");
             if(gameCmp.CurrentRound == 5)
                 AddRareToShopItems(CarPartRare.Medium);
             else if(gameCmp.CurrentRound == 10)
@@ -1911,10 +1915,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void ActivateGiveCarPartsWindow() {
-       
         var giveCarPartsUiView = _sceneData.Value._givingCarPartsUIView;
        
-        
         giveCarPartsUiView.gameObject.SetActive(ChangeGiveCarPartWindowInfo());
     }
 

@@ -136,10 +136,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         bool isPixelized = !settingsView._setPixelizedEffectModeChecker.gameObject.activeInHierarchy;
         settingsView._setPixelizedEffectModeChecker.gameObject.SetActive(isPixelized);
         _sceneData.Value._pixelizedEffectsImage.gameObject.SetActive(isPixelized);
+        _sceneData.Value._pixelizedEffectsUnderCarImage.gameObject.SetActive(isPixelized);
         if (!isPixelized) {
             _sceneData.Value.mainCamera.cullingMask |= (1 << 9);
+            _sceneData.Value.mainCamera.cullingMask |= (1 << 3);
         } else {
             _sceneData.Value.mainCamera.cullingMask &= ~(1 << 9);
+            _sceneData.Value.mainCamera.cullingMask &= ~(1 << 3);
         }
       
     }
@@ -812,7 +815,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             } else {
                 string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
                    carPart.SetupCarPart(carPartInfo, needLayer, carPartCmp.MainEntity);
-                   carPart.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
+                   //carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
             }
              
             // need check
@@ -837,21 +840,23 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var gunCmp = _gunComponentsPool.Value.Has(cellEntity)? _gunComponentsPool.Value.Get(cellEntity): _gunComponentsPool.Value.Add(cellEntity);
             var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             if (gunConfig.UpPartSprite != null) {
-                
                 gunCmp.UpPartContainer = _sceneData.Value.GetGunContainer(carPartCmp.CarPartCellRenderer.transform);
                 gunCmp.UpPartContainer.transform.localPosition = gunConfig.GunContainerPosition;
-                
+                gunCmp.UpPartContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
                 gunCmp.FirePointTransform = _sceneData.Value.GetGunContainer(gunCmp.UpPartContainer);
                 gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition - gunConfig.GunContainerPosition;
-                
+                gunCmp.FirePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
                 gunCmp.GunSpriteRenderer = _sceneData.Value.GetCarPartSpriteRenderer(gunCmp.UpPartContainer);
                 gunCmp.GunSpriteRenderer.sprite = gunConfig.UpPartSprite;
                 gunCmp.GunSpriteRenderer.sortingOrder = 3;
-                gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition-gunConfig.GunContainerPosition;
-
+                gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition - gunConfig.GunContainerPosition;
+                gunCmp.GunSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
             } else {
                 gunCmp.FirePointTransform = _sceneData.Value.GetGunContainer(carPartCmp.CarPartCellRenderer.transform);
                 gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition;
+                gunCmp.FirePointTransform.localRotation = Quaternion.Euler(0, 0, 0);
             }
 
             (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) =
@@ -862,7 +867,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             gunCmp.CurrentCountdown = gunCmp.CurrentReloadSpeed;
             gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
             //   carPart.transform.localPosition = Vector3.zero;
-            //  carPart.transform.localRotation = Quaternion.Euler(0, 0, 0);
+           
             if (gunConfig.MissleType == MissleType.laser) {
                 if (_laserComponentsPool.Value.Has(cellEntity))
                     _laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer = _sceneData.Value.GetLaserLineRenderer();

@@ -187,8 +187,10 @@ public enum AttackType {
 
             Vector2 worldFirePoint = firePoint.position;
 
-            Vector2 direction = firePoint.up;
-
+            Vector2 direction = firePoint.transform.up;
+            if (carPartCmp.MainEntity == _sceneData.Value.PlayerEntity)
+                Debug.Log(direction + " laser dir");
+            
             LayerMask layerMask = carPartCmp.MainEntity != _sceneData.Value.PlayerEntity
                 ? LayerMask.GetMask(new string[] {
                     /* "CarBase",*/ "Obstacle","UpCarPart"
@@ -768,8 +770,19 @@ public enum AttackType {
                     }
                 }
 
-                if (!isPlayer)
+                if (!isPlayer) {
+                    if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType != RoundType.None &&
+                        carPartConfig.PartType != CarPartType.Main) {
+                        float randomChance = Random.value;
+                        if (randomChance > (0.90f+ inventoryCmp.CurrentGivenItems.Count*0.02f)) {
+                            inventoryCmp.CurrentGivenItems.Add(carPartConfig.Id);
+                            //in game reward text
+                        }
+                            
+                    }
+
                     carCmp.CarPartGroupsList.Remove(cellEntity);
+                }
             }
 
             carCmp.CurrentWeight -= carPartConfig.Weight;
