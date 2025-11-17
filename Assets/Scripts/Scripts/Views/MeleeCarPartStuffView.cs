@@ -5,8 +5,7 @@ public class MeleeCarPartStuffView : CarPartStuffView {
     private Action<AttackType, int, Vector2Int, int, Vector2, ProjectileView, int, string> hitTargetAction;
     private string _needTag;
 
-    [SerializeField]
-    private LayerMask _layerMask;
+    public LayerMask _layerMask { get;private set;}
 
     private int _weaponId;
     private int _entity;

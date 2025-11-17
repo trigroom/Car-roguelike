@@ -139,6 +139,10 @@ public enum AttackType {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(cellEntity);
                 if (meleeCmp.Countdown > 0)
                     meleeCmp.Countdown -= deltaTime;
+                else if (_sceneData.Value.GetMeleeWeaponFromCarPart(_carPartComponentsPool.Value.Get(cellEntity).CarPartId)
+                             .IsAttackAfterCountdown && meleeCmp.isTriggered) {
+                    CastMeleeWeapon(cellEntity);
+                }
             }
 
             foreach (var shockEntity in _shockEffectComponentsFilter.Value) {
@@ -271,6 +275,29 @@ public enum AttackType {
                DestroyNeedCar(carEntity);
 
             SetPlayerCarPartsGridFromList();
+        }
+
+        private void CastMeleeWeapon(int entity) {
+            ref var meleeWeaponComponent = ref _meleeWeaponComponentsPool.Value.Get(entity);
+            var carPartCmp = _carPartComponentsPool.Value.Get(entity);
+            Vector2 size = meleeWeaponComponent.MeleeStuff._carPartCollider.size;
+            Vector2 origin = (Vector2)meleeWeaponComponent.MeleeStuff.transform.position +
+                             meleeWeaponComponent.MeleeStuff._carPartCollider.offset; // direction = zero для проверки в точке
+            var needTag = carPartCmp.MainEntity == _sceneData.Value.PlayerEntity ? "Enemy" : "Player";
+            RaycastHit2D[] hits = Physics2D.BoxCastAll(origin, size, meleeWeaponComponent.MeleeStuff.transform.eulerAngles.z, Vector2.zero, 0f,
+                meleeWeaponComponent.MeleeStuff._layerMask);
+            if (hits.Length > 0) {
+                foreach (RaycastHit2D hit in hits) {
+                    var damagedCarPart = hit.collider.gameObject.GetComponent<CarPartStuffView>();
+
+                    Debug.Log(damagedCarPart._mainEntity);
+                    
+                    ProjectileHit(AttackType.Melee, carPartCmp.CarPartId, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point,
+                        null, entity, needTag);
+                }
+            } else {
+                meleeWeaponComponent.isTriggered = false;
+            }
         }
         private void ConstructMeleeWeaponCell(int entity) {
             var carPartComponent = _carPartComponentsPool.Value.Get(entity);
@@ -495,6 +522,7 @@ public enum AttackType {
             } else if (attackType == AttackType.Melee) {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(weaponCellEntity);
                 if (meleeCmp.Countdown > 0) return;
+                meleeCmp.isTriggered = true;
                 var meleeWeaponConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(weaponId);
                 meleeCmp.Countdown += meleeWeaponConfig.AttackCountdown;
                 var moveCmp = _movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity);

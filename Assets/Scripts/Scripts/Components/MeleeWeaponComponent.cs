@@ -11,4 +11,6 @@
 
        public float CurrentDamage;
        public float DamageBySpeed;
+
+       public bool isTriggered;
    }

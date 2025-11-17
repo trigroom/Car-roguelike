@@ -7,4 +7,6 @@ public class MeleeWeaponConfig : CarPartConfig {
     public float DamageAddedFromOneSpeed;
     public Sprite UpSprite;
     public Vector2 UpSpritePosition;
+
+    public bool IsAttackAfterCountdown;
 }

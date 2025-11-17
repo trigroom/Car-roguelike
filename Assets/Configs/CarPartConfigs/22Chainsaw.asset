@@ -30,3 +30,4 @@ MonoBehaviour:
   DamageAddedFromOneSpeed: 0
   UpSprite: {fileID: 0}
   UpSpritePosition: {x: 0, y: 0}
+  IsAttackAfterCountdown: 1

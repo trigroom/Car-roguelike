@@ -130,7 +130,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
         if (leftSide < 5.1f) {
             enemyAiCmp.CurrentEnemyDirection =
-                enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back : EnemyDirection.Left;
+               /* enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back :*/ EnemyDirection.Left;
             enemyAiCmp.LastCheckedTime += 0.35f;
             return;
         }
@@ -142,7 +142,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             enemyAiCmp.LastCheckedTime += 0.8f;
         } else if (rightSide < 5.1f) {
             enemyAiCmp.CurrentEnemyDirection =
-                enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back : EnemyDirection.Right;
+                /*enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back :*/ EnemyDirection.Right;
             enemyAiCmp.LastCheckedTime += 0.35f;
         } else {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.None;

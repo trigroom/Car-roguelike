@@ -574,13 +574,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         for (int i = 0; i < enemiesCount; i++) {
             int enemyEntity = _world.Value.NewEntity();
         
-            ref var moveCmp = ref _movementComponentsPool.Value.Add(enemyEntity);
+            _movementComponentsPool.Value.Add(enemyEntity);
             ref var fuelCmp = ref _fuelComponentsPool.Value.Add(enemyEntity);
             fuelCmp.CurrentFuel = 200;
             ref var carCmp = ref _carComponentsPool.Value.Add(enemyEntity);
             var carVariables = currentRoundCarStuff.CarPresets[Random.Range(0, currentRoundCarStuff.CarPresets.Length)];
             carCmp.CarId = carVariables.CarId;
-            int currentMainPartCount = 0;
             var carView = CarViewSetup(enemyEntity);
             
             carView.transform.position = GetPositionAroundPlayer();
@@ -724,7 +723,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetCarPartGroupHealthUI(carCmp.CarPartGroupsList, carCmp.CarPartGroupsGrid, startX, cellSize, startY, upLevelpartsContainer,
             ref inventoryCmp.CarPartInfoUIViewsUpLevelGrid);
 
-        GridUtils.PrintGrid(carCmp.CarPartContainerGroupsGrid);
+       // GridUtils.PrintGrid(carCmp.CarPartContainerGroupsGrid);
     }
 
     private void SetCarPartGroupHealthUI(Dictionary<int, List<Vector2Int>> groupsList, int[,] groupsGrid, float startX, float cellSize,
