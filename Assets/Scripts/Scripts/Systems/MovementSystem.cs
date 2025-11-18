@@ -50,7 +50,8 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 float distanceToTarget = Vector3.Distance(movementCmp.MovableObjectRigidbody.position, movementCmp.TargetPosition);
                 bool isReversing = false;
                 float needAngle = 0;
-                if (distanceToTarget > 3f && _fuelComponentsPool.Value.Get(movementEntity).CurrentFuel > 0) {
+                ref var fuelCmp = ref _fuelComponentsPool.Value.Get(movementEntity);
+                if (distanceToTarget > 3f && fuelCmp.CurrentFuel > 0) {
                     var needTargetRotation = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg - 90f;
 
                     float angleToTarget = Vector3.SignedAngle(moveObjectTransform.up, directionToTarget, Vector3.forward);
@@ -71,6 +72,10 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                                 (Quaternion.Euler(0, 0, -30) * moveObjectTransform.up).normalized.x) * Mathf.Rad2Deg - 90f;
                         else if (aiCmp.CurrentEnemyDirection == EnemyDirection.Left)
                             needTargetRotation = Mathf.Atan2(needDir.y, needDir.x) * Mathf.Rad2Deg - 90f;
+                        
+                        fuelCmp.UseSpeedBoost = false;
+                    } else if(!isPlayer){
+                        fuelCmp.UseSpeedBoost = true;
                     }
 
                     float angleDifference = Mathf.DeltaAngle(moveObjectTransform.eulerAngles.z, needTargetRotation);
@@ -88,12 +93,16 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
                     RotateWheels(angleToTarget, movementCmp.CurrentRotateSpeed, movementEntity);
                     SetWheelParticleSystemState(movementEntity, true);
+                    
+                    var carConfig = _sceneData.Value.GetCarConfig (carCmp.CarId);
+                    float maxSpeed = fuelCmp.UseSpeedBoost ? movementCmp.MaxMoveSpeed+carConfig.BoostSpeedMultiplayer : movementCmp.MaxMoveSpeed;
+                    
                     if (!isReversing) {
-                        movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, movementCmp.MaxMoveSpeed,
+                        movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, maxSpeed,
                             movementCmp.Acceleration * deltaTime);
                        
                     } else {
-                        movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, -movementCmp.MaxMoveSpeed / 2f,
+                        movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, -maxSpeed / 2f,
                             movementCmp.Deceleration * deltaTime);
                     } 
                     UseFuel(movementEntity);
@@ -174,20 +183,24 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             new Vector3(needPosition.x, needPosition.y, -10), Time.deltaTime * 2);
     }
     private void UseFuel(int entity) {
-        ref var playerFuelCmp = ref _fuelComponentsPool.Value.Get(entity);
-        playerFuelCmp.CurrentFuel -= playerFuelCmp.FuelConsumption * Time.deltaTime;
+        ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
+        
+        var carConfig = _sceneData.Value.GetCarConfig (_carComponentsPool.Value.Get(entity).CarId);
+        float curFuelConsumption = fuelCmp.UseSpeedBoost ? fuelCmp.FuelConsumption+carConfig.AccelerationFuelСonsumption : fuelCmp.FuelConsumption;
+        
+        fuelCmp.CurrentFuel -= curFuelConsumption * Time.deltaTime;
 
-        if (playerFuelCmp.CurrentFuel <= 0) {
+        if (fuelCmp.CurrentFuel <= 0) {
             if (!_playerDeathEventsPool.Value.Has(entity))
                 _playerDeathEventsPool.Value.Add(entity);
-            playerFuelCmp.CurrentFuel = 0;
+            fuelCmp.CurrentFuel = 0;
             return;
         }
 
         if (entity != _sceneData.Value.PlayerEntity) return;
        // _sceneData.Value._playerUIView._fuelFillImage.fillAmount = playerFuelCmp.CurrentFuel / playerFuelCmp.MaxFuel;
-       _sceneData.Value._playerUIView._fuelArrowImage.transform.eulerAngles = new Vector3(0,0,-65f+130f*playerFuelCmp.CurrentFuel / playerFuelCmp.MaxFuel) ;
-        _sceneData.Value._playerUIView._fuelText.text = $"{(int)playerFuelCmp.CurrentFuel}";
+       _sceneData.Value._playerUIView._fuelArrowImage.transform.eulerAngles = new Vector3(0,0,-65f+130f*fuelCmp.CurrentFuel / fuelCmp.MaxFuel) ;
+        _sceneData.Value._playerUIView._fuelText.text = $"{(int)fuelCmp.CurrentFuel}";
     }
 
     private void RotateWheels(float targetWheelAngle, float rotateSpeed, int debug) {

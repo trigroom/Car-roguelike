@@ -723,7 +723,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetCarPartGroupHealthUI(carCmp.CarPartGroupsList, carCmp.CarPartGroupsGrid, startX, cellSize, startY, upLevelpartsContainer,
             ref inventoryCmp.CarPartInfoUIViewsUpLevelGrid);
 
-       // GridUtils.PrintGrid(carCmp.CarPartContainerGroupsGrid);
     }
 
     private void SetCarPartGroupHealthUI(Dictionary<int, List<Vector2Int>> groupsList, int[,] groupsGrid, float startX, float cellSize,

@@ -17,23 +17,10 @@ sealed class PlayerInputSystem : IEcsRunSystem {
         if (moveCmp.MovableObjectRigidbody == null) return;
         moveCmp.TargetPosition = _sceneData.Value.mainCamera.ScreenToWorldPoint(Input.mousePosition);
         
-        if (Input.GetMouseButtonDown(0) && !fuelCmp.UseSpeedBoost && fuelCmp.CurrentFuel > 0) {
-            ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
-
-            moveCmp.MaxMoveSpeed += carConfig.BoostSpeedMultiplayer;
-            fuelCmp.FuelConsumption = carConfig.AccelerationFuelСonsumption;
+        if (Input.GetMouseButtonDown(0) && !fuelCmp.UseSpeedBoost && fuelCmp.CurrentFuel > 0) 
             fuelCmp.UseSpeedBoost = true;
-            Debug.Log("Use speed boost"+moveCmp.MaxMoveSpeed);
-        }
 
-        if ((Input.GetMouseButtonUp(0) || fuelCmp.CurrentFuel <= 0) && fuelCmp.UseSpeedBoost) {
-            ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
-            moveCmp.MaxMoveSpeed -= carConfig.BoostSpeedMultiplayer;
-            fuelCmp.FuelConsumption = carConfig.FuelСonsumption;
+        if ((Input.GetMouseButtonUp(0) || fuelCmp.CurrentFuel <= 0) && fuelCmp.UseSpeedBoost) 
             fuelCmp.UseSpeedBoost = false;
-            Debug.Log("Dont Use speed boost"+  moveCmp.MaxMoveSpeed);
-        }
     }
 }
