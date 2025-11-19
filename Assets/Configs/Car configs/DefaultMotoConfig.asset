@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 265eabbea3a2efd40817b800970ff56b, type: 3}
-  m_Name: DefaultMotoCarConfig
+  m_Name: DefaultMotoConfig
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 1
   <CarName>k__BackingField: Motocircle default
@@ -38,5 +38,5 @@ MonoBehaviour:
     - Key: 9
       Value: 27000000
     - Key: 10
-      Value: 28000000
+      Value: 31000000
   <CarUpgradeCost>k__BackingField: 15

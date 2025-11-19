@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 265eabbea3a2efd40817b800970ff56b, type: 3}
+  m_Name: EnemyMotocycle
+  m_EditorClassIdentifier: 
+  <CarId>k__BackingField: 3
+  <CarName>k__BackingField: Enemy moto
+  <StartCarParts>k__BackingField: 0300000026000000340000003300000033000000
+  "<Fuel\u0421onsumption>k__BackingField": 0.2
+  "<AccelerationFuel\u0421onsumption>k__BackingField": 0.25
+  <RotateSpeed>k__BackingField: 160
+  <BoostSpeedMultiplayer>k__BackingField: 5
+  <DefaultMaxSpeed>k__BackingField: 6
+  <Acceleration>k__BackingField: 8
+  <Deceleration>k__BackingField: 13
+  <DefaultMaxFuel>k__BackingField: 120
+  CarPartForLevel:
+    _serializedList:
+    - Key: 2
+      Value: 34000000
+    - Key: 4
+      Value: 33000000
+    - Key: 6
+      Value: 34000000
+    - Key: 8
+      Value: 32000000
+    - Key: 10
+      Value: 0d000000
+  <CarUpgradeCost>k__BackingField: 20

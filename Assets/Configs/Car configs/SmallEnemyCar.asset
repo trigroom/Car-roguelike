@@ -10,24 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 265eabbea3a2efd40817b800970ff56b, type: 3}
-  m_Name: 2x3CarConfig
+  m_Name: SmallEnemyCar
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 2
-  <CarName>k__BackingField: 2x3car
-  <CarBackground>k__BackingField: {fileID: 21300000, guid: 0390dbbe126c10b4ab7695989248ccda, type: 3}
-  <CarWeight>k__BackingField: 15
-  <MaxWeight>k__BackingField: 20
-  <Height>k__BackingField: 3
-  <Width>k__BackingField: 2
-  <MaxHealth>k__BackingField: 0
-  <StartCarParts>k__BackingField: 0300000004000000
-  <ForwardWheelsPositions>k__BackingField:
-  - {x: 0, y: 1}
-  - {x: 0, y: 1}
-  <BackWheelsPositions>k__BackingField:
-  - {x: 0, y: -1}
-  - {x: 0, y: -1}
-  <WheelId>k__BackingField: 1
+  <CarName>k__BackingField: Enemy small car
+  <StartCarParts>k__BackingField: 030000000400000030000000300000000b000000
   "<Fuel\u0421onsumption>k__BackingField": 0.2
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.35
   <RotateSpeed>k__BackingField: 150
@@ -36,3 +23,16 @@ MonoBehaviour:
   <Acceleration>k__BackingField: 8
   <Deceleration>k__BackingField: 12
   <DefaultMaxFuel>k__BackingField: 100
+  CarPartForLevel:
+    _serializedList:
+    - Key: 2
+      Value: 0b000000
+    - Key: 4
+      Value: 30000000
+    - Key: 6
+      Value: 3400000034000000
+    - Key: 8
+      Value: 30000000
+    - Key: 10
+      Value: 0d000000
+  <CarUpgradeCost>k__BackingField: 0

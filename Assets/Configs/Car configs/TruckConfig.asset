@@ -14,8 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 3
   <CarName>k__BackingField: Truck
-  <Height>k__BackingField: 6
-  <Width>k__BackingField: 4
   <StartCarParts>k__BackingField: 03000000290000002b0000002a0000002a000000
   "<Fuel\u0421onsumption>k__BackingField": 0.4
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.6
@@ -24,9 +22,19 @@ MonoBehaviour:
   <DefaultMaxSpeed>k__BackingField: 6
   <Acceleration>k__BackingField: 7
   <Deceleration>k__BackingField: 12
-  <DefaultMaxFuel>k__BackingField: 400
+  <DefaultMaxFuel>k__BackingField: 350
   CarPartForLevel:
     _serializedList:
     - Key: 2
       Value: 2b000000
+    - Key: 4
+      Value: 0b000000
+    - Key: 6
+      Value: 30000000
+    - Key: 8
+      Value: 0d0000000d000000
+    - Key: 10
+      Value: 32000000
+    - Key: 12
+      Value: 320000000b000000
   <CarUpgradeCost>k__BackingField: 20

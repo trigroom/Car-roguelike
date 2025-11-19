@@ -153,12 +153,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
                 _sceneData.Value._gridMaskRect.position = _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position;
                 var subGridNewPosition = carPartsContainer.position;
-
-                if ((int)_sceneData.Value._inventoryUIView._carPartsContainer.localScale.x != 1)
-                  subGridNewPosition += (Vector3)currentCellSize*_sceneData.Value.mainCanvas.localScale.x/2;
+    var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
+    if (inventoryCmp.IsCarPartsRedactorMode &&
+        (carCmp.CarPartContainerGroupsGrid.GetLength(0) % 2 == 1 && carCmp.CarPartContainerGroupsGrid.GetLength(1) % 2 == 1)) {
+        subGridNewPosition += (Vector3)currentCellSize * _sceneData.Value.mainCanvas.localScale.x / 2;
+                    Debug.Log("Added offset "+((Vector3)currentCellSize*_sceneData.Value.mainCanvas.localScale.x/2));
+                }
+                  
 
                 _sceneData.Value._subGridTransform.transform.position = subGridNewPosition;
-                var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
+            
                 var startOffset = -inventoryCmp.StartOffsetFromCell;
                 if (inventoryCmp.CurrentRotateDegrees == 90) {
                     startOffset = new Vector2(-startOffset.y, startOffset.x);
@@ -1884,37 +1888,14 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
 
     private void SetCarGrid() {
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
-        var needCellPartSize = 400f / Mathf.Max(carConfig.Width, carConfig.Height);
-//        _sceneData.Value._inventoryUIView._gridLayoutGroup.GetComponent<Image>().sprite = carConfig.CarBackground;
-      //  var gridLayoutGroupRect = _sceneData.Value._inventoryUIView._gridLayoutGroup.GetComponent<RectTransform>();
-       // gridLayoutGroupRect.sizeDelta = new Vector2(needCellPartSize * carConfig.Width, needCellPartSize * carConfig.Height);
-//        _sceneData.Value._inventoryUIView._gridLayoutGroup.cellSize = new Vector2(needCellPartSize, needCellPartSize);
-     /*   inventoryCmp.GridCarPartCellsEntities = new int[carConfig.Width, carConfig.Height];
-        for (int i = carConfig.Height-1; i >= 0; i--) {
-            for (int j = 0; j < carConfig.Width; j++) {
-                var inventoryCell = _sceneData.Value.InstantiateCell(_sceneData.Value._inventoryUIView._cellView,
-                    _sceneData.Value._inventoryUIView._gridLayoutGroup.transform);
-                int cellEntity = _world.Value.NewEntity();
-                inventoryCmp.GridCarPartCellsEntities[j, i] = cellEntity;
-
-                ref var cellCmp = ref _carPartCellComponentsPool.Value.Add(cellEntity);
-               // cellCmp.MainEntity = _sceneData.Value.PlayerEntity;
-                cellCmp.CellView = inventoryCell;
-             //   cellCmp.CarPartId = -1;
-                _carPartInGameUIComponentsPool.Value.Add(cellEntity);
-                inventoryCell.Construct(new Vector2Int(j, i), SetCurrentCarCell, cellEntity, SetCarPartInfoPanel);
-            }
-        }*/
-
+      
         _sceneData.Value._carPartsContainersContainer.GetComponent<CellView>().Construct(-Vector2Int.one*999, SetCurrentCarCell, -999, SetCarPartInfoPanel);
-        inventoryCmp.onCarCellSize = new Vector2(needCellPartSize, needCellPartSize);
+        
         carCmp.CarPartGroupsGrid = new int[0, 0];
         carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
         carCmp.CarPartContainerGroupsGrid= new int[3,3];
         carCmp.CarPartContainerGroupsList = new Dictionary<int, List<Vector2Int>>();
-        AddMainCarParts(_sceneData.Value.GetCarConfig(_sceneData.Value._defaultCarConfigId)); //for test
+        AddMainCarParts(_sceneData.Value.GetCarConfig(_sceneData.Value._defaultCarConfigId)); 
     }
 
     private void AddMainCarParts(CarConfig carConfig) {

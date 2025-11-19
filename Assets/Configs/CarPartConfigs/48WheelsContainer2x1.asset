@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 09c4eabd0134b734688e505e58713bbc, type: 3}
-  m_Name: 48WheelsContainer1x2
+  m_Name: 48WheelsContainer2x1
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 48
   <MaxHealth>k__BackingField: 200
@@ -20,7 +20,7 @@ MonoBehaviour:
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 0
-  <PartName>k__BackingField: Car wheels 1x2
+  <PartName>k__BackingField: Car wheels 2x1
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:
   - {x: 0, y: 0}

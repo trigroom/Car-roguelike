@@ -10,11 +10,6 @@ public class CarConfig : ScriptableObject {
     public string CarName { get; private set; }
     
     [field: SerializeField]
-    public int Height { get; private set; }
-    [field: SerializeField]
-    public int Width { get; private set; }
-    
-    [field: SerializeField]
     public int[] StartCarParts { get; private set; }
     
     [field: SerializeField]
