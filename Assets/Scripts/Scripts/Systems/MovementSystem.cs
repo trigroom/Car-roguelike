@@ -36,6 +36,12 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
             bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity;
             var deltaTime = Time.deltaTime;
+            
+            
+            
+if(!isPlayer)return;
+
+
 
             if (!isPlayer) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);

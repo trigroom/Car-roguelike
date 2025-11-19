@@ -153,9 +153,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
                 _sceneData.Value._gridMaskRect.position = _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position;
                 var subGridNewPosition = carPartsContainer.position;
+                var carSizeX = (carCmp.CarPartContainerGroupsGrid.GetLength(0));
+                var carSizeY = (carCmp.CarPartContainerGroupsGrid.GetLength(1));
     var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
     if (inventoryCmp.IsCarPartsRedactorMode &&
-        (carCmp.CarPartContainerGroupsGrid.GetLength(0) % 2 == 1 && carCmp.CarPartContainerGroupsGrid.GetLength(1) % 2 == 1)) {
+        (carSizeX % 2 == 1 && carSizeY % 2 == 1)||
+        ((carSizeX % 2 == 1 && carSizeY % 2 == 0)&& carSizeX > carSizeY)||
+        (carSizeX % 2 == 0 && carSizeY % 2 == 1)&& carSizeX < carSizeY) {
         subGridNewPosition += (Vector3)currentCellSize * _sceneData.Value.mainCanvas.localScale.x / 2;
                     Debug.Log("Added offset "+((Vector3)currentCellSize*_sceneData.Value.mainCanvas.localScale.x/2));
                 }

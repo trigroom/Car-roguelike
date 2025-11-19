@@ -869,24 +869,32 @@ public enum AttackType {
                 }
             }
         }
-        public bool GetBulletDirection(Transform targetObject, Vector2 bulletPosition, ArmorConfig armorConfig)
-        {
-            Vector2 localBulletPos = targetObject.InverseTransformPoint(bulletPosition);
-        
-            Vector2 localDirection = localBulletPos.normalized;
 
-            float angle = Mathf.Atan2(localDirection.y, localDirection.x) * Mathf.Rad2Deg;
-
-            if (Mathf.Abs(angle) <= 45f)
-                return armorConfig.DefenceDirections.Contains(DefenceDirection.Right); 
-            else if (Mathf.Abs(angle) >= 135f)
-                return armorConfig.DefenceDirections.Contains(DefenceDirection.Left);
-            else if (angle > 0f)
-                return armorConfig.DefenceDirections.Contains(DefenceDirection.Up);
-            else
-                return armorConfig.DefenceDirections.Contains(DefenceDirection.Down);
+        public bool GetBulletDirection(Transform shieldTransform, Vector2 bulletPosition, ArmorConfig armorConfig) {
+            Vector2 directionToBullet = (bulletPosition - (Vector2)shieldTransform.position).normalized;
+            Vector2 shieldForward = shieldTransform.right;
+            Vector2 shieldRight = shieldTransform.up; // В 2D up обычно это "право" для повернутого объекта
+    
+            // Угол между направлением щита и направлением к пуле
+            float angle = Vector2.SignedAngle(shieldForward, directionToBullet);
+    
+            Debug.Log("Angle from shield forward: " + angle);
+    
+            // Определяем сторону атаки относительно щита
+            DefenceDirection attackDirection;
+    
+            if (Mathf.Abs(angle) <= 45f) { 
+                attackDirection = DefenceDirection.Right;
+            } else if (angle > 45f && angle <= 135f) { 
+                attackDirection = DefenceDirection.Up;
+            } else if (Mathf.Abs(angle) > 135f) {
+             attackDirection = DefenceDirection.Left;
+            } else { // angle < -45f && angle >= -135f
+                attackDirection = DefenceDirection.Down;  
+            }
+    
+            return armorConfig.DefenceDirections.Contains(attackDirection);
         }
-        
         private void DestroyBrokenParts() {
             foreach (Transform child in _sceneData.Value._brokenCarPartsContainer)
             {

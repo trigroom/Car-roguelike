@@ -813,7 +813,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             } else {
                 string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
                    carPart.SetupCarPart(carPartInfo, needLayer, carPartCmp.MainEntity);
-                   //carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
+                   carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
             }
              
             // need check
@@ -928,8 +928,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         movementComponent.MovableObjectRigidbody.mass = carCmp.CurrentWeight;
        
         movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed * (1-carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
-        if (movementComponent.MaxMoveSpeed < 1)
-            movementComponent.MaxMoveSpeed = 1;
 
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {
