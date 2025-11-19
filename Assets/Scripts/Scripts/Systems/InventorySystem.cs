@@ -106,11 +106,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var startRound in _startRoundEventsFilter.Value) {
             SetShopCells(false);
             var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            if(gameCmp.CurrentRound == 5)
+            if (gameCmp.CurrentRound == 5)
                 AddRareToShopItems(CarPartRare.Medium);
-            else if(gameCmp.CurrentRound == 10)
+            else if (gameCmp.CurrentRound == 10)
                 AddRareToShopItems(CarPartRare.High);
-            else if(gameCmp.CurrentRound == 15)
+            else if (gameCmp.CurrentRound == 15)
                 AddRareToShopItems(CarPartRare.VeryHigh);
             UpdateCarDescription();
             ActivateGiveCarPartsWindow();
@@ -146,67 +146,68 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
             if (inventoryCmp.CurrentDraggedCellEntity != -1) {
                 var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-               
-            var currentCellSize =new Vector2(200, 200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
-                    carCmp.CarPartContainerGroupsGrid.GetLength(1));
-            var carPartsContainer = _sceneData.Value._carPartsContainersContainer;
-            _sceneData.Value._subGridTransform.transform.position = carPartsContainer.position;
-            _sceneData.Value._gridMaskRect.position = _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position;
-            Vector2 positionOffset = Vector2.zero;
 
-            var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
-            var startOffset = -inventoryCmp.StartOffsetFromCell;
-            if (inventoryCmp.CurrentRotateDegrees == 90) {
-                  startOffset = new Vector2(-startOffset.y, startOffset.x);
-                  carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
-            }
-                
-              
-            else if (inventoryCmp.CurrentRotateDegrees == 180) {
-                  startOffset = new Vector2(-startOffset.x, -startOffset.y);
-                  carPartSize = new Vector2Int(carPartSize.x, carPartSize.y);
-            }
-              
-            else if (inventoryCmp.CurrentRotateDegrees == 270) {
-                 startOffset = new Vector2(startOffset.y, -startOffset.x);
-                 carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
-            }
-               
-            positionOffset = new Vector2(carPartSize.x, carPartSize.y) / 2 * currentCellSize * startOffset *
-                             _sceneData.Value.mainCanvas.localScale.x;
-            var edgePositionOffset = new Vector2(carPartSize.x - 1, carPartSize.y - 1) / 2 * currentCellSize *
-                                     _sceneData.Value.mainCanvas.localScale.x;
-              
-             
-              
-              var finalEdgeInputPosition =(Vector2)Input.mousePosition + positionOffset - edgePositionOffset;
-          
+                var currentCellSize = new Vector2(200, 200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
+                    carCmp.CarPartContainerGroupsGrid.GetLength(1)) * _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x;
+                var carPartsContainer = _sceneData.Value._carPartsContainersContainer;
 
-            if (inventoryCmp.LastCheckedGridCellPosition != GetCurrentDragCarPartContainerGridPosition(finalEdgeInputPosition)) {
-                var positionOnGrid = GetCurrentDragCarPartContainerGridPosition(finalEdgeInputPosition);
-                inventoryCmp.LastCheckedGridCellPosition = positionOnGrid;
-                inventoryCmp.IsSnappingToGrid = inventoryCmp.IsCarPartsRedactorMode
-                    ? CanPlacedOnCarCell()
-                    : CanPlaceCarPartsContainerOnField(positionOnGrid);
-            }
+                _sceneData.Value._gridMaskRect.position = _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position;
+                var subGridNewPosition = carPartsContainer.position;
 
-            Vector2 targetCellPosition;
-            if (carCmp.CarPartContainerGroupsList.Count != 0 && inventoryCmp.IsSnappingToGrid) {
-                if (_sceneData.Value._subGridTransform.GetCurrentState() != inventoryCmp.IsSnappingToGrid)
-                    _sceneData.Value._subGridTransform.SetSubGridState(inventoryCmp.IsSnappingToGrid || carCmp.CarPartContainerGroupsList.Count == 0);
-                var worldPosition = GetWorldPositionFromGrid(GetCurrentDragCarPartContainerGridPosition(finalEdgeInputPosition));
-                targetCellPosition = ((worldPosition + edgePositionOffset) * 5 + (Vector2)Input.mousePosition + positionOffset) / 6;
-                
-                targetCellPosition = (worldPosition + edgePositionOffset);
-            } else {
-                targetCellPosition = (Vector2)Input.mousePosition + positionOffset;
-                if (_sceneData.Value._subGridTransform.GetCurrentState() != inventoryCmp.IsSnappingToGrid)
-                    _sceneData.Value._subGridTransform.SetSubGridState(inventoryCmp.IsSnappingToGrid);
-            }
+                if ((int)_sceneData.Value._inventoryUIView._carPartsContainer.localScale.x != 1)
+                  subGridNewPosition += (Vector3)currentCellSize*_sceneData.Value.mainCanvas.localScale.x/2;
+
+                _sceneData.Value._subGridTransform.transform.position = subGridNewPosition;
+                var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
+                var startOffset = -inventoryCmp.StartOffsetFromCell;
+                if (inventoryCmp.CurrentRotateDegrees == 90) {
+                    startOffset = new Vector2(-startOffset.y, startOffset.x);
+                    carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
+                } else if (inventoryCmp.CurrentRotateDegrees == 180) {
+                    startOffset = new Vector2(-startOffset.x, -startOffset.y);
+                    carPartSize = new Vector2Int(carPartSize.x, carPartSize.y);
+                } else if (inventoryCmp.CurrentRotateDegrees == 270) {
+                    startOffset = new Vector2(startOffset.y, -startOffset.x);
+                    carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
+                }
+
+                Vector2 positionOffset = Vector2.zero;
+                positionOffset = new Vector2(carPartSize.x, carPartSize.y) / 2 * currentCellSize * startOffset *
+                                 _sceneData.Value.mainCanvas.localScale.x;
+                var edgePositionOffset = new Vector2(carPartSize.x - 1, carPartSize.y - 1) / 2 * currentCellSize *
+                                         _sceneData.Value.mainCanvas.localScale.x;
+
+                var finalEdgeInputPosition = (Vector2)Input.mousePosition + positionOffset - edgePositionOffset;
+
+                if (inventoryCmp.LastCheckedGridCellPosition != GetCurrentDragCarPartContainerGridPosition(finalEdgeInputPosition)) {
+                    var positionOnGrid = GetCurrentDragCarPartContainerGridPosition(finalEdgeInputPosition);
+                    inventoryCmp.LastCheckedGridCellPosition = positionOnGrid;
+                    inventoryCmp.IsSnappingToGrid = inventoryCmp.IsCarPartsRedactorMode
+                        ? CanPlacedOnCarCell()
+                        : CanPlaceCarPartsContainerOnField(positionOnGrid);
+                }
+
+                Vector2 targetCellPosition;
+                if (carCmp.CarPartContainerGroupsList.Count != 0 && inventoryCmp.IsSnappingToGrid) {
+                    if (_sceneData.Value._subGridTransform.GetCurrentState() != inventoryCmp.IsSnappingToGrid)
+                        _sceneData.Value._subGridTransform.SetSubGridState(inventoryCmp.IsSnappingToGrid ||
+                                                                           carCmp.CarPartContainerGroupsList.Count == 0);
+                    var worldPosition = GetWorldPositionFromGrid(GetCurrentDragCarPartContainerGridPosition(finalEdgeInputPosition));
+                    targetCellPosition = ((worldPosition + edgePositionOffset) * 5 + (Vector2)Input.mousePosition + positionOffset) / 6;
+
+                    targetCellPosition = (worldPosition + edgePositionOffset);
+                } else {
+                    targetCellPosition = (Vector2)Input.mousePosition + positionOffset;
+                    if (_sceneData.Value._subGridTransform.GetCurrentState() != inventoryCmp.IsSnappingToGrid)
+                        _sceneData.Value._subGridTransform.SetSubGridState(inventoryCmp.IsSnappingToGrid);
+                }
+
+                var currentPartType = GetCurrentDraggedCellCarPart().PartType;
                 _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position = Vector3.Slerp(
                     _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position, targetCellPosition, Time.deltaTime * 10f);
-                if (Input.GetMouseButtonDown(1) && (GetCurrentDraggedCellCarPart().PartType == CarPartType.Gun ||
-                                                    GetCurrentDraggedCellCarPart().PartType == CarPartType.MeleeWeapon || GetCurrentDraggedCellCarPart().PartType == CarPartType.Armor))
+                if (Input.GetMouseButtonDown(1) && (currentPartType == CarPartType.Gun ||
+                                                    currentPartType == CarPartType.MeleeWeapon ||
+                                                    currentPartType == CarPartType.Armor))
                     RotateCarPart();
                 if (Input.GetMouseButtonUp(0)) {
                     if (inventoryCmp.IsCarPartsRedactorMode) {
@@ -244,10 +245,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             inventoryCmp.IsTryDraggedCell = false;
         }
 
-       /* foreach (var addItem in _addInventoryItemEventsFilter.Value) {
-          AddInventoryItem(_addInventoryItemEventsPool.Value.Get(addItem).CarPartId,1);
-          _addInventoryItemEventsPool.Value.Del(addItem);
-        }*/
+        /* foreach (var addItem in _addInventoryItemEventsFilter.Value) {
+           AddInventoryItem(_addInventoryItemEventsPool.Value.Get(addItem).CarPartId,1);
+           _addInventoryItemEventsPool.Value.Del(addItem);
+         }*/
     }
 
     private void UpdateButtonEnter() {
@@ -272,18 +273,39 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         //messege about this
 
         inventoryCmp.IsCarPartsRedactorMode = !inventoryCmp.IsCarPartsRedactorMode;
-
+var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
         if (inventoryCmp.IsCarPartsRedactorMode) {
             _sceneData.Value._inventoryUIView._changeToRedactModeImage.sprite =
                 _sceneData.Value._inventoryUIView._changeToRedactCarPartsModeSprite;
             _sceneData.Value._inventoryUIView._changeToRedactModeText.text = "Redact up level";
             _sceneData.Value._inventoryUIView._carPartsUpLevelContainer.alpha = 1;
+            inventoryCmp.CurrentCarPartContainersTween.Kill();
+            inventoryCmp.CurrentCarPartContainersTween = DOTween.Sequence();
 
+            inventoryCmp.CurrentCarPartContainersTween.Append(
+                _sceneData.Value._inventoryUIView._carPartsContainer.DOScale(Vector3.one * 2, 0.3f));
+            inventoryCmp.CurrentCarPartContainersTween.Join(
+                _sceneData.Value._inventoryUIView._carPartsContainer.DOLocalMove(
+                    new Vector2(200 - containerSize.x - 100, 200 - containerSize.y + 38), 0.3f));
+           
+            // _sceneData.Value._inventoryUIView._carPartsContainer.transform.localPosition =
+            //   new Vector2((200-containerSizeX)  - 100, (200-containerSizeY) + 38);
             SortCarParts(CarPartType.All);
         } else {
             _sceneData.Value._inventoryUIView._changeToRedactModeImage.sprite =
                 _sceneData.Value._inventoryUIView._changeToRedactCarContainersModeSprite;
             _sceneData.Value._inventoryUIView._changeToRedactModeText.text = "Redact down level";
+            
+            inventoryCmp.CurrentCarPartContainersTween.Kill();
+            inventoryCmp.CurrentCarPartContainersTween = DOTween.Sequence();
+
+            inventoryCmp.CurrentCarPartContainersTween.Append(
+                _sceneData.Value._inventoryUIView._carPartsContainer.DOScale(Vector3.one, 0.3f));
+            inventoryCmp.CurrentCarPartContainersTween.Join(
+                _sceneData.Value._inventoryUIView._carPartsContainer.DOLocalMove(
+                    new Vector2((200 - containerSize.x)/2 - 100, (200 - containerSize.y)/2 + 38), 0.3f));
+            
+            
             _sceneData.Value._inventoryUIView._carPartsUpLevelContainer.alpha = 0.25f;
 
             SortCarParts(CarPartType.None);
@@ -368,12 +390,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Vector2 currentCellSize = /*inventoryCmp.IsCarPartsRedactorMode ? inventoryCmp.onCarCellSize :*/
             new Vector2(200, 200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1));
+        currentCellSize *= _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale;
         Vector2 cellSize = partSize * currentCellSize;
 
         _sceneData.Value._subGridTransform.gameObject.SetActive(true);
         _sceneData.Value._gridMaskRect.gameObject.SetActive(true);
         _sceneData.Value._subGridTransform.SetSubGridSize(Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
-            carCmp.CarPartContainerGroupsGrid.GetLength(1)) * 8);
+            carCmp.CarPartContainerGroupsGrid.GetLength(1)) * 8/ _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x);
         inventoryCmp.CurrentTween = DOTween.Sequence();
 
         inventoryCmp.CurrentTween.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(cellSize, 0.3f)
@@ -512,15 +535,21 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void SetCarContainersContainerSize() {
         var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-       
-        float containerSizeX = carCmp.CarPartContainerGroupsGrid.GetLength(0) >carCmp.CarPartContainerGroupsGrid.GetLength(1)
+
+        float containerSizeX = carCmp.CarPartContainerGroupsGrid.GetLength(0) > carCmp.CarPartContainerGroupsGrid.GetLength(1)
             ? 200f
-            : 200f * ((float)carCmp.CarPartContainerGroupsGrid.GetLength(0)/ (carCmp.CarPartContainerGroupsGrid.GetLength(1)));
+            : 200f * ((float)carCmp.CarPartContainerGroupsGrid.GetLength(0) / (carCmp.CarPartContainerGroupsGrid.GetLength(1)));
         float containerSizeY = carCmp.CarPartContainerGroupsGrid.GetLength(0) < carCmp.CarPartContainerGroupsGrid.GetLength(1)
             ? 200
             : 200f * ((float)carCmp.CarPartContainerGroupsGrid.GetLength(1) / (carCmp.CarPartContainerGroupsGrid.GetLength(0)));
-        _sceneData.Value._carPartsContainersContainer.sizeDelta = new Vector2(containerSizeX, containerSizeY); 
-        _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).onCarCellSize = new Vector2(containerSizeX/carCmp.CarPartContainerGroupsGrid.GetLength(0),containerSizeX/carCmp.CarPartContainerGroupsGrid.GetLength(0));
+        _sceneData.Value._carPartsContainersContainer.sizeDelta = new Vector2(containerSizeX, containerSizeY);
+        _sceneData.Value._inventoryUIView._carPartsContainer.transform.localPosition = new Vector2(
+            (200 - containerSizeX) * _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x/2 - 100,
+            (200 - containerSizeY) * _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x/2 + 38);
+
+        Debug.Log(containerSizeX + " x " + containerSizeY + " y");
+        _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).onCarCellSize = new Vector2(
+            containerSizeX / carCmp.CarPartContainerGroupsGrid.GetLength(0), containerSizeX / carCmp.CarPartContainerGroupsGrid.GetLength(0));
     }
 
     private void SetFirstCarPartContainer() {
@@ -696,10 +725,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             ref var carPartOldCmp = ref _carPartComponentsPool.Value.Get(cellGroup.Key);
             var oldCarPartConfig = GetCarPartConfig(carPartOldCmp.CarPartId);
             var oldCarPartSize = GridUtils.GetCarPartSize(oldCarPartConfig);
-            Vector2 oldFiguresOffset = (oldCarPartSize - Vector2Int.one) * gridCellNewSize;
+            Vector2 oldFiguresOffset = (oldCarPartSize - Vector2Int.one) * gridCellNewSize* _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x;
             if (oldCarPartSize != Vector2Int.one)
                 oldFiguresOffset = new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1) / 2 * gridCellNewSize *
-                                   _sceneData.Value.mainCanvas.localScale.x;
+                                   _sceneData.Value.mainCanvas.localScale.x* _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x;
             Sequence returnSequence = DOTween.Sequence();
             returnSequence.Append(carPartOldCmp.carPartCellImage.rectTransform.DOSizeDelta(gridCellNewSize * oldCarPartSize, 0.2f)
                 .SetEase(Ease.InOutQuad));
@@ -723,10 +752,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             ref var carPartOldCmp = ref _carPartComponentsPool.Value.Get(carParts.Key);
             var oldCarPartConfig = GetCarPartConfig(carPartOldCmp.CarPartId);
             var oldCarPartSize = GridUtils.GetCarPartSize(oldCarPartConfig);
-            Vector2 oldFiguresOffset = (oldCarPartSize - Vector2Int.one) * gridCellNewSize;
+            Vector2 oldFiguresOffset = (oldCarPartSize - Vector2Int.one) * gridCellNewSize* _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x;
             if (oldCarPartSize != Vector2Int.one)
                 oldFiguresOffset = new Vector2(oldCarPartSize.x - 1, oldCarPartSize.y - 1) / 2 * gridCellNewSize *
-                                   _sceneData.Value.mainCanvas.localScale.x;
+                                   _sceneData.Value.mainCanvas.localScale.x* _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x;
             Sequence returnSequence = DOTween.Sequence();
             returnSequence.Append(carPartOldCmp.carPartCellImage.rectTransform.DOSizeDelta(gridCellNewSize * oldCarPartSize, 0.2f)
                 .SetEase(Ease.InOutQuad));
@@ -760,6 +789,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartCmp.carPartCellImage.transform.position = finalPosition;
         carPartCmp.CarPartId = carPartConfig.Id;
         carPartCmp.PartLevel = level;
+        
+
+        
+        
+        
         carPartCmp.carPartCellImage.rectTransform.sizeDelta = gridCellNewSize * carPartSize;
         carPartCmp.carPartCellImage.sprite = carPartConfig.PartSprite;
         UpdateCarDescription();
@@ -1351,11 +1385,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     public Vector2Int GetGridPosition(Vector2 localPosition)
     {
         Vector2 adjustedPosition = localPosition;
+        
         var carCmp  =_carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
      
         Vector2 effectiveCellSize = new Vector2(200,200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
             carCmp.CarPartContainerGroupsGrid.GetLength(1)) ;
-        
+        effectiveCellSize *= _sceneData.Value._inventoryUIView._carPartsContainer.localScale;
         int gridX = Mathf.FloorToInt((adjustedPosition.x) / effectiveCellSize.x  );
         int gridY = Mathf.FloorToInt((adjustedPosition.y) / effectiveCellSize.y);
         
@@ -1366,7 +1401,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     {
         var carCmp  =_carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Vector2 effectiveCellSize = new Vector2(200,200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
-            carCmp.CarPartContainerGroupsGrid.GetLength(1)) ;
+            carCmp.CarPartContainerGroupsGrid.GetLength(1));
        
         float posX = (gridPosition.x * effectiveCellSize.x) + (effectiveCellSize.x / 2);
         float posY = (gridPosition.y * effectiveCellSize.y) + (effectiveCellSize.y / 2);
@@ -1377,10 +1412,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private Vector2Int GetCurrentDragCarPartContainerGridPosition(Vector2 needPos) {
-        Vector2 localPosition;
+        
         RectTransformUtility.ScreenPointToLocalPointInRectangle(_sceneData.Value._carPartsContainersContainer,needPos, null,
-            out localPosition);
-
+            out Vector2 localPosition);
+        localPosition *= _sceneData.Value._inventoryUIView._carPartsContainer.localScale;
         Vector2Int gridPos = GetGridPosition(localPosition);
 
         return gridPos;
@@ -1433,7 +1468,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         Vector2 offset = carPartSize * inventoryCmp.onCarCellSize - inventoryCmp.onCarCellSize;
         if (carPartSize != Vector2Int.one) {
             offset = new Vector2(carPartSize.x - 1, carPartSize.y - 1) / 2 * inventoryCmp.onCarCellSize *
-                     _sceneData.Value.mainCanvas.localScale.x;
+                     _sceneData.Value.mainCanvas.localScale.x * _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x;
         }
 
         var gridPos = inventoryCmp.LastCheckedGridCellPosition;

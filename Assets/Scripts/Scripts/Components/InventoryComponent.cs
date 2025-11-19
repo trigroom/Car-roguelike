@@ -28,6 +28,7 @@
         public Vector2 StartOffsetFromCell;
         public Vector3 EdgeInputPosition;
         public Tween CurrentMoneyTween;
+        public Sequence CurrentCarPartContainersTween;
         
         public Vector2Int LastCheckedGridCellPosition;
         public bool IsSnappingToGrid;

@@ -11,7 +11,7 @@ public class SubGridView : MonoBehaviour {
     private Color _canPlaceColor;
     [SerializeField]
     private Color _canNotPlaceColor;
-    public void SetSubGridSize(int gridSize) {
+    public void SetSubGridSize(float gridSize) {
         foreach (var gridChild in _subGridImages) {
             gridChild.pixelsPerUnitMultiplier = gridSize;
         }
