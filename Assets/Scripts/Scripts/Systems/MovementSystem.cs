@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
@@ -15,6 +16,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
+    private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
 
     public void Init(IEcsSystems systems) {
         ref var playerFuelCmp = ref _fuelComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
@@ -24,6 +26,10 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     public void Run(IEcsSystems systems) {
+        foreach (var endRound in _endRoundEventsFilter.Value) {
+            _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
+            _sceneData.Value._playerUIView._fuelLampLightImage.gameObject.SetActive(false);
+        }
         foreach (var movementEntity in _movementComponentsFilter.Value) {
             ref var movementCmp = ref _movementComponentsPool.Value.Get(movementEntity);
             if (movementCmp.MovableObjectRigidbody == null) continue;
@@ -35,7 +41,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
                 movementCmp.TargetPosition = enemyAiCmp.TargetToMove.position;
                 enemyAiCmp.LastCheckedTime -= deltaTime;
-
+                enemyAiCmp.LastCollisionWithObstacleTime -= deltaTime;
                 if (enemyAiCmp.LastCheckedTime <= 0) {
                     CheckForObstacles(movementEntity);
                 }
@@ -75,7 +81,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                         
                         fuelCmp.UseSpeedBoost = false;
                     } else if(!isPlayer){
-                        fuelCmp.UseSpeedBoost = true;
+                        fuelCmp.UseSpeedBoost = _enemyAIComponentsPool.Value.Get(movementEntity).LastCollisionWithObstacleTime <= 0;
                     }
 
                     float angleDifference = Mathf.DeltaAngle(moveObjectTransform.eulerAngles.z, needTargetRotation);
@@ -130,6 +136,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
     private void CheckForObstacles(int entity) {
         ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
+        enemyAiCmp.LastCollisionWithObstacleTime = 1f;
         var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints);
         if (leftSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
@@ -139,7 +146,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
         if (leftSide < 5.1f) {
             enemyAiCmp.CurrentEnemyDirection =
-               /* enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back :*/ EnemyDirection.Left;
+                enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back : EnemyDirection.Left;
             enemyAiCmp.LastCheckedTime += 0.35f;
             return;
         }
@@ -151,11 +158,12 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             enemyAiCmp.LastCheckedTime += 0.8f;
         } else if (rightSide < 5.1f) {
             enemyAiCmp.CurrentEnemyDirection =
-                /*enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back :*/ EnemyDirection.Right;
+                enemyAiCmp.CurrentEnemyDirection == EnemyDirection.Back ? EnemyDirection.Back : EnemyDirection.Right;
             enemyAiCmp.LastCheckedTime += 0.35f;
         } else {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.None;
             enemyAiCmp.LastCheckedTime += 0.15f;
+            enemyAiCmp.LastCollisionWithObstacleTime = 0f;
         }
     }
 
@@ -163,8 +171,8 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var point in pointsToCheck) {
             Vector3[] rayDirections = {
                 point.up, // Прямо
-                Quaternion.Euler(0, 0, 30) * point.up, // Под углом 30°
-                Quaternion.Euler(0, 0, -30) * point.up
+             //   Quaternion.Euler(0, 0, 30) * point.up, // Под углом 30°
+               // Quaternion.Euler(0, 0, -30) * point.up
             };
 
             foreach (Vector3 direction in rayDirections) {
@@ -184,7 +192,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     }
     private void UseFuel(int entity) {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
-        
+        bool isPlayer = entity == _sceneData.Value.PlayerEntity;
         var carConfig = _sceneData.Value.GetCarConfig (_carComponentsPool.Value.Get(entity).CarId);
         float curFuelConsumption = fuelCmp.UseSpeedBoost ? fuelCmp.FuelConsumption+carConfig.AccelerationFuelСonsumption : fuelCmp.FuelConsumption;
         
@@ -196,8 +204,15 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             fuelCmp.CurrentFuel = 0;
             return;
         }
-
-        if (entity != _sceneData.Value.PlayerEntity) return;
+   
+        if (!isPlayer) return;
+        if (fuelCmp.CurrentFuel / fuelCmp.MaxFuel < 0.25f && !_sceneData.Value._playerUIView._fuelLampLightImage.gameObject.activeInHierarchy) {
+           var fuelLampLight = _sceneData.Value._playerUIView._fuelLampLightImage;
+           fuelLampLight.color = Color.clear;
+           fuelLampLight.gameObject.SetActive(true);
+           fuelLampLight.DOFade(1, 0.25f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InSine);
+        }
+                
        // _sceneData.Value._playerUIView._fuelFillImage.fillAmount = playerFuelCmp.CurrentFuel / playerFuelCmp.MaxFuel;
        _sceneData.Value._playerUIView._fuelArrowImage.transform.eulerAngles = new Vector3(0,0,-65f+130f*fuelCmp.CurrentFuel / fuelCmp.MaxFuel) ;
         _sceneData.Value._playerUIView._fuelText.text = $"{(int)fuelCmp.CurrentFuel}";

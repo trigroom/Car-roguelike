@@ -21,4 +21,6 @@ public class PlayerUIView : MonoBehaviour
     public Transform _arrowImageTransform { get; private set; }
     [field: SerializeField]
     public Image _lampLightImage { get; private set; }
+    [field: SerializeField]
+        public Image _fuelLampLightImage { get; private set; }
 }

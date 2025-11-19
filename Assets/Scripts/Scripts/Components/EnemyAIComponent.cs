@@ -6,6 +6,7 @@ using UnityEngine;
         public List<Transform> CheckedEnemyRightPoints;
         public EnemyDirection CurrentEnemyDirection;
         public float LastCheckedTime;
+        public float LastCollisionWithObstacleTime;
         public Transform TargetToMove;
     }
 
