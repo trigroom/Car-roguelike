@@ -8979,6 +8979,7 @@ MonoBehaviour:
   <_givingCarPartsUIView>k__BackingField: {fileID: 686068779}
   <_brokenCarPartsContainer>k__BackingField: {fileID: 536468873}
   _pixelEffectsLayerTexture: {fileID: 8400000, guid: 3066b01b0b8e97c40908218928508038, type: 2}
+  _pixelEffectsUnderCarLayerTexture: {fileID: 8400000, guid: 97236d0eeca01fd4da8b10d812f43130, type: 2}
   <_enemiesCarBuilderView>k__BackingField: {fileID: 1100035727}
   <_gunContainerPrefab>k__BackingField: {fileID: 7202835890898529445, guid: 9f85ea5978a199c4f95315ce4358fb74, type: 3}
   <_subGridTransform>k__BackingField: {fileID: 2119767463}

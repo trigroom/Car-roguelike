@@ -16,6 +16,11 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 int mapIndex = i;
                 _metaSceneService.Value._selectMapButtons[i].onClick.AddListener(() => SelectMap(mapIndex));
             }
+
+            for (int i = 0; i < _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons.Length; i++) {
+                int difficltyIndex = i;
+                _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons[i].onClick.AddListener(() => SelectMapDifficulty(difficltyIndex));
+            }
         }
         
         public void SelectCar(int carId) {
@@ -24,17 +29,20 @@ sealed class MetaUiSystem : IEcsInitSystem {
             _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(true);
             //go to select map
         }
-        
+
         public void SelectMap(int mapId) {
             _betweenSceneService.Value.CurrentSelectedMap = mapId;
             _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(false);
-            _metaSceneService.Value._selectMapDifficltyUIView.SetupDifficltyScreen();
-            _betweenSceneService.Value.CurrentSelectedMapDifficlty = 0;
+            _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficltyScreen(
+                _betweenSceneService.Value._carStuffListsConfig.MapConfigs[_betweenSceneService.Value.CurrentSelectedMap]);
+            SelectMapDifficulty(0);
             //go to select diff
         }
-        
-        public void SelectMapDifficlty(int difficltyLevel) {
-            _betweenSceneService.Value.CurrentSelectedMapDifficlty = difficltyLevel;
-            SceneManager.LoadScene("Scenes/SampleScene");
+
+        public void SelectMapDifficulty(int difficultyLevel) {
+            _betweenSceneService.Value.CurrentSelectedMapDifficlty = difficultyLevel;
+            _metaSceneService.Value.selectMapDifficultyUIView.SetDifficultyDescription(_betweenSceneService.Value._carStuffListsConfig
+                .MapConfigs[_betweenSceneService.Value.CurrentSelectedMap].MapDifficltyConfigs[difficultyLevel]);
+            //SceneManager.LoadScene("Scenes/SampleScene");
         }
     }

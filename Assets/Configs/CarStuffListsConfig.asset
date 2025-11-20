@@ -101,3 +101,5 @@ MonoBehaviour:
   - {fileID: -1104032543, guid: ac6064b026fc61f4698d486316f3d117, type: 3}
   - {fileID: 235373268, guid: ac6064b026fc61f4698d486316f3d117, type: 3}
   <DestroyedCarPartColor>k__BackingField: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
+  <MapConfigs>k__BackingField:
+  - {fileID: 11400000, guid: fbce5cb28c1563e48a066e40d88df59f, type: 2}

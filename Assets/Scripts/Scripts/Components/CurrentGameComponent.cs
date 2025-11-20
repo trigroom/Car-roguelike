@@ -17,6 +17,9 @@
         
         public float RoundTime;
         public int RoundAddedEnemies;
+
+        public float DifficultyHealthMultiplayer;
+        public float DifficultyDamageMultiplayer;
  }
 
  public enum RoundType {

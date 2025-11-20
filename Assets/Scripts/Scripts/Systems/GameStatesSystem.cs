@@ -11,7 +11,8 @@ using UnityEngine.UI;
 
 public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsWorldInject _world;
-    private EcsCustomInject<SceneService> _sceneData;
+    private EcsCustomInject<SceneService> _sceneService;
+    private EcsCustomInject<BetweenScenesService> _betweenScenesService;
 
     private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
     private EcsPoolInject<CarComponent> _carComponentsPool;
@@ -48,15 +49,20 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
     public void Init(IEcsSystems systems) {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
-        _settingsComponentsPool.Value.Add(_sceneData.Value.PlayerEntity).pixelizedEffectIsUsed = true;
-        _sceneData.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
-        _sceneData.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
-        _sceneData.Value._mapFilledZoneView.SetupFilledZone(SetFeelingZoneState);
+        var diificultyConfig = _sceneService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
+            .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
+        curGameCmp.DifficultyDamageMultiplayer = diificultyConfig.DamageMultiplayer;
+        curGameCmp.DifficultyHealthMultiplayer = diificultyConfig.HealthMultiplayer;
+           
+        _settingsComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).pixelizedEffectIsUsed = true;
+        _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
+        _sceneService.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
+        _sceneService.Value._mapFilledZoneView.SetupFilledZone(SetFeelingZoneState);
         
-        var settingsView = _sceneData.Value._settingsView;
+        var settingsView = _sceneService.Value._settingsView;
         settingsView._settingsChangeStateButton.onClick.AddListener(SetSettingsState);
         settingsView._saveSettingsButton.onClick.AddListener(SaveSettings);
         settingsView._blueColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
@@ -68,7 +74,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     public void Run(IEcsSystems systems) {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         foreach (var filledZone in _filledZoneComponentsFilter.Value) {
             TriggerFilledZone();
@@ -77,9 +83,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
                 curGameCmp.RoundTime += Time.deltaTime;
-                _sceneData.Value._playerUIView._gameTimerText.text = ((int)(30+curGameCmp.CurrentRound*3 - curGameCmp.RoundTime)).ToString();
+                _sceneService.Value._playerUIView._gameTimerText.text = ((int)(30+curGameCmp.CurrentRound*3 - curGameCmp.RoundTime)).ToString();
                 if (curGameCmp.RoundTime > 30+curGameCmp.CurrentRound*3) {
-                    _sceneData.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
+                    _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
                     EndRound();
                 }
 
@@ -87,9 +93,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
             case RoundType.FromAToB:
                 curGameCmp.RoundTime += Time.deltaTime;
-                if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) return;
-                ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-                var moveCmp = _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+                if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) return;
+                ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                var moveCmp = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
                 if (moveCmp.MovableObjectRigidbody != null)
                     UpdateArrowDirection(pointToPointRound.PointsToCheck[0], moveCmp.MovableObjectRigidbody.gameObject.transform.position);
                 if (pointToPointRound.TimeAfterMarkPoint > 0)
@@ -112,44 +118,44 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetSettingsState() {
-        _sceneData.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneData.Value._settingsView._settingsContainer.gameObject.activeInHierarchy);
+        _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneService.Value._settingsView._settingsContainer.gameObject.activeInHierarchy);
     }
 
     private void SetColorSliderEnemyProjectilesValues() {
-        var settingsView = _sceneData.Value._settingsView;
-        var needColor = _sceneData.Value._carStuffListsConfig.EnemyProjectilesMaterial.GetColor("_OffsetColor");
+        var settingsView = _sceneService.Value._settingsView;
+        var needColor = _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial.GetColor("_OffsetColor");
         settingsView._redColorSlider.value = needColor.r*settingsView._redColorSlider.maxValue;
             settingsView._greenColorSlider.value = needColor.g*settingsView._greenColorSlider.maxValue;
                 settingsView._blueColorSlider.value = needColor.b*settingsView._blueColorSlider.maxValue;
     }
 
     private void SaveSettings() {
-        var settingsView = _sceneData.Value._settingsView;
+        var settingsView = _sceneService.Value._settingsView;
 
         var newColor = new Color(settingsView._redColorSlider.normalizedValue, settingsView._blueColorSlider.normalizedValue,
             settingsView._greenColorSlider.normalizedValue);
-        _sceneData.Value._carStuffListsConfig.EnemyProjectilesMaterial.SetColor("_OffsetColor", newColor);
+        _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial.SetColor("_OffsetColor", newColor);
     }
 
     private void ChangePixelizedEffectsMode() {
-        var settingsView = _sceneData.Value._settingsView; 
+        var settingsView = _sceneService.Value._settingsView; 
        
         bool isPixelized = !settingsView._setPixelizedEffectModeChecker.gameObject.activeInHierarchy;
         settingsView._setPixelizedEffectModeChecker.gameObject.SetActive(isPixelized);
-        _sceneData.Value._pixelizedEffectsImage.gameObject.SetActive(isPixelized);
-        _sceneData.Value._pixelizedEffectsUnderCarImage.gameObject.SetActive(isPixelized);
+        _sceneService.Value._pixelizedEffectsImage.gameObject.SetActive(isPixelized);
+        _sceneService.Value._pixelizedEffectsUnderCarImage.gameObject.SetActive(isPixelized);
         if (!isPixelized) {
-            _sceneData.Value.mainCamera.cullingMask |= (1 << 9);
-            _sceneData.Value.mainCamera.cullingMask |= (1 << 3);
+            _sceneService.Value.mainCamera.cullingMask |= (1 << 9);
+            _sceneService.Value.mainCamera.cullingMask |= (1 << 3);
         } else {
-            _sceneData.Value.mainCamera.cullingMask &= ~(1 << 9);
-            _sceneData.Value.mainCamera.cullingMask &= ~(1 << 3);
+            _sceneService.Value.mainCamera.cullingMask &= ~(1 << 9);
+            _sceneService.Value.mainCamera.cullingMask &= ~(1 << 3);
         }
       
     }
 
     private void ChangePickedEnemyProjectilesColor(float value) {
-        var settingsView = _sceneData.Value._settingsView;
+        var settingsView = _sceneService.Value._settingsView;
         settingsView._projectilesOffsetColorImage.color = new Color(settingsView._redColorSlider.normalizedValue,
             settingsView._blueColorSlider.normalizedValue, settingsView._greenColorSlider.normalizedValue);
         
@@ -159,8 +165,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void UpdateMapPoint() {
-        if(!_fromPointToPointRoundComponentsPool.Value.Has(_sceneData.Value.PlayerEntity))return;
-        ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        if(!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))return;
+        ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if(pointToPointRound.TimeAfterMarkPoint > 0)return;
         pointToPointRound.PointsToCheck.RemoveAt(0);
         pointToPointRound.TimeAfterMarkPoint = 1;
@@ -168,14 +174,14 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             EndPointToPointRound();
             EndRound();
         } else {
-            _sceneData.Value._mapPointPrefab.transform.position = pointToPointRound.PointsToCheck[0];
+            _sceneService.Value._mapPointPrefab.transform.position = pointToPointRound.PointsToCheck[0];
             //smth particle effect
         }
     }
 
     private void SetSaleShopRound() {
-        _sceneData.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(false);
-        _updateShopToSaleRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(false);
+        _updateShopToSaleRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
     
     
@@ -192,14 +198,14 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             
             // Плавный поворот стрелки
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
-            _sceneData.Value._playerUIView._arrowImageTransform.parent.rotation = Quaternion.Lerp(
-                _sceneData.Value._playerUIView._arrowImageTransform.parent.rotation, 
+            _sceneService.Value._playerUIView._arrowImageTransform.parent.rotation = Quaternion.Lerp(
+                _sceneService.Value._playerUIView._arrowImageTransform.parent.rotation, 
                 targetRotation, 
                 3 * Time.deltaTime
             );
         }
-        Vector3 screenPos = _sceneData.Value.mainCamera.WorldToScreenPoint(playerPosition);
-        _sceneData.Value._playerUIView._arrowImageTransform.parent.position = Vector2.Lerp(_sceneData.Value._playerUIView._arrowImageTransform.parent.position,screenPos, 4*Time.deltaTime) ;
+        Vector3 screenPos = _sceneService.Value.mainCamera.WorldToScreenPoint(playerPosition);
+        _sceneService.Value._playerUIView._arrowImageTransform.parent.position = Vector2.Lerp(_sceneService.Value._playerUIView._arrowImageTransform.parent.position,screenPos, 4*Time.deltaTime) ;
     }
     
     private int TaskCount() {
@@ -210,19 +216,19 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
     }
     private void SetMoneyText() {
-        _sceneData.Value._shopUIView._moneyCountText.text =
-            _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount + "$";
+        _sceneService.Value._shopUIView._moneyCountText.text =
+            _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount + "$";
     }
 
     private void EndRound() {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.None;
-        _endRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         int currentRound = curGameCmp.CurrentRound - 1;
-        _sceneData.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
-        int moneyCount = (int)(_sceneData.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
+        _sceneService.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
+        int moneyCount = (int)(_sceneService.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
         curGameCmp.RoundMoneyMultiplayer = 1;
-        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         int allPartCount = 0;
         int brokenPartCount = 0;
         foreach (var carPartInfo in carCmp.CarPartGroupsList) {
@@ -230,7 +236,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             allPartCount += carPartInfo.Value.Count;
             if (carPartCmp.CurrentHealth <= 0)
                 brokenPartCount += carPartInfo.Value.Count;
-            var supportModule = _sceneData.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
+            var supportModule = _sceneService.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
             if (supportModule && _carPartComponentsPool.Value.Get(carPartInfo.Key).CurrentHealth > 0 &&
                 supportModule.ModuleType == SupportModuleType.Money) {
                 moneyCount += (int)supportModule.FirstCount;
@@ -246,31 +252,31 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         }
         
-        _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount += moneyCount;
+        _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount += moneyCount;
         SetMoneyText();
-        _sceneData.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
+        _sceneService.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
         ChangeInventoryState(true);
         ChangePlayerUIState(false);
       //  ReleaseAllCarPartUI();
     }
 
     private void ReleaseAllCarPartUI() {
-        var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var carPartUi in inventoryCmp.CarPartInfoUIViewsGrid) {
             if (carPartUi)
-                _sceneData.Value.ReleaseCarPartInGameUIView(carPartUi);
+                _sceneService.Value.ReleaseCarPartInGameUIView(carPartUi);
         }
         foreach (var carPartUi in inventoryCmp.CarPartInfoUIViewsUpLevelGrid) {
             if (carPartUi)
-                _sceneData.Value.ReleaseCarPartInGameUIView(carPartUi);
+                _sceneService.Value.ReleaseCarPartInGameUIView(carPartUi);
         }
         
     }
 
     private void ChangeRoundInfo() {
         if (!CanStartRound()) return;
-        _sceneData.Value._mapUIView.gameObject.SetActive(true);
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        _sceneService.Value._mapUIView.gameObject.SetActive(true);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         var currentSupportRoundTypes = RoundUtilits.SupportRoundsTypes.Distinct().ToList();
         if (TaskCount() == 5)
@@ -279,17 +285,17 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             RoundUtilits.GetRandomBattleRound(curGameCmp.CurrentBattleRounds, 3, currentSupportRoundTypes);
         curGameCmp.RoundTypes.Add(randomRounds);
         curGameCmp.RoundButtons = new EventTrigger[randomRounds.Length];
-        var mapImageRect = _sceneData.Value._mapUIView.MapImage.rectTransform;
+        var mapImageRect = _sceneService.Value._mapUIView.MapImage.rectTransform;
         
         //_sceneData.Value._mapUIView.MapImage.transform.position -= new Vector3(0,
           //  mapImageRect.rect.height/2* _sceneData.Value.mainCanvas.localScale.x/ _sceneData.Value._gameProcessConfig.GameRounds.Length, 0);
         
         Transform moneyMultPosition = null;
-        _sceneData.Value._mapUIView.RoundDifficltyContainer.localScale = Vector3.zero;
+        _sceneService.Value._mapUIView.RoundDifficltyContainer.localScale = Vector3.zero;
         for (int i = 0; i < randomRounds.Length; i++) {
-            var roundButton = _sceneData.Value.InstantiateRoundButton();
+            var roundButton = _sceneService.Value.InstantiateRoundButton();
             int newIndex = i;
-            roundButton.GetComponent<Image>().sprite = _sceneData.Value._mapUIView.RoundSprites[randomRounds[i]];
+            roundButton.GetComponent<Image>().sprite = _sceneService.Value._mapUIView.RoundSprites[randomRounds[i]];
 
             EventTrigger.Entry clickEntry = new EventTrigger.Entry();
             clickEntry.eventID = EventTriggerType.PointerClick;
@@ -304,7 +310,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
           float posX = (newIndex + 1) * (mapImageRect.rect.width / ((float)randomRounds.Length + 1)) -
                        mapImageRect.rect.width / 2 ;
           float posY = (curGameCmp.CurrentRound + 1) *
-                       (mapImageRect.rect.height / ((float)_sceneData.Value._gameProcessConfig.GameRounds.Length + 2)) -
+                       (mapImageRect.rect.height / ((float)_sceneService.Value._gameProcessConfig.GameRounds.Length + 2)) -
                        mapImageRect.rect.height / 2 ;
           roundButton.transform.localPosition = new Vector2(posX, posY);
             curGameCmp.RoundButtons[i] = roundButton;
@@ -312,33 +318,33 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             if (moneyMultiplayerRound == i) {
                 moneyMultPosition = roundButton.transform;
                 float currentMultiplayer = Random.Range(12, 20) * 0.1f;
-                _sceneData.Value._mapUIView.SetMoneyMultiplayerText(currentMultiplayer);
+                _sceneService.Value._mapUIView.SetMoneyMultiplayerText(currentMultiplayer);
                 curGameCmp.RoundMoneyMultiplayer = currentMultiplayer;
             }
         }
 
-        _sceneData.Value._mapUIView.MapImage.transform.DOMoveY(
-                _sceneData.Value._mapUIView.MapImage.transform.position.y - (mapImageRect.rect.height / 2 *
-                    _sceneData.Value.mainCanvas.localScale.x / _sceneData.Value._gameProcessConfig.GameRounds.Length), 0.5f)
+        _sceneService.Value._mapUIView.MapImage.transform.DOMoveY(
+                _sceneService.Value._mapUIView.MapImage.transform.position.y - (mapImageRect.rect.height / 2 *
+                    _sceneService.Value.mainCanvas.localScale.x / _sceneService.Value._gameProcessConfig.GameRounds.Length), 0.5f)
             .SetEase(Ease.InOutBack)
             .OnComplete(() => {
                 if (moneyMultPosition) {
-                    _sceneData.Value._mapUIView.RoundDifficltyContainer.position =
+                    _sceneService.Value._mapUIView.RoundDifficltyContainer.position =
                         new Vector2(moneyMultPosition.position.x, moneyMultPosition.position.y - 70);
 
-                    _sceneData.Value._mapUIView.RoundDifficltyContainer.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+                    _sceneService.Value._mapUIView.RoundDifficltyContainer.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
                 }
             });
 
 
-        _sceneData.Value._mapUIView.RoundNumberText.text = "Round" + (curGameCmp.CurrentRound + 1);
+        _sceneService.Value._mapUIView.RoundNumberText.text = "Round" + (curGameCmp.CurrentRound + 1);
         ChangeInventoryState(false);
 
         ChangeRoundDescription(RoundType.None);
     }
 
     private void ChangeRoundDescription(RoundType roundType, PointerEventData data = null) {
-        var descriptionText = _sceneData.Value._mapUIView.RoundDescriptionText;
+        var descriptionText = _sceneService.Value._mapUIView.RoundDescriptionText;
         switch (roundType) {
             case RoundType.None:
                 descriptionText.text = "";
@@ -368,9 +374,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private void StartCurrentRoundType(RoundType roundType,PointerEventData data) {
-        _sceneData.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
+        _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
         
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var button in curGameCmp.RoundButtons) {
             button.enabled = false;
         }
@@ -393,8 +399,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 SetFilledZoneRound();
                 break;
             case RoundType.Chest:
-                var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-                _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentGivenItems
+                var shopCmp = _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentGivenItems
                     .Add(shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)]);
                 ChangeInventoryState(true);
                 break;
@@ -421,10 +427,10 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             curGameCmp.CurrentBattleRounds = 1;
         curGameCmp.CurrentRoundType = roundType;
         //curGameCmp.RoundWithMoneyMultiplayer = -1;
-        _sceneData.Value._mapUIView.gameObject.SetActive(false);
+        _sceneService.Value._mapUIView.gameObject.SetActive(false);
         
         curGameCmp.CurrentRound++;
-        _startRoundEventsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        _startRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
 
     private void CreateNewTask(CurrentGameComponent curGameCmp) {
@@ -439,45 +445,45 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetFeelingZoneState(bool isFeeling) {
-        _filledZoneComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ZoneIsFeeling = isFeeling;
+        _filledZoneComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).ZoneIsFeeling = isFeeling;
     }
     private void TriggerFilledZone() {
-        ref var filledZoneCmp =ref _filledZoneComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var filledZoneCmp =ref _filledZoneComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if(!filledZoneCmp.ZoneIsFeeling)return;
         filledZoneCmp.CurrentZoneTime += Time.deltaTime;
-        _sceneData.Value._mapFilledZoneView.FilledZoneUI.fillAmount = filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime;
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.fillAmount = filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime;
         if (filledZoneCmp.CurrentZoneTime >= filledZoneCmp.NeedZoneTime) {
             EndFilledZoneRound();
-            _filledZoneComponentsPool.Value.Del(_sceneData.Value.PlayerEntity);
+            _filledZoneComponentsPool.Value.Del(_sceneService.Value.PlayerEntity);
             EndRound();
         }
     }
 
     private void EndFilledZoneRound() {
-        _sceneData.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(false);
-        _sceneData.Value._mapFilledZoneView.gameObject.SetActive(false);
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(false);
+        _sceneService.Value._mapFilledZoneView.gameObject.SetActive(false);
     }
 
     private Vector2 GetPositionAroundPlayer() {
-        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         Vector2 carSize = new Vector2(carCmp.CarPartContainerGroupsGrid.GetLength(0)/2f, carCmp.CarPartContainerGroupsGrid.GetLength(1)/2f); 
         
         return GetRandomPointAround(carCmp.CarView.CarPartsContainer.transform.position, 10+Mathf.Max(carSize.x,carSize.y));
     }
     
     private void SetFilledZoneRound() {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
-        _sceneData.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(true);
-        _sceneData.Value._mapFilledZoneView.gameObject.SetActive(true);
-       _filledZoneComponentsPool.Value.Add(_sceneData.Value.PlayerEntity).NeedZoneTime = 10+curGameCmp.CurrentRound*3;
-        _sceneData.Value._mapFilledZoneView.ChangeZonePosition(GetRandomPointAround(Vector2.zero, 10));
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(true);
+        _sceneService.Value._mapFilledZoneView.gameObject.SetActive(true);
+       _filledZoneComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).NeedZoneTime = 10+curGameCmp.CurrentRound*3;
+        _sceneService.Value._mapFilledZoneView.ChangeZonePosition(GetRandomPointAround(Vector2.zero, 10));
     }
     private void SetNewPointToPointRound() {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.FromAToB;
        
-        ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
         pointToPointRoundCmp.PointsToCheck = new List<Vector2>();
         int pointsCount = 2+curGameCmp.CurrentRound/5;
         Vector2 posToSpawn = Vector2.zero;
@@ -487,24 +493,24 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                    Debug.Log(posToSpawn + "posToSpawn");
         }
 
-        var carPartsGrid = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CarPartContainerGroupsGrid;
-        _sceneData.Value._playerUIView._arrowImageTransform.parent.transform.position =
-            _sceneData.Value.mainCamera.WorldToScreenPoint(Vector3.zero);
+        var carPartsGrid = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarPartContainerGroupsGrid;
+        _sceneService.Value._playerUIView._arrowImageTransform.parent.transform.position =
+            _sceneService.Value.mainCamera.WorldToScreenPoint(Vector3.zero);
         float arrowPos =
             Mathf.Max(carPartsGrid.GetLength(0), carPartsGrid.GetLength(1)) * 20;
 
-        _sceneData.Value._playerUIView._arrowImageTransform.localPosition = new Vector3(arrowPos, 0, 0);
+        _sceneService.Value._playerUIView._arrowImageTransform.localPosition = new Vector3(arrowPos, 0, 0);
 
-        _sceneData.Value._mapPointPrefab.transform.position = pointToPointRoundCmp.PointsToCheck[0];
-        _sceneData.Value._mapPointPrefab.gameObject.SetActive(true);
-        _sceneData.Value._playerUIView._arrowImageTransform.gameObject.SetActive(true);
+        _sceneService.Value._mapPointPrefab.transform.position = pointToPointRoundCmp.PointsToCheck[0];
+        _sceneService.Value._mapPointPrefab.gameObject.SetActive(true);
+        _sceneService.Value._playerUIView._arrowImageTransform.gameObject.SetActive(true);
        
     }
 
     private void EndPointToPointRound() {
-        _fromPointToPointRoundComponentsPool.Value.Del(_sceneData.Value.PlayerEntity);
-        _sceneData.Value._mapPointPrefab.gameObject.SetActive(false);
-        _sceneData.Value._playerUIView._arrowImageTransform.gameObject.SetActive(false);
+        _fromPointToPointRoundComponentsPool.Value.Del(_sceneService.Value.PlayerEntity);
+        _sceneService.Value._mapPointPrefab.gameObject.SetActive(false);
+        _sceneService.Value._playerUIView._arrowImageTransform.gameObject.SetActive(false);
         
     }
     public Vector2 GetRandomPointAround(Vector2 startPoint, float distance)
@@ -551,7 +557,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private TMP_Text GetTextForTask() {
-        foreach (var taskText in _sceneData.Value._playerUIView._taskTexts) {
+        foreach (var taskText in _sceneService.Value._playerUIView._taskTexts) {
             if (!taskText.gameObject.activeInHierarchy) return taskText;
         }
 
@@ -559,7 +565,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private void SetGameTimer() {
-        _sceneData.Value._playerUIView._gameTimerText.gameObject.SetActive(true);
+        _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(true);
        
     }
     
@@ -579,14 +585,15 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetEnemiesCars(int enemiesCount, bool onStartRoundSpawn = true) {
-        int roundNumber = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int roundNumber = curGameCmp.CurrentRound;
         if (!onStartRoundSpawn)
             roundNumber--;
         var currentRoundCarStuff =
-            _sceneData.Value._gameProcessConfig.GameRounds[roundNumber];
+            _sceneService.Value._gameProcessConfig.GameRounds[roundNumber];
         
         List<Transform> playerMainParts = new List<Transform>();
-        var playerCarCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var playerCarCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var carPartCmpEntity in playerCarCmp.CarPartGroupsList) {
             playerMainParts.Add(_carPartComponentsPool.Value.Get(carPartCmpEntity.Key).CellCarPartsStuffViews[0].transform);
         }
@@ -612,7 +619,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
             
             foreach (var carContainer in carVariables.CarPartDownLevelGrid) {
-                var carPartConfig = _sceneData.Value.GetCarPartConfig(carContainer.partId);
+                var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
                 var currentCarType = carPartConfig.PartType;
                 
                 if (currentCarType == CarPartType.None) continue;
@@ -633,10 +640,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 carPartCmp.CarPartId = carContainer.partId;
 
                 SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
+
+                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
+                carPartCmp.CurrentHealth = carPartCmp.MaxHealth;
             }
             
             foreach (var carContainer in carVariables.CarPartUpLevelGrid) {
-                var carPartConfig = _sceneData.Value.GetCarPartConfig(carContainer.partId);
+                var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
                 var currentCarType = carPartConfig.PartType;
                 
                 if (currentCarType == CarPartType.None) continue;
@@ -658,9 +668,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
                 SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
             } 
-            fuelCmp.MaxFuel+= _sceneData.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
+            fuelCmp.MaxFuel+= _sceneService.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
            
-            SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
+            SetupEnemyMovementComponent(enemyEntity, _sceneService.Value.GetCarConfig(carCmp.CarId));
             SetupWheels(enemyEntity, carView);
             SetupCarStatsFromLevelBoost(enemyEntity);
             ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Add(enemyEntity);
@@ -677,7 +687,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         for (int j = 0; j < grid.GetLength(0); j++) {
             for (int k = 0; k < grid.GetLength(1); k++) {
                 if (grid[j, k] != 0) {
-                    var obstacleCheckerTransform = _sceneData.Value.GetGunContainer(carView.CarPartsContainer);
+                    var obstacleCheckerTransform = _sceneService.Value.GetGunContainer(carView.CarPartsContainer);
                     obstacleCheckerTransform.localPosition = new Vector3(j - grid.GetLength(0) / 2f,
                         k + grid.GetLength(1) / 2f, 0);
                     if (j > grid.GetLength(0) / 2)
@@ -692,10 +702,10 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SetPlayerCarPrefab() {
         
-        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        _fuelComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).UseSpeedBoost = false;
-        var carView = CarViewSetup(_sceneData.Value.PlayerEntity);
-        ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        _fuelComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).UseSpeedBoost = false;
+        var carView = CarViewSetup(_sceneService.Value.PlayerEntity);
+        ref var carCmp = ref _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
@@ -710,12 +720,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 (int)_carPartComponentsPool.Value.Get(carPartInfo.Key).carPartCellImage.transform.eulerAngles.z);
         }
         
-        SetupWheels(_sceneData.Value.PlayerEntity, carView);
+        SetupWheels(_sceneService.Value.PlayerEntity, carView);
 
         ArrangeImagesInGrid();
-        SetupCarStatsFromLevelBoost(_sceneData.Value.PlayerEntity);
-        BuildBorder(_sceneData.Value.PlayerEntity);
-        _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;
+        SetupCarStatsFromLevelBoost(_sceneService.Value.PlayerEntity);
+        BuildBorder(_sceneService.Value.PlayerEntity);
+        _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;
         ChangePlayerUIState(true);
     }
 
@@ -723,7 +733,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var carCmp = ref _carComponentsPool.Value.Get(enity);
         (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier) =
             GridUtils.GetCarLevelMultipliers(carCmp.CarLevel);
-        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        var carConfig = _sceneService.Value.GetCarConfig(carCmp.CarId);
 
         ref var moveCmp = ref _movementComponentsPool.Value.Get(enity);
         moveCmp.Acceleration *= baseAccelerationMultiplier;
@@ -742,12 +752,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void ArrangeImagesInGrid() {
         float spacing = 0f;
-        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        RectTransform parentRect = _sceneData.Value._playerUIView._carPratsDownLevelHealthContainer;
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        ref var carCmp = ref _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        RectTransform parentRect = _sceneService.Value._playerUIView._carPratsDownLevelHealthContainer;
         float parentWidth = parentRect.rect.width;
         float parentHeight = parentRect.rect.height;
-        var upLevelpartsContainer = _sceneData.Value._playerUIView._carPratsUpLevelHealthContainer;
+        var upLevelpartsContainer = _sceneService.Value._playerUIView._carPratsUpLevelHealthContainer;
         int columns = carCmp.CarPartContainerGroupsGrid.GetLength(1);
         int rows = carCmp.CarPartContainerGroupsGrid.GetLength(0);
         inventoryCmp.CarPartInfoUIViewsGrid = new CarPartInGameUIView[rows, columns];
@@ -781,16 +791,16 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 var col = cell.y;
                 float posX = startX + row * cellSize;
                 float posY = startY + col * cellSize;
-                var cellUIHealth = _sceneData.Value.GetCarPartInGameUIView();
+                var cellUIHealth = _sceneService.Value.GetCarPartInGameUIView();
                 cellUIHealth.transform.SetParent(parentRect);
                 var cellCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
                 inventoryCmp[row, col] = cellUIHealth;
                 bool hasText = cell == medianCell;
                 cellUIHealth.gameObject.SetActive(true);
                 cellUIHealth.SetSize(new Vector2(cellSize, cellSize), new Vector2(posX, posY),
-                    _sceneData.Value._carStuffListsConfig.CarPartUIBordersSprites[GridUtils.GetTileSpriteIndex(groupsGrid, cell)],hasText);
+                    _sceneService.Value._carStuffListsConfig.CarPartUIBordersSprites[GridUtils.GetTileSpriteIndex(groupsGrid, cell)],hasText);
                 
-                cellUIHealth.SetHealthCount(_sceneData.Value._healthGradient.Evaluate(cellCmp.CurrentHealth / cellCmp.MaxHealth),
+                cellUIHealth.SetHealthCount(_sceneService.Value._healthGradient.Evaluate(cellCmp.CurrentHealth / cellCmp.MaxHealth),
                     (int)cellCmp.CurrentHealth, true);
                 // }
             }
@@ -798,19 +808,19 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private bool CanStartRound() {
-        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) return false;
-       if (MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity)) &&  CanUseThisCarPartContainers()) return true;
+       if (MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)) &&  CanUseThisCarPartContainers()) return true;
         return false;
     }
     
     private bool CanUseThisCarPartContainers() {
         int wheelsCount = 0;
         Vector2Int lastWheelMinMaxY = Vector2Int.zero;
-        var carCmp = _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
             var carPartCmp = _carPartComponentsPool.Value.Get(carPartContainer.Key);
-            var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);
             if (carPartConfig.PartType == CarPartType.WheelsContainer) {
                 wheelsCount++;
                 Vector2Int edgePoint = GridUtils.GetEdgePointFromCarPart(carPartContainer.Value);
@@ -829,7 +839,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void SpawnCarPartCellView(int cellEntity, CarView carView, bool isPlayer, int rotateAngle) {
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
-        var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[carPartCmp.CarPartId];
+        var carPartConfig = _sceneService.Value._carStuffListsConfig.CarPartConfigs[carPartCmp.CarPartId];
         bool isWeapon = carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun;
    
         var containersSize = new Vector2(carCmp.CarPartContainerGroupsGrid.GetLength(0),carCmp.CarPartContainerGroupsGrid.GetLength(1));
@@ -843,7 +853,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        
         carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
         foreach (var carPartInfo in needList[cellEntity]) {
-            var carPart =  isContainer ? _sceneData.Value.GetCarPartCell(carView.CarPartsContainer): carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y];
+            var carPart =  isContainer ? _sceneService.Value.GetCarPartCell(carView.CarPartsContainer): carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y];
             carPartCmp.CellCarPartsStuffViews.Add(carPart);
             if (isContainer) {
                 string needLayer = isPlayer ? "CarBase" : "CarBaseEnemy";
@@ -863,7 +873,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             // need check
         }
 
-        carPartCmp.CarPartCellRenderer = _sceneData.Value.GetCarPartSpriteRenderer(carView.transform);
+        carPartCmp.CarPartCellRenderer = _sceneService.Value.GetCarPartSpriteRenderer(carView.transform);
         carPartCmp.CarPartCellRenderer.sprite = carPartConfig.PartSprite;
         carPartCmp.CarPartCellRenderer.sortingOrder = needSpriteLevel;
 
@@ -880,23 +890,23 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             //  carPart.SetColliderEnableState(false);
             
             var gunCmp = _gunComponentsPool.Value.Has(cellEntity)? _gunComponentsPool.Value.Get(cellEntity): _gunComponentsPool.Value.Add(cellEntity);
-            var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartCmp.CarPartId);
+            var gunConfig = _sceneService.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             if (gunConfig.UpPartSprite != null) {
-                gunCmp.UpPartContainer = _sceneData.Value.GetGunContainer(carPartCmp.CarPartCellRenderer.transform);
+                gunCmp.UpPartContainer = _sceneService.Value.GetGunContainer(carPartCmp.CarPartCellRenderer.transform);
                 gunCmp.UpPartContainer.transform.localPosition = gunConfig.GunContainerPosition;
                 gunCmp.UpPartContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
 
-                gunCmp.FirePointTransform = _sceneData.Value.GetGunContainer(gunCmp.UpPartContainer);
+                gunCmp.FirePointTransform = _sceneService.Value.GetGunContainer(gunCmp.UpPartContainer);
                 gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition - gunConfig.GunContainerPosition;
                 gunCmp.FirePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
 
-                gunCmp.GunSpriteRenderer = _sceneData.Value.GetCarPartSpriteRenderer(gunCmp.UpPartContainer);
+                gunCmp.GunSpriteRenderer = _sceneService.Value.GetCarPartSpriteRenderer(gunCmp.UpPartContainer);
                 gunCmp.GunSpriteRenderer.sprite = gunConfig.UpPartSprite;
                 gunCmp.GunSpriteRenderer.sortingOrder = 3;
                 gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition - gunConfig.GunContainerPosition;
                 gunCmp.GunSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
             } else {
-                gunCmp.FirePointTransform = _sceneData.Value.GetGunContainer(carPartCmp.CarPartCellRenderer.transform);
+                gunCmp.FirePointTransform = _sceneService.Value.GetGunContainer(carPartCmp.CarPartCellRenderer.transform);
                 gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition;
                 gunCmp.FirePointTransform.localRotation = Quaternion.Euler(0, 0, 0);
             }
@@ -912,9 +922,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
            
             if (gunConfig.MissleType == MissleType.laser) {
                 if (_laserComponentsPool.Value.Has(cellEntity))
-                    _laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer = _sceneData.Value.GetLaserLineRenderer();
+                    _laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer = _sceneService.Value.GetLaserLineRenderer();
                 else
-                    _laserComponentsPool.Value.Add(cellEntity).LaserLineRenderer = _sceneData.Value.GetLaserLineRenderer();
+                    _laserComponentsPool.Value.Add(cellEntity).LaserLineRenderer = _sceneService.Value.GetLaserLineRenderer();
             }
             
             _gunComponentsPool.Value.Get(cellEntity) = gunCmp;
@@ -922,15 +932,15 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var meleeWeaponCmp = _meleeWeaponComponentsPool.Value.Has(cellEntity)
                 ? _meleeWeaponComponentsPool.Value.Get(cellEntity)
                 : _meleeWeaponComponentsPool.Value.Add(cellEntity);
-            var meleeWeaponConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(carPartCmp.CarPartId);
+            var meleeWeaponConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(carPartCmp.CarPartId);
             if (meleeWeaponConfig.UpSprite != null) {
-                meleeWeaponCmp.MeleeWeaponRenderer = _sceneData.Value.GetCarPartSpriteRenderer(carPartCmp.CarPartCellRenderer.transform);
+                meleeWeaponCmp.MeleeWeaponRenderer = _sceneService.Value.GetCarPartSpriteRenderer(carPartCmp.CarPartCellRenderer.transform);
                 meleeWeaponCmp.MeleeWeaponRenderer.sprite = meleeWeaponConfig.UpSprite;
                 meleeWeaponCmp.MeleeWeaponRenderer.sortingOrder = 3;
                 meleeWeaponCmp.MeleeWeaponRenderer.transform.localPosition = meleeWeaponConfig.UpSpritePosition;
             }
 
-            var meleeStuff = _sceneData.Value.GetMeleeCarPartCell(meleeWeaponCmp.MeleeWeaponRenderer.transform);
+            var meleeStuff = _sceneService.Value.GetMeleeCarPartCell(meleeWeaponCmp.MeleeWeaponRenderer.transform);
             meleeWeaponCmp.MeleeStuff = meleeStuff;
             meleeStuff.transform.localRotation = Quaternion.Euler(0, 0, 0);
             meleeStuff.transform.localPosition = Vector3.zero;
@@ -942,7 +952,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             _meleeWeaponComponentsPool.Value.Get(cellEntity) = meleeWeaponCmp;
             _constructMeleeCellEventsPool.Value.Add(cellEntity);
         } else if (carPartConfig.PartType == CarPartType.Support) {
-            var supportCarPartConfig = _sceneData.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
+            var supportCarPartConfig = _sceneService.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
             switch (supportCarPartConfig.ModuleType) {
                 case SupportModuleType.Fuel:
                     ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
@@ -956,7 +966,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     break;
             }
         } else if (carPartConfig.PartType == CarPartType.WheelsContainer) {
-            var wheelsConfig = _sceneData.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
+            var wheelsConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
             carCmp.CurrentMaxWeight += wheelsConfig.MaxWeight;
         }
 
@@ -965,7 +975,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {
         ref var movementComponent = ref _movementComponentsPool.Value.Get(enemyEntity);
-        movementComponent.RotateSpeed = carConfig.RotateSpeed * 0.5f * _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).RoundMoneyMultiplayer;
+        movementComponent.RotateSpeed = carConfig.RotateSpeed * 0.5f * _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer;
         movementComponent.Acceleration = carConfig.Acceleration;
         movementComponent.Deceleration = carConfig.Deceleration; 
         var carCmp = _carComponentsPool.Value.Get(enemyEntity);
@@ -1001,13 +1011,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
     private CarView CarViewSetup(int entity) {
-        var carView = _sceneData.Value.InstantiateCarView();
+        var carView = _sceneService.Value.InstantiateCarView();
         _movementComponentsPool.Value.Get(entity).MovableObjectRigidbody = carView.Rigidbody;
-        string tag = entity == _sceneData.Value.PlayerEntity ? "Player" : "Enemy";
+        string tag = entity == _sceneService.Value.PlayerEntity ? "Player" : "Enemy";
         carView.Construct(entity, ColissionCarsHit, tag);
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         carCmp.CarView = carView;
-        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        var carConfig = _sceneService.Value.GetCarConfig(carCmp.CarId);
        // carView.CarPartsContainer.localPosition = new Vector3(-(float)carConfig.Width / 2, (float)carConfig.Height / 2, 0);
        
        // carCmp.CurrentWeight += carCmp.CurrentMaxWeight / 5f;
@@ -1022,7 +1032,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         int maxYposWheels = 0;
         ref var carCmp  =ref _carComponentsPool.Value.Get(carCmpEntity);
         foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
-            var carPartConfig = _sceneData.Value.GetCarPartConfig(_carPartComponentsPool.Value.Get(carPartContainer.Key).CarPartId);
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(_carPartComponentsPool.Value.Get(carPartContainer.Key).CarPartId);
             if (carPartConfig.PartType == CarPartType.WheelsContainer) {
                 maxYposWheels = maxYposWheels < carPartContainer.Value[0].y? carPartContainer.Value[0].y : maxYposWheels;
             }
@@ -1030,9 +1040,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
             var carPartCmp = _carPartComponentsPool.Value.Get(carPartContainer.Key);
-            var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);
             if (carPartConfig.PartType == CarPartType.WheelsContainer) {
-                var wheelConfig = _sceneData.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
+                var wheelConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
                 ref var wheelCmp  = ref _wheelContainerComponentsPool.Value.Add(carPartContainer.Key);
                 wheelCmp.Wheels = new List<Animator>();
                 foreach (var wheelPos in wheelConfig.WheelsPositions) {
@@ -1048,7 +1058,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private Animator CreateWheel(int wheelId, CarView carView, Vector2 pos, bool isLeftSide) {
-        var wheelTransform = _sceneData.Value.InstantiateAnimator(_sceneData.Value._carStuffListsConfig.Wheels[wheelId].WheelAnimator,
+        var wheelTransform = _sceneService.Value.InstantiateAnimator(_sceneService.Value._carStuffListsConfig.Wheels[wheelId].WheelAnimator,
             carView.ForwardWheelsContainer.transform);
         AnimatorClipInfo[] clipInfo = wheelTransform.GetCurrentAnimatorClipInfo(0);
         float clipLength = clipInfo[0].clip.length;
@@ -1065,7 +1075,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private bool MainPartIsPlaced(InventoryComponent inventoryCmp) {
         foreach (var partId in inventoryCmp.PartsInInventory) {
-            if (_sceneData.Value._carStuffListsConfig.CarPartConfigs[partId.Item1].PartType == CarPartType.Main)
+            if (_sceneService.Value._carStuffListsConfig.CarPartConfigs[partId.Item1].PartType == CarPartType.Main)
                 return false;
         }
 
@@ -1101,11 +1111,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     
     private void SpawnObstacle(Vector2 position)
     {
-        Transform obstaclePrefab = _sceneData.Value._mountains[Random.Range(0, _sceneData.Value._mountains.Length)];
+        Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
         
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4)*90);
         
-        Transform obstacle = _sceneData.Value.InstantiateObject(obstaclePrefab, new Vector3(position.x, position.y, 0f));
+        Transform obstacle = _sceneService.Value.InstantiateObject(obstaclePrefab, new Vector3(position.x, position.y, 0f));
        obstacle.localRotation = randomRotation;
        
     }
@@ -1131,6 +1141,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         else if (noiseValue < 0.9f) return 2;
         else return 3;
     }
-    private void ChangeInventoryState(bool state) => _sceneData.Value._inventoryUIView.gameObject.SetActive(state);
-    private void ChangePlayerUIState(bool state) => _sceneData.Value._playerUIView.gameObject.SetActive(state);
+    private void ChangeInventoryState(bool state) => _sceneService.Value._inventoryUIView.gameObject.SetActive(state);
+    private void ChangePlayerUIState(bool state) => _sceneService.Value._playerUIView.gameObject.SetActive(state);
 }

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986a3b5f1ec467a4c820b09f41191cbd, type: 3}
+  m_Name: StartMapConfig
+  m_EditorClassIdentifier: 
+  <MapDescription>k__BackingField: sandy wasteland is the first location of the game
+  <MapSprite>k__BackingField: {fileID: 21300000, guid: 7ce86f52b533b614b9a8b0afe7292b59, type: 3}
+  <MapName>k__BackingField: Sandy wasteland
+  <GameProcessConfig>k__BackingField: {fileID: 11400000, guid: 9fd1157b9bed16445bef3f79570f869f, type: 2}
+  <MapDifficltyConfigs>k__BackingField:
+  - {fileID: 11400000, guid: 9776b4665f1c60c4a9ab3ead86f75228, type: 2}
+  - {fileID: 11400000, guid: 9b2baf15722a58541b310d7b9e53b32e, type: 2}
+  - {fileID: 11400000, guid: 56bc3451caab86e478f8f3fcfb468bfc, type: 2}

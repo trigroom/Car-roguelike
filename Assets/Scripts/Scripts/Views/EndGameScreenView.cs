@@ -26,10 +26,11 @@ public class EndGameScreenView : MonoBehaviour
         _mainEndSreenTitle.text = $"Round {roundNumber} is completed";
         gameObject.SetActive(true);
     }
-    public void SetLoseScreenInfo(int roundNumber) {
-        _moneyCountText.text = " click ro restart";
-        _mainEndSreenTitle.text = $"You lose on rond {roundNumber}";
+    public void SetLoseScreenInfo(int roundNumber, int scrapCount) {
+        _moneyCountText.text = $"You get {scrapCount} scrap\nClick ro restart";
+        _mainEndSreenTitle.text = $"You lose on round {roundNumber}";
         foreach (var endGameButton in closeEndGameMenuButtons) {
+            endGameButton.onClick.RemoveAllListeners();
             endGameButton.onClick.AddListener(GoToMetaScene);
         }
         gameObject.SetActive(true);

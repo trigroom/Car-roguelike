@@ -18,6 +18,8 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Transform _brokenCarPartsContainer { get; private set; }
     [SerializeField]
     private RenderTexture _pixelEffectsLayerTexture;
+    [SerializeField]
+    private RenderTexture _pixelEffectsUnderCarLayerTexture;
     [field: SerializeField] public EvemiesCarBuilderView _enemiesCarBuilderView { get; private set; }
     [field: SerializeField] public Transform _gunContainerPrefab { get; private set; }
   [field: SerializeField] public SubGridView _subGridTransform { get; private set; }
@@ -105,9 +107,11 @@ public class SceneService : MonoBehaviour {
         _explosionEffectsPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_explosionEffectPrefab));
         _сarPartInGameUIViewsPool =
             new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsDownLevelHealthContainer));
-       
-            _pixelEffectsLayerTexture.width = Screen.width;
+
+        _pixelEffectsLayerTexture.width = Screen.width;
         _pixelEffectsLayerTexture.height = Screen.height;
+        _pixelEffectsUnderCarLayerTexture.width = Screen.width;
+        _pixelEffectsUnderCarLayerTexture.height = Screen.height;
     }
 
     public CarPartInGameUIView GetCarPartInGameUIView() {

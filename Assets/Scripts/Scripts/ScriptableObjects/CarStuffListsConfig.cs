@@ -30,6 +30,8 @@ public class CarStuffListsConfig : ScriptableObject
     public Sprite[] CarPartUIBordersSprites { get;private set; }
     [field: SerializeField]
     public Color DestroyedCarPartColor { get;private set; }
+    [field: SerializeField]
+    public MapConfig[] MapConfigs { get;private set; }
 }
 
 
