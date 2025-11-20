@@ -87,6 +87,7 @@ public class SceneService : MonoBehaviour {
 
     private void Awake() {
         _defaultCarConfigId = BetweenScenesService.Instance.CurrentSelectedCar;
+        BetweenScenesService.Instance.HideBlackScreen();
         _endGameScreenView.OnInitialize();
         _endGameScreenView.gameObject.SetActive(false);
     //    gameInput = new InputSystem_Actions();

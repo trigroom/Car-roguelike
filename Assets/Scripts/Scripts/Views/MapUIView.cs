@@ -15,10 +15,9 @@ public class MapUIView : MonoBehaviour {
     [SerializedDictionary("Round Type", "Sprite")]
     public SerializedDictionary<RoundType, Sprite> RoundSprites;
 
-    public void SetMoneyMultiplayerText(float multiplayerMoney, Vector2 needPosition) {
+    public void SetMoneyMultiplayerText(float multiplayerMoney) {
         Debug.Log("setup round mult");
         RoundDifficltyContainer.gameObject.SetActive(true);
-        RoundDifficltyContainer.position = needPosition;
         RoundDifficltyContainerText.text = "x"+multiplayerMoney;
     }
     

@@ -460,7 +460,7 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
            upLevelGrid.Add(new CarPartTypeRow(edgePosition, carPartCmp.CarPartId,(int)carPartCmp.carPartCellImage.transform.localEulerAngles.z));
        }
 
-       _sceneData.Value._enemiesCarBuilderView.SaveEnemyCarConfig(carCmp.CarId, downLevelGrid, upLevelGrid,
+       _sceneData.Value._enemiesCarBuilderView.SaveEnemyCarConfig(carCmp.CarId,carCmp.CarLevel, downLevelGrid, upLevelGrid,
            new Vector2Int(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)));
     }
 
@@ -1145,12 +1145,17 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
     private void UpdateCarDescription() {
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
-        float defaultMaxCarSpeed = carConfig.DefaultMaxSpeed;
-        float carRotateSpeed = carConfig.RotateSpeed;
+
+        (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier) =
+           GridUtils.GetCarLevelMultipliers(carCmp.CarLevel);
+        
+        Debug.Log("carCmp.CarLevel" +carCmp.CarLevel);
+        float defaultMaxCarSpeed = carConfig.DefaultMaxSpeed+baseSpeedMultiplier;
+        float carRotateSpeed = carConfig.RotateSpeed*baseRotateSpeedMultiplier;
         float carWeight = 0;
         float carMaxWeight = 0;
-        float maxFuel = carConfig.DefaultMaxFuel;
-        float speedBoost = carConfig.BoostSpeedMultiplayer;
+        float maxFuel = carConfig.DefaultMaxFuel*baseMaxFuelMultiplier;
+        float speedBoost = carConfig.BoostSpeedMultiplayer*baseAccelerationMultiplier;
         float speedBoostFuelConsumption = carConfig.AccelerationFuelСonsumption;
         float defaultFuelConsumption = carConfig.FuelСonsumption;
        // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -1187,7 +1192,7 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
         speedBoost += defaultMaxCarSpeed;
 
         _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
-            $"{carConfig.CarName}\n Max move speed: {defaultMaxCarSpeed:F1} m/s \n Boosted speed: {speedBoost:F1} m/s ({speedBoostFuelConsumption} fuel consumption)" +
+            $"{carConfig.CarName}\n Max move speed: {defaultMaxCarSpeed:F1} m/s \n Added boosted speed: {speedBoost:F1} m/s ({speedBoostFuelConsumption} fuel consumption)" +
             $" \n Default fuel consumption {defaultFuelConsumption} \n Rotate speed: {carRotateSpeed} m/s " +
             $"\n Weight: {carWeight:F1}/{carCmp.CurrentMaxWeight} kg \n Fuel: {maxFuel}";
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MaxMoveSpeed = defaultMaxCarSpeed;
@@ -2028,6 +2033,8 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
 
                 ActivateGiveCarPartsWindow();
             }
+
+            UpdateCarDescription();
         }
     }
     

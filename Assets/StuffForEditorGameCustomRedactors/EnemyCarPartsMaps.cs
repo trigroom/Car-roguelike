@@ -7,9 +7,10 @@ public class EnemyCarPartsMaps : ScriptableObject
     public CarPartTypeRow[] CarPartDownLevelGrid ;
     public CarPartTypeRow[] CarPartUpLevelGrid ;
     public int CarId;
+     public int CarLevel;
     public Vector2Int GridSize;
     
-    public void CreateGrid(int carId,List<CarPartTypeRow> inputGridDownLevel, List<CarPartTypeRow> inputGridUpLevel, Vector2Int gridSize) {
+    public void CreateGrid(int carId,int carLevel,List<CarPartTypeRow> inputGridDownLevel, List<CarPartTypeRow> inputGridUpLevel, Vector2Int gridSize) {
         CarPartDownLevelGrid = inputGridDownLevel.ToArray();
         CarPartUpLevelGrid = inputGridUpLevel.ToArray();
         CarId = carId;

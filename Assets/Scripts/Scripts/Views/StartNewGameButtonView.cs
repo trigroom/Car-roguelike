@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 public class StartNewGameButtonView : MonoBehaviour
 {
     public void StartGame() {
-        SceneManager.LoadScene("Scenes/SampleScene");
+        BetweenScenesService.Instance.ShowBlackScreen( ()=>SceneManager.LoadScene("Scenes/SampleScene"));
+       
     }
 }

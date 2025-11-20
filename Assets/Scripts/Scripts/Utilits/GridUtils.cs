@@ -52,23 +52,15 @@ public class GridUtils : MonoBehaviour
         Left = 3
     }
     
-    /// <summary>
-    /// Получает индекс спрайта (0-15) на основе соседних клеток
-    /// </summary>
-    /// <param name="grid">Двумерный массив с данными тайлов</param>
-    /// <param name="currentCellPos">Позиция текущей клетки</param>
-    /// <param name="targetValue">Значение, с которым сравниваем соседей</param>
-    /// <returns>Индекс спрайта от 0 до 15</returns>
     public static int GetTileSpriteIndex(int[,] grid, Vector2Int currentCellPos)
     {
         int targetValue = grid[currentCellPos.x, currentCellPos.y];
-        // Проверяем наличие соседей в каждом направлении
+     
         bool hasTopNeighbor = HasMatchingNeighbor(grid, currentCellPos, Direction.Top, targetValue);
         bool hasRightNeighbor = HasMatchingNeighbor(grid, currentCellPos, Direction.Right, targetValue);
         bool hasBottomNeighbor = HasMatchingNeighbor(grid, currentCellPos, Direction.Bottom, targetValue);
         bool hasLeftNeighbor = HasMatchingNeighbor(grid, currentCellPos, Direction.Left, targetValue);
         
-        // Преобразуем булевы значения в битовую маску
         int bitmask = 0;
         if (hasTopNeighbor) bitmask |= 1 << 0;    // 1-й бит
         if (hasRightNeighbor) bitmask |= 1 << 1;  // 2-й бит
@@ -79,26 +71,18 @@ public class GridUtils : MonoBehaviour
         return bitmask;
     }
     
-    /// <summary>
-    /// Проверяет есть ли сосед с нужным значением в указанном направлении
-    /// </summary>
     private static bool HasMatchingNeighbor(int[,] grid, Vector2Int currentPos, Direction direction, int targetValue)
     {
         Vector2Int neighborPos = GetNeighborPosition(currentPos, direction);
         
         // Проверяем выход за границы массива
         if(!IsPositionInGrid(neighborPos, grid))
-        {
             return false;
-        }
         
         // Проверяем совпадение значения
         return grid[neighborPos.x, neighborPos.y] == targetValue;
     }
     
-    /// <summary>
-    /// Получает позицию соседа в указанном направлении
-    /// </summary>
     private static Vector2Int GetNeighborPosition(Vector2Int currentPos, Direction direction)
     {
         switch (direction)
@@ -212,6 +196,16 @@ public class GridUtils : MonoBehaviour
         defenceMultiplier += level * 0.15f;
         
         return defenceMultiplier;
+    }
+
+    public static (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier)
+        GetCarLevelMultipliers(int level) {
+        float baseSpeedMultiplier = 1 + level * 0.15f;
+        float baseRotateSpeedMultiplier = 1 + level * 0.15f;
+        float baseAccelerationMultiplier = 1 + level * 0.15f;
+        float baseMaxFuelMultiplier = 1 + level * 0.15f;
+
+        return (baseSpeedMultiplier, baseRotateSpeedMultiplier, baseAccelerationMultiplier, baseMaxFuelMultiplier);
     }
 
     public static List<Vector2> FindBorderContour(int[,] grid) {

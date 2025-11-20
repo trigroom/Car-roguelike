@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
@@ -279,8 +280,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.RoundTypes.Add(randomRounds);
         curGameCmp.RoundButtons = new EventTrigger[randomRounds.Length];
         var mapImageRect = _sceneData.Value._mapUIView.MapImage.rectTransform;
-        _sceneData.Value._mapUIView.MapImage.transform.position -= new Vector3(0,
-            mapImageRect.rect.height/2* _sceneData.Value.mainCanvas.localScale.x/ _sceneData.Value._gameProcessConfig.GameRounds.Length, 0);
+        
+        //_sceneData.Value._mapUIView.MapImage.transform.position -= new Vector3(0,
+          //  mapImageRect.rect.height/2* _sceneData.Value.mainCanvas.localScale.x/ _sceneData.Value._gameProcessConfig.GameRounds.Length, 0);
+        
+        Transform moneyMultPosition = null;
+        _sceneData.Value._mapUIView.RoundDifficltyContainer.localScale = Vector3.zero;
         for (int i = 0; i < randomRounds.Length; i++) {
             var roundButton = _sceneData.Value.InstantiateRoundButton();
             int newIndex = i;
@@ -303,13 +308,28 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                        mapImageRect.rect.height / 2 ;
           roundButton.transform.localPosition = new Vector2(posX, posY);
             curGameCmp.RoundButtons[i] = roundButton;
+            
             if (moneyMultiplayerRound == i) {
+                moneyMultPosition = roundButton.transform;
                 float currentMultiplayer = Random.Range(12, 20) * 0.1f;
-                _sceneData.Value._mapUIView.SetMoneyMultiplayerText(currentMultiplayer,
-                    new Vector2(roundButton.transform.position.x, roundButton.transform.position.y-70));
+                _sceneData.Value._mapUIView.SetMoneyMultiplayerText(currentMultiplayer);
                 curGameCmp.RoundMoneyMultiplayer = currentMultiplayer;
             }
         }
+
+        _sceneData.Value._mapUIView.MapImage.transform.DOMoveY(
+                _sceneData.Value._mapUIView.MapImage.transform.position.y - (mapImageRect.rect.height / 2 *
+                    _sceneData.Value.mainCanvas.localScale.x / _sceneData.Value._gameProcessConfig.GameRounds.Length), 0.5f)
+            .SetEase(Ease.InOutBack)
+            .OnComplete(() => {
+                if (moneyMultPosition) {
+                    _sceneData.Value._mapUIView.RoundDifficltyContainer.position =
+                        new Vector2(moneyMultPosition.position.x, moneyMultPosition.position.y - 70);
+
+                    _sceneData.Value._mapUIView.RoundDifficltyContainer.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+                }
+            });
+
 
         _sceneData.Value._mapUIView.RoundNumberText.text = "Round" + (curGameCmp.CurrentRound + 1);
         ChangeInventoryState(false);
@@ -576,7 +596,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
             _movementComponentsPool.Value.Add(enemyEntity);
             ref var fuelCmp = ref _fuelComponentsPool.Value.Add(enemyEntity);
-            fuelCmp.CurrentFuel = 200;
+           
             ref var carCmp = ref _carComponentsPool.Value.Add(enemyEntity);
             var carVariables = currentRoundCarStuff.CarPresets[Random.Range(0, currentRoundCarStuff.CarPresets.Length)];
             carCmp.CarId = carVariables.CarId;
@@ -637,10 +657,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 carPartCmp.CarPartId = carContainer.partId;
 
                 SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
-            }
+            } 
+            fuelCmp.MaxFuel+= _sceneData.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
+           
             SetupEnemyMovementComponent(enemyEntity, _sceneData.Value.GetCarConfig(carCmp.CarId));
             SetupWheels(enemyEntity, carView);
-
+            SetupCarStatsFromLevelBoost(enemyEntity);
             ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Add(enemyEntity);
             enemyAiCmp.CheckedEnemyLeftPoints = new List<Transform>();
             enemyAiCmp.CheckedEnemyRightPoints = new List<Transform>();
@@ -691,10 +713,32 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetupWheels(_sceneData.Value.PlayerEntity, carView);
 
         ArrangeImagesInGrid();
+        SetupCarStatsFromLevelBoost(_sceneData.Value.PlayerEntity);
         BuildBorder(_sceneData.Value.PlayerEntity);
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;
         ChangePlayerUIState(true);
     }
+
+    private void SetupCarStatsFromLevelBoost(int enity) {
+        ref var carCmp = ref _carComponentsPool.Value.Get(enity);
+        (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier) =
+            GridUtils.GetCarLevelMultipliers(carCmp.CarLevel);
+        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+
+        ref var moveCmp = ref _movementComponentsPool.Value.Get(enity);
+        moveCmp.Acceleration *= baseAccelerationMultiplier;
+        moveCmp.Deceleration *= baseAccelerationMultiplier;
+        moveCmp.MaxBoostMoveSpeed = carConfig.BoostSpeedMultiplayer + baseAccelerationMultiplier;
+
+        moveCmp.MaxMoveSpeed *= baseSpeedMultiplier;
+
+        moveCmp.RotateSpeed *= baseRotateSpeedMultiplier;
+
+        ref var fuelCmp = ref _fuelComponentsPool.Value.Get(enity);
+        fuelCmp.MaxFuel += carConfig.DefaultMaxFuel * (baseMaxFuelMultiplier - 1);
+        fuelCmp.CurrentFuel = fuelCmp.MaxFuel;
+    }
+    
 
     private void ArrangeImagesInGrid() {
         float spacing = 0f;

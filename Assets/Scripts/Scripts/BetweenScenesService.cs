@@ -1,8 +1,13 @@
+using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class BetweenScenesService : MonoBehaviour {
     public int CurrentSelectedCar;
+    public int CurrentSelectedMap;
+    public int CurrentSelectedMapDifficlty;
+    public RectTransform BlackScreen;
       [field: SerializeField] public CarStuffListsConfig _carStuffListsConfig { get; private set; }
    
    public static BetweenScenesService Instance;
@@ -12,6 +17,21 @@ public class BetweenScenesService : MonoBehaviour {
         DontDestroyOnLoad(this);
         
         SceneManager.LoadScene("Scenes/MetaScene");
+    }
+
+    public void HideBlackScreen() {
+        BlackScreen.gameObject.SetActive(true);
+        BlackScreen.anchoredPosition = new Vector3(0, BlackScreen.anchoredPosition.y);
+        BlackScreen.DOKill();
+        Debug.Log("Black Screen Hidden");
+        BlackScreen.DOAnchorPosX(3000, 0.75f).SetEase(Ease.OutBack).OnComplete(()=>BlackScreen.gameObject.SetActive(false));
+    }
+
+    public void ShowBlackScreen(Action endAction = null) {
+        BlackScreen.gameObject.SetActive(true);
+        BlackScreen.anchoredPosition = new Vector3(-3000, BlackScreen.anchoredPosition.y);
+        BlackScreen.DOKill();
+        BlackScreen.DOAnchorPosX(0, 0.75f).SetEase(Ease.InBack).OnComplete(()=>endAction?.Invoke());
     }
 
 }

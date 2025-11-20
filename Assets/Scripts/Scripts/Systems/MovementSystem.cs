@@ -37,12 +37,6 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity;
             var deltaTime = Time.deltaTime;
             
-            
-            
-if(!isPlayer)return;
-
-
-
             if (!isPlayer) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
                 movementCmp.TargetPosition = enemyAiCmp.TargetToMove.position;
@@ -107,7 +101,7 @@ if(!isPlayer)return;
                     SetWheelParticleSystemState(movementEntity, true);
                     
                     var carConfig = _sceneData.Value.GetCarConfig (carCmp.CarId);
-                    float maxSpeed = fuelCmp.UseSpeedBoost ? movementCmp.MaxMoveSpeed+carConfig.BoostSpeedMultiplayer : movementCmp.MaxMoveSpeed;
+                    float maxSpeed = fuelCmp.UseSpeedBoost ? movementCmp.MaxMoveSpeed+movementCmp.MaxBoostMoveSpeed : movementCmp.MaxMoveSpeed;
                     
                     if (!isReversing) {
                         movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, maxSpeed,
