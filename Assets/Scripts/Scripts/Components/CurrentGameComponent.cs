@@ -6,7 +6,7 @@
  public struct CurrentGameComponent {
         public int CurrentRound;
         public RoundType CurrentRoundType;
-        public List<RoundType[]> RoundTypes;
+       // public List<RoundType[]> RoundTypes;
 
         public int CurrentBattleRounds;
         
@@ -27,6 +27,7 @@
      Task,
      Shop,
      Chest,
+     TeammateForSupport,
      Transfer,
      BattleDefault,
      ZoneDefence,

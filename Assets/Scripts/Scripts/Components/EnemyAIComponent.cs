@@ -8,6 +8,9 @@ using UnityEngine;
         public float LastCheckedTime;
         public float LastCollisionWithObstacleTime;
         public Transform TargetToMove;
+        public bool IsEnemy;
+        public float RadiusToCheckTarget;
+        public float LastTargetCheckTime;
     }
 
     public enum EnemyDirection {

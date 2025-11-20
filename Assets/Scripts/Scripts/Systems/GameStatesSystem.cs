@@ -50,7 +50,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     public void Init(IEcsSystems systems) {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        curGameCmp.RoundTypes = new List<RoundType[]>();
+      //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         var diificultyConfig = _sceneService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
             .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
@@ -303,7 +303,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length - 1
                 ? (new[] { RoundType.BossBattle }, -1)
                 : RoundUtilits.GetRandomBattleRound(curGameCmp.CurrentBattleRounds, 3, currentSupportRoundTypes);
-        curGameCmp.RoundTypes.Add(randomRounds);
+      //  curGameCmp.RoundTypes.Add(randomRounds);
         curGameCmp.RoundButtons = new EventTrigger[randomRounds.Length];
         var mapImageRect = _sceneService.Value._mapUIView.MapImage.rectTransform;
 
@@ -403,6 +403,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.BattleDefault:
                 SetPlayerCarPrefab();
                SetEnemiesCars(3);
+                SpawnTeammateCar();
                 SetGameTimer();
                 break;
             case RoundType.BossBattle:
@@ -413,11 +414,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.FromAToB:   
                 SetPlayerCarPrefab();
                 SetEnemiesCars(3);
+                SpawnTeammateCar();
                 SetNewPointToPointRound();
                 break;
             case RoundType.ZoneDefence:
                 SetPlayerCarPrefab();
                 SetEnemiesCars(3);
+                SpawnTeammateCar();
                 SetFilledZoneRound();
                 break;
             case RoundType.Chest:
@@ -501,32 +504,30 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        _filledZoneComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).NeedZoneTime = 10+curGameCmp.CurrentRound*3;
         _sceneService.Value._mapFilledZoneView.ChangeZonePosition(GetRandomPointAround(Vector2.zero, 10));
     }
+
     private void SetNewPointToPointRound() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.FromAToB;
-       
+
         ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
         pointToPointRoundCmp.PointsToCheck = new List<Vector2>();
-        int pointsCount = 2+curGameCmp.CurrentRound/5;
+        int pointsCount = 2 + curGameCmp.CurrentRound / 5;
         Vector2 posToSpawn = Vector2.zero;
         for (int i = 0; i < pointsCount; i++) {
             posToSpawn = GetRandomPointAround(posToSpawn, 15);
-                   pointToPointRoundCmp.PointsToCheck.Add(posToSpawn);
-                   Debug.Log(posToSpawn + "posToSpawn");
+            pointToPointRoundCmp.PointsToCheck.Add(posToSpawn);
         }
 
         var carPartsGrid = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarPartContainerGroupsGrid;
         _sceneService.Value._playerUIView._arrowImageTransform.parent.transform.position =
             _sceneService.Value.mainCamera.WorldToScreenPoint(Vector3.zero);
-        float arrowPos =
-            Mathf.Max(carPartsGrid.GetLength(0), carPartsGrid.GetLength(1)) * 20;
+        float arrowPos = Mathf.Max(carPartsGrid.GetLength(0), carPartsGrid.GetLength(1)) * 20;
 
         _sceneService.Value._playerUIView._arrowImageTransform.localPosition = new Vector3(arrowPos, 0, 0);
 
         _sceneService.Value._mapPointPrefab.transform.position = pointToPointRoundCmp.PointsToCheck[0];
         _sceneService.Value._mapPointPrefab.gameObject.SetActive(true);
         _sceneService.Value._playerUIView._arrowImageTransform.gameObject.SetActive(true);
-       
     }
 
     private void EndPointToPointRound() {
@@ -606,6 +607,16 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         collider.SetPath(0, contour.ToArray());
     }
 
+    private void SpawnTeammateCar() {
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int roundNumber = curGameCmp.CurrentRound;
+
+        var currentRoundCarStuff = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[roundNumber];
+
+        var carVariables = currentRoundCarStuff.CarPresets[Random.Range(0, currentRoundCarStuff.CarPresets.Length)];
+        SpawnNpcCar(curGameCmp, carVariables, false);
+    }
+    
     private void SetEnemiesCars(int enemiesCount, bool onStartRoundSpawn = true) {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         int roundNumber = curGameCmp.CurrentRound;
@@ -614,95 +625,102 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var currentRoundCarStuff =
             _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[roundNumber];
         
-        List<Transform> playerMainParts = new List<Transform>();
-        var playerCarCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        foreach (var carPartCmpEntity in playerCarCmp.CarPartGroupsList) {
-            playerMainParts.Add(_carPartComponentsPool.Value.Get(carPartCmpEntity.Key).CellCarPartsStuffViews[0].transform);
-        }
+       // List<Transform> playerMainParts = new List<Transform>();
+       // var playerCarCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+       // foreach (var carPartCmpEntity in playerCarCmp.CarPartGroupsList) {
+       //     playerMainParts.Add(_carPartComponentsPool.Value.Get(carPartCmpEntity.Key).CellCarPartsStuffViews[0].transform);
+       // }
         
         for (int i = 0; i < enemiesCount; i++) {
-            int enemyEntity = _world.Value.NewEntity();
-        
-            _movementComponentsPool.Value.Add(enemyEntity);
-            ref var fuelCmp = ref _fuelComponentsPool.Value.Add(enemyEntity);
-           
-            ref var carCmp = ref _carComponentsPool.Value.Add(enemyEntity);
             var carVariables = currentRoundCarStuff.CarPresets[Random.Range(0, currentRoundCarStuff.CarPresets.Length)];
-            carCmp.CarId = carVariables.CarId;
-            var carView = CarViewSetup(enemyEntity);
-            
-            carView.transform.position = GetPositionAroundPlayer();
-            
-            carCmp.CarPartGroupsGrid = new int[carVariables.GridSize.x, carVariables.GridSize.y];
-            carCmp.CarPartContainerGroupsGrid = new int[carVariables.GridSize.x, carVariables.GridSize.y];
-            carCmp.CarPartViewsGrid = new CarPartStuffView[carVariables.GridSize.x, carVariables.GridSize.y];
-            
-            carCmp.CarPartContainerGroupsList = new Dictionary<int, List<Vector2Int>>();
-            carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
-            
-            foreach (var carContainer in carVariables.CarPartDownLevelGrid) {
-                var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
-                var currentCarType = carPartConfig.PartType;
-                
-                if (currentCarType == CarPartType.None) continue;
-                
-                int carPartCellEntity = _world.Value.NewEntity();
-                var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
-                    carCmp.CarPartContainerGroupsGrid);
-                carCmp.CarPartContainerGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
-                
-                foreach (var cell in placedCells) {
-                    carCmp.CarPartContainerGroupsGrid[cell.x, cell.y] = carPartCellEntity;
-                    carCmp.CarPartContainerGroupsList[carPartCellEntity].Add(cell);
-                }
-
-                ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
-
-                carPartCmp.MainEntity = enemyEntity;
-                carPartCmp.CarPartId = carContainer.partId;
-
-                SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
-
-                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
-                carPartCmp.CurrentHealth = carPartCmp.MaxHealth;
-            }
-            
-            foreach (var carContainer in carVariables.CarPartUpLevelGrid) {
-                var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
-                var currentCarType = carPartConfig.PartType;
-                
-                if (currentCarType == CarPartType.None) continue;
-                
-                int carPartCellEntity = _world.Value.NewEntity();
-                var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
-                    carCmp.CarPartGroupsGrid);
-                carCmp.CarPartGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
-                
-                foreach (var cell in placedCells) {
-                    carCmp.CarPartGroupsGrid[cell.x, cell.y] = carPartCellEntity;
-                    carCmp.CarPartGroupsList[carPartCellEntity].Add(cell);
-                }
-
-                ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
-
-                carPartCmp.MainEntity = enemyEntity;
-                carPartCmp.CarPartId = carContainer.partId;
-
-                SpawnCarPartCellView(carPartCellEntity, carView, false, carContainer.rotate);
-            } 
-            fuelCmp.MaxFuel+= _sceneService.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
-           
-            SetupEnemyMovementComponent(enemyEntity, _sceneService.Value.GetCarConfig(carCmp.CarId));
-            SetupWheels(enemyEntity, carView);
-            SetupCarStatsFromLevelBoost(enemyEntity);
-            ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Add(enemyEntity);
-            enemyAiCmp.CheckedEnemyLeftPoints = new List<Transform>();
-            enemyAiCmp.CheckedEnemyRightPoints = new List<Transform>();
-            enemyAiCmp.LastCheckedTime = 1f;
-            enemyAiCmp.TargetToMove = playerMainParts[Random.Range(0, playerMainParts.Count)];
-            SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView,ref enemyAiCmp);
-            BuildBorder(enemyEntity);
+            SpawnNpcCar(curGameCmp,/* playerMainParts,*/ carVariables, true);
         }
+    }
+
+    private void SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy) {
+        int enemyEntity = _world.Value.NewEntity();
+        
+        _movementComponentsPool.Value.Add(enemyEntity);
+        ref var fuelCmp = ref _fuelComponentsPool.Value.Add(enemyEntity);
+           
+        ref var carCmp = ref _carComponentsPool.Value.Add(enemyEntity);
+        carCmp.CarId = carMap.CarId;
+        var carView = CarViewSetup(enemyEntity);
+            
+        carView.transform.position = GetPositionAroundPlayer();
+            
+        carCmp.CarPartGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
+        carCmp.CarPartContainerGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
+        carCmp.CarPartViewsGrid = new CarPartStuffView[carMap.GridSize.x, carMap.GridSize.y];
+            
+        carCmp.CarPartContainerGroupsList = new Dictionary<int, List<Vector2Int>>();
+        carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
+            
+        foreach (var carContainer in carMap.CarPartDownLevelGrid) {
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
+            var currentCarType = carPartConfig.PartType;
+                
+            if (currentCarType == CarPartType.None) continue;
+                
+            int carPartCellEntity = _world.Value.NewEntity();
+            var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
+                carCmp.CarPartContainerGroupsGrid);
+            carCmp.CarPartContainerGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
+                
+            foreach (var cell in placedCells) {
+                carCmp.CarPartContainerGroupsGrid[cell.x, cell.y] = carPartCellEntity;
+                carCmp.CarPartContainerGroupsList[carPartCellEntity].Add(cell);
+            }
+
+            ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
+
+            carPartCmp.MainEntity = enemyEntity;
+            carPartCmp.CarPartId = carContainer.partId;
+
+            SpawnCarPartCellView(carPartCellEntity, carView, !isEnemy, carContainer.rotate);
+
+            carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
+            carPartCmp.CurrentHealth = carPartCmp.MaxHealth;
+        }
+            
+        foreach (var carContainer in carMap.CarPartUpLevelGrid) {
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
+            var currentCarType = carPartConfig.PartType;
+                
+            if (currentCarType == CarPartType.None) continue;
+                
+            int carPartCellEntity = _world.Value.NewEntity();
+            var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
+                carCmp.CarPartGroupsGrid);
+            carCmp.CarPartGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
+                
+            foreach (var cell in placedCells) {
+                carCmp.CarPartGroupsGrid[cell.x, cell.y] = carPartCellEntity;
+                carCmp.CarPartGroupsList[carPartCellEntity].Add(cell);
+            }
+
+            ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
+
+            carPartCmp.MainEntity = enemyEntity;
+            carPartCmp.CarPartId = carContainer.partId;
+
+            SpawnCarPartCellView(carPartCellEntity, carView, !isEnemy, carContainer.rotate);
+        } 
+        fuelCmp.MaxFuel+= _sceneService.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
+           
+        SetupEnemyMovementComponent(enemyEntity, _sceneService.Value.GetCarConfig(carCmp.CarId));
+        SetupWheels(enemyEntity, carView);
+        SetupCarStatsFromLevelBoost(enemyEntity);
+        ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Add(enemyEntity);
+        enemyAiCmp.CheckedEnemyLeftPoints = new List<Transform>();
+        enemyAiCmp.CheckedEnemyRightPoints = new List<Transform>();
+        enemyAiCmp.LastCheckedTime = 1f;
+        enemyAiCmp.IsEnemy = isEnemy;
+        
+      //  enemyAiCmp.TargetToMove = playerMainParts[Random.Range(0, playerMainParts.Count)];
+      
+        SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView,ref enemyAiCmp);
+        BuildBorder(enemyEntity);
     }
 
     private void SetEnemyCollisionCheckers(int[,] grid, CarView carView, ref EnemyAIComponent enemyAiCmp) {

@@ -30,24 +30,43 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
             _sceneData.Value._playerUIView._fuelLampLightImage.gameObject.SetActive(false);
         }
+
         foreach (var movementEntity in _movementComponentsFilter.Value) {
+            ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
             ref var movementCmp = ref _movementComponentsPool.Value.Get(movementEntity);
             if (movementCmp.MovableObjectRigidbody == null) continue;
 
             bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity;
             var deltaTime = Time.deltaTime;
-            
+
             if (!isPlayer) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
-                movementCmp.TargetPosition = enemyAiCmp.TargetToMove.position;
+                if (enemyAiCmp.TargetToMove)
+                    movementCmp.TargetPosition = enemyAiCmp.TargetToMove.position;
                 enemyAiCmp.LastCheckedTime -= deltaTime;
                 enemyAiCmp.LastCollisionWithObstacleTime -= deltaTime;
+                enemyAiCmp.LastTargetCheckTime -= deltaTime;
+                if (enemyAiCmp.LastTargetCheckTime <= 0) {
+                    if (CheckTarget(enemyAiCmp.RadiusToCheckTarget, movementEntity)) {
+                        enemyAiCmp.RadiusToCheckTarget = 7;
+                        enemyAiCmp.LastTargetCheckTime = 5f;
+                    } else {
+                        enemyAiCmp.RadiusToCheckTarget += 5;
+                        enemyAiCmp.LastTargetCheckTime = 0.3f;
+                    }
+                }
+
                 if (enemyAiCmp.LastCheckedTime <= 0) {
                     CheckForObstacles(movementEntity);
                 }
+
+                if (!enemyAiCmp.TargetToMove) {
+                    carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
+                    carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
+                    continue;
+                }
             }
 
-            ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
             var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
             movementCmp.Velocity = ((Vector2)moveObjectTransform.position - movementCmp.PreviousPosition) / deltaTime;
             movementCmp.PreviousPosition = moveObjectTransform.position;
@@ -78,9 +97,9 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                                 (Quaternion.Euler(0, 0, -30) * moveObjectTransform.up).normalized.x) * Mathf.Rad2Deg - 90f;
                         else if (aiCmp.CurrentEnemyDirection == EnemyDirection.Left)
                             needTargetRotation = Mathf.Atan2(needDir.y, needDir.x) * Mathf.Rad2Deg - 90f;
-                        
+
                         fuelCmp.UseSpeedBoost = false;
-                    } else if(!isPlayer){
+                    } else if (!isPlayer) {
                         fuelCmp.UseSpeedBoost = _enemyAIComponentsPool.Value.Get(movementEntity).LastCollisionWithObstacleTime <= 0;
                     }
 
@@ -88,7 +107,6 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                     float rotationInput = Mathf.Clamp(angleDifference / 45f, -1f, 1f);
                     float targetAngularSpeed = rotationInput * movementCmp.RotateSpeed;
 
-                    
                     if (Mathf.Abs(angleDifference) > 1f) {
                         movementCmp.CurrentRotateSpeed = Mathf.MoveTowards(movementCmp.CurrentRotateSpeed, targetAngularSpeed,
                             movementCmp.RotateSpeed * Time.fixedDeltaTime);
@@ -99,18 +117,19 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
                     RotateWheels(angleToTarget, movementCmp.CurrentRotateSpeed, movementEntity);
                     SetWheelParticleSystemState(movementEntity, true);
-                    
-                    var carConfig = _sceneData.Value.GetCarConfig (carCmp.CarId);
-                    float maxSpeed = fuelCmp.UseSpeedBoost ? movementCmp.MaxMoveSpeed+movementCmp.MaxBoostMoveSpeed : movementCmp.MaxMoveSpeed;
-                    
+
+                    var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+                    float maxSpeed = fuelCmp.UseSpeedBoost
+                        ? movementCmp.MaxMoveSpeed + movementCmp.MaxBoostMoveSpeed
+                        : movementCmp.MaxMoveSpeed;
+
                     if (!isReversing) {
-                        movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, maxSpeed,
-                            movementCmp.Acceleration * deltaTime);
-                       
+                        movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, maxSpeed, movementCmp.Acceleration * deltaTime);
                     } else {
                         movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, -maxSpeed / 2f,
                             movementCmp.Deceleration * deltaTime);
-                    } 
+                    }
+
                     UseFuel(movementEntity);
                 } else {
                     SetWheelParticleSystemState(movementEntity, false);
@@ -120,9 +139,8 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 }
 
                 movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
-              
-                movementCmp.MovableObjectRigidbody.linearVelocity =
-                    moveObjectTransform.up * movementCmp.CurrentMoveSpeed;
+
+                movementCmp.MovableObjectRigidbody.linearVelocity = moveObjectTransform.up * movementCmp.CurrentMoveSpeed;
             } else
                 movementCmp.CantMoveTime -= deltaTime;
 
@@ -132,6 +150,19 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             if (isPlayer)
                 UpdateCameraPosition(carCmp.CarView.transform.position);
         }
+    }
+
+    private bool CheckTarget(float checkRadius, int entity) {
+        ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
+        ref var moveCmp = ref _movementComponentsPool.Value.Get(entity);
+        
+        int targetLayerMask = enemyAiCmp.IsEnemy? 1 << LayerMask.NameToLayer("UpCarPart"): 1 << LayerMask.NameToLayer("UpCarPartEnemy");
+    
+        // Проверяем, есть ли коллайдер Obstacle в точке
+        Collider2D target = Physics2D.OverlapCircle(moveCmp.MovableObjectRigidbody.position, checkRadius, targetLayerMask);
+        if (target)
+            enemyAiCmp.TargetToMove = target.transform;
+        return target;
     }
 
     private void CheckForObstacles(int entity) {

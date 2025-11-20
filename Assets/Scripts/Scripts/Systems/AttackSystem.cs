@@ -82,9 +82,11 @@ public enum AttackType {
                 if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0) {
                     gunCmp.GunOnTargetTime -= deltaTime;
                     if (gunCmp.GunOnTargetTime <= 0) {
-                        var needLayer = carPartCmp.MainEntity == _sceneService.Value.PlayerEntity
-                            ? LayerMask.GetMask("UpCarPartEnemy")
-                            : LayerMask.GetMask("UpCarPart");
+                        var needLayer =
+                            carPartCmp.MainEntity == _sceneService.Value.PlayerEntity ||
+                            !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
+                                ? LayerMask.GetMask("UpCarPartEnemy")
+                                : LayerMask.GetMask("UpCarPart");
                         RaycastHit2D hit = Physics2D.Raycast(gunCmp.FirePointTransform.position, gunCmp.FirePointTransform.up, 7, needLayer);
 
                         gunCmp.GunOnTarget = hit.collider != null;
@@ -196,7 +198,7 @@ public enum AttackType {
             if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity)
                 Debug.Log(direction + " laser dir");
             
-            LayerMask layerMask = carPartCmp.MainEntity != _sceneService.Value.PlayerEntity
+            LayerMask layerMask = carPartCmp.MainEntity != _sceneService.Value.PlayerEntity && _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
                 ? LayerMask.GetMask(new string[] {
                     /* "CarBase",*/ "Obstacle","UpCarPart"
                 })
