@@ -30,5 +30,6 @@
      Transfer,
      BattleDefault,
      ZoneDefence,
-     FromAToB
+     FromAToB,
+     BossBattle
  }

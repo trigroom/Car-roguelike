@@ -19,6 +19,10 @@ public class BetweenScenesService : MonoBehaviour {
         SceneManager.LoadScene("Scenes/MetaScene");
     }
 
+    public MapConfig GetMapConfig() {
+       return _carStuffListsConfig.MapConfigs[CurrentSelectedMap];
+    }
+
     public void HideBlackScreen() {
         BlackScreen.gameObject.SetActive(true);
         BlackScreen.anchoredPosition = new Vector3(0, BlackScreen.anchoredPosition.y);

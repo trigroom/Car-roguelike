@@ -90,6 +90,17 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 }
 
                 break;
+            
+            case RoundType.BossBattle:
+                curGameCmp.RoundTime += Time.deltaTime;
+                _sceneService.Value._playerUIView._gameTimerText.text = ((int)(30+curGameCmp.CurrentRound*3 - curGameCmp.RoundTime)).ToString();
+                if (curGameCmp.RoundTime > 30+curGameCmp.CurrentRound*3) {
+                    _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
+                    EndRound();
+                    WinGame();
+                }
+
+                break;
 
             case RoundType.FromAToB:
                 curGameCmp.RoundTime += Time.deltaTime;
@@ -117,6 +128,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     }
 
+    private void WinGame() {
+        Time.timeScale = 0;
+        var difficultyConfig = _betweenScenesService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
+            .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
+        int scrapCount = difficultyConfig.ScrapForRound+difficultyConfig.ScrapForMapComplete;
+        _sceneService.Value._endGameScreenView.SetWinScreenInfo(scrapCount);
+    }
     private void SetSettingsState() {
         _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneService.Value._settingsView._settingsContainer.gameObject.activeInHierarchy);
     }
@@ -226,7 +244,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
-        int moneyCount = (int)(_sceneService.Value._gameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
+        int moneyCount = (int)(_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
         curGameCmp.RoundMoneyMultiplayer = 1;
         var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         int allPartCount = 0;
@@ -282,14 +300,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         if (TaskCount() == 5)
             currentSupportRoundTypes.Remove(RoundType.Task);
         (var randomRounds, int moneyMultiplayerRound) =
-            RoundUtilits.GetRandomBattleRound(curGameCmp.CurrentBattleRounds, 3, currentSupportRoundTypes);
+            curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length - 1
+                ? (new[] { RoundType.BossBattle }, -1)
+                : RoundUtilits.GetRandomBattleRound(curGameCmp.CurrentBattleRounds, 3, currentSupportRoundTypes);
         curGameCmp.RoundTypes.Add(randomRounds);
         curGameCmp.RoundButtons = new EventTrigger[randomRounds.Length];
         var mapImageRect = _sceneService.Value._mapUIView.MapImage.rectTransform;
-        
-        //_sceneData.Value._mapUIView.MapImage.transform.position -= new Vector3(0,
-          //  mapImageRect.rect.height/2* _sceneData.Value.mainCanvas.localScale.x/ _sceneData.Value._gameProcessConfig.GameRounds.Length, 0);
-        
+
         Transform moneyMultPosition = null;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.localScale = Vector3.zero;
         for (int i = 0; i < randomRounds.Length; i++) {
@@ -299,22 +316,21 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
             EventTrigger.Entry clickEntry = new EventTrigger.Entry();
             clickEntry.eventID = EventTriggerType.PointerClick;
-            clickEntry.callback.AddListener((data) => { StartCurrentRoundType(randomRounds[newIndex],(PointerEventData)data); });
-            
+            clickEntry.callback.AddListener((data) => { StartCurrentRoundType(randomRounds[newIndex], (PointerEventData)data); });
+
             EventTrigger.Entry enterEntry = new EventTrigger.Entry();
             enterEntry.eventID = EventTriggerType.PointerEnter;
-            enterEntry.callback.AddListener((data) => { ChangeRoundDescription(randomRounds[newIndex],(PointerEventData)data); });
-            
+            enterEntry.callback.AddListener((data) => { ChangeRoundDescription(randomRounds[newIndex], (PointerEventData)data); });
+
             roundButton.triggers.Add(clickEntry);
             roundButton.triggers.Add(enterEntry);
-          float posX = (newIndex + 1) * (mapImageRect.rect.width / ((float)randomRounds.Length + 1)) -
-                       mapImageRect.rect.width / 2 ;
-          float posY = (curGameCmp.CurrentRound + 1) *
-                       (mapImageRect.rect.height / ((float)_sceneService.Value._gameProcessConfig.GameRounds.Length + 2)) -
-                       mapImageRect.rect.height / 2 ;
-          roundButton.transform.localPosition = new Vector2(posX, posY);
+            float posX = (newIndex + 1) * (mapImageRect.rect.width / ((float)randomRounds.Length + 1)) - mapImageRect.rect.width / 2;
+            float posY = (curGameCmp.CurrentRound + 1) * (mapImageRect.rect.height /
+                                                          ((float)_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds
+                                                              .Length + 2)) - mapImageRect.rect.height / 2;
+            roundButton.transform.localPosition = new Vector2(posX, posY);
             curGameCmp.RoundButtons[i] = roundButton;
-            
+
             if (moneyMultiplayerRound == i) {
                 moneyMultPosition = roundButton.transform;
                 float currentMultiplayer = Random.Range(12, 20) * 0.1f;
@@ -325,9 +341,8 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         _sceneService.Value._mapUIView.MapImage.transform.DOMoveY(
                 _sceneService.Value._mapUIView.MapImage.transform.position.y - (mapImageRect.rect.height / 2 *
-                    _sceneService.Value.mainCanvas.localScale.x / _sceneService.Value._gameProcessConfig.GameRounds.Length), 0.5f)
-            .SetEase(Ease.InOutBack)
-            .OnComplete(() => {
+                    _sceneService.Value.mainCanvas.localScale.x / _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length), 0.5f)
+            .SetEase(Ease.InOutBack).OnComplete(() => {
                 if (moneyMultPosition) {
                     _sceneService.Value._mapUIView.RoundDifficltyContainer.position =
                         new Vector2(moneyMultPosition.position.x, moneyMultPosition.position.y - 70);
@@ -335,7 +350,6 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     _sceneService.Value._mapUIView.RoundDifficltyContainer.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
                 }
             });
-
 
         _sceneService.Value._mapUIView.RoundNumberText.text = "Round" + (curGameCmp.CurrentRound + 1);
         ChangeInventoryState(false);
@@ -370,6 +384,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.ZoneDefence:
                 descriptionText.text = " Stay and defence zone";
                 break;
+            case RoundType.BossBattle:
+                descriptionText.text = " Fight with boss of this map";
+                break;
         }
     }
     
@@ -385,7 +402,12 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         switch (roundType) {
             case RoundType.BattleDefault:
                 SetPlayerCarPrefab();
-                SetEnemiesCars(3);
+               SetEnemiesCars(3);
+                SetGameTimer();
+                break;
+            case RoundType.BossBattle:
+                SetPlayerCarPrefab();
+                 SetEnemiesCars(1);
                 SetGameTimer();
                 break;
             case RoundType.FromAToB:   
@@ -590,7 +612,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         if (!onStartRoundSpawn)
             roundNumber--;
         var currentRoundCarStuff =
-            _sceneService.Value._gameProcessConfig.GameRounds[roundNumber];
+            _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[roundNumber];
         
         List<Transform> playerMainParts = new List<Transform>();
         var playerCarCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -809,6 +831,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private bool CanStartRound() {
         var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        Debug.Log(CanUseThisCarPartContainers() + "CanUseThisCarPartContainers() " +
+                  MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)) +
+                  "MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)" + (carCmp.CurrentWeight >
+                  carCmp.CurrentMaxWeight) + "carCmp.CurrentWeight > carCmp.CurrentMaxWeight");
+     
         if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) return false;
        if (MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)) &&  CanUseThisCarPartContainers()) return true;
         return false;
@@ -860,7 +887,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 carPart.SetupCarPart(carPartInfo, needLayer, carPartCmp.MainEntity);
                 carPart.transform.localPosition = new Vector2(carPartInfo.x, carPartInfo.y)
                                                   - new Vector2(containersSize.x/2f, containersSize.y/2f);
-              //  carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
+               carPart.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
                 carPart.SetColliderEnableState(true);
                 carPart.gameObject.tag = isPlayer ? "Player" : "Enemy";
                 carCmp.CarPartViewsGrid[carPartInfo.x, carPartInfo.y] = carPart;

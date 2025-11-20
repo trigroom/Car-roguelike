@@ -570,10 +570,10 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
             var partSize = GridUtils.GetCarPartSize(carPartConfig);
             int carPartEntity = _world.Value.NewEntity();
             ref var carPartCmp  = ref _carPartComponentsPool.Value.Add(carPartEntity);
-            if (carPartConfig is WheelsContainerConfig wheelConfig) {
+           /* if (carPartConfig is WheelsContainerConfig wheelConfig) {
                 carCmp.CurrentMaxWeight += wheelConfig.MaxWeight;
                 Debug.Log(carCmp.CurrentMaxWeight);
-            }
+            }*/
             carPartCmp.carPartCellImage = _sceneData.Value.GetCarPartUISprite(_sceneData.Value._carPartsContainersContainer,
                 _sceneData.Value._carPartsContainersContainer.position);
             carPartCmp.carPartCellImage.transform.localPosition = new Vector2(_sceneData.Value._carPartsContainersContainer.sizeDelta.x / 2,
@@ -797,11 +797,6 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
         carPartCmp.carPartCellImage.transform.position = finalPosition;
         carPartCmp.CarPartId = carPartConfig.Id;
         carPartCmp.PartLevel = level;
-        
-
-        
-        
-        
         carPartCmp.carPartCellImage.rectTransform.sizeDelta = gridCellNewSize * carPartSize;
         carPartCmp.carPartCellImage.sprite = carPartConfig.PartSprite;
         UpdateCarDescription();
@@ -1149,7 +1144,7 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
         (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier) =
            GridUtils.GetCarLevelMultipliers(carCmp.CarLevel);
         
-        Debug.Log("carCmp.CarLevel" +carCmp.CarLevel);
+       
         float defaultMaxCarSpeed = carConfig.DefaultMaxSpeed+baseSpeedMultiplier;
         float carRotateSpeed = carConfig.RotateSpeed*baseRotateSpeedMultiplier;
         float carWeight = 0;
@@ -1184,9 +1179,10 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
             if (carPartConfig is WheelsContainerConfig wheels)
                 carMaxWeight += wheels.MaxWeight;
         }
+        Debug.Log("carWeight " +carWeight);
         carCmp.CurrentWeight = carWeight;
         carCmp.CurrentMaxWeight = carMaxWeight;
-        float weightFactor =carCmp.CurrentMaxWeight == 0 ? 0: carWeight / carCmp.CurrentMaxWeight;
+        float weightFactor =carCmp.CurrentMaxWeight == 0 ? 0: carWeight / carMaxWeight;
         defaultMaxCarSpeed *= 1-weightFactor;
         defaultMaxCarSpeed = Mathf.Max(defaultMaxCarSpeed, 0);
         speedBoost += defaultMaxCarSpeed;
@@ -1194,9 +1190,9 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
         _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
             $"{carConfig.CarName}\n Max move speed: {defaultMaxCarSpeed:F1} m/s \n Added boosted speed: {speedBoost:F1} m/s ({speedBoostFuelConsumption} fuel consumption)" +
             $" \n Default fuel consumption {defaultFuelConsumption} \n Rotate speed: {carRotateSpeed} m/s " +
-            $"\n Weight: {carWeight:F1}/{carCmp.CurrentMaxWeight} kg \n Fuel: {maxFuel}";
+            $"\n Weight: {carWeight:F1}/{carMaxWeight} kg \n Fuel: {maxFuel}";
         _movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MaxMoveSpeed = defaultMaxCarSpeed;
-        Debug.Log("player move speed is "+_movementComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MaxMoveSpeed);
+      
     }
 
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
@@ -1471,7 +1467,6 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
         carPartCarPartCmp.CarPartId = partIndex;
         carPartCarPartCmp.PartLevel = level;
         var partInfo = GetCarPartConfig(partIndex);
-        UpdateCarDescription();
         Vector2Int carPartSize = GridUtils.GetCarPartSize(partInfo);
         Sequence returnSequence = DOTween.Sequence();
         
@@ -1539,6 +1534,8 @@ var containerSize = _sceneData.Value._carPartsContainersContainer.sizeDelta;
                 meleeCmp.MeleeSpriteImage.rectTransform.sizeDelta = upSize;
             }
         }
+        
+        UpdateCarDescription();
     }
    
     public bool AreNonZeroAndNonDeletedConnected(int[,] grid, int deletedInt)

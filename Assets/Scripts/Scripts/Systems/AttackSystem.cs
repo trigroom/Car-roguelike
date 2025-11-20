@@ -65,7 +65,7 @@ public enum AttackType {
             float deltaTime = Time.deltaTime;
             ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
             if (curGameCmp.CurrentRoundType != RoundType.BattleDefault && curGameCmp.CurrentRoundType != RoundType.FromAToB &&
-                curGameCmp.CurrentRoundType != RoundType.ZoneDefence) return;
+                curGameCmp.CurrentRoundType != RoundType.ZoneDefence&&curGameCmp.CurrentRoundType != RoundType.BossBattle) return;
             foreach (var gunEntity in _gunComponentsFilter.Value) {
                 if (_shockEffectComponentsPool.Value.Has(gunEntity)) {
                     if (_laserComponentsPool.Value.Has(gunEntity))
@@ -680,8 +680,10 @@ public enum AttackType {
                 }
 
                 if (_laserComponentsPool.Value.Has(cellEntity)) {
-                    _sceneService.Value.ReleaseLaserLineRenderer(_laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer);
-                    _laserComponentsPool.Value.Get(cellEntity).LaserLineRenderer = null;
+                    Debug.Log("Release laser");
+                    ref var laserCmp = ref _laserComponentsPool.Value.Get(cellEntity);
+                    _sceneService.Value.ReleaseLaserLineRenderer(laserCmp.LaserLineRenderer);
+                    laserCmp.LaserLineRenderer = null;
                     _laserComponentsPool.Value.Del(cellEntity);
                 }
             }

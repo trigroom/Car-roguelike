@@ -1,5 +1,6 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 sealed class MetaUiSystem : IEcsInitSystem {
@@ -7,6 +8,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
         private EcsCustomInject<MetaSceneService> _metaSceneService;
         private EcsCustomInject<BetweenScenesService> _betweenSceneService;
         public void Init (IEcsSystems systems) {
+            Time.timeScale = 1;
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
                 _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName,i);

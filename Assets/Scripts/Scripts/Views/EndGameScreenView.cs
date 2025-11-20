@@ -35,6 +35,16 @@ public class EndGameScreenView : MonoBehaviour
         }
         gameObject.SetActive(true);
     }
+    
+    public void SetWinScreenInfo(int scrapCount) {
+        _moneyCountText.text = $"You get {scrapCount} scrap!";
+        _mainEndSreenTitle.text = "You complete all rounds!";
+        foreach (var endGameButton in closeEndGameMenuButtons) {
+            endGameButton.onClick.RemoveAllListeners();
+            endGameButton.onClick.AddListener(GoToMetaScene);
+        }
+        gameObject.SetActive(true);
+    }
 
     private void GoToMetaScene() {
         SceneManager.LoadScene("Scenes/MetaScene");

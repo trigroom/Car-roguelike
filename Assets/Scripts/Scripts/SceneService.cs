@@ -48,7 +48,6 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Sprite[] _bulletSprites { get; private set; }
     [field: SerializeField] public ProjectileView _projectileView { get; private set; }
     [field: SerializeField] public int _defaultCarConfigId { get; private set; }
-    [field: SerializeField] public GameProcessConfig _gameProcessConfig { get; private set; }
     [field: SerializeField] public CarPartInfoUIView _carPartInfoUIView { get; private set; }
     [field: SerializeField] public Sprite _transparentPixel { get; private set; }
     [field: SerializeField] public Sprite _buildCellSprite { get; private set; }
@@ -162,7 +161,7 @@ public class SceneService : MonoBehaviour {
     
     public LineRenderer GetLaserLineRenderer() {
         var laser = _laserLineRenderersPool.Get();
-        laser.gameObject.SetActive(true);
+      
         return laser;
     }
     
