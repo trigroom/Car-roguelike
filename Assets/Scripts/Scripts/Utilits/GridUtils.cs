@@ -4,7 +4,11 @@ using UnityEngine;
 
 public class GridUtils : MonoBehaviour
 {
-  public static Vector2Int GetEdgePointFromCarPart(List<Vector2Int> carPartPositions) {
+    private static List<CarPartType> _containerPartTypes = new() { CarPartType.CarStuffContainer, CarPartType.WheelsContainer };
+    private static List<CarPartType> _weaponPartTypes = new() { CarPartType.MeleeWeapon, CarPartType.Gun };
+    public static bool IsContainerType (CarPartConfig carPartConfig) => _containerPartTypes.Contains(carPartConfig.PartType);
+    public static bool IsWeaponType (CarPartConfig carPartConfig) => _weaponPartTypes.Contains(carPartConfig.PartType);
+    public static Vector2Int GetEdgePointFromCarPart(List<Vector2Int> carPartPositions) {
     Vector2Int carPartEdgePosition = carPartPositions[0];
     foreach (Vector2Int cell in carPartPositions) {
       if (cell.x < carPartEdgePosition.x)

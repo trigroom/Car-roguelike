@@ -5,6 +5,10 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour
 {
     [field: SerializeField]
+    public Transform _carPartsUpContainer { get;private set; }
+    [field: SerializeField]
+    public RectTransform _carPartsDownContainer { get;private set; }
+    [field: SerializeField]
     public Transform _carPartsContainer { get;private set; }
     [field: SerializeField]
     public TMP_Text _upgradeCarButtonText { get;private set; }
@@ -58,4 +62,6 @@ public class InventoryUIView : MonoBehaviour
     public CellView[] _cancelCellPlaceButtons { get;private set; }
     [field: SerializeField]
     public Button _playButton { get;private set; }
+    [field: SerializeField]
+    public Button[] _selectCarButtons { get;private set; }
 }

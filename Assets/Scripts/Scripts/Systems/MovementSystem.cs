@@ -168,7 +168,10 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     private void CheckForObstacles(int entity) {
         ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
         enemyAiCmp.LastCollisionWithObstacleTime = 1f;
-        var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints);
+        var layerNames = enemyAiCmp.IsEnemy
+            ? new[] { "Obstacle", "UpCarPartEnemy", "CarBaseEnemy" }
+            : new[] { "Obstacle", "UpCarPart", "CarBase" };
+        var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints, layerNames);
         if (leftSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
             enemyAiCmp.LastCheckedTime += 0.8f;
@@ -182,7 +185,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             return;
         }
 
-        var rightSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyRightPoints);
+        var rightSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyRightPoints, layerNames);
 
         if (rightSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;
@@ -198,7 +201,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         }
     }
 
-    private float CheckOneSideForObstacles(List<Transform> pointsToCheck) {
+    private float CheckOneSideForObstacles(List<Transform> pointsToCheck, string[] layerNames) {
         foreach (var point in pointsToCheck) {
             Vector3[] rayDirections = {
                 point.up, // Прямо
@@ -208,7 +211,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
             foreach (Vector3 direction in rayDirections) {
                 RaycastHit2D hit = Physics2D.Raycast(point.position, direction, 5,
-                    LayerMask.GetMask(new[] { "Obstacle", "UpCarPartEnemy", "CarBaseEnemy" }));
+                    LayerMask.GetMask(layerNames));
 
                 if (hit.collider != null)
                     return Vector2.Distance(point.position, hit.point);

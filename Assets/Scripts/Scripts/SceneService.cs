@@ -24,7 +24,6 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Transform _gunContainerPrefab { get; private set; }
   [field: SerializeField] public SubGridView _subGridTransform { get; private set; }
   [field: SerializeField] public RectTransform _gridMaskRect { get; private set; }
-    [field: SerializeField] public RectTransform _carPartsContainersContainer { get; private set; }
     [field: SerializeField] public SpriteRenderer _carPartSpriteRenderer { get; private set; }
     [field: SerializeField] public Image _carPartUIImage { get; private set; }
     [field: SerializeField] public Transform _floatingTextContainer { get; private set; }
@@ -84,6 +83,7 @@ public class SceneService : MonoBehaviour {
     private ObjectPool<CarPartInGameUIView> _сarPartInGameUIViewsPool;
     private ObjectPool<SpriteRenderer> _explosionEffectsPool;
     private ObjectPool<Transform> _gunContainersPool;
+    private ObjectPool<Image> _imagesPool;
     
 
     private void Awake() {
@@ -104,6 +104,7 @@ public class SceneService : MonoBehaviour {
         _carPartsPool = new ObjectPool<CarPartStuffView>(() => Instantiate(_carStuffListsConfig.CarPartStuffView));
         _meleeCarPartsPool = new ObjectPool<MeleeCarPartStuffView>(() => Instantiate(_carStuffListsConfig.MeleeCarPartStuffView));
         _explosionEffectsPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_explosionEffectPrefab));
+        _imagesPool = new ObjectPool<Image>(() => Instantiate(_carPartUIImage));
         _сarPartInGameUIViewsPool =
             new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsDownLevelHealthContainer));
 
@@ -126,8 +127,18 @@ public class SceneService : MonoBehaviour {
         gunContainer.parent = parent;
         return gunContainer;
     }
-    public Image GetCarPartUISprite(Transform parent, Vector2 position) {
-        return Instantiate(_carPartUIImage, position, Quaternion.identity, parent);
+    public Image GetCarPartUIImage(Transform parent, Vector2 position) {
+        var carPartImage = _imagesPool.Get();
+        carPartImage.transform.SetParent(parent, false); 
+        carPartImage.transform.position = position;
+        carPartImage.gameObject.SetActive(true);
+        carPartImage.transform.localScale = Vector3.one;
+        return carPartImage;
+    }
+
+    public void ReleaseCarPartUIImage(Image carPartImage) {
+        carPartImage.gameObject.SetActive(false);
+        _imagesPool.Release(carPartImage);
     }
     public (TMP_Text, Sequence) GetFloatingTextPrefab(Vector2 position, string text, Color textColor) {
         var floatingText = _floatingTextsPool.Get();

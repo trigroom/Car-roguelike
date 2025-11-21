@@ -13,9 +13,14 @@ public class MapDifficultyConfig : ScriptableObject
     public int ScrapForRound { get; private set; }
     [field: SerializeField]
     public int ScrapForMapComplete { get; private set; }
+    
+    public float HealedHealthPartAfterEndRound { get; private set; }
+    public float TimeBetweenInRoundEnemySpawn { get; private set; }
 }
 
 public enum MapEventsType {
     None,
     StrongWind
 }
+
+

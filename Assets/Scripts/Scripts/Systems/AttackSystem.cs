@@ -386,7 +386,7 @@ public enum AttackType {
                     projectileCmp.CurrentBreakingThroughCount = gunConfig.BreakingThroughCount;
                 }
 
-                if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity)
+                if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)
                     currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Enemy", _sceneService.Value._carStuffListsConfig.DefaultMaterial);
                 else
                     currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Player", _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial);
@@ -888,12 +888,8 @@ public enum AttackType {
             Vector2 shieldForward = shieldTransform.right;
             Vector2 shieldRight = shieldTransform.up; // В 2D up обычно это "право" для повернутого объекта
     
-            // Угол между направлением щита и направлением к пуле
             float angle = Vector2.SignedAngle(shieldForward, directionToBullet);
     
-            Debug.Log("Angle from shield forward: " + angle);
-    
-            // Определяем сторону атаки относительно щита
             DefenceDirection attackDirection;
     
             if (Mathf.Abs(angle) <= 45f) { 

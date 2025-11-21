@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class CarPartInfoUIView : MonoBehaviour
 {
-    [field: SerializeField] public TMP_Text _carPartLevelText { get; private set; }
+    [field: SerializeField] public Button _closeInfoPanelButton { get; private set; }
     [field: SerializeField] public Button _moveToInventoryButton { get; private set; }
     [field: SerializeField] public EventTrigger _upgradeButton { get; private set; }
     [field: SerializeField] public TMP_Text _upgradeButtonText { get; private set; }

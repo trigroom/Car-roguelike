@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client;
 using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
@@ -39,6 +40,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
     private EcsPoolInject<SettingsComponent> _settingsComponentsPool;
     private EcsPoolInject<CompleteTaskEvent> _completeTaskEventsPool;
+    private EcsPoolInject<AddTeammateEvent> _addTeammateEventsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -299,6 +301,13 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var currentSupportRoundTypes = RoundUtilits.SupportRoundsTypes.Distinct().ToList();
         if (TaskCount() == 5)
             currentSupportRoundTypes.Remove(RoundType.Task);
+        if (_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Count >= 5)
+            currentSupportRoundTypes.Remove(RoundType.TeammateForSupport);
+        
+        //test
+        currentSupportRoundTypes = new List<RoundType>() { RoundType.TeammateForSupport };
+        //test
+        
         (var randomRounds, int moneyMultiplayerRound) =
             curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length - 1
                 ? (new[] { RoundType.BossBattle }, -1)
@@ -387,6 +396,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.BossBattle:
                 descriptionText.text = " Fight with boss of this map";
                 break;
+            case RoundType.TeammateForSupport:
+                descriptionText.text = " Get the opportunity to recruit an ally for battle";
+                break;
         }
     }
     
@@ -439,6 +451,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                // SetEnemiesCars();
                // SetPlayerCarPrefab();
                ChangeInventoryState(true);
+                break;
+            case RoundType.TeammateForSupport:
+                //addTeammateEvent
+                _addTeammateEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
+                ChangeInventoryState(true);
                 break;
             case RoundType.Task:
                 CreateNewTask(curGameCmp);
@@ -885,10 +902,9 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
         var carPartConfig = _sceneService.Value._carStuffListsConfig.CarPartConfigs[carPartCmp.CarPartId];
-        bool isWeapon = carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun;
    
         var containersSize = new Vector2(carCmp.CarPartContainerGroupsGrid.GetLength(0),carCmp.CarPartContainerGroupsGrid.GetLength(1));
-        bool isContainer = carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer;
+        bool isContainer = GridUtils.IsContainerType(carPartConfig);
         int needSpriteLevel = isContainer ? 1 : 2;
         int needRotate = rotateAngle; 
         var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;

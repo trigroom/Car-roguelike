@@ -9,7 +9,7 @@ public class RoundUtilits
     };
 
     public static readonly List<RoundType> SupportRoundsTypes = new List<RoundType> {
-        RoundType.Chest, RoundType.Shop, RoundType.Task, RoundType.Transfer
+        RoundType.Chest, RoundType.Shop, RoundType.Task, RoundType.Transfer, RoundType.TeammateForSupport
     };
     public static (RoundType[], int) GetRandomBattleRound(int battleRounds, int needCount,  List<RoundType> currentSupportRoundTypes) {
         List<RoundType> currentBattleRoundTypes = BattleRoundsTypes.Distinct().ToList();
