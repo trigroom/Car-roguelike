@@ -35,6 +35,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<GunComponent> _gunComponentsPool;
     private EcsPoolInject<AddTeammateEvent> _addTeammateEventsPool;
     private EcsPoolInject<MeleeWeaponComponent> _meleeWeaponComponentsPool;
+    private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
  //   private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
 
     private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
@@ -178,7 +179,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     ((carSizeX % 2 == 1 && carSizeY % 2 == 0) && carSizeX > carSizeY) ||
                     (carSizeX % 2 == 0 && carSizeY % 2 == 1) && carSizeX < carSizeY) {
                     subGridNewPosition += (Vector3)currentCellSize * _sceneData.Value.mainCanvas.localScale.x / 2;
-                    Debug.Log("Added offset " + ((Vector3)currentCellSize * _sceneData.Value.mainCanvas.localScale.x / 2));
                 }
 
                 _sceneData.Value._subGridTransform.transform.position = subGridNewPosition;
@@ -1515,7 +1515,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         
         ref var moveCmp = ref _movementComponentsPool.Value.Add(teammateEntity);
         ref var fuelCmp = ref _fuelComponentsPool.Value.Add(teammateEntity);
-        
+        _enemyAIComponentsPool.Value.Add(teammateEntity);
         foreach (var carContainer in carMap.CarPartDownLevelGrid) 
             SetCarPartFromCarMap(teammateEntity, carContainer);
         
@@ -1651,6 +1651,9 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         carPartCmp.carPartCellImage.transform.localScale = Vector3.zero;
         carPartCmp.carPartCellImage.sprite = carPartConfig.PartSprite;
         carPartCmp.carPartCellImage.transform.localEulerAngles = new Vector3(0,0,carPartCmp.RotateDegrees);
+        carPartCmp.carPartCellImage.rectTransform.sizeDelta = carPartSize * cellSize;
+        if (carPartCmp.RotateDegrees == 90 || carPartCmp.RotateDegrees == 270) 
+            carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
         Vector2 offset = carPartSize != Vector2Int.one
             ? new Vector2(carPartSize.x - 1, carPartSize.y - 1) / 2 * cellSize * _sceneData.Value.mainCanvas.localScale.x *
               _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x
@@ -1661,7 +1664,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         carPartCmp.carPartCellImage.transform.position = finalPosition;
         Sequence carPartSequence = DOTween.Sequence();
         carPartSequence.Append(carPartCmp.carPartCellImage.transform.DOScale(1, 0.4f));
-        carPartCmp.carPartCellImage.rectTransform.sizeDelta = carPartSize * cellSize;
+        
 
         if (GridUtils.IsWeaponType(carPartConfig)) {
             (Sprite upSprite, Vector2 upSize, Vector2 upPosition) =GetUpperPartSizesForUI(cellSize * carPartSize, carPartConfig);

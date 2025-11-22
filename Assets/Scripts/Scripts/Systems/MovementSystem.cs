@@ -76,7 +76,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 bool isReversing = false;
                 float needAngle = 0;
                 ref var fuelCmp = ref _fuelComponentsPool.Value.Get(movementEntity);
-                if (distanceToTarget > 3f && fuelCmp.CurrentFuel > 0) {
+                if ((distanceToTarget > 3f || !isPlayer) && fuelCmp.CurrentFuel > 0) {
                     var needTargetRotation = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg - 90f;
 
                     float angleToTarget = Vector3.SignedAngle(moveObjectTransform.up, directionToTarget, Vector3.forward);
