@@ -1,5 +1,6 @@
  
  using System.Collections.Generic;
+ using DG.Tweening;
  using UnityEngine.EventSystems;
  using UnityEngine.UI;
 
@@ -11,6 +12,7 @@
         public int CurrentBattleRounds;
         
         public EventTrigger[] RoundButtons;
+        public Sequence mapPointSequence;
         
         public float RoundMoneyMultiplayer;
         public int RoundWithMoneyMultiplayer;

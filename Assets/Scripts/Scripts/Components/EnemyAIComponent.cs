@@ -11,6 +11,7 @@ using UnityEngine;
         public bool IsEnemy;
         public float RadiusToCheckTarget;
         public float LastTargetCheckTime;
+        public bool MoveToPlayerTarget;
     }
 
     public enum EnemyDirection {

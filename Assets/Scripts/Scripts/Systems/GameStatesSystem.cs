@@ -580,14 +580,11 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return startPoint;
     }
 
-    private bool HasObstacleAtPoint(Vector2 point)
-    {
-        // Создаем маску для слоя Obstacle
+    private bool HasObstacleAtPoint(Vector2 point) {
         int obstacleLayerMask = 1 << LayerMask.NameToLayer("Obstacle");
-    
-        // Проверяем, есть ли коллайдер Obstacle в точке
+
         Collider2D hit = Physics2D.OverlapCircle(point, 0.1f, obstacleLayerMask);
-    
+
         return hit != null;
     }
 
@@ -904,11 +901,7 @@ public class GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private bool CanStartRound() {
         var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        Debug.Log(CanUseThisCarPartContainers() + "CanUseThisCarPartContainers() " +
-                  MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)) +
-                  "MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)" + (carCmp.CurrentWeight >
-                  carCmp.CurrentMaxWeight) + "carCmp.CurrentWeight > carCmp.CurrentMaxWeight");
-     
+      
         if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) return false;
        if (MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)) &&  CanUseThisCarPartContainers()) return true;
         return false;

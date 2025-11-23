@@ -14,6 +14,8 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<CarComponent> _carComponentsPool;
     private EcsPoolInject<PlayerDeathEvent> _playerDeathEventsPool;
     private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
+    private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
+    private EcsPoolInject<CurrentGameComponent> _currentGameComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
@@ -31,6 +33,56 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._playerUIView._fuelLampLightImage.gameObject.SetActive(false);
         }
 
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        if (Input.GetMouseButtonDown(1) && curGameCmp.CurrentRoundType != RoundType.None) {
+            var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+            if (inventoryCmp.PlayerTeammateCarsEntity.Count == 1) return;
+            Vector3 worldPosition = _sceneData.Value.mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            worldPosition.z = 0;
+            if (HasObstacleAtPoint(worldPosition)) return;
+            var markContainer = _sceneData.Value._markForTeammatesContainer;
+            // Проверяем расстояние до существующей метки
+            float distanceToMarker = Vector3.Distance(markContainer.position, worldPosition);
+
+            if (distanceToMarker <= 2f && markContainer.localScale != Vector3.zero) {
+                curGameCmp.mapPointSequence.Kill();
+                curGameCmp.mapPointSequence = DOTween.Sequence();
+                curGameCmp.mapPointSequence.Append(markContainer.DOScale(0, 0.5f).SetEase(Ease.OutQuad));
+
+                foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
+                    if (carEntity == _sceneData.Value.PlayerEntity) continue;
+                    ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(carEntity);
+                    if (enemyAiCmp.MoveToPlayerTarget) {
+                        enemyAiCmp.MoveToPlayerTarget = false;
+                        enemyAiCmp.LastTargetCheckTime = 0;
+                    }
+                }
+            } else {
+                markContainer.localScale = Vector3.zero;
+
+                var targetPosition = worldPosition;
+                markContainer.position = targetPosition;
+                curGameCmp.mapPointSequence.Kill();
+                curGameCmp.mapPointSequence = DOTween.Sequence();
+
+                curGameCmp.mapPointSequence.Append(markContainer.DOScale(1.2f, 0.5f));
+                curGameCmp.mapPointSequence.Join(markContainer.DOMoveY(targetPosition.y + 1, 0.5f));
+
+                curGameCmp.mapPointSequence.Append(markContainer.DOScale(1, 0.5f));
+                curGameCmp.mapPointSequence.Join(markContainer.DOMoveY(targetPosition.y, 0.5f));
+
+                curGameCmp.mapPointSequence.SetEase(Ease.OutQuad);
+
+                foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
+                    if (carEntity == _sceneData.Value.PlayerEntity) continue;
+                    ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(carEntity);
+
+                    enemyAiCmp.MoveToPlayerTarget = true;
+                    enemyAiCmp.TargetToMove = markContainer;
+                }
+            }
+        }
+
         foreach (var movementEntity in _movementComponentsFilter.Value) {
             ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
             ref var movementCmp = ref _movementComponentsPool.Value.Get(movementEntity);
@@ -41,12 +93,19 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
             if (!isPlayer) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
-                if (enemyAiCmp.TargetToMove)
+                if (enemyAiCmp.TargetToMove) {
                     movementCmp.TargetPosition = enemyAiCmp.TargetToMove.position;
+                    if (enemyAiCmp.MoveToPlayerTarget &&
+                        Vector3.Distance(enemyAiCmp.TargetToMove.position, movementCmp.MovableObjectRigidbody.position) < 3f) {
+                        enemyAiCmp.MoveToPlayerTarget = false;
+                        enemyAiCmp.LastTargetCheckTime = 0;
+                    }
+                }
+
                 enemyAiCmp.LastCheckedTime -= deltaTime;
                 enemyAiCmp.LastCollisionWithObstacleTime -= deltaTime;
                 enemyAiCmp.LastTargetCheckTime -= deltaTime;
-                if (enemyAiCmp.LastTargetCheckTime <= 0) {
+                if (enemyAiCmp.LastTargetCheckTime <= 0 && !enemyAiCmp.MoveToPlayerTarget) {
                     if (CheckTarget(enemyAiCmp.RadiusToCheckTarget, movementEntity)) {
                         enemyAiCmp.RadiusToCheckTarget = 7;
                         enemyAiCmp.LastTargetCheckTime = 5f;
@@ -151,7 +210,14 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 UpdateCameraPosition(carCmp.CarView.transform.position);
         }
     }
-
+    private bool HasObstacleAtPoint(Vector2 point)
+    {
+        int obstacleLayerMask = 1 << LayerMask.NameToLayer("Obstacle");
+    
+        Collider2D hit = Physics2D.OverlapCircle(point, 0.1f, obstacleLayerMask);
+    
+        return hit != null;
+    }
     private bool CheckTarget(float checkRadius, int entity) {
         ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
         ref var moveCmp = ref _movementComponentsPool.Value.Get(entity);

@@ -1572,7 +1572,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         
         if(inventoryCmp.PlayerTeammateCarsEntity[newCarIndex] == inventoryCmp.CurrentRedactedCarEntity)return;
-        if(!CanUseThisCarPartContainers())return;//check main car parts
+        if(!CanUseThisCarPartContainers() || !MainPartIsPlaced())return;
         Sequence sequence = DOTween.Sequence();
         
         sequence.AppendCallback(ClearCarUI);
@@ -1637,7 +1637,15 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
     }
+    private bool MainPartIsPlaced() {
+        var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        foreach (var partId in inventoryCmp.PartsInInventory) {
+            if (_sceneData.Value.GetCarPartConfig(partId.Item1).PartType == CarPartType.Main)
+                return false;
+        }
 
+        return true;
+    }
     private void SetCarPartDownImageTransform(Vector2Int edgePosition, int entity, Vector2 cellSize) {
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(entity);
         var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
