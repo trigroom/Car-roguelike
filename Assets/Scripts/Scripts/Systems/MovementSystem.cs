@@ -5,7 +5,7 @@ using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
 using UnityEngine;
 
-public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
+public class MovementSystem : IEcsRunSystem {
     private EcsWorldInject _world;
     private EcsCustomInject<SceneService> _sceneData;
 
@@ -20,12 +20,6 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
 
-    public void Init(IEcsSystems systems) {
-        ref var playerFuelCmp = ref _fuelComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
-        playerFuelCmp.MaxFuel = _sceneData.Value.GetCarConfig(_carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CarId).DefaultMaxFuel;
-        playerFuelCmp.CurrentFuel = playerFuelCmp.MaxFuel;
-        playerFuelCmp.FuelConsumption = 3;
-    }
 
     public void Run(IEcsSystems systems) {
         foreach (var endRound in _endRoundEventsFilter.Value) {
@@ -34,7 +28,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        if (Input.GetMouseButtonDown(1) && curGameCmp.CurrentRoundType != RoundType.None) {
+        if (Input.GetMouseButtonDown(1) && !RoundUtilits.IsNotBattleRound(curGameCmp.CurrentRoundType)) {
             var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             if (inventoryCmp.PlayerTeammateCarsEntity.Count == 1) return;
             Vector3 worldPosition = _sceneData.Value.mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -192,6 +186,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                     UseFuel(movementEntity);
                 } else {
                     SetWheelParticleSystemState(movementEntity, false);
+                    Debug.Log(movementCmp.CurrentMoveSpeed + " speed "+movementCmp.Deceleration * deltaTime + " ent"+movementEntity);
                     movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, 0f, movementCmp.Deceleration * deltaTime);
                     movementCmp.CurrentRotateSpeed = Mathf.MoveTowards(
                         movementCmp.CurrentRotateSpeed, 0f, movementCmp.RotateSpeed * Time.fixedDeltaTime);

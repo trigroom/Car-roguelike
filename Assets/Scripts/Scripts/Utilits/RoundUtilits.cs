@@ -7,6 +7,8 @@ public class RoundUtilits
     private static readonly List<RoundType> BattleRoundsTypes = new List<RoundType> {
         RoundType.BattleDefault, RoundType.FromAToB, RoundType.ZoneDefence
     };
+    
+    public static bool IsNotBattleRound(RoundType type) => SupportRoundsTypes.Contains(type) || type == RoundType.None;
 
     public static readonly List<RoundType> SupportRoundsTypes = new List<RoundType> {
         RoundType.Chest, RoundType.Shop, RoundType.Task, RoundType.Transfer, RoundType.TeammateForSupport

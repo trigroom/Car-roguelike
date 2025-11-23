@@ -63,7 +63,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryCmp.CurrentDraggedCellEntity = -1;
         inventoryCmp.CurrentCellCarPart = null;
         inventoryCmp.CurrentGivenItems = new List<int>();
-
+        _fuelComponentsPool.Value.Add(playerEntity);
         _currentGameComponentsPool.Value.Add(playerEntity);
         ref var movementComponent = ref _movementComponentsPool.Value.Add(playerEntity);
         //movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed;
@@ -122,6 +122,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             else if (gameCmp.CurrentRound == 15)
                 AddRareToShopItems(CarPartRare.VeryHigh);
             UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
+            foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
+                if(inventoryCmp.CurrentRedactedCarEntity != carEntity) 
+                    UpdateCarStats(carEntity);
+            }
             ActivateGiveCarPartsWindow();
             _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(0)}$";
             _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentUpdateCountInRound = 0;
@@ -1149,23 +1153,24 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
        // NextCarPartInPanelInfo();
     }
 
-    private void UpdateCarDescription(int entity ) {
-        ref var carCmp = ref _carComponentsPool.Value.Get(entity);
+    private void UpdateCarStats(int entity) {
+          ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
 
         (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier) =
-           GridUtils.GetCarLevelMultipliers(carCmp.CarLevel);
-        
-       
-        float defaultMaxCarSpeed = carConfig.DefaultMaxSpeed+baseSpeedMultiplier;
-        float carRotateSpeed = carConfig.RotateSpeed*baseRotateSpeedMultiplier;
+            GridUtils.GetCarLevelMultipliers(carCmp.CarLevel);
+
+        float defaultMaxCarSpeed = carConfig.DefaultMaxSpeed + baseSpeedMultiplier;
+        float carRotateSpeed = carConfig.RotateSpeed * baseRotateSpeedMultiplier;
         float carWeight = 0;
         float carMaxWeight = 0;
-        float maxFuel = carConfig.DefaultMaxFuel*baseMaxFuelMultiplier;
-        float speedBoost = carConfig.BoostSpeedMultiplayer*baseAccelerationMultiplier;
-        float speedBoostFuelConsumption = carConfig.AccelerationFuelСonsumption;
+        
+        ref var moveCmp = ref _movementComponentsPool.Value.Get(entity);
+        
+        float maxFuel = carConfig.DefaultMaxFuel * baseMaxFuelMultiplier;
+        moveCmp.MaxBoostMoveSpeed = carConfig.BoostSpeedMultiplayer * baseAccelerationMultiplier;
         float defaultFuelConsumption = carConfig.FuelСonsumption;
-       // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var carPart in carCmp.CarPartGroupsList.Keys) {
             var carPartCellCmp = _carPartComponentsPool.Value.Get(carPart);
             int carPartId = carPartCellCmp.CarPartId;
@@ -1178,11 +1183,12 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
                 else if (supportPartConfig.ModuleType == SupportModuleType.Turbine) {
                     defaultMaxCarSpeed += supportPartConfig.SecondCount;
                     defaultFuelConsumption += supportPartConfig.FirstCount;
-                    speedBoostFuelConsumption += supportPartConfig.FirstCount;
                 }
             }
         }
-
+        ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
+        fuelCmp.MaxFuel = maxFuel;
+        fuelCmp.FuelConsumption = defaultFuelConsumption;
         foreach (var carPart in carCmp.CarPartContainerGroupsList.Keys) {
             var carPartCellCmp = _carPartComponentsPool.Value.Get(carPart);
             int carPartId = carPartCellCmp.CarPartId;
@@ -1191,20 +1197,30 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
             if (carPartConfig is WheelsContainerConfig wheels)
                 carMaxWeight += wheels.MaxWeight;
         }
+
         carCmp.CurrentWeight = carWeight;
         carCmp.CurrentMaxWeight = carMaxWeight;
-        float weightFactor =carCmp.CurrentMaxWeight == 0 ? 0: carWeight / carMaxWeight;
-        defaultMaxCarSpeed *= 1-weightFactor;
+        float weightFactor = carCmp.CurrentMaxWeight == 0 ? 0 : carWeight / carMaxWeight;
+        defaultMaxCarSpeed *= 1 - weightFactor;
         carRotateSpeed *= 1 - weightFactor;
         defaultMaxCarSpeed = Mathf.Max(defaultMaxCarSpeed, 0);
-        speedBoost += defaultMaxCarSpeed;
-        ref var moveCmp = ref _movementComponentsPool.Value.Get(entity);
-        _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
-            $"{carConfig.CarName}\n Max move speed: {defaultMaxCarSpeed:F1} m/s \n Added boosted speed: {speedBoost:F1} m/s ({speedBoostFuelConsumption} fuel consumption)" +
-            $" \n Default fuel consumption {defaultFuelConsumption} \n Rotate speed: {carRotateSpeed} m/s " +
-            $"\n Weight: {carWeight:F1}/{carMaxWeight} kg \n Fuel: {maxFuel}";
+        moveCmp.MaxBoostMoveSpeed += defaultMaxCarSpeed;
+       
         moveCmp.MaxMoveSpeed = defaultMaxCarSpeed;
-      moveCmp.RotateSpeed = carRotateSpeed;
+        moveCmp.RotateSpeed = carRotateSpeed;
+    }
+
+    private void UpdateCarDescription(int entity) {
+        UpdateCarStats(entity);
+        var moveCmp = _movementComponentsPool.Value.Get(entity);
+        var carCmp = _carComponentsPool.Value.Get(entity);
+        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        var fuelCmp = _fuelComponentsPool.Value.Get(entity);
+        _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
+            $"{carConfig.CarName}\n Max move speed: {moveCmp.MaxMoveSpeed:F1} m/s \n Added boosted speed: {moveCmp.MaxBoostMoveSpeed:F1} " +
+            $"m/s ({fuelCmp.FuelConsumption - carConfig.FuelСonsumption + carConfig.AccelerationFuelСonsumption} fuel consumption)" +
+            $" \n Default fuel consumption {fuelCmp.FuelConsumption} \n Rotate speed: {moveCmp.RotateSpeed} m/s " +
+            $"\n Weight: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} kg \n Fuel: {fuelCmp.MaxFuel}";
     }
 
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
