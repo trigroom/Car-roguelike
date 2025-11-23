@@ -23,8 +23,19 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 int difficltyIndex = i;
                 _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons[i].onClick.AddListener(() => SelectMapDifficulty(difficltyIndex));
             }
+            _metaSceneService.Value.selectMapDifficultyUIView.backButton.onClick.AddListener(BackToMapSelect);
+            _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(BackToCarSelect);
         }
-        
+
+        public void BackToCarSelect() {
+            _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(true);
+            _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(false);
+        }
+
+        public void BackToMapSelect() {
+            _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(true);
+            _metaSceneService.Value.selectMapDifficultyUIView.gameObject.SetActive(false);
+        }
         public void SelectCar(int carId) {
             _betweenSceneService.Value.CurrentSelectedCar = carId;
             _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(false);

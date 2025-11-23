@@ -57,3 +57,7 @@ public enum CarPartType {
     MeleeWeapon,
     All
 }
+
+public enum ModuleType {
+    
+}

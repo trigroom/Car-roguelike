@@ -13,9 +13,7 @@ MonoBehaviour:
   m_Name: DefaultMotoConfig
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 1
-  <CarName>k__BackingField: Motocircle default
-  <Height>k__BackingField: 4
-  <Width>k__BackingField: 1
+  <CarName>k__BackingField: 'Motocircle '
   <StartCarParts>k__BackingField: 2600000027000000280000002800000003000000
   "<Fuel\u0421onsumption>k__BackingField": 0.2
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.35

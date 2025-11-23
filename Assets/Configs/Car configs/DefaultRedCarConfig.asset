@@ -13,10 +13,8 @@ MonoBehaviour:
   m_Name: DefaultRedCarConfig
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 0
-  <CarName>k__BackingField: Red car
-  <Height>k__BackingField: 4
-  <Width>k__BackingField: 3
-  <StartCarParts>k__BackingField: 0300000004000000
+  <CarName>k__BackingField: "\u0421ar"
+  <StartCarParts>k__BackingField: 0300000004000000010000002100000021000000
   "<Fuel\u0421onsumption>k__BackingField": 0.3
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.5
   <RotateSpeed>k__BackingField: 150
@@ -26,5 +24,15 @@ MonoBehaviour:
   <Deceleration>k__BackingField: 10
   <DefaultMaxFuel>k__BackingField: 150
   CarPartForLevel:
-    _serializedList: []
+    _serializedList:
+    - Key: 2
+      Value: 0b000000
+    - Key: 4
+      Value: 0d000000
+    - Key: 6
+      Value: 21000000
+    - Key: 8
+      Value: 0d000000
+    - Key: 10
+      Value: 0100000021000000
   <CarUpgradeCost>k__BackingField: 17

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Pool;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
@@ -88,8 +89,13 @@ public class SceneService : MonoBehaviour {
     
 
     private void Awake() {
-        _defaultCarConfigId = BetweenScenesService.Instance.CurrentSelectedCar;
-        BetweenScenesService.Instance.HideBlackScreen();
+        if (BetweenScenesService.Instance == null)
+            SceneManager.LoadScene("Scenes/LoadingScene");
+        else {
+          _defaultCarConfigId = BetweenScenesService.Instance.CurrentSelectedCar;
+                  BetweenScenesService.Instance.HideBlackScreen();  
+        }
+        
         _endGameScreenView.OnInitialize();
         _endGameScreenView.gameObject.SetActive(false);
     //    gameInput = new InputSystem_Actions();
