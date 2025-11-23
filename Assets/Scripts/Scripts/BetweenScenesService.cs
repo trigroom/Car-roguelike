@@ -22,6 +22,9 @@ public class BetweenScenesService : MonoBehaviour {
     public MapConfig GetMapConfig() {
        return _carStuffListsConfig.MapConfigs[CurrentSelectedMap];
     }
+    public MapDifficultyConfig GetMapDifficultyConfig() {
+        return _carStuffListsConfig.MapConfigs[CurrentSelectedMap].MapDifficltyConfigs[CurrentSelectedMapDifficlty];
+    }
 
     public void HideBlackScreen() {
         BlackScreen.gameObject.SetActive(true);

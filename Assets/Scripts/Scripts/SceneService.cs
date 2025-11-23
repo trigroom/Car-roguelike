@@ -264,11 +264,12 @@ public class SceneService : MonoBehaviour {
         carPart.transform.SetParent(parent);
         return carPart;
     }
-    
+
     public void ReleaseCarPartCell(CarPartStuffView carPart) {
+        if (!carPart.gameObject.activeInHierarchy) return;
         carPart.gameObject.SetActive(false);
         carPart.transform.SetParent(_notUsedCarPartsContainer);
-       _carPartsPool.Release(carPart);
+        _carPartsPool.Release(carPart);
     }
     
     public MeleeCarPartStuffView GetMeleeCarPartCell(Transform parent) {

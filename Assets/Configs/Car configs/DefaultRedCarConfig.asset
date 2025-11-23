@@ -26,7 +26,7 @@ MonoBehaviour:
   CarPartForLevel:
     _serializedList:
     - Key: 2
-      Value: 0b000000
+      Value: 36000000
     - Key: 4
       Value: 0d000000
     - Key: 6
@@ -34,5 +34,5 @@ MonoBehaviour:
     - Key: 8
       Value: 0d000000
     - Key: 10
-      Value: 0100000021000000
+      Value: 3500000021000000
   <CarUpgradeCost>k__BackingField: 17

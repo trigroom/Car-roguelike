@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 55FireCrossbow
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 55
+  <MaxHealth>k__BackingField: 250
+  <Weight>k__BackingField: 27
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 620e2a5eb2d5f1e4599251743b9091b9, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 0
+  <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 3
+  <PartName>k__BackingField: Fire crossbow
+  <DefaultModuleCount>k__BackingField: 1
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  - {x: 0, y: 1}
+  <MoneyCost>k__BackingField: 5
+  UpPartSprite: {fileID: 21300000, guid: 25618cf69425d7149bf0abe5929f99ff, type: 3}
+  UpPartPosition: {x: 0, y: 0.2}
+  MaxRotateAngle: 15
+  RotateSpeed: 0.15
+  Damage: 27
+  AttackCouldown: 0.9
+  BulletsCountInMagazine: 1
+  BulletsCount: 1
+  BulletSpeed: 11
+  ReloadDuration: 0.9
+  MissleType: 0
+  MissleSprite: {fileID: 21300000, guid: 00d235b26e40e7e4191d6f8a20f6ee79, type: 3}
+  FirePointPosition: {x: 0, y: 0.2}
+  GunContainerPosition: {x: 0, y: -0.4}
+  SpreadAngle: 0
+  ExplosionRadius: 0
+  ExplosionDamage: 0
+  ImpulseForce: 200
+  EffectType: 1
+  EffectDuration: 3
+  BreakingThroughCount: 2

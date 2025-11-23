@@ -195,8 +195,8 @@ public enum AttackType {
             Vector2 worldFirePoint = firePoint.position;
 
             Vector2 direction = firePoint.transform.up;
-            if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity)
-                Debug.Log(direction + " laser dir");
+           // if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity)
+            //    Debug.Log(direction + " laser dir");
             
             LayerMask layerMask = carPartCmp.MainEntity != _sceneService.Value.PlayerEntity && _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
                 ? LayerMask.GetMask(new string[] {
@@ -292,8 +292,11 @@ public enum AttackType {
             var carPartCmp = _carPartComponentsPool.Value.Get(entity);
             Vector2 size = meleeWeaponComponent.MeleeStuff._carPartCollider.size;
             Vector2 origin = (Vector2)meleeWeaponComponent.MeleeStuff.transform.position +
-                             meleeWeaponComponent.MeleeStuff._carPartCollider.offset; // direction = zero для проверки в точке
-            var needTag = carPartCmp.MainEntity == _sceneService.Value.PlayerEntity ? "Enemy" : "Player";
+                             meleeWeaponComponent.MeleeStuff._carPartCollider.offset; 
+            var needTag = carPartCmp.MainEntity == _sceneService.Value.PlayerEntity ||
+                          !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
+                ? "Enemy"
+                : "Player";
             RaycastHit2D[] hits = Physics2D.BoxCastAll(origin, size, meleeWeaponComponent.MeleeStuff.transform.eulerAngles.z, Vector2.zero, 0f,
                 meleeWeaponComponent.MeleeStuff._layerMask);
             if (hits.Length > 0) {
@@ -301,7 +304,7 @@ public enum AttackType {
                     var damagedCarPart = hit.collider.gameObject.GetComponent<CarPartStuffView>();
 
                     Debug.Log(damagedCarPart._mainEntity);
-                    
+
                     ProjectileHit(AttackType.Melee, carPartCmp.CarPartId, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point,
                         null, entity, needTag);
                 }
@@ -309,12 +312,17 @@ public enum AttackType {
                 meleeWeaponComponent.isTriggered = false;
             }
         }
+
         private void ConstructMeleeWeaponCell(int entity) {
             var carPartComponent = _carPartComponentsPool.Value.Get(entity);
             var meleeConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(carPartComponent.CarPartId);
-              var meleeStuffCarPart =  _meleeWeaponComponentsPool.Value.Get(entity).MeleeStuff;
-              
-            meleeStuffCarPart.ConstructMelee(meleeConfig.UpSprite ,ProjectileHit, carPartComponent.MainEntity == _sceneService.Value.PlayerEntity?"Enemy":"Player",carPartComponent.CarPartId, entity);
+            var meleeStuffCarPart = _meleeWeaponComponentsPool.Value.Get(entity).MeleeStuff;
+
+            meleeStuffCarPart.ConstructMelee(meleeConfig.UpSprite, ProjectileHit,
+                carPartComponent.MainEntity == _sceneService.Value.PlayerEntity ||
+                !_enemyAIComponentsPool.Value.Get(carPartComponent.MainEntity).IsEnemy
+                    ? "Enemy"
+                    : "Player", carPartComponent.CarPartId, entity);
         }
 
         private void CreateExplosionEffect(float radius, Vector2 position, EffectType effectType) {
@@ -777,7 +785,7 @@ public enum AttackType {
                     } else {
                         var carPartGroupListClone = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
                         foreach (var containerInfo in carPartGroupListClone) {
-                            if (!connectedWithMainPartContainerContainers.Contains(containerInfo.Key) && DestroyCarPartCell(containerInfo.Key, true))
+                            if (!connectedWithMainPartContainerContainers.Contains(containerInfo.Key) && DestroyCarPartCell(containerInfo.Key, false))
                                 return true;
                         }
                     }

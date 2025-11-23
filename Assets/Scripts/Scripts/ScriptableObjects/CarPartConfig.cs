@@ -59,5 +59,8 @@ public enum CarPartType {
 }
 
 public enum ModuleType {
-    
+    bullet,
+    armor,
+    blade,
+    explodeRadius
 }

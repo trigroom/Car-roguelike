@@ -37,7 +37,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<MeleeWeaponComponent> _meleeWeaponComponentsPool;
     private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
  //   private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
-
     private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
     private EcsFilterInject<Inc<StartRoundEvent>> _startRoundEventsFilter;
@@ -1196,15 +1195,16 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         carCmp.CurrentMaxWeight = carMaxWeight;
         float weightFactor =carCmp.CurrentMaxWeight == 0 ? 0: carWeight / carMaxWeight;
         defaultMaxCarSpeed *= 1-weightFactor;
+        carRotateSpeed *= 1 - weightFactor;
         defaultMaxCarSpeed = Mathf.Max(defaultMaxCarSpeed, 0);
         speedBoost += defaultMaxCarSpeed;
-
+        ref var moveCmp = ref _movementComponentsPool.Value.Get(entity);
         _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
             $"{carConfig.CarName}\n Max move speed: {defaultMaxCarSpeed:F1} m/s \n Added boosted speed: {speedBoost:F1} m/s ({speedBoostFuelConsumption} fuel consumption)" +
             $" \n Default fuel consumption {defaultFuelConsumption} \n Rotate speed: {carRotateSpeed} m/s " +
             $"\n Weight: {carWeight:F1}/{carMaxWeight} kg \n Fuel: {maxFuel}";
-        _movementComponentsPool.Value.Get(entity).MaxMoveSpeed = defaultMaxCarSpeed;
-      
+        moveCmp.MaxMoveSpeed = defaultMaxCarSpeed;
+      moveCmp.RotateSpeed = carRotateSpeed;
     }
 
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
