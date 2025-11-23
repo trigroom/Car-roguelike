@@ -40,6 +40,23 @@ public class GridUtils : MonoBehaviour
       return carPartSize;
   }
   
+  public static int GetRandomIndexFromChancesList(List<float> chances)
+  {
+      float total = chances.Sum();
+    
+      float randomValue = Random.value;
+      float cumulative = 0f;
+    
+      for (int i = 0; i < chances.Count; i++)
+      {
+          cumulative += chances[i] / total;
+          if (randomValue <= cumulative)
+              return i;
+      }
+    
+      return chances.Count - 1;
+  }
+  
   public static bool IsPositionInGrid(Vector2Int gridPosition, int[,] gridSize)
   {
        

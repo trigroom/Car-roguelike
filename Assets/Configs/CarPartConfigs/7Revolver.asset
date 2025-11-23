@@ -17,7 +17,7 @@ MonoBehaviour:
   <Weight>k__BackingField: 4.6
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 29c91cd2bdb5257468adf38011f5c190, type: 3}
   <PartType>k__BackingField: 6
-  <RartRare>k__BackingField: 0
+  <RartRare>k__BackingField: 1
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Revolver
@@ -29,7 +29,7 @@ MonoBehaviour:
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 15
+  Damage: 21
   AttackCouldown: 1.2
   BulletsCountInMagazine: 6
   BulletsCount: 1

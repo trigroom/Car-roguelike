@@ -19,6 +19,8 @@ public class MapDifficultyConfig : ScriptableObject
     public float TimeBetweenInRoundEnemySpawn { get; private set; }
     [field: SerializeField]
     public Color DifficltyUiColor { get; private set; }
+    [field: SerializeField]
+    public float StartMoney { get; private set; }
 }
 
 public enum MapEventsType {

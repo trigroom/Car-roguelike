@@ -17,7 +17,7 @@ MonoBehaviour:
   <Weight>k__BackingField: 31
   <PartSprite>k__BackingField: {fileID: 21300000, guid: abe9f2ea952d1fb43aab058997b20238, type: 3}
   <PartType>k__BackingField: 6
-  <RartRare>k__BackingField: 0
+  <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Laser weapon system

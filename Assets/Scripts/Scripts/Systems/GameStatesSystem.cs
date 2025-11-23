@@ -619,32 +619,28 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SpawnTeammateCar() {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        int roundNumber = curGameCmp.CurrentRound;
+        
+        SpawnNpcCar(curGameCmp, GetRandomCarMap(), false);
+    }
+
+    private EnemyCarPartsMaps GetRandomCarMap(int needRoundNumber = -1) {
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int roundNumber = needRoundNumber == -1 ? curGameCmp.CurrentRound : needRoundNumber;
 
         var currentRoundCarStuff = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[roundNumber];
-
-        var carVariables = currentRoundCarStuff.CarPresets[Random.Range(0, currentRoundCarStuff.CarPresets.Length)];
-        SpawnNpcCar(curGameCmp, carVariables, false);
+        int needIndex = GridUtils.GetRandomIndexFromChancesList(currentRoundCarStuff.EnemyCarChances);
+        var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs[needIndex].CarMapsList;
+        return carsList[Random.Range(0, carsList.Count)];
     }
-    
     private void SetEnemiesCars(int enemiesCount, bool onStartRoundSpawn = true) {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         int roundNumber = curGameCmp.CurrentRound;
         if (!onStartRoundSpawn)
             roundNumber--;
-        var currentRoundCarStuff =
-            _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[roundNumber];
         
-       // List<Transform> playerMainParts = new List<Transform>();
-       // var playerCarCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-       // foreach (var carPartCmpEntity in playerCarCmp.CarPartGroupsList) {
-       //     playerMainParts.Add(_carPartComponentsPool.Value.Get(carPartCmpEntity.Key).CellCarPartsStuffViews[0].transform);
-       // }
+        for (int i = 0; i < enemiesCount; i++) 
+            SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true);
         
-        for (int i = 0; i < enemiesCount; i++) {
-            var carVariables = currentRoundCarStuff.CarPresets[Random.Range(0, currentRoundCarStuff.CarPresets.Length)];
-            SpawnNpcCar(curGameCmp,/* playerMainParts,*/ carVariables, true);
-        }
     }
 
      private void SpawnTeammateCar(int entity) {

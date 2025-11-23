@@ -17,7 +17,7 @@ MonoBehaviour:
   <Weight>k__BackingField: 16
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 9cb7520109930594bafd703fab1c194b, type: 3}
   <PartType>k__BackingField: 6
-  <RartRare>k__BackingField: 0
+  <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Heavy MG

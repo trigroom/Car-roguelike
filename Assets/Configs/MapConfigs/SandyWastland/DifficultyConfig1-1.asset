@@ -20,3 +20,4 @@ MonoBehaviour:
   <HealedHealthPartAfterEndRound>k__BackingField: 0
   <TimeBetweenInRoundEnemySpawn>k__BackingField: 40
   <DifficltyUiColor>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
+  <StartMoney>k__BackingField: 60

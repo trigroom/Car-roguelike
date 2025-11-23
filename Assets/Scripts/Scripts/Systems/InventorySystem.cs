@@ -85,7 +85,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         UpdateCarDescription(playerEntity);
         
-         SetMoneyCount(100);
+         SetMoneyCount(_betweenScenesService.Value.GetMapDifficultyConfig().StartMoney);
         
          foreach (var endGameButton in _sceneData.Value._endGameScreenView.closeEndGameMenuButtons) {
              endGameButton.onClick.AddListener(ActivateGiveCarPartsWindow);
@@ -142,8 +142,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             var currentRoundCarStuff = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[gameCmp.CurrentRound];
 
-            var carVariable = currentRoundCarStuff.CarPresets[Random.Range(0, currentRoundCarStuff.CarPresets.Length)];
-            AddNewTeammateCarToPlayer(carVariable);
+            int i = GridUtils.GetRandomIndexFromChancesList(currentRoundCarStuff.EnemyCarChances);
+            var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs[i].CarMapsList;
+            var enemyCar = carsList[Random.Range(0, carsList.Count)];
+
+            AddNewTeammateCarToPlayer(enemyCar);
         }
 
         if (Input.GetMouseButtonDown(0))
@@ -272,6 +275,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
     }
+    
 
     private void UpdateButtonEnter() {
         Debug.Log("enter");
@@ -499,7 +503,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
     }
 
     private void AddRareToShopItems(CarPartRare carPartRare) {
-        ref var shopCmp = ref _shopComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var shopItem in shopCmp.AllUnlockedShopItems) {
             if (GetCarPartConfig(shopItem).RartRare == carPartRare)
                 shopCmp.CurrentShopItems.Add(shopItem);
@@ -1274,6 +1278,10 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
             _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
                 GridUtils.GetUpgradeCost(level,GetCarPartConfig(needCarPartId)) <= playerCurrencyCmp.MoneyCount;
             inventoryCmp.CurrentMarkedCellForPanelInfo = entity;
+            var currentCarPartConfig = GetCarPartConfig(needCarPartId);
+            if (currentCarPartConfig.PartType != CarPartType.Main && !GridUtils.IsContainerType(currentCarPartConfig))
+                showDestroyButton = true;
+            
         } else if (_shopCellComponentsPool.Value.Has(entity)) {
             if (inventoryCmp.CurrentMarkedCellForPanelInfo == entity && isCanClose) {
                 CloseShowInfoPanel();
@@ -1637,9 +1645,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
     private void SetNewCarUI(int newCarIndex) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         inventoryCmp.CurrentRedactedCarEntity = inventoryCmp.PlayerTeammateCarsEntity[newCarIndex];
-        Debug.Log(inventoryCmp.OnCarCellSize + "inventoryCmp.OnCarCellSize bef");
         SetCarContainersContainerSize();
-        Debug.Log(inventoryCmp.OnCarCellSize + "inventoryCmp.OnCarCellSize after");
         ref var carCmp = ref _carComponentsPool.Value.Get(inventoryCmp.CurrentRedactedCarEntity);
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
             Vector2Int edgePosition = GridUtils.GetEdgePointFromCarPart(carPartInfo.Value);

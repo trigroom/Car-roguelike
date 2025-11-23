@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "MapConfig", menuName = "Scriptable Objects/MapConfig")]
@@ -16,4 +18,10 @@ public class MapConfig : ScriptableObject {
 
      [field: SerializeField]
      public MapDifficultyConfig[] MapDifficltyConfigs { get; private set; }
+
+     public List<EnemyListConfigsList> EnemyMapConfigs;
+}
+[System.Serializable]
+public class EnemyListConfigsList {
+     public List<EnemyCarPartsMaps> CarMapsList;
 }

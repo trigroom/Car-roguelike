@@ -17,7 +17,7 @@ MonoBehaviour:
   <Weight>k__BackingField: 38
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 4029eb614dac17b49b9bcf132353bb5b, type: 3}
   <PartType>k__BackingField: 6
-  <RartRare>k__BackingField: 0
+  <RartRare>k__BackingField: 1
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Small cannon

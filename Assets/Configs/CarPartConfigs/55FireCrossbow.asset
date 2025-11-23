@@ -17,7 +17,7 @@ MonoBehaviour:
   <Weight>k__BackingField: 27
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 620e2a5eb2d5f1e4599251743b9091b9, type: 3}
   <PartType>k__BackingField: 6
-  <RartRare>k__BackingField: 0
+  <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Fire crossbow

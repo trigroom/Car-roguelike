@@ -17,7 +17,7 @@ MonoBehaviour:
   <Weight>k__BackingField: 40
   <PartSprite>k__BackingField: {fileID: 21300000, guid: be97fc07e3c662e4fa10a75b5cf630fe, type: 3}
   <PartType>k__BackingField: 1
-  <RartRare>k__BackingField: 0
+  <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 2
   <PartName>k__BackingField: Sand bags barricade

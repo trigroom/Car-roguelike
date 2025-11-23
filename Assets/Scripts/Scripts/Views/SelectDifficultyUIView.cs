@@ -27,7 +27,8 @@ public class SelectDifficultyUIView : MonoBehaviour
 
    public void SetDifficultyDescription(MapDifficultyConfig difficultyConfig) {
       _difficultyDescription.text = $"Enemy damage x{difficultyConfig.DamageMultiplayer}\nEnemy health x{difficultyConfig.HealthMultiplayer} \n" +
-                                    $"Scrap for round {difficultyConfig.ScrapForRound}\nScrap for map complete{difficultyConfig.ScrapForMapComplete}";
+                                    $"Scrap for round {difficultyConfig.ScrapForRound}\nScrap for map complete{difficultyConfig.ScrapForMapComplete}" +
+                                    $"\nStart money {difficultyConfig.StartMoney}$";
       _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
    }
 }

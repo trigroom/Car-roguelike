@@ -77,7 +77,7 @@ public class CarPartInfoUIView : MonoBehaviour
         _descriptionText.text =
             $"{_currentCarPartConfig.MaxHealth} HP \nPart type: {_currentCarPartConfig.PartType}\nWeight: {_currentCarPartConfig.Weight}";
         int needLevel = isUpdate ? _level + 1 : _level;
-        Debug.Log(needLevel);
+        
         if (_currentCarPartConfig.PartType == CarPartType.Gun) {
             if (_currentCarPartConfig is GunConfig gunConfig) {
                 SetGunInfo(gunConfig, needLevel, isUpdate);
