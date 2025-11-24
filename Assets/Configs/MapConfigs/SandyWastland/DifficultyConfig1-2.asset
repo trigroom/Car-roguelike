@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a9c9a73aa4e45c458c2d8188637e9e5, type: 3}
   m_Name: DifficultyConfig1-2
   m_EditorClassIdentifier: 
+  <DifficultyName>k__BackingField: NORMAL
   <HealthMultiplayer>k__BackingField: 1
   <DamageMultiplayer>k__BackingField: 1
   <MapEvents>k__BackingField: 

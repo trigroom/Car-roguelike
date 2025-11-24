@@ -186,7 +186,7 @@ public enum AttackType {
         private void TrySpawnLaser(int entity) {
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(entity);
             ref var gunCmp = ref _gunComponentsPool.Value.Get(entity);
-            if(gunCmp.FirePointTransform == null || !_laserComponentsPool.Value.Has(entity))return;
+            if (gunCmp.FirePointTransform == null || !_laserComponentsPool.Value.Has(entity)) return;
             var laserLineRenderer = _laserComponentsPool.Value.Get(entity).LaserLineRenderer;
             var gunConfig = _sceneService.Value.GetGunFromCarPart(carPartCmp.CarPartId);
             float laserRange = gunConfig.BulletSpeed;
@@ -195,30 +195,26 @@ public enum AttackType {
             Vector2 worldFirePoint = firePoint.position;
 
             Vector2 direction = firePoint.transform.up;
-           // if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity)
-            //    Debug.Log(direction + " laser dir");
-            
-            LayerMask layerMask = carPartCmp.MainEntity != _sceneService.Value.PlayerEntity && _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
-                ? LayerMask.GetMask(new string[] {
-                    /* "CarBase",*/ "Obstacle","UpCarPart"
-                })
-                : LayerMask.GetMask(new string[] {
-                    /*"EnemyCarBase",*/ "Obstacle","UpCarPartEnemy"
-                });
+
+            LayerMask layerMask =
+                carPartCmp.MainEntity != _sceneService.Value.PlayerEntity && _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
+                    ? LayerMask.GetMask(new string[] {
+                         "Obstacle", "UpCarPart"
+                    })
+                    : LayerMask.GetMask(new string[] {
+                        "Obstacle", "UpCarPartEnemy"
+                    });
             RaycastHit2D hit = Physics2D.Raycast(worldFirePoint, direction, laserRange, layerMask);
             Vector2 endPoint;
             if (hit.collider != null) {
                 endPoint = hit.point;
 
                 if (hit.collider.gameObject.layer != 13) {
-                     var damagedCarPart = hit.collider.GetComponent<CarPartStuffView>();
-                                    ProjectileHit(AttackType.Laser, gunConfig.Id, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point, null,
-                                        entity);
+                    var damagedCarPart = hit.collider.GetComponent<CarPartStuffView>();
+                    ProjectileHit(AttackType.Laser, gunConfig.Id, damagedCarPart._gridPosition, damagedCarPart._mainEntity, hit.point, null,
+                        entity);
                 }
-                
-               
             } else {
-                // Если не попали, конечная точка на максимальной дистанции
                 endPoint = worldFirePoint + direction * laserRange;
             }
 
@@ -368,14 +364,10 @@ public enum AttackType {
             if (carPartCmp.CellCarPartsStuffViews == null || gunCmp.FirePointTransform == null) return;  
             for (int i = 0; i < gunConfig.BulletsCount; i++) {
             
-               
-
-                Vector2 worldFirePoint = /*carPartCmp.CarPartCellRenderer.transform.TransformPoint(gunConfig.FirePointPosition)*/
-                    gunCmp.FirePointTransform.position;
+                Vector2 worldFirePoint = gunCmp.FirePointTransform.position;
 
                 Vector2 direction = gunCmp.FirePointTransform.up;
 
-                // Добавляем случайный разброс
                 float randomSpread = Random.Range(-gunConfig.SpreadAngle, gunConfig.SpreadAngle);
                 direction = Quaternion.Euler(0, 0, randomSpread) * direction;
 
@@ -405,7 +397,6 @@ public enum AttackType {
 
                 currentProjectile.rigidbody2D.linearVelocity = direction * gunConfig.BulletSpeed;
 
-                // Поворачиваем снаряд в направлении движения
                 float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
                 currentProjectile.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             }
@@ -430,8 +421,7 @@ public enum AttackType {
                         _shockEffectComponentsPool.Value.Add(carPartEntity).effectDuration = duration;
                         var damagedCarPart = _carPartComponentsPool.Value.Get(carPartEntity).CarPartId;
                         if (_sceneService.Value.GetCarPartConfig(damagedCarPart).PartType == CarPartType.Main)
-                            _carComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(carPartEntity).MainEntity)
-                                .ShockedMainPartsCount++;
+                            _carComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(carPartEntity).MainEntity).ShockedMainPartsCount++;
                     }
 
                     break;
@@ -439,7 +429,7 @@ public enum AttackType {
                     if (_fireComponentsPool.Value.Has(carPartEntity)) {
                         ref var shockCmp = ref _fireComponentsPool.Value.Get(carPartEntity);
                         shockCmp.Duration += duration;
-                    } else 
+                    } else
                         _fireComponentsPool.Value.Add(carPartEntity).Duration = duration;
 
                     break;
@@ -679,7 +669,7 @@ public enum AttackType {
 
         private bool DestroyCarPartCell(int cellEntity, bool checkConnectedGroup = true) {
             ref CarPartComponent carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
-            carPartCmp.CurrentHealth = 0;
+           // carPartCmp.CurrentHealth = 0;
    
             if (carPartCmp.CarPartCellRenderer == null || !carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return false;
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);      
@@ -929,13 +919,13 @@ public enum AttackType {
             var containersList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
 
             foreach (var carPartEntity in containersList) {
-                if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CurrentHealth > 0)
+                if (!_carPartComponentsPool.Value.Get(carPartEntity.Key).CarPartCellRenderer)
                     DestroyCarPartCell(carPartEntity.Key, false);
             }
 
             var partsList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartGroupsList);
             foreach (var carPartEntity in partsList) {
-                if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CurrentHealth > 0)
+                if (!_carPartComponentsPool.Value.Get(carPartEntity.Key).CarPartCellRenderer)
                     DestroyCarPartCell(carPartEntity.Key,false);
                 //fix double delete
             }

@@ -21,14 +21,17 @@ public class SelectDifficultyUIView : MonoBehaviour
       _mapNameText.text = currentMapConfig.MapName;
       _mapDescription.text = currentMapConfig.MapDescription;
       for (int i = 0; i < DifficultyButtons.Length; i++) {
-         DifficultyButtons[i].gameObject.SetActive(currentMapConfig.MapDifficltyConfigs.Length>i); 
+         DifficultyButtons[i].gameObject.SetActive(currentMapConfig.MapDifficltyConfigs.Length > i);
+         if (currentMapConfig.MapDifficltyConfigs.Length > i)
+            DifficultyButtons[i].transform.GetComponentInChildren<TMP_Text>().text = currentMapConfig.MapDifficltyConfigs[i].DifficultyName;
       }
    }
 
    public void SetDifficultyDescription(MapDifficultyConfig difficultyConfig) {
-      _difficultyDescription.text = $"Enemy damage x{difficultyConfig.DamageMultiplayer}\nEnemy health x{difficultyConfig.HealthMultiplayer} \n" +
+      _difficultyDescription.text = $"{difficultyConfig.DifficultyName}\nEnemy damage x{difficultyConfig.DamageMultiplayer}\nEnemy health x{difficultyConfig.HealthMultiplayer} \n" +
                                     $"Scrap for round {difficultyConfig.ScrapForRound}\nScrap for map complete{difficultyConfig.ScrapForMapComplete}" +
                                     $"\nStart money {difficultyConfig.StartMoney}$";
       _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
+      
    }
 }

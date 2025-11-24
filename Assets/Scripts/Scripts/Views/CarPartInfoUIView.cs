@@ -24,6 +24,7 @@ public class CarPartInfoUIView : MonoBehaviour
     [field: SerializeField] public Image _carPartIconUpLevel { get; private set; }
     [field: SerializeField] public TMP_Text _sellCarPartText { get; private set; }
     public int _level;
+    public float CurrentMarkedCarPartHealth;
 
     public void SetupButtonsInfoPanel(Action backCarPart, Action destroy, Action upgrade, Action upgradeTriggerEnter, Action upgradeTriggerExit,
         Action moveToInventory) {
@@ -50,10 +51,11 @@ public class CarPartInfoUIView : MonoBehaviour
         _upgradeButton.triggers.Add(exitEntry);
     }
 
-    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel) {
+    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel, float currentHealth) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
+        CurrentMarkedCarPartHealth = currentHealth;
         if (GridUtils.GetUpgradeCost(carPartLevel,carPartConfig) != 0)
             _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel,carPartConfig).ToString()}$ to upgrade";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
@@ -75,7 +77,7 @@ public class CarPartInfoUIView : MonoBehaviour
     public void SetDescriptionInfo(bool isUpdate) {
     
         _descriptionText.text =
-            $"{_currentCarPartConfig.MaxHealth} HP \nPart type: {_currentCarPartConfig.PartType}\nWeight: {_currentCarPartConfig.Weight}";
+            $"{CurrentMarkedCarPartHealth:F2}/{_currentCarPartConfig.MaxHealth} HP \nPart rare: {_currentCarPartConfig.RartRare}\nWeight: {_currentCarPartConfig.Weight}";
         int needLevel = isUpdate ? _level + 1 : _level;
         
         if (_currentCarPartConfig.PartType == CarPartType.Gun) {
@@ -96,11 +98,11 @@ public class CarPartInfoUIView : MonoBehaviour
                 }
                 (float damageMultiplier, float damageBySpeedMultiplier) = GridUtils.GetMeleeLevelMultipliers(meleeConfig,needLevel);
                 if (isUpdate) {
-                    if (damageMultiplier != 1)
+                    if (damageMultiplier != 1f)
                         _descriptionText.text += $"\nDamage: <color=#5bca4a>{meleeConfig.Damage * damageMultiplier}/s</color> ";
                     else
                         _descriptionText.text += $"\nDamage: {meleeConfig.Damage * damageMultiplier}/s ";
-                    if (damageBySpeedMultiplier != 1)
+                    if (damageBySpeedMultiplier != 1f)
                         _descriptionText.text +=
                             $"\nAdded damage: <color=#5bca4a>{meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s</color>\n";
                     else

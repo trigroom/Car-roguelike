@@ -4,6 +4,8 @@ using UnityEngine;
 public class MapDifficultyConfig : ScriptableObject
 {
     [field: SerializeField]
+    public string DifficultyName { get; private set; }
+    [field: SerializeField]
     public float HealthMultiplayer { get; private set; }
     [field: SerializeField]
     public float DamageMultiplayer { get; private set; }

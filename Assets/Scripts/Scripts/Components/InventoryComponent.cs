@@ -5,7 +5,6 @@
     using DG.Tweening;
 
     public struct InventoryComponent {
-        public List<(int Id, int Level)> PartsInInventory;
         public int CurrentInventoryPage;
 
         public float PressedButtonTime;

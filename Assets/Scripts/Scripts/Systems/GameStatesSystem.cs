@@ -41,8 +41,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<SettingsComponent> _settingsComponentsPool;
     private EcsPoolInject<CompleteTaskEvent> _completeTaskEventsPool;
     private EcsPoolInject<AddTeammateEvent> _addTeammateEventsPool;
+    private EcsPoolInject<InventoryCellComponent> _inventoryCellComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
+    private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
     private EcsFilterInject<Inc<FilledZoneComponent>> _filledZoneComponentsFilter;
     private EcsFilterInject<Inc<TaskComponent>> _taskComponentsFilter;
@@ -900,7 +902,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
       
         if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) return false;
-       if (MainPartIsPlaced(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)) &&  CanUseThisCarPartContainers()) return true;
+       if (MainPartIsPlaced() &&  CanUseThisCarPartContainers()) return true;
         return false;
     }
     
@@ -1167,9 +1169,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return wheelTransform;
     }
 
-    private bool MainPartIsPlaced(InventoryComponent inventoryCmp) {
-        foreach (var partId in inventoryCmp.PartsInInventory) {
-            if (_sceneService.Value._carStuffListsConfig.CarPartConfigs[partId.Item1].PartType == CarPartType.Main)
+    private bool MainPartIsPlaced() {
+        foreach (var cellEntity in _inventoryCellComponentsFilter.Value) {
+            if (_sceneService.Value.GetCarPartConfig(_inventoryCellComponentsPool.Value.Get(cellEntity).CarPartId).PartType == CarPartType.Main)
                 return false;
         }
 

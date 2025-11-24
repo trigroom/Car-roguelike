@@ -17,6 +17,7 @@ public class BetweenScenesService : MonoBehaviour {
         DontDestroyOnLoad(this);
         
         SceneManager.LoadScene("Scenes/MetaScene");
+
     }
 
     public MapConfig GetMapConfig() {
