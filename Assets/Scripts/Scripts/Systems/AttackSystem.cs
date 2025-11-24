@@ -56,8 +56,10 @@ public enum AttackType {
         public void Run(IEcsSystems systems) {
             foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
                 EndRound();
+                SetHealthToMinimumLevel();
                 foreach (var completeTask in _completeTaskEventsFilter.Value) {
                     _completeTaskEventsPool.Value.Del(completeTask);
+                    
                    CheckTasks(_taskComponentsPool.Value.Get(completeTask).TaskType); 
                 }
             }
@@ -180,6 +182,29 @@ public enum AttackType {
                         _fireComponentsPool.Value.Del(burnedEntity);
                     }
                 }
+            }
+        }
+
+        private void SetHealthToMinimumLevel() {
+            var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            float minHealthLevel = _betweenScenesService.Value.GetMapDifficultyConfig().HealedHealthPartAfterEndRound;
+            foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
+                var carCmp = _carComponentsPool.Value.Get(carEntity);
+                foreach (var containerInfo in carCmp.CarPartContainerGroupsList) {
+                    ref var carPartCmp = ref _carPartComponentsPool.Value.Get(containerInfo.Key);
+                    if(carPartCmp.CurrentHealth / carPartCmp.MaxHealth < minHealthLevel)
+                    carPartCmp.CurrentHealth = carPartCmp.MaxHealth * minHealthLevel;
+                }
+                foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+                    ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartInfo.Key);
+                    if (carPartCmp.CurrentHealth / carPartCmp.MaxHealth < minHealthLevel) {
+                        carPartCmp.CurrentHealth = carPartCmp.MaxHealth * minHealthLevel;
+                        Debug.Log("Heal to" + carPartCmp.CurrentHealth );
+                    }
+                    Debug.Log("dont Heal to" + (carPartCmp.CurrentHealth / carPartCmp.MaxHealth) );
+                }
+                
+                //for 0 health make delete car parts
             }
         }
 

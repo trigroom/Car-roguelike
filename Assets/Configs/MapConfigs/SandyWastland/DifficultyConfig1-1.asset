@@ -18,7 +18,7 @@ MonoBehaviour:
   <MapEvents>k__BackingField: 
   <ScrapForRound>k__BackingField: 3
   <ScrapForMapComplete>k__BackingField: 30
-  <HealedHealthPartAfterEndRound>k__BackingField: 0
+  <HealedHealthPartAfterEndRound>k__BackingField: 1
   <TimeBetweenInRoundEnemySpawn>k__BackingField: 40
   <DifficltyUiColor>k__BackingField: {r: 0, g: 0, b: 0, a: 0}
   <StartMoney>k__BackingField: 60

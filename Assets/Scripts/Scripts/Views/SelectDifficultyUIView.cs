@@ -28,10 +28,10 @@ public class SelectDifficultyUIView : MonoBehaviour
    }
 
    public void SetDifficultyDescription(MapDifficultyConfig difficultyConfig) {
-      _difficultyDescription.text = $"{difficultyConfig.DifficultyName}\nEnemy damage x{difficultyConfig.DamageMultiplayer}\nEnemy health x{difficultyConfig.HealthMultiplayer} \n" +
-                                    $"Scrap for round {difficultyConfig.ScrapForRound}\nScrap for map complete{difficultyConfig.ScrapForMapComplete}" +
-                                    $"\nStart money {difficultyConfig.StartMoney}$";
+      _difficultyDescription.text =
+         $"{difficultyConfig.DifficultyName}\nEnemy damage x{difficultyConfig.DamageMultiplayer}\nEnemy health x{difficultyConfig.HealthMultiplayer} \n" +
+         $"Scrap for round {difficultyConfig.ScrapForRound}\nScrap for map complete{difficultyConfig.ScrapForMapComplete}" +
+         $"\nStart money {difficultyConfig.StartMoney}$\nHeal after end round to {difficultyConfig.HealedHealthPartAfterEndRound * 100}%";
       _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
-      
    }
 }
