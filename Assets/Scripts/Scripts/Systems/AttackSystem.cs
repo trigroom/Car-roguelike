@@ -56,7 +56,6 @@ public enum AttackType {
         public void Run(IEcsSystems systems) {
             foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
                 EndRound();
-                SetHealthToMinimumLevel();
                 foreach (var completeTask in _completeTaskEventsFilter.Value) {
                     _completeTaskEventsPool.Value.Del(completeTask);
                     
@@ -185,27 +184,35 @@ public enum AttackType {
             }
         }
 
-        private void SetHealthToMinimumLevel() {
+     
+        
+        private void UpdateHealAllCarPartButton() {
+            float healCost = GetHealAllCarPartCost();
+            _sceneService.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost>0);
+            _sceneService.Value._inventoryUIView._healCarText.text = $"Heal all car for {healCost}$";
+        }
+
+        private float GetHealAllCarPartCost() {
             var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-            float minHealthLevel = _betweenScenesService.Value.GetMapDifficultyConfig().HealedHealthPartAfterEndRound;
-            foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
-                var carCmp = _carComponentsPool.Value.Get(carEntity);
-                foreach (var containerInfo in carCmp.CarPartContainerGroupsList) {
-                    ref var carPartCmp = ref _carPartComponentsPool.Value.Get(containerInfo.Key);
-                    if(carPartCmp.CurrentHealth / carPartCmp.MaxHealth < minHealthLevel)
-                    carPartCmp.CurrentHealth = carPartCmp.MaxHealth * minHealthLevel;
-                }
-                foreach (var carPartInfo in carCmp.CarPartGroupsList) {
-                    ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartInfo.Key);
-                    if (carPartCmp.CurrentHealth / carPartCmp.MaxHealth < minHealthLevel) {
-                        carPartCmp.CurrentHealth = carPartCmp.MaxHealth * minHealthLevel;
-                        Debug.Log("Heal to" + carPartCmp.CurrentHealth );
-                    }
-                    Debug.Log("dont Heal to" + (carPartCmp.CurrentHealth / carPartCmp.MaxHealth) );
-                }
-                
-                //for 0 health make delete car parts
+            ref var carCmp = ref _carComponentsPool.Value.Get(inventoryCmp.CurrentRedactedCarEntity);
+            float healCost = 0;
+            foreach (var carPartEntity in carCmp.CarPartContainerGroupsGrid) {
+                var carPartCmp = _carPartComponentsPool.Value.Get(carPartEntity);
+                healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartCmp.CurrentHealth,
+                    _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId));
             }
+
+            foreach (var carPartEntity in carCmp.CarPartGroupsGrid) {
+                var carPartCmp = _carPartComponentsPool.Value.Get(carPartEntity);
+                healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartCmp.CurrentHealth,
+                    _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId));
+            }
+
+            return healCost;
+        }
+
+        private float GetHealCostForCarPart(float maxHp,float currentHp, CarPartConfig carPartConfig) {
+            return carPartConfig.MoneyCost * (1f-currentHp / maxHp) / 4;
         }
 
         private void TrySpawnLaser(int entity) {
@@ -749,7 +756,7 @@ public enum AttackType {
                     }
 
                     _sceneService.Value.ReleaseCarPartCell(carPart);
-                    if (isPlayer) {
+                    if (isPlayer && inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]) {
                         _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]);
                         inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y] = null;
                     }
@@ -758,6 +765,7 @@ public enum AttackType {
                 }
 
                 if (carPartConfig.PartType == CarPartType.WheelsContainer) {
+                    Debug.Log("wheel cont "+cellEntity);
                     var wheelContainer = _wheelContainerComponentsPool.Value.Get(cellEntity);
                     foreach (var wheel in wheelContainer.Wheels) {
                         wheel.transform.GetChild(0).gameObject.SetActive(false);
@@ -768,9 +776,9 @@ public enum AttackType {
                             .Wheels[_sceneService.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).WheelId].UpWheelSprite;
                         wheelSpriteRenderer.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
                         wheel.transform.parent = _sceneService.Value._brokenCarPartsContainer;
-                        _wheelContainerComponentsPool.Value.Del(cellEntity);
                     }
 
+                    _wheelContainerComponentsPool.Value.Del(cellEntity);
                     carCmp.CurrentMaxWeight -= _sceneService.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).MaxWeight;
                 }
 
@@ -800,6 +808,7 @@ public enum AttackType {
                     } else {
                         var carPartGroupListClone = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
                         foreach (var containerInfo in carPartGroupListClone) {
+                            if (cellEntity == containerInfo.Key)continue;
                             if (!connectedWithMainPartContainerContainers.Contains(containerInfo.Key) && DestroyCarPartCell(containerInfo.Key, false))
                                 return true;
                         }
@@ -818,7 +827,7 @@ public enum AttackType {
                     carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] = 0;
                     string needLayer = !isEnemy ? "CarBase" : "CarBaseEnemy";
                     carPart.SetupCarPart(gridPos, needLayer, carPartCmp.MainEntity);
-                    if (isPlayer) {
+                    if (isPlayer && inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]) {
                          _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]);
                          inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y] = null;
                     }

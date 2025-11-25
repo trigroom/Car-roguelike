@@ -24,7 +24,7 @@ MonoBehaviour:
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 0
+  <MoneyCost>k__BackingField: 8
   WheelId: 1
   WheelsPositions:
   - {x: 0, y: 0}

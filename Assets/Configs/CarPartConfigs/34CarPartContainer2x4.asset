@@ -31,5 +31,6 @@ MonoBehaviour:
   - {x: 1, y: 2}
   - {x: 0, y: 3}
   - {x: 1, y: 3}
+  <MoneyCost>k__BackingField: 9
   MaxAngle: 0
   RotateSpeed: 0

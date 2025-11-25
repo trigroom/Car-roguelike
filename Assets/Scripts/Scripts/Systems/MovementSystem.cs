@@ -186,7 +186,6 @@ public class MovementSystem : IEcsRunSystem {
                     UseFuel(movementEntity);
                 } else {
                     SetWheelParticleSystemState(movementEntity, false);
-                    Debug.Log(movementCmp.CurrentMoveSpeed + " speed "+movementCmp.Deceleration * deltaTime + " ent"+movementEntity);
                     movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, 0f, movementCmp.Deceleration * deltaTime);
                     movementCmp.CurrentRotateSpeed = Mathf.MoveTowards(
                         movementCmp.CurrentRotateSpeed, 0f, movementCmp.RotateSpeed * Time.fixedDeltaTime);

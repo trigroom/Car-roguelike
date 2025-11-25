@@ -41,7 +41,6 @@ public class EcsStartUp : MonoBehaviour
       
             .DelHere<DestroyEntityEvent>()
            .DelHere<ConstructMeleeCellEvent>()
-           .DelHere<EndRoundEvent>()
             .DelHere<StartRoundEvent>()
 
          .Inject(_sceneService)

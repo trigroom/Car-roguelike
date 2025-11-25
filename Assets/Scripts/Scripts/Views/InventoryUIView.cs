@@ -5,6 +5,10 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour
 {
     [field: SerializeField]
+    public TMP_Text _healCarText { get;private set; }
+    [field: SerializeField]
+    public Button _healCarButton { get;private set; }
+    [field: SerializeField]
     public Transform _carPartsUpContainer { get;private set; }
     [field: SerializeField]
     public RectTransform _carPartsDownContainer { get;private set; }

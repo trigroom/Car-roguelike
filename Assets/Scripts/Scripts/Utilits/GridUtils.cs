@@ -486,7 +486,7 @@ public class GridUtils : MonoBehaviour
     }
 
     public static float GetSellValueForCarPart(CarPartConfig carPartConfig, int level) {
-        return carPartConfig.MoneyCost /2 + (level-1)*carPartConfig.UpgradedPartCost;
+        return carPartConfig.MoneyCost /2 + Mathf.Max(level-1, 0)*carPartConfig.UpgradedPartCost;
     }
 }
 

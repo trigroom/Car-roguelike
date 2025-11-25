@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class CarPartInfoUIView : MonoBehaviour
 {
+    [field: SerializeField] public TMP_Text _healCarPartText { get; private set; }
+    [field: SerializeField] public Button _healCarPartButton { get; private set; }
     [field: SerializeField] public Button _closeInfoPanelButton { get; private set; }
     [field: SerializeField] public Button _moveToInventoryButton { get; private set; }
     [field: SerializeField] public EventTrigger _upgradeButton { get; private set; }
@@ -51,19 +53,25 @@ public class CarPartInfoUIView : MonoBehaviour
         _upgradeButton.triggers.Add(exitEntry);
     }
 
-    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel, float currentHealth) {
+    public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
+        float currentHealth, float healCost) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
         CurrentMarkedCarPartHealth = currentHealth;
-        if (GridUtils.GetUpgradeCost(carPartLevel,carPartConfig) != 0)
-            _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel,carPartConfig).ToString()}$ to upgrade";
+        if (GridUtils.GetUpgradeCost(carPartLevel, carPartConfig) != 0)
+            _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig).ToString()}$ to upgrade";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
 
         _nameText.text = carPartConfig.PartName;
-       
+
         if (carPartLevel != 0)
             _nameText.text += $"\n{carPartLevel} lvl.";
+        _healCarPartButton.gameObject.SetActive(healCost > 0);
+        if (healCost > 0) {
+            _healCarPartText.text = $"Heal car part for {healCost}$";
+            _healCarPartText.color = Color.clear;
+        }
 
         _carPartIconUpLevel.gameObject.SetActive(false);
         _currentCarPartConfig = carPartConfig;
@@ -71,7 +79,7 @@ public class CarPartInfoUIView : MonoBehaviour
 
         SetDescriptionInfo(false);
 
-        _sellCarPartText.text = $"Sell for {GridUtils.GetSellValueForCarPart(carPartConfig,carPartLevel)}$" ;
+        _sellCarPartText.text = $"Sell for {GridUtils.GetSellValueForCarPart(carPartConfig, carPartLevel)}$";
     }
 
     public void SetDescriptionInfo(bool isUpdate) {

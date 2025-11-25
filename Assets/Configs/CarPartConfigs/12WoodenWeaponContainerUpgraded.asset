@@ -24,5 +24,6 @@ MonoBehaviour:
   <DefaultModuleCount>k__BackingField: 2
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
+  <MoneyCost>k__BackingField: 9
   MaxAngle: 40
   RotateSpeed: 2
