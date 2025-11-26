@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
+    [field: SerializeField] public Transform _dontUsedUIImagesPool{ get; private set; }
     [field: SerializeField] public Transform _markForTeammatesContainer{ get; private set; }
     [field: SerializeField] public Transform _mapContainer{ get; private set; }
     [field: SerializeField] public Transform[] _mountains{ get; private set; }
@@ -145,6 +146,8 @@ public class SceneService : MonoBehaviour {
 
     public void ReleaseCarPartUIImage(Image carPartImage) {
         carPartImage.gameObject.SetActive(false);
+       
+        carPartImage.transform.SetParent(_dontUsedUIImagesPool, false); 
         _imagesPool.Release(carPartImage);
     }
     public (TMP_Text, Sequence) GetFloatingTextPrefab(Vector2 position, string text, Color textColor) {

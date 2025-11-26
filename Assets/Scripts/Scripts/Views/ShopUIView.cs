@@ -12,6 +12,8 @@ public class ShopUIView : MonoBehaviour
     public Transform _shopCarPartsContainer { get; private set; }
      [field:SerializeField]
         public Button _shopModeButton { get; private set; }
+        [field:SerializeField]
+        public TMP_Text _shopModeText { get; private set; }
     [field:SerializeField]
     public ShopButtonView[] _buttonsShop { get; private set; }
     [field:SerializeField]
