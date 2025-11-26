@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
-    public int _entity;
+    public int Entity;
     public Button BuyButton;
     public Button ShowInfoButton;
     public Image ItemSprite;
@@ -17,20 +17,25 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
 
     public void Construct(int _entity, Action<int> _onBuy, Action<int, bool> _onShowInfo, Action<int> _takeItemFromInventory) {
         BuyButton.onClick.AddListener(() => _onBuy?.Invoke(_entity));
-        ShowInfoButton.onClick.AddListener(() => _onShowInfo?.Invoke(_entity, true));
-        this._entity = _entity;
-        this.TakeItemFromInventory = _takeItemFromInventory;
+        ShowInfoButton?.onClick.AddListener(() => _onShowInfo?.Invoke(_entity, true));
+        Entity = _entity;
+        TakeItemFromInventory = _takeItemFromInventory;
     }
 
     public void SetShopCellInfo(int price, Sprite sprite, Sprite upperSprite, Vector2 upperImageSpritePos, Vector2 upperImageSize) {
+        SetPriceText(price);
+
         ItemSprite.sprite = sprite;
-        ItemPriceText.text = price + "$";
-        BuyButton.enabled = true;
         UpperItemSprite.sprite = upperSprite;
         if (upperImageSize == Vector2.zero)
             return;
         UpperItemSprite.transform.localPosition = upperImageSpritePos;
         UpperItemSprite.rectTransform.sizeDelta = upperImageSize;
+    }
+
+    public void SetPriceText(int price) {
+        ItemPriceText.text = price + "$";
+        BuyButton.enabled = true;
     }
 
     public void SetShopSaleInfo(int percent) {
@@ -47,9 +52,8 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     }
 
     public void OnPointerDown(PointerEventData eventData) {
+        if (!ItemSprite) return;
         if (BuyButton.enabled && Input.GetMouseButtonDown(0))
-            TakeItemFromInventory?.Invoke(_entity);
-        Debug.Log("Buy button down");
-        // _world.GetPool<TakeInventoryItemEvent>().Add(_entity);
+            TakeItemFromInventory?.Invoke(Entity);
     }
 }

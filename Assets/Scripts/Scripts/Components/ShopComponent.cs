@@ -5,4 +5,5 @@
         public List<int> AllUnlockedShopItems;
         public List<int> CurrentShopItems;
         public int CurrentUpdateCountInRound;
+        public bool IsCarShopMode;
     }
