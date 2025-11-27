@@ -304,12 +304,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var currentSupportRoundTypes = RoundUtilits.SupportRoundsTypes.Distinct().ToList();
         if (TaskCount() == 5)
             currentSupportRoundTypes.Remove(RoundType.Task);
-        if (_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Count >= 5)
-            currentSupportRoundTypes.Remove(RoundType.TeammateForSupport);
+       /* if (_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Count >= 5)
+            currentSupportRoundTypes.Remove(RoundType.TeammateForSupport);*/
         
-        //test
-        currentSupportRoundTypes = new List<RoundType>() { RoundType.TeammateForSupport };
-        //test
         
         (var randomRounds, int moneyMultiplayerRound) =
             curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length - 1
@@ -1124,9 +1121,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return carView;
     }
 
-    private void SetupWheels(int carCmpEntity, CarView carView) {
+    private void SetupWheels(int carEntity, CarView carView) {
         int maxYposWheels = 0;
-        ref var carCmp  =ref _carComponentsPool.Value.Get(carCmpEntity);
+        ref var carCmp  =ref _carComponentsPool.Value.Get(carEntity);
         foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
             var carPartConfig = _sceneService.Value.GetCarPartConfig(_carPartComponentsPool.Value.Get(carPartContainer.Key).CarPartId);
             if (carPartConfig.PartType == CarPartType.WheelsContainer) {
@@ -1139,7 +1136,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);
             if (carPartConfig.PartType == CarPartType.WheelsContainer) {
                 var wheelConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
-                ref var wheelCmp  = ref _wheelContainerComponentsPool.Value.Add(carPartContainer.Key);
+
+                if (!_wheelContainerComponentsPool.Value.Has(carPartContainer.Key))
+                    _wheelContainerComponentsPool.Value.Add(carPartContainer.Key);
+                ref var wheelCmp  = ref _wheelContainerComponentsPool.Value.Get(carPartContainer.Key);
                 wheelCmp.Wheels = new List<Animator>();
                 foreach (var wheelPos in wheelConfig.WheelsPositions) {
                     var wheel = CreateWheel(wheelConfig.WheelId, carView, (Vector2)carPartCmp.CarPartCellRenderer.transform.position + wheelPos-(Vector2)carView.transform.position,

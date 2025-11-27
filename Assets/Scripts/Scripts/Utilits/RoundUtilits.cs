@@ -11,7 +11,7 @@ public class RoundUtilits
     public static bool IsNotBattleRound(RoundType type) => SupportRoundsTypes.Contains(type) || type == RoundType.None;
 
     public static readonly List<RoundType> SupportRoundsTypes = new List<RoundType> {
-        RoundType.Chest, RoundType.Shop, RoundType.Task, RoundType.Transfer, RoundType.TeammateForSupport
+        RoundType.Chest, RoundType.Shop, RoundType.Task, RoundType.Transfer/*, RoundType.TeammateForSupport*/
     };
     public static (RoundType[], int) GetRandomBattleRound(int battleRounds, int needCount,  List<RoundType> currentSupportRoundTypes) {
         List<RoundType> currentBattleRoundTypes = BattleRoundsTypes.Distinct().ToList();

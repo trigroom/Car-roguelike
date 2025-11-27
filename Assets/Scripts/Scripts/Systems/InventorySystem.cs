@@ -140,7 +140,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var endRound in _endRoundEventsFilter.Value) {
             SetHealthToMinimumLevel();
             UpdateHealAllCarPartButton();
-            _endRoundEventsPool.Value.Del(endRound);
         }
         foreach (var updateSaleShop in _updateShopToSaleRoundEventsFilter.Value) {
             SetShopCells(true);

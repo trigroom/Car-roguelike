@@ -38,6 +38,7 @@ public enum AttackType {
         private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
         private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
         private EcsPoolInject<FuelComponent> _fuelComponentsPool;
+        private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
         private EcsPoolInject<CompleteTaskEvent> _completeTaskEventsPool;
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         
@@ -61,6 +62,7 @@ public enum AttackType {
                     
                    CheckTasks(_taskComponentsPool.Value.Get(completeTask).TaskType); 
                 }
+                _endRoundEventsPool.Value.Del(endRoundEntity);
             }
 
             float deltaTime = Time.deltaTime;
@@ -701,9 +703,8 @@ public enum AttackType {
 
         private bool DestroyCarPartCell(int cellEntity, bool checkConnectedGroup = true) {
             ref CarPartComponent carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
-           // carPartCmp.CurrentHealth = 0;
-   
-            if (carPartCmp.CarPartCellRenderer == null || !carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return false;
+            
+            if (!carPartCmp.CarPartCellRenderer || !carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return false;
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);      
             ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
             bool isPlayer =carPartCmp.MainEntity == _sceneService.Value.PlayerEntity;
@@ -735,12 +736,16 @@ public enum AttackType {
                 meleeCmp.MeleeWeaponRenderer.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
             }
 
-      
+            carPartCmp.CarPartCellRenderer.transform.parent = _sceneService.Value._brokenCarPartsContainer;
+            carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
+            carPartCmp.CarPartCellRenderer.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
+            carPartCmp.CarPartCellRenderer = null;
+            
             bool destroyCarAfterCarPart = false;
             ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
             if (_shockEffectComponentsPool.Value.Has(cellEntity))
                 _shockEffectComponentsPool.Value.Del(cellEntity);
-            if (carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer) {
+            if ( GridUtils.IsContainerType(carPartConfig)) {
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
                     var gridPos = carCmp.CarPartContainerGroupsList[cellEntity][i];
@@ -765,7 +770,6 @@ public enum AttackType {
                 }
 
                 if (carPartConfig.PartType == CarPartType.WheelsContainer) {
-                    Debug.Log("wheel cont "+cellEntity);
                     var wheelContainer = _wheelContainerComponentsPool.Value.Get(cellEntity);
                     foreach (var wheel in wheelContainer.Wheels) {
                         wheel.transform.GetChild(0).gameObject.SetActive(false);
@@ -785,40 +789,7 @@ public enum AttackType {
                 if (isEnemy)
                     carCmp.CarPartContainerGroupsList.Remove(cellEntity);
 
-                if (!destroyCarAfterCarPart && checkConnectedGroup) {
-                    int firstMainCarPartContainerEntity = 0;
-                    int secondMainCarPartContainerEntity = 0;
-
-                    foreach (var carPartsInfo in carCmp.CarPartGroupsList) {
-                        var checkedCarPartCmp = _carPartComponentsPool.Value.Get(carPartsInfo.Key);
-                        if (_sceneService.Value.GetCarPartConfig(checkedCarPartCmp.CarPartId).PartType == CarPartType.Main) {
-                            var cellPos = carPartsInfo.Value[0];
-                            if (firstMainCarPartContainerEntity != 0)
-                                secondMainCarPartContainerEntity = carCmp.CarPartContainerGroupsGrid[cellPos.x, cellPos.y];
-                            else
-                                firstMainCarPartContainerEntity = carCmp.CarPartContainerGroupsGrid[cellPos.x, cellPos.y];
-                        }
-                    }
-
-                    var connectedWithMainPartContainerContainers =
-                        GridUtils.FindContactedValues(carCmp.CarPartContainerGroupsGrid, firstMainCarPartContainerEntity);
-
-                    if (!connectedWithMainPartContainerContainers.Contains(secondMainCarPartContainerEntity)) {
-                        destroyCarAfterCarPart = true;
-                    } else {
-                        var carPartGroupListClone = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
-                        foreach (var containerInfo in carPartGroupListClone) {
-                            if (cellEntity == containerInfo.Key)continue;
-                            if (!connectedWithMainPartContainerContainers.Contains(containerInfo.Key) && DestroyCarPartCell(containerInfo.Key, false))
-                                return true;
-                        }
-                    }
-
-                    if (!isPlayer)
-                        SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carCmp.CarView,
-                            ref _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity));
-                    BuildNewBorder(carPartCmp.MainEntity);
-                }
+               //
                 
             } else {
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
@@ -871,21 +842,48 @@ public enum AttackType {
             moveCmp.MaxMoveSpeed = carConfig.DefaultMaxSpeed *
                                    (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
             
-         //   if (isPlayer && fuelCmp.UseSpeedBoost)
-         //       moveCmp.MaxMoveSpeed += carConfig.BoostSpeedMultiplayer;
-            
-      
-
-            carPartCmp.CarPartCellRenderer.transform.parent = _sceneService.Value._brokenCarPartsContainer;
-            carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
-            carPartCmp.CarPartCellRenderer.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
-            carPartCmp.CarPartCellRenderer = null;
 
             if (isEnemy && !_destroyEntityEventsPool.Value.Has(cellEntity)) {
                 _destroyEntityEventsPool.Value.Add(cellEntity);
                 CheckTasks(TaskType.BrokenParts);
             }
 
+            if (GridUtils.IsContainerType(carPartConfig) && !destroyCarAfterCarPart && checkConnectedGroup) {
+                int firstMainCarPartContainerEntity = 0;
+                int secondMainCarPartContainerEntity = 0;
+
+                foreach (var carPartsInfo in carCmp.CarPartGroupsList) {
+                    var checkedCarPartCmp = _carPartComponentsPool.Value.Get(carPartsInfo.Key);
+                    if (_sceneService.Value.GetCarPartConfig(checkedCarPartCmp.CarPartId).PartType == CarPartType.Main) {
+                        var cellPos = carPartsInfo.Value[0];
+                        if (firstMainCarPartContainerEntity != 0)
+                            secondMainCarPartContainerEntity = carCmp.CarPartContainerGroupsGrid[cellPos.x, cellPos.y];
+                        else
+                            firstMainCarPartContainerEntity = carCmp.CarPartContainerGroupsGrid[cellPos.x, cellPos.y];
+                    }
+                }
+
+                var connectedWithMainPartContainerContainers =
+                    GridUtils.FindContactedValues(carCmp.CarPartContainerGroupsGrid, firstMainCarPartContainerEntity);
+
+                if (!connectedWithMainPartContainerContainers.Contains(secondMainCarPartContainerEntity)) {
+                    destroyCarAfterCarPart = true;
+                } else {
+                    var carPartGroupListClone = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
+                    foreach (var containerInfo in carPartGroupListClone) {
+                        if (cellEntity == containerInfo.Key) continue;
+                        if (!connectedWithMainPartContainerContainers.Contains(containerInfo.Key) &&
+                            DestroyCarPartCell(containerInfo.Key, false))
+                            return true;
+                    }
+                }
+
+                if (!isPlayer)
+                    SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carCmp.CarView,
+                        ref _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity));
+                BuildNewBorder(carPartCmp.MainEntity);
+            }
+            
             if (destroyCarAfterCarPart) {
                 if (!_destroyEntityEventsPool.Value.Has(carPartCmp.MainEntity) || !isEnemy)
                     DestroyNeedCar(carPartCmp.MainEntity);
@@ -953,13 +951,13 @@ public enum AttackType {
             var containersList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
 
             foreach (var carPartEntity in containersList) {
-                if (!_carPartComponentsPool.Value.Get(carPartEntity.Key).CarPartCellRenderer)
+                if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CarPartCellRenderer)
                     DestroyCarPartCell(carPartEntity.Key, false);
             }
 
             var partsList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartGroupsList);
             foreach (var carPartEntity in partsList) {
-                if (!_carPartComponentsPool.Value.Get(carPartEntity.Key).CarPartCellRenderer)
+                if (_carPartComponentsPool.Value.Get(carPartEntity.Key).CarPartCellRenderer)
                     DestroyCarPartCell(carPartEntity.Key,false);
                 //fix double delete
             }
