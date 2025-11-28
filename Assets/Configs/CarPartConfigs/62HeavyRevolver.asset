@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 62HeavyRevolver
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 62
+  <MaxHealth>k__BackingField: 110
+  <Weight>k__BackingField: 4.6
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 29c91cd2bdb5257468adf38011f5c190, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 2
+  <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 3
+  <PartName>k__BackingField: Heavy revolver
+  <DefaultModuleCount>k__BackingField: 2
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  <MoneyCost>k__BackingField: 7
+  UpPartSprite: {fileID: 21300000, guid: 500c81a30e4548648945f4367f737b9c, type: 3}
+  UpPartPosition: {x: 0, y: 0}
+  MaxRotateAngle: 0
+  RotateSpeed: 0
+  Damage: 37
+  AttackCouldown: 1.35
+  BulletsCountInMagazine: 5
+  BulletsCount: 1
+  BulletSpeed: 15
+  ReloadDuration: 1.8
+  MissleType: 0
+  MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
+  FirePointPosition: {x: 0, y: 0}
+  GunContainerPosition: {x: 0, y: 0}
+  SpreadAngle: 5
+  ExplosionRadius: 0
+  ExplosionDamage: 0
+  ImpulseForce: 450
+  EffectType: 0
+  EffectDuration: 0
+  BreakingThroughCount: 2

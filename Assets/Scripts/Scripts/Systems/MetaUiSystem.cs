@@ -46,7 +46,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
         public void SelectMap(int mapId) {
             _betweenSceneService.Value.CurrentSelectedMap = mapId;
             _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(false);
-            _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficltyScreen(
+            _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficultyScreen(
                 _betweenSceneService.Value._carStuffListsConfig.MapConfigs[_betweenSceneService.Value.CurrentSelectedMap]);
             SelectMapDifficulty(0);
             //go to select diff

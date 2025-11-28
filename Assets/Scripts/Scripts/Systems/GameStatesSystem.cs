@@ -937,7 +937,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;
         Vector2Int carPartSize = GridUtils.GetCarPartSize(carPartConfig);
         carPartCmp.MaxHealth = carPartConfig.MaxHealth;
-        carPartCmp.CurrentHealth = carPartConfig.MaxHealth;
+        if (carPartCmp.CurrentHealth == 0)
+            carPartCmp.CurrentHealth = carPartConfig.MaxHealth;
 
         carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
         foreach (var carPartInfo in needList[cellEntity]) {

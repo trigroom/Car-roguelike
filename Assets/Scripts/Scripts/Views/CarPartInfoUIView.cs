@@ -98,7 +98,7 @@ public class CarPartInfoUIView : MonoBehaviour
                 if (meleeConfig.UpSprite != null) {
                     var carPartSize = GridUtils.GetCarPartSize(meleeConfig);
                     _carPartIconUpLevel.rectTransform.sizeDelta = _carPartIcon.rectTransform.sizeDelta /
-                        (Math.Max(carPartSize.x, carPartSize.y) * 16) * meleeConfig.UpSprite.rect.size;
+                        (Math.Max(carPartSize.x, carPartSize.y) * GridUtils.InWorldCellSize) * meleeConfig.UpSprite.rect.size;
                     _carPartIconUpLevel.transform.localPosition = _carPartIcon.rectTransform.sizeDelta /
                         Math.Max(carPartSize.x, carPartSize.y) * meleeConfig.UpSpritePosition;
                     _carPartIconUpLevel.sprite = meleeConfig.UpSprite;
@@ -172,7 +172,7 @@ public class CarPartInfoUIView : MonoBehaviour
         if (gunConfig.UpPartSprite != null) {
             var carPartSize = GridUtils.GetCarPartSize(gunConfig);
             _carPartIconUpLevel.rectTransform.sizeDelta = _carPartIcon.rectTransform.sizeDelta /
-                (Math.Max(carPartSize.x, carPartSize.y) * 16) * gunConfig.UpPartSprite.rect.size;
+                (Math.Max(carPartSize.x, carPartSize.y) * GridUtils.InWorldCellSize) * gunConfig.UpPartSprite.rect.size;
             _carPartIconUpLevel.transform.localPosition = _carPartIcon.rectTransform.sizeDelta /
                 Math.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
             _carPartIconUpLevel.sprite = gunConfig.UpPartSprite;

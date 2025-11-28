@@ -32,7 +32,7 @@ public class ProjectileView : MonoBehaviour {
         collider.enabled = true;
         Bounds spriteBounds = spriteRenderer.bounds;
 
-        collider.size = spriteBounds.size-new Vector3(2f/16,2f/16,0);
+        collider.size = spriteBounds.size-new Vector3(2f/GridUtils.InWorldCellSize,2f/GridUtils.InWorldCellSize,0);
     }
 
     private void OnTriggerEnter2D(Collider2D other) {

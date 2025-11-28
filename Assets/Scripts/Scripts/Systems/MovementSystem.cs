@@ -123,7 +123,7 @@ public class MovementSystem : IEcsRunSystem {
             var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
             movementCmp.Velocity = ((Vector2)moveObjectTransform.position - movementCmp.PreviousPosition) / deltaTime;
             movementCmp.PreviousPosition = moveObjectTransform.position;
-            if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0) {
+            if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0 && movementCmp.MaxMoveSpeed > 0) {
                 Vector3 directionToTarget = (movementCmp.TargetPosition - movementCmp.MovableObjectRigidbody.position).normalized;
                 float distanceToTarget = Vector3.Distance(movementCmp.MovableObjectRigidbody.position, movementCmp.TargetPosition);
                 bool isReversing = false;

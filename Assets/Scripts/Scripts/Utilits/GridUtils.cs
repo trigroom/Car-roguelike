@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class GridUtils : MonoBehaviour
-{
+public class GridUtils : MonoBehaviour {
+    public const int InWorldCellSize = 16;
     private static List<CarPartType> _containerPartTypes = new() { CarPartType.CarStuffContainer, CarPartType.WheelsContainer };
     private static List<CarPartType> _weaponPartTypes = new() { CarPartType.MeleeWeapon, CarPartType.Gun };
     public static bool IsContainerType (CarPartConfig carPartConfig) => _containerPartTypes.Contains(carPartConfig.PartType);

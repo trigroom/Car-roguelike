@@ -16,9 +16,9 @@ public class SelectDifficultyUIView : MonoBehaviour
    public Button[] DifficultyButtons;
    [SerializeField]
    private Image _difficultyColorGradient;
-   public void SetupDifficltyScreen(MapConfig currentMapConfig) {
+   public void SetupDifficultyScreen(MapConfig currentMapConfig) {
       gameObject.SetActive(true);
-      _mapNameText.text = currentMapConfig.MapName;
+      _mapNameText.text = currentMapConfig.MapName + "\nSelect difficulty";
       _mapDescription.text = currentMapConfig.MapDescription;
       for (int i = 0; i < DifficultyButtons.Length; i++) {
          DifficultyButtons[i].gameObject.SetActive(currentMapConfig.MapDifficltyConfigs.Length > i);
