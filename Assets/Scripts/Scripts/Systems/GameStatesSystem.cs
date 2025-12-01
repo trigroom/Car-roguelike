@@ -437,8 +437,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 break;
             case RoundType.Chest:
                 var shopCmp = _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+
+                int rareIndex = GridUtils.GetRandomIndexFromChancesList(shopCmp.CurrentShopItemsChances);
                 _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentGivenItems
-                    .Add(shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)]);
+                    .Add(shopCmp.ListShopItemsForRares[rareIndex][Random.Range(0, shopCmp.ListShopItemsForRares[rareIndex].Count)]);
                 ChangeInventoryState(true);
                 break;
             case RoundType.Shop:

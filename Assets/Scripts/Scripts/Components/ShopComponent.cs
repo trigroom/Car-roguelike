@@ -2,8 +2,8 @@
     using System.Collections.Generic;
 
     struct ShopComponent {
-        public List<int> AllUnlockedShopItems;
-        public List<int> CurrentShopItems;
+        public List<List<int>> ListShopItemsForRares;
+        public List<float> CurrentShopItemsChances;
         public int CurrentUpdateCountInRound;
         public bool IsCarShopMode;
     }

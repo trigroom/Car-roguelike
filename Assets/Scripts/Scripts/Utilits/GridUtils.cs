@@ -54,7 +54,7 @@ public class GridUtils : MonoBehaviour {
               return i;
       }
     
-      return chances.Count - 1;
+      return 0;
   }
   
   public static bool IsPositionInGrid(Vector2Int gridPosition, int[,] gridSize)

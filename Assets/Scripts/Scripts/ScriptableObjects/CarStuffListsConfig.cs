@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CarStuffListsConfig", menuName = "Scriptable Objects/CarStuffListsConfig")]
@@ -32,6 +33,12 @@ public class CarStuffListsConfig : ScriptableObject
     public Color DestroyedCarPartColor { get;private set; }
     [field: SerializeField]
     public MapConfig[] MapConfigs { get;private set; }
+    [field: SerializeField]
+    public ShopIdList[] RoundShopChances{ get;private set; }
 }
 
+[System.Serializable]
+public class ShopIdList {
+    public List<float> Chances;
+}
 

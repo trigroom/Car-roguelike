@@ -111,6 +111,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryCmp.PlayerTeammateCarsEntity.Add(playerEntity);
         inventoryCmp.CurrentRedactedCarEntity = playerEntity;
         SetUpAdminButtons();
+        AddRareToShopItems();
     }
 
     public void Run(IEcsSystems systems) {
@@ -119,18 +120,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var startRound in _startRoundEventsFilter.Value) {
             SetShopCells(false);
             SetCarShopCells();
-            var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            if (gameCmp.CurrentRound == 5)
-                AddRareToShopItems(CarPartRare.Medium);
-            else if (gameCmp.CurrentRound == 10)
-                AddRareToShopItems(CarPartRare.High);
-            else if (gameCmp.CurrentRound == 15)
-                AddRareToShopItems(CarPartRare.VeryHigh);
+            AddRareToShopItems();
             UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
             foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
-                if(inventoryCmp.CurrentRedactedCarEntity != carEntity) 
+                if (inventoryCmp.CurrentRedactedCarEntity != carEntity)
                     UpdateCarStats(carEntity);
             }
+
             ActivateGiveCarPartsWindow();
             _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(0)}$";
             _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentUpdateCountInRound = 0;
@@ -515,22 +511,21 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         inventoryComponent.LastCheckedGridCellPosition = -Vector2Int.one;
     }
 
-    private void AddRareToShopItems(CarPartRare carPartRare) {
+    private void AddRareToShopItems() {
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        foreach (var shopItem in shopCmp.AllUnlockedShopItems) {
-            if (GetCarPartConfig(shopItem).RartRare == carPartRare)
-                shopCmp.CurrentShopItems.Add(shopItem);
-        }
+        shopCmp.CurrentShopItemsChances = _sceneData.Value._carStuffListsConfig.RoundShopChances
+            [_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound].Chances;
     }
     private void SetupShopCells() {
         ref var shopCmp = ref _shopComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
-        shopCmp.AllUnlockedShopItems = new List<int>();
-        shopCmp.CurrentShopItems = new List<int>();
-
+        shopCmp.ListShopItemsForRares = new List<List<int>>(){new List<int>(),new List<int>(),new List<int>(),new List<int>()};
+        shopCmp.CurrentShopItemsChances = new List<float>(4);
         foreach (var shopItem in _sceneData.Value._carStuffListsConfig.ShopItems) {
-            shopCmp.AllUnlockedShopItems.Add(shopItem);
-            if (GetCarPartConfig(shopItem).RartRare == CarPartRare.Low)
-                shopCmp.CurrentShopItems.Add(shopItem);
+            var partRare = (int)GetCarPartConfig(shopItem).RartRare;
+           
+            shopCmp.ListShopItemsForRares[partRare].Add(shopItem);
+         //   if (partRare == CarPartRare.Low)
+            //    shopCmp.CurrentShopItemsChances.Add(shopItem);
         }
 
         _sceneData.Value._shopUIView._buttonUpdateShop.onClick.AddListener(UpdateShopItems);
@@ -869,17 +864,27 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
 
     private void SetShopCells(bool isShopSaleRound) {
         var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        Dictionary<CarPartType, List<int>> carPartsForTypes = new Dictionary<CarPartType, List<int>>();
-        foreach (var shopItem in shopCmp.CurrentShopItems) {
+    /*    Dictionary<CarPartType, List<int>> carPartsForTypes = new Dictionary<CarPartType, List<int>>();
+        foreach (var shopItem in shopCmp.CurrentShopItemsChances) {
             if (!carPartsForTypes.TryAdd(_sceneData.Value.GetCarPartConfig(shopItem).PartType, new List<int>() { shopItem }))
                 carPartsForTypes[_sceneData.Value.GetCarPartConfig(shopItem).PartType].Add(shopItem);
-        }
+        }*/
 
         List<int> shopItems = new();
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
-            var randomItem = i >= _firstCarPartTypesForShop.Length
-                ? shopCmp.CurrentShopItems[Random.Range(0, shopCmp.CurrentShopItems.Count)]
-                : carPartsForTypes[_firstCarPartTypesForShop[i]][Random.Range(0, carPartsForTypes[_firstCarPartTypesForShop[i]].Count)];
+            int rareIndex = GridUtils.GetRandomIndexFromChancesList(shopCmp.CurrentShopItemsChances);
+            int randomItem;
+            if (_firstCarPartTypesForShop.Length > i) {
+                List<int> currentItems = new List<int>();
+                foreach (var shopItem in shopCmp.ListShopItemsForRares[rareIndex]) {
+                    if(GetCarPartConfig(shopItem).PartType == _firstCarPartTypesForShop[i])
+                        currentItems.Add(shopItem);
+                }
+                randomItem = currentItems[Random.Range(0, currentItems.Count)];
+            }
+            else
+                randomItem = shopCmp.ListShopItemsForRares[rareIndex][Random.Range(0, shopCmp.ListShopItemsForRares[rareIndex].Count)];
+            //    : carPartsForTypes[_firstCarPartTypesForShop[i]][Random.Range(0, carPartsForTypes[_firstCarPartTypesForShop[i]].Count)];
             shopItems.Add(randomItem);
         }
 
