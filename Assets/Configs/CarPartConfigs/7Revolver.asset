@@ -24,7 +24,7 @@ MonoBehaviour:
   <DefaultModuleCount>k__BackingField: 2
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 5
+  <MoneyCost>k__BackingField: 15
   UpPartSprite: {fileID: 21300000, guid: f62b41ec2a75b2c4bb72befae6f831b2, type: 3}
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 0

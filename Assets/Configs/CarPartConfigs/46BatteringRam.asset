@@ -29,7 +29,7 @@ MonoBehaviour:
   - {x: 1, y: 1}
   - {x: 0, y: 2}
   - {x: 1, y: 2}
-  <MoneyCost>k__BackingField: 10
+  <MoneyCost>k__BackingField: 17
   Damage: 10
   AttackCountdown: 1.2
   DamageAddedFromOneSpeed: 0.004

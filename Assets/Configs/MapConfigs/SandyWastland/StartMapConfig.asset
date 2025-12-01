@@ -20,6 +20,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9776b4665f1c60c4a9ab3ead86f75228, type: 2}
   - {fileID: 11400000, guid: 9b2baf15722a58541b310d7b9e53b32e, type: 2}
   - {fileID: 11400000, guid: 56bc3451caab86e478f8f3fcfb468bfc, type: 2}
+  - {fileID: 11400000, guid: 3538d8699dfe7b747aeb6b5be659ca56, type: 2}
+  - {fileID: 11400000, guid: 35cfcb7804e7d43409da710bc3581b41, type: 2}
   EnemyMapConfigs:
   - CarMapsList:
     - {fileID: 11400000, guid: 2a14a018cc05403479f7992655f165c4, type: 2}

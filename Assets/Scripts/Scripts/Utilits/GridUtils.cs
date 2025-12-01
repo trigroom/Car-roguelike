@@ -103,6 +103,30 @@ public class GridUtils : MonoBehaviour {
         // Проверяем совпадение значения
         return grid[neighborPos.x, neighborPos.y] == targetValue;
     }
+
+    public static List<int> GetNeighbors(List<Vector2Int> needPositions, int[,] grid) {
+        HashSet<int> uniqueNeighbors = new HashSet<int>();
+
+        int rows = grid.GetLength(0);
+        int cols = grid.GetLength(1);
+
+        foreach (var needPosition in needPositions) {
+            
+            if (needPosition.y + 1 < rows && grid[needPosition.x, needPosition.y + 1] != 0) 
+                uniqueNeighbors.Add( grid[needPosition.x, needPosition.y + 1]);
+
+            if (needPosition.y - 1 >= 0 && grid[needPosition.x, needPosition.y - 1] != 0) 
+                uniqueNeighbors.Add(grid[needPosition.x, needPosition.y - 1]);
+
+            if (needPosition.x - 1 >= 0 && grid[needPosition.x - 1, needPosition.y] != 0) 
+                uniqueNeighbors.Add(grid[needPosition.x - 1, needPosition.y]);
+
+            if (needPosition.x + 1 < cols && grid[needPosition.x + 1, needPosition.y] != 0) 
+                uniqueNeighbors.Add(grid[needPosition.x + 1, needPosition.y]);
+        }
+
+        return new List<int>(uniqueNeighbors);
+    }
     
     private static Vector2Int GetNeighborPosition(Vector2Int currentPos, Direction direction)
     {

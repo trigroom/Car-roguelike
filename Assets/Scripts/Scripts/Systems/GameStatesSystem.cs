@@ -764,6 +764,25 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
       
         SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView,ref enemyAiCmp);
         BuildBorder(enemyEntity);
+        SetReloadBoostSupportTypes(enemyEntity);
+    }
+
+    private void SetReloadBoostSupportTypes(int carEntity) {
+        ref var carCmp = ref _carComponentsPool.Value.Get(carEntity);
+
+        foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+            int carPartId = _carPartComponentsPool.Value.Get(carPartInfo.Key).CarPartId;
+            if (_sceneService.Value.GetCarPartConfig(carPartId).PartType == CarPartType.Support) {
+                var supportConfig = _sceneService.Value.GetSupportModuleFromCarPart(carPartId);
+                if (supportConfig.ModuleType != SupportModuleType.Ammo) continue;
+                var neighbors = GridUtils.GetNeighbors(carPartInfo.Value, carCmp.CarPartGroupsGrid);
+                foreach (var neighbor in neighbors) {
+                    int neighborCarPartId = _carPartComponentsPool.Value.Get(neighbor).CarPartId;
+                    if (_sceneService.Value.GetCarPartConfig(neighborCarPartId).PartType == CarPartType.Gun)
+                        _gunComponentsPool.Value.Get(neighbor).CurrentReloadSpeed *= 1f - supportConfig.FirstCount;
+                }
+            }
+        }
     }
 
     private void SetEnemyCollisionCheckers(int[,] grid, CarView carView, ref EnemyAIComponent enemyAiCmp) {
@@ -810,7 +829,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         BuildBorder(_sceneService.Value.PlayerEntity);
         _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MovableObjectRigidbody.mass = carCmp.CurrentWeight;
         ChangePlayerUIState(true);
-
+        SetReloadBoostSupportTypes(_sceneService.Value.PlayerEntity);
         foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
             if (carEntity != _sceneService.Value.PlayerEntity)
                 SpawnTeammateCar(carEntity);

@@ -25,7 +25,7 @@ MonoBehaviour:
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
-  <MoneyCost>k__BackingField: 8
+  <MoneyCost>k__BackingField: 16
   DefencePercent: 55
   DefenceDirections: 0000000001000000
   ExplosionDefence: 0

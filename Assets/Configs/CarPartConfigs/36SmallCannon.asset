@@ -26,7 +26,7 @@ MonoBehaviour:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
   - {x: 0, y: 2}
-  <MoneyCost>k__BackingField: 5
+  <MoneyCost>k__BackingField: 20
   UpPartSprite: {fileID: 21300000, guid: 838867b34f3c8ae47a78b7e64e9116a3, type: 3}
   UpPartPosition: {x: 0, y: -0.1}
   MaxRotateAngle: 30

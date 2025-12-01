@@ -164,6 +164,9 @@ public class CarPartInfoUIView : MonoBehaviour
             case SupportModuleType.Money:
                 _descriptionText.text += $"\nAdded money after end round: {supportConfig.FirstCount}";
                 break;
+            case SupportModuleType.Ammo:
+                _descriptionText.text += $"\nBoost reload speed neighboring cells: {supportConfig.FirstCount*100}%";
+                break;
         }
     }
     private void SetGunInfo(GunConfig gunConfig, int level, bool isUpdate) {
@@ -192,22 +195,25 @@ public class CarPartInfoUIView : MonoBehaviour
                     $"Laser time: {gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}s";
         } else {
             if (isUpdate) {
-                _descriptionText.text += $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>" +
-                                         $"\nReload duration: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>" +
-                                         $"\nRate of fire: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min</color> ";
+                if (gunConfig.BulletsCountInMagazine != 1)
+                    _descriptionText.text +=
+                        $"\nRate of fire: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min</color> ";
+                _descriptionText.text += $"\nReload duration: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>" +
+                                         $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>";
             } else {
-                _descriptionText.text += $"\nDamage: {gunConfig.Damage * damageMultiplier}" +
-                                         $"\nReload duration: {gunConfig.ReloadDuration / reloadMultiplier:F2}s" +
-                                         $"\nRate of fire: {60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min ";
+                if (gunConfig.BulletsCountInMagazine != 1)
+                    _descriptionText.text += $"\nRate of fire: {60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min ";
+                _descriptionText.text += $"\nReload duration: {gunConfig.ReloadDuration / reloadMultiplier:F2}s" +
+                                         $"\nDamage: {gunConfig.Damage * damageMultiplier}";
             }
-            
+
             if (gunConfig.BulletsCount > 1)
                 _descriptionText.text += $"x{gunConfig.BulletsCount}";
             _descriptionText.text += $" \nProjectile speed: {gunConfig.BulletSpeed} \nSpread angle: {gunConfig.SpreadAngle}\n" +
                                      $"Bullets in mag: {gunConfig.BulletsCountInMagazine}";
             if (gunConfig.ExplosionRadius != 0)
                 _descriptionText.text += $"\nExplosion radius: {gunConfig.ExplosionRadius}\nExplosion damage: {gunConfig.ExplosionDamage}";
-            
+
             if (gunConfig.BreakingThroughCount > 1)
                 _descriptionText.text += $"\nPierce count: {gunConfig.BreakingThroughCount}";
         }

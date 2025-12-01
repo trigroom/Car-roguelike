@@ -10,21 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8824ab8f19244d24091b59f2d7046cb1, type: 3}
-  m_Name: 14DoublFuelPack
+  m_Name: 68BigAmmoBox
   m_EditorClassIdentifier: 
-  <Id>k__BackingField: 14
-  <MaxHealth>k__BackingField: 120
-  <Weight>k__BackingField: 6.5
-  <PartSprite>k__BackingField: {fileID: 21300000, guid: 6fb6e0793efb5fa498aae61884f93054, type: 3}
+  <Id>k__BackingField: 68
+  <MaxHealth>k__BackingField: 300
+  <Weight>k__BackingField: 35
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 6d77547abb6e14f4cb0db8b08524e148, type: 3}
   <PartType>k__BackingField: 3
-  <RartRare>k__BackingField: 1
+  <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 0
-  <PartName>k__BackingField: Douplu fuel pack
+  <PartName>k__BackingField: Big ammo pack
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 4
-  ModuleType: 2
-  FirstCount: 50
-  SecondCount: 0
+  - {x: 1, y: 1}
+  - {x: 1, y: 0}
+  <MoneyCost>k__BackingField: 27
+  ModuleType: 4
+  FirstCount: 0.35
+  SecondCount: 2
