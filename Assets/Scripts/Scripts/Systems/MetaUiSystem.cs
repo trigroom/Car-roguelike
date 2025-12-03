@@ -17,12 +17,12 @@ sealed class MetaUiSystem : IEcsInitSystem {
 
             for (int i = 0; i < _metaSceneService.Value._selectMapButtons.Length; i++) {
                 int mapIndex = i;
-                _metaSceneService.Value._selectMapButtons[i].onClick.AddListener(() => SelectMap(mapIndex));
+                _metaSceneService.Value._selectMapButtons[i].SetupSelectMapButton(SelectMap,mapIndex);
             }
 
             for (int i = 0; i < _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons.Length; i++) {
-                int difficltyIndex = i;
-                _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons[i].onClick.AddListener(() => SelectMapDifficulty(difficltyIndex));
+                int difficultyIndex = i;
+                _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons[i].onClick.AddListener(() => SelectMapDifficulty(difficultyIndex));
             }
             _metaSceneService.Value.selectMapDifficultyUIView.backButton.onClick.AddListener(BackToMapSelect);
             _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(BackToCarSelect);
@@ -37,12 +37,26 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 int langIndex = i;
                 _metaSceneService.Value._localizationButtons[langIndex].onClick
                     .AddListener(()=> {
-                        _betweenSceneService.Value.CsvLocalization.ChangeLanguage(languages[langIndex]);
-                        _metaSceneService.Value._staticTextsView.SetTextLanguage();
-                        Debug.Log("set to "+languages[langIndex] + " language");
+                        ChangeLocalization(langIndex);
                     });
             }
         }
+
+        private void ChangeLocalization(int langIndex) {
+            _betweenSceneService.Value.CsvLocalization.ChangeLanguage(languages[langIndex]);
+            _metaSceneService.Value._staticTextsView.SetTextLanguage();
+            Debug.Log("set to " + languages[langIndex] + " language");
+            for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
+                var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
+                _metaSceneService.Value._selectCarButtonViews[i].SetCarButtonText(carConfig.CarName);
+            }
+            for (int i = 0; i < _metaSceneService.Value._selectMapButtons.Length; i++) {
+                int mapIndex = i;
+                _metaSceneService.Value._selectMapButtons[i].SetMapName(_betweenSceneService.Value._carStuffListsConfig.MapConfigs[mapIndex].MapName);
+            }
+            _metaSceneService.Value.selectMapDifficultyUIView.SetLocalizationText(_betweenSceneService.Value.GetMapConfig());
+        }
+        
         
         public void BackToCarSelect() {
             _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(true);

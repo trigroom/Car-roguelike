@@ -16,23 +16,38 @@ public class SelectDifficultyUIView : MonoBehaviour
    public Button[] DifficultyButtons;
    [SerializeField]
    private Image _difficultyColorGradient;
+
    public void SetupDifficultyScreen(MapConfig currentMapConfig) {
       gameObject.SetActive(true);
-      _mapNameText.text = currentMapConfig.MapName + "\nSelect difficulty";
-      _mapDescription.text = currentMapConfig.MapDescription;
+      SetLocalizationText(currentMapConfig);
       int maxUnlockedLevel = DataPersistenceManagerSystem._gameData.LevelRounds[BetweenScenesService.Instance.CurrentSelectedMap];
       for (int i = 0; i < DifficultyButtons.Length; i++) {
          DifficultyButtons[i].gameObject.SetActive(maxUnlockedLevel > i);
-         if (maxUnlockedLevel > i)
-            DifficultyButtons[i].transform.GetComponentInChildren<TMP_Text>().text = currentMapConfig.MapDifficltyConfigs[i].DifficultyName;
       }
    }
 
+   public void SetLocalizationText(MapConfig currentMapConfig) {
+      _mapNameText.text = GetLocalization(currentMapConfig.MapName) + "\n" + GetLocalization("Select difficulty");
+      _mapDescription.text = GetLocalization(currentMapConfig.MapDescription);
+      int maxUnlockedLevel = DataPersistenceManagerSystem._gameData.LevelRounds[BetweenScenesService.Instance.CurrentSelectedMap];
+      for (int i = 0; i < DifficultyButtons.Length; i++) {
+         if (maxUnlockedLevel > i)
+            DifficultyButtons[i].transform.GetComponentInChildren<TMP_Text>().text =
+               GetLocalization(currentMapConfig.MapDifficltyConfigs[i].DifficultyName);
+      }
+      SetDifficultyDescription(BetweenScenesService.Instance.GetMapDifficultyConfig());
+   }
+
+   private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
+
    public void SetDifficultyDescription(MapDifficultyConfig difficultyConfig) {
       _difficultyDescription.text =
-         $"{difficultyConfig.DifficultyName}\nEnemy damage x{difficultyConfig.DamageMultiplayer}\nEnemy health x{difficultyConfig.HealthMultiplayer} \n" +
-         $"Scrap for round {difficultyConfig.ScrapForRound}\nScrap for map complete{difficultyConfig.ScrapForMapComplete}" +
-         $"\nStart money {difficultyConfig.StartMoney}$\nHeal after end round to {difficultyConfig.HealedHealthPartAfterEndRound * 100}%";
+         $"{GetLocalization(difficultyConfig.DifficultyName)}\n{GetLocalization("Enemy damage")} " +
+         $"x{difficultyConfig.DamageMultiplayer}\n{GetLocalization("Enemy health")} x{difficultyConfig.HealthMultiplayer} \n" +
+         $"{GetLocalization("Scrap for round")} {difficultyConfig.ScrapForRound}\n" +
+         $"{GetLocalization("Scrap for map complete")} {difficultyConfig.ScrapForMapComplete}" +
+         $"\n{GetLocalization("Start money")} {difficultyConfig.StartMoney}$\n{GetLocalization("Heal after end round to")}" +
+         $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%";
       _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
    }
 }

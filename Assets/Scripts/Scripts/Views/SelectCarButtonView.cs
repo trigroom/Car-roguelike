@@ -9,6 +9,10 @@ public class SelectCarButtonView : MonoBehaviour {
 
     public void SelectCarSetup(Action <int> onClickAction, string carName, int carId) {
         selectCarButton.onClick.AddListener(()=>onClickAction(carId));
-        carNameText.text = BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(carName);
+        SetCarButtonText(carName);
+    }
+
+    public void SetCarButtonText(string carName) {
+        carNameText.text = CSVLocalization.Instance.GetLocalizedValue(carName);
     }
 }

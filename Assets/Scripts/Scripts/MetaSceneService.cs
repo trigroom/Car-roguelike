@@ -11,7 +11,7 @@ public class MetaSceneService : MonoBehaviour {
     [field: SerializeField] public Transform _selectCarUIContainer { get; private set; }
     [field: SerializeField] public Transform _selectMapUIContainer { get; private set; }
     [field: SerializeField] public SelectDifficultyUIView selectMapDifficultyUIView { get; private set; }
-    [field: SerializeField] public Button[] _selectMapButtons { get; private set; }
+    [field: SerializeField] public SelectMapButtonView[] _selectMapButtons { get; private set; }
      [field: SerializeField] public Button _backToCarSelectButton { get; private set; }
      [field: SerializeField] public TMP_Text _scrapCountText { get; private set; }
     private void Awake() {

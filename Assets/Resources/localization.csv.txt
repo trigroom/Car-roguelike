@@ -2,8 +2,31 @@ key,en,ru,de,es,fr
 Choose car,Choose car,Выбрать машину,Auto wählen,Elegir coche,Choisir une voiture
 Choose map,Choose map,Выбрать карту,Karte wählen,Elegir mapa,Choisir une carte
 Back,Back,Назад,Zurück,Atrás,Retour
+Moto,Moto,Мотоцикл,Motorrad,Moto,Moto
+Car,Car,Машина,Auto,Coche,Voiture
+Enemy moto,Enemy moto,Вражеский мотоцикл,Gegnerisches Motorrad,Moto enemiga,Moto ennemie
+Enemy small car,Enemy small car,Вражеская маленькая машина,Gegnerisches Kleinauto,Coche pequeño enemigo,Petite voiture ennemie
+Truck,Truck,Грузовик,Lastwagen,Camión,Camion
+Choose car,Choose car,Выбрать машину,Auto wählen,Elegir coche,Choisir une voiture
+Choose map,Choose map,Выбрать карту,Karte wählen,Elegir mapa,Choisir une carte
+Back,Back,Назад,Zurück,Atrás,Retour
 Motocircle,Motocircle,Мотокруг,Motocircle,Motocircle,Motocircle
 Car,Car,Машина,Auto,Coche,Voiture
 Enemy moto,Enemy moto,Вражеский мотоцикл,Gegnerisches Motorrad,Moto enemiga,Moto ennemie
 Enemy small car,Enemy small car,Вражеская маленькая машина,Gegnerisches Kleinauto,Coche pequeño enemigo,Petite voiture ennemie
 Truck,Truck,Грузовик,Lastwagen,Camión,Camion
+Enemy damage,Enemy damage,Урон врага,Gegner Schaden,Daño enemigo,Dégâts ennemis
+Enemy health,Enemy health,Здоровье врага,Gegner Gesundheit,Salud enemiga,Santé ennemie
+Scrap for round,Scrap for round,Лом за раунд,Schrott pro Runde,Chatarra por ronda,Ferraille par round
+Scrap for map complete,Scrap for map complete,Лом за завершение карты,Schrott für Kartenvollendung,Chatarra por mapa completo,Ferraille pour carte complète
+Start money,Start money,Стартовые деньги,Startgeld,Dinero inicial,Argent de départ
+Heal after end round to,Heal after end round to,Лечение после раунда до,Heilung nach Rundenende auf,Curar después de la ronda hasta,Soigner après la fin du round jusqu'à
+EASY,EASY,ЛЕГКО,LEICHT,FÁCIL,FACILE
+NORMAL,NORMAL,НОРМАЛЬНО,NORMAL,NORMAL,NORMAL
+HARD,HARD,СЛОЖНО,SCHWER,DIFÍCIL,DIFFICILE
+VERY HARD,VERY HARD,ОЧЕНЬ СЛОЖНО,SEHR SCHWER,MUY DIFÍCIL,TRÈS DIFFICILE
+VERY VERY HARD,VERY VERY HARD,ОЧЕНЬ-ОЧЕНЬ СЛОЖНО,SEHR SEHR SCHWER,MUY MUY DIFÍCIL,TRÈS TRÈS DIFFICILE
+Sandy wasteland,Sandy wasteland,Песчаная пустошь,Sandige Ödnis,Desierto arenoso,Désert sablonneux
+Sandy wasteland is the first location of the game,Sandy wasteland is the first location of the game,Песчаная пустошь - первая локация игры,Die sandige Ödnis ist die erste Spiel-Location,El desierto arenoso es la primera ubicación del juego,Le désert sablonneux est le premier lieu du jeu
+Select difficulty,Select difficulty,Выбрать сложность,Schwierigkeit wählen,Seleccionar dificultad,Choisir la difficulté
+Start game,Play,Играть,Spielen,Jugar,Jouer

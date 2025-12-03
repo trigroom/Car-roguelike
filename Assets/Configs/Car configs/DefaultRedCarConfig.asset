@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DefaultRedCarConfig
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 0
-  <CarName>k__BackingField: "\u0421ar"
+  <CarName>k__BackingField: Car
   <StartCarParts>k__BackingField: 0300000004000000010000002100000021000000
   "<Fuel\u0421onsumption>k__BackingField": 0.3
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.5
