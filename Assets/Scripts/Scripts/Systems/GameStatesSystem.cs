@@ -137,7 +137,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         Time.timeScale = 0;
         var difficultyConfig = _betweenScenesService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
             .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
-        int scrapCount = difficultyConfig.ScrapForRound+difficultyConfig.ScrapForMapComplete;
+        int scrapCount = difficultyConfig.ScrapForRound * _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length +
+                         difficultyConfig.ScrapForMapComplete;
+        DataPersistenceManagerSystem._gameData.ScrapCount += scrapCount;
+        if (_betweenScenesService.Value.GetMapConfig().MapDifficltyConfigs.Length !=
+            _betweenScenesService.Value.CurrentSelectedMapDifficlty + 1)
+            DataPersistenceManagerSystem._gameData.LevelRounds[_betweenScenesService.Value.CurrentSelectedMap] =
+                _betweenScenesService.Value.CurrentSelectedMapDifficlty + 2;
+        DataPersistenceManagerSystem.SaveGame();
         _sceneService.Value._endGameScreenView.SetWinScreenInfo(scrapCount);
     }
     private void SetSettingsState() {
@@ -211,15 +218,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     
     private void UpdateArrowDirection(Vector2 target, Vector2 playerPosition)
     {
-       // Debug.Log(target + "t/pl" + playerPosition);
         Vector3 directionToTarget = target - playerPosition;
         
         if (directionToTarget.magnitude > 0.1f)
         {
-            // Вычисляем угол поворота
             float targetAngle = Mathf.Atan2(directionToTarget.y,directionToTarget.x ) * Mathf.Rad2Deg;
             
-            // Плавный поворот стрелки
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
             _sceneService.Value._playerUIView._arrowImageTransform.parent.rotation = Quaternion.Lerp(
                 _sceneService.Value._playerUIView._arrowImageTransform.parent.rotation, 

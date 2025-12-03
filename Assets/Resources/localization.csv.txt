@@ -1,0 +1,9 @@
+key,en,ru,de,es,fr
+Choose car,Choose car,Выбрать машину,Auto wählen,Elegir coche,Choisir une voiture
+Choose map,Choose map,Выбрать карту,Karte wählen,Elegir mapa,Choisir une carte
+Back,Back,Назад,Zurück,Atrás,Retour
+Motocircle,Motocircle,Мотокруг,Motocircle,Motocircle,Motocircle
+Car,Car,Машина,Auto,Coche,Voiture
+Enemy moto,Enemy moto,Вражеский мотоцикл,Gegnerisches Motorrad,Moto enemiga,Moto ennemie
+Enemy small car,Enemy small car,Вражеская маленькая машина,Gegnerisches Kleinauto,Coche pequeño enemigo,Petite voiture ennemie
+Truck,Truck,Грузовик,Lastwagen,Camión,Camion

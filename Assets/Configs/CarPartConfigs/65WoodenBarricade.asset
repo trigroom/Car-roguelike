@@ -20,7 +20,7 @@ MonoBehaviour:
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 2
-  <PartName>k__BackingField: "\u0426\u0449\u0449\u0432\u0443\u0442 barricade"
+  <PartName>k__BackingField: Wooden barricade
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
@@ -28,4 +28,4 @@ MonoBehaviour:
   <MoneyCost>k__BackingField: 12
   DefencePercent: 25
   DefenceDirections: 00000000
-  ExplosionDefence: 1
+  ExplosionDefence: 0

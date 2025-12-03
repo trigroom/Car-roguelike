@@ -18,10 +18,10 @@ MonoBehaviour:
   "<Fuel\u0421onsumption>k__BackingField": 0.3
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.5
   <RotateSpeed>k__BackingField: 150
-  <BoostSpeedMultiplayer>k__BackingField: 7
-  <DefaultMaxSpeed>k__BackingField: 10
-  <Acceleration>k__BackingField: 5
-  <Deceleration>k__BackingField: 10
+  <BoostSpeedMultiplayer>k__BackingField: 35
+  <DefaultMaxSpeed>k__BackingField: 50
+  <Acceleration>k__BackingField: 25
+  <Deceleration>k__BackingField: 50
   <DefaultMaxFuel>k__BackingField: 150
   CarPartForLevel:
     _serializedList:

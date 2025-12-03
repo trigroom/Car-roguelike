@@ -9,6 +9,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
         private EcsCustomInject<BetweenScenesService> _betweenSceneService;
         public void Init (IEcsSystems systems) {
             Time.timeScale = 1;
+            _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
                 _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName,i);
@@ -25,8 +26,24 @@ sealed class MetaUiSystem : IEcsInitSystem {
             }
             _metaSceneService.Value.selectMapDifficultyUIView.backButton.onClick.AddListener(BackToMapSelect);
             _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(BackToCarSelect);
+            
+            _metaSceneService.Value._staticTextsView.SetTextLanguage();
+            SetupLocalizationButtons();
         }
 
+        string[] languages = { "en", "ru", "de", "es", "fr" };
+        private void SetupLocalizationButtons() {
+            for (int i = 0; i < _metaSceneService.Value._localizationButtons.Length; i++) {
+                int langIndex = i;
+                _metaSceneService.Value._localizationButtons[langIndex].onClick
+                    .AddListener(()=> {
+                        _betweenSceneService.Value.CsvLocalization.ChangeLanguage(languages[langIndex]);
+                        _metaSceneService.Value._staticTextsView.SetTextLanguage();
+                        Debug.Log("set to "+languages[langIndex] + " language");
+                    });
+            }
+        }
+        
         public void BackToCarSelect() {
             _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(true);
             _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(false);

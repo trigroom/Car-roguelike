@@ -62,7 +62,7 @@ public enum AttackType {
                     
                    CheckTasks(_taskComponentsPool.Value.Get(completeTask).TaskType); 
                 }
-                _endRoundEventsPool.Value.Del(endRoundEntity);
+               
             }
 
             float deltaTime = Time.deltaTime;
@@ -288,7 +288,8 @@ public enum AttackType {
             Time.timeScale = 0;
             int currentRound = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRound;
             int scrapCount = _betweenScenesService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
-                .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty].ScrapForRound;
+                .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty].ScrapForRound*currentRound;
+            DataPersistenceManagerSystem._gameData.ScrapCount += scrapCount;
             _sceneService.Value._endGameScreenView.SetLoseScreenInfo(currentRound,scrapCount);
             //go to meta
         }
@@ -572,7 +573,7 @@ public enum AttackType {
                 float damageByCollision = meleeCmp.DamageBySpeed *
                                           ((moveCmpDamaged.MovableObjectRigidbody.mass * moveCmp.MovableObjectRigidbody.mass) /
                                            (moveCmp.MovableObjectRigidbody.mass + moveCmpDamaged.MovableObjectRigidbody.mass)) *
-                                          Mathf.Pow(Mathf.Abs(moveCmp.CurrentMoveSpeed - moveCmpDamaged.CurrentMoveSpeed), 2);
+                                          Mathf.Pow(Mathf.Abs(moveCmp.CurrentMoveSpeed - moveCmpDamaged.CurrentMoveSpeed), 2)/5;
                 damagePoints = meleeCmp.CurrentDamage + damageByCollision;
                 
             } else /*laser*/ {

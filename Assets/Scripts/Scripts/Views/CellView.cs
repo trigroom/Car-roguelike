@@ -20,7 +20,6 @@ public class CellView : MonoBehaviour, IPointerEnterHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("On pointer");
         SetPartFromInventory?.Invoke(this);
     }
 

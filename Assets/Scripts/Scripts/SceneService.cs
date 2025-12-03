@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
+    [field: SerializeField] public StaticTextsView _staticTextsView { get; private set; }
     [field: SerializeField] public Transform _dontUsedUIImagesPool{ get; private set; }
     [field: SerializeField] public Transform _markForTeammatesContainer{ get; private set; }
     [field: SerializeField] public Transform _mapContainer{ get; private set; }

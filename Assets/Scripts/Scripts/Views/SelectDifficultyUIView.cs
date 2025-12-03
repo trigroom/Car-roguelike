@@ -20,9 +20,10 @@ public class SelectDifficultyUIView : MonoBehaviour
       gameObject.SetActive(true);
       _mapNameText.text = currentMapConfig.MapName + "\nSelect difficulty";
       _mapDescription.text = currentMapConfig.MapDescription;
+      int maxUnlockedLevel = DataPersistenceManagerSystem._gameData.LevelRounds[BetweenScenesService.Instance.CurrentSelectedMap];
       for (int i = 0; i < DifficultyButtons.Length; i++) {
-         DifficultyButtons[i].gameObject.SetActive(currentMapConfig.MapDifficltyConfigs.Length > i);
-         if (currentMapConfig.MapDifficltyConfigs.Length > i)
+         DifficultyButtons[i].gameObject.SetActive(maxUnlockedLevel > i);
+         if (maxUnlockedLevel > i)
             DifficultyButtons[i].transform.GetComponentInChildren<TMP_Text>().text = currentMapConfig.MapDifficltyConfigs[i].DifficultyName;
       }
    }

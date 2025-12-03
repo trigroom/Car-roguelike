@@ -8,14 +8,20 @@ public class BetweenScenesService : MonoBehaviour {
     public int CurrentSelectedMap;
     public int CurrentSelectedMapDifficlty;
     public RectTransform BlackScreen;
+    [SerializeField]
+    private DataPersistenceManagerSystem DataPersistenceManagerSystem;
+    public CSVLocalization CsvLocalization;
       [field: SerializeField] public CarStuffListsConfig _carStuffListsConfig { get; private set; }
    
    public static BetweenScenesService Instance;
     void Awake()
     {
+        DataPersistenceManagerSystem.SetupManager();
         Instance = this;
         DontDestroyOnLoad(this);
-        
+        DataPersistenceManagerSystem.Instance.LoadGame();
+        CsvLocalization.SetupLocalizationManager();
+        CsvLocalization.CurrentLanguage = DataPersistenceManagerSystem._gameData.CurrentLanguage;
         SceneManager.LoadScene("Scenes/MetaScene");
 
     }
