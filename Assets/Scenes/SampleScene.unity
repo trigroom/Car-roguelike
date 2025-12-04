@@ -7156,8 +7156,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 289}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 21.612, y: 289}
+  m_SizeDelta: {x: 359.64, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &622390745
 MonoBehaviour:
@@ -13338,8 +13338,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _texts:
   - {fileID: 683272492}
+  - {fileID: 622390745}
+  - {fileID: 1093679734}
+  - {fileID: 1924443097}
+  - {fileID: 362705599}
+  - {fileID: 383327446}
   _keys:
   - Start game
+  - Inventory
+  - Shop
+  - Move to inventory
+  - Save settings
+  - Settings
 --- !u!4 &1065153041
 Transform:
   m_ObjectHideFlags: 0
@@ -23162,7 +23172,7 @@ GameObject:
   - component: {fileID: 1924443098}
   - component: {fileID: 1924443097}
   m_Layer: 5
-  m_Name: UpgradeButtonText
+  m_Name: MoveButtonText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

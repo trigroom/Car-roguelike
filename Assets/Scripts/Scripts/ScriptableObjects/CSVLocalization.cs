@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 
-[CreateAssetMenu(fileName = "TranslationSystem", menuName = "Localization/Translation System")]
+
 public class CSVLocalization : MonoBehaviour
 {
      public static CSVLocalization Instance;

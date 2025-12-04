@@ -129,7 +129,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
 
             ActivateGiveCarPartsWindow();
-            _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(0)}$";
+            _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)}$";
             _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentUpdateCountInRound = 0;
             //     _endRoundEventsPool.Value.Del(endRound);
         }
@@ -284,7 +284,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
     }
-    
+    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
     private void UpdateButtonEnter() {
         Debug.Log("enter");
@@ -312,7 +312,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         if (inventoryCmp.IsCarPartsRedactorMode) {
             _sceneData.Value._inventoryUIView._changeToRedactModeImage.sprite =
                 _sceneData.Value._inventoryUIView._changeToRedactCarPartsModeSprite;
-            _sceneData.Value._inventoryUIView._changeToRedactModeText.text = "Redact up level";
+            _sceneData.Value._inventoryUIView._changeToRedactModeText.text = GetLocalization("Redact up level");
             _sceneData.Value._inventoryUIView._carPartsUpLevelContainer.alpha = 1;
             inventoryCmp.CurrentCarPartContainersTween.Kill();
             inventoryCmp.CurrentCarPartContainersTween = DOTween.Sequence();
@@ -329,7 +329,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         } else {
             _sceneData.Value._inventoryUIView._changeToRedactModeImage.sprite =
                 _sceneData.Value._inventoryUIView._changeToRedactCarContainersModeSprite;
-            _sceneData.Value._inventoryUIView._changeToRedactModeText.text = "Redact down level";
+            _sceneData.Value._inventoryUIView._changeToRedactModeText.text = GetLocalization("Redact down level");
             
             inventoryCmp.CurrentCarPartContainersTween.Kill();
             inventoryCmp.CurrentCarPartContainersTween = DOTween.Sequence();
@@ -549,7 +549,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
             shopCell.Construct(shopCellEntity, BuyShopCar, SetCarPartInfoPanel, TakeItemFromInventory);
         }
 
-        _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(0)}$";
+        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)}$";
         SetShopCells(false);
         SetCarShopCells();
         
@@ -564,7 +564,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         shopCmp.IsCarShopMode = !shopCmp.IsCarShopMode;
         
-        _sceneData.Value._shopUIView._shopModeText.text = shopCmp.IsCarShopMode ? "Car shop" : "Car parts shop";
+        _sceneData.Value._shopUIView._shopModeText.text = shopCmp.IsCarShopMode ? GetLocalization("Car shop") : GetLocalization("Car parts shop");
         _sceneData.Value._shopUIView._shopCarContainer.gameObject.SetActive(shopCmp.IsCarShopMode);
         _sceneData.Value._shopUIView._shopCarPartsContainer.gameObject.SetActive(!shopCmp.IsCarShopMode);
     }
@@ -590,7 +590,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         } else {
             _sceneData.Value._shopUIView.NotEnoughMoneyAnimation();
         }
-        _sceneData.Value._shopUIView._updateItemsText.text = $"update for {GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound)}$";
+        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound)}$";
     }
 
     private void SetCarContainersContainerSize() {
@@ -1390,10 +1390,11 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
         var fuelCmp = _fuelComponentsPool.Value.Get(entity);
         _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
-            $"{carConfig.CarName}\n Max move speed: {moveCmp.MaxMoveSpeed:F1} m/s \n Added boosted speed: {moveCmp.MaxBoostMoveSpeed:F1} " +
-            $"m/s ({fuelCmp.FuelConsumption - carConfig.FuelСonsumption + carConfig.AccelerationFuelСonsumption} fuel consumption)" +
-            $" \n Default fuel consumption {fuelCmp.FuelConsumption} \n Rotate speed: {moveCmp.RotateSpeed} m/s " +
-            $"\n Weight: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} kg \n Fuel: {fuelCmp.MaxFuel}";
+            $"{GetLocalization(carConfig.CarName)}\n {GetLocalization("Max move speed")}: {moveCmp.MaxMoveSpeed:F1} {GetLocalization("m/s")} " +
+            $"\n {GetLocalization("Added boosted speed")}: {moveCmp.MaxBoostMoveSpeed:F1} " +
+            $"{GetLocalization("m/s")} (+ {fuelCmp.FuelConsumption - carConfig.FuelСonsumption + carConfig.AccelerationFuelСonsumption} {GetLocalization("fuel consumption")})" +
+            $" \n {GetLocalization("Default fuel consumption")} {fuelCmp.FuelConsumption} \n {GetLocalization("Rotate speed")}: {moveCmp.RotateSpeed} {GetLocalization("m/s")} " +
+            $"\n {GetLocalization("Weight")}: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} {GetLocalization("kg")} \n {GetLocalization("Fuel")}: {fuelCmp.MaxFuel}";
     }
 
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
@@ -2415,7 +2416,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
        }
        
        giveCarPartsUiView._remainingCarPartsText.text = inventoryCmp.CurrentGivenItems.Count > 1
-           ? $"Remaining car parts: \n{inventoryCmp.CurrentGivenItems.Count}"
+           ? $"{GetLocalization("Remaining car parts")}: \n{inventoryCmp.CurrentGivenItems.Count}"
            : "";
        
        return true;
@@ -2425,7 +2426,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         ref var carCmp = ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
         var upgradeCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * (1 + carCmp.CarLevel * 0.3f));
-        _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"Upgrade car {upgradeCost}$";
+        _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Upgrade car")} {upgradeCost}$";
     }
 
     private void IncriseCarLevel() {
@@ -2554,7 +2555,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
     private void UpdateHealAllCarPartButton() {
         float healCost = GetHealAllCarPartCost();
         _sceneData.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost>0);
-        _sceneData.Value._inventoryUIView._healCarText.text = $"Heal all car for {healCost}$";
+        _sceneData.Value._inventoryUIView._healCarText.text = $"{GetLocalization("Heal all car for")} {healCost}$";
     }
 
     private float GetHealAllCarPartCost() {

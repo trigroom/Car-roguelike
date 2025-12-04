@@ -52,7 +52,7 @@ public class CarPartInfoUIView : MonoBehaviour
         _upgradeButton.triggers.Add(enterEntry);
         _upgradeButton.triggers.Add(exitEntry);
     }
-
+    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
         float currentHealth, float healCost) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
@@ -60,16 +60,16 @@ public class CarPartInfoUIView : MonoBehaviour
         _level = carPartLevel;
         CurrentMarkedCarPartHealth = currentHealth;
         if (GridUtils.GetUpgradeCost(carPartLevel, carPartConfig) != 0)
-            _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig).ToString()}$ to upgrade";
+            _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig).ToString()}$ {GetLocalization("to upgrade")}";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
 
         _nameText.text = carPartConfig.PartName;
 
         if (carPartLevel != 0)
-            _nameText.text += $"\n{carPartLevel} lvl.";
+            _nameText.text += $"\n{carPartLevel} {GetLocalization("lvl")}.";
         _healCarPartButton.gameObject.SetActive(healCost > 0);
         if (healCost > 0) {
-            _healCarPartText.text = $"Heal car part for {healCost}$";
+            _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost}$";
             _healCarPartText.color = Color.clear;
         }
 
@@ -79,13 +79,14 @@ public class CarPartInfoUIView : MonoBehaviour
 
         SetDescriptionInfo(false);
 
-        _sellCarPartText.text = $"Sell for {GridUtils.GetSellValueForCarPart(carPartConfig, carPartLevel)}$";
+        _sellCarPartText.text = $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(carPartConfig, carPartLevel)}$";
     }
 
     public void SetDescriptionInfo(bool isUpdate) {
     
         _descriptionText.text =
-            $"{CurrentMarkedCarPartHealth:F2}/{_currentCarPartConfig.MaxHealth} HP \nPart rare: {_currentCarPartConfig.RartRare}\nWeight: {_currentCarPartConfig.Weight}";
+            $"{CurrentMarkedCarPartHealth:F2}/{_currentCarPartConfig.MaxHealth} {GetLocalization("HP")} \n{GetLocalization("Part rare")}:" +
+            $" {_currentCarPartConfig.RartRare}\n{GetLocalization("Weight")}: {_currentCarPartConfig.Weight} {GetLocalization("kg")}";
         int needLevel = isUpdate ? _level + 1 : _level;
         
         if (_currentCarPartConfig.PartType == CarPartType.Gun) {
@@ -107,37 +108,37 @@ public class CarPartInfoUIView : MonoBehaviour
                 (float damageMultiplier, float damageBySpeedMultiplier) = GridUtils.GetMeleeLevelMultipliers(meleeConfig,needLevel);
                 if (isUpdate) {
                     if (damageMultiplier != 1f)
-                        _descriptionText.text += $"\nDamage: <color=#5bca4a>{meleeConfig.Damage * damageMultiplier}/s</color> ";
+                        _descriptionText.text += $"\n{GetLocalization("Damage")}: <color=#5bca4a>{meleeConfig.Damage * damageMultiplier}/s</color> ";
                     else
-                        _descriptionText.text += $"\nDamage: {meleeConfig.Damage * damageMultiplier}/s ";
+                        _descriptionText.text += $"\n{GetLocalization("Damage")}: {meleeConfig.Damage * damageMultiplier}/s ";
                     if (damageBySpeedMultiplier != 1f)
                         _descriptionText.text +=
-                            $"\nAdded damage: <color=#5bca4a>{meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s</color>\n";
+                            $"\n{GetLocalization("Added damage")}: <color=#5bca4a>{meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s</color>\n";
                     else
-                        _descriptionText.text += $"\nAdded damage: {meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s\n";
-                    _descriptionText.text += $"Attack countdown: {meleeConfig.AttackCountdown:F2}s";
+                        _descriptionText.text += $"\n{GetLocalization("Added damage")}: {meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s\n";
+                    _descriptionText.text += $"{GetLocalization("Attack countdown")}: {meleeConfig.AttackCountdown:F2}s";
                 } else
                     _descriptionText.text +=
-                        $"\nDamage: {meleeConfig.Damage * damageMultiplier}/s \nAdded damage: {meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s\n" +
-                        $"Attack countdown: {meleeConfig.AttackCountdown:F2}s";
+                        $"\n{GetLocalization("Damage")}: {meleeConfig.Damage * damageMultiplier}/s \nAdded damage: {meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier:F2}/1 m/s\n" +
+                        $"{GetLocalization("Attack countdown")}: {meleeConfig.AttackCountdown:F2}s";
             }
         } else if (_currentCarPartConfig.PartType == CarPartType.Armor) {
             if (_currentCarPartConfig is ArmorConfig armorConfig) {
                 float defenceMultiplayer = GridUtils.GetArmorLevelMultipliers(needLevel);
                 float defencePoints = armorConfig.DefencePercent * defenceMultiplayer;
                 if (!isUpdate)
-                    _descriptionText.text += $"\nDefence: {defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)";
+                    _descriptionText.text += $"\n{GetLocalization("Defence")}: {defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)";
                 else
                     _descriptionText.text +=
-                        $"\nDefence: <color=#5bca4a>{defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)</color>";
+                        $"\n{GetLocalization("")}Defence: <color=#5bca4a>{defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)</color>";
 
                 if (armorConfig.DefenceDirections.Count == 4)
-                    _descriptionText.text += "\nDefence from all directions";
+                    _descriptionText.text += $"\n{GetLocalization("Defence from all directions")}";
                 else
-                    _descriptionText.text += "\nDefence from: " + string.Join(", ", armorConfig.DefenceDirections);
+                    _descriptionText.text += $"\n{GetLocalization("Defence from")}: " + string.Join(", ", armorConfig.DefenceDirections);
 
                 if (armorConfig.ExplosionDefence)
-                    _descriptionText.text += " \nPrevents explosion";
+                    _descriptionText.text += $" \n{GetLocalization("Prevents explosion")}";
             }
         } else if (_currentCarPartConfig.PartType == CarPartType.Support) {
             if (_currentCarPartConfig is SupportModuleCarPartConfig supportConfig) {
@@ -146,7 +147,7 @@ public class CarPartInfoUIView : MonoBehaviour
         }
         else if (_currentCarPartConfig.PartType == CarPartType.WheelsContainer) {
             if (_currentCarPartConfig is WheelsContainerConfig wheelConfig) {
-                _descriptionText.text += $"\nCar max weight: {wheelConfig.MaxWeight}";
+                _descriptionText.text += $"\n{GetLocalization("Car max weight")}: {wheelConfig.MaxWeight}";
             }
         }
     }
@@ -156,16 +157,16 @@ public class CarPartInfoUIView : MonoBehaviour
 
         switch (supportConfig.ModuleType) {
             case SupportModuleType.Fuel:
-                _descriptionText.text += $"\nAdded fuel: {supportConfig.FirstCount}";
+                _descriptionText.text += $"\n{GetLocalization("Added fuel")}: {supportConfig.FirstCount}";
                 break;
             case SupportModuleType.Turbine:
-                _descriptionText.text += $"\nAdded fuel consumption: {supportConfig.FirstCount}\n Added max move speed: {supportConfig.SecondCount}";
+                _descriptionText.text += $"\n{GetLocalization("Added fuel consumption")}: {supportConfig.FirstCount}\n {GetLocalization("Added max move speed")}: {supportConfig.SecondCount}";
                 break;
             case SupportModuleType.Money:
-                _descriptionText.text += $"\nAdded money after end round: {supportConfig.FirstCount}";
+                _descriptionText.text += $"\n{GetLocalization("Added money after end round")}: {supportConfig.FirstCount}";
                 break;
             case SupportModuleType.Ammo:
-                _descriptionText.text += $"\nBoost reload speed neighboring cells: {supportConfig.FirstCount*100}%";
+                _descriptionText.text += $"\n{GetLocalization("Boost reload speed neighboring cells")}: {supportConfig.FirstCount*100}%";
                 break;
         }
     }
@@ -185,41 +186,46 @@ public class CarPartInfoUIView : MonoBehaviour
         if (gunConfig.MissleType == MissleType.laser) {
             if (isUpdate)
                 _descriptionText.text +=
-                    $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}/s</color> \nLaser range: {gunConfig.BulletSpeed}" +
-                    $"\nReload: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>\n" +
-                    $"Laser time: <color=#5bca4a>{gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}s</color>";
+                    $"\n{GetLocalization("Damage")}: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}/s</color> \n{GetLocalization("Laser range")}: " +
+                    $"{gunConfig.BulletSpeed}" +
+                    $"\n{GetLocalization("Reload")}: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>\n" +
+                    $"{GetLocalization("Laser time")}: <color=#5bca4a>{gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}s</color>";
 
             else
                 _descriptionText.text +=
-                    $"\nDamage: {gunConfig.Damage * damageMultiplier}/s \nLaser range: {gunConfig.BulletSpeed}\nReload: {gunConfig.ReloadDuration / reloadMultiplier:F2}s\n" +
-                    $"Laser time: {gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}s";
+                    $"\n{GetLocalization("Damage")}: {gunConfig.Damage * damageMultiplier}/s \n{GetLocalization("Laser range")}: {gunConfig.BulletSpeed}" +
+                    $"\nReload: {gunConfig.ReloadDuration / reloadMultiplier:F2}s\n" +
+                    $"{GetLocalization("Laser time")}: {gunConfig.AttackCouldown / attackCountdownMultiplayer:F2}s";
         } else {
             if (isUpdate) {
                 if (gunConfig.BulletsCountInMagazine != 1)
                     _descriptionText.text +=
-                        $"\nRate of fire: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min</color> ";
-                _descriptionText.text += $"\nReload duration: <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>" +
-                                         $"\nDamage: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>";
+                        $"\n{GetLocalization("Rate of fire")}: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min</color> ";
+                _descriptionText.text += $"\n{GetLocalization("Reload")} : <color=#5bca4a>{gunConfig.ReloadDuration / reloadMultiplier:F2}s</color>" +
+                                         $"\n{GetLocalization("Damage")}: <color=#5bca4a>{gunConfig.Damage * damageMultiplier}</color>";
             } else {
                 if (gunConfig.BulletsCountInMagazine != 1)
-                    _descriptionText.text += $"\nRate of fire: {60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min ";
-                _descriptionText.text += $"\nReload duration: {gunConfig.ReloadDuration / reloadMultiplier:F2}s" +
-                                         $"\nDamage: {gunConfig.Damage * damageMultiplier}";
+                    _descriptionText.text += $"\n{GetLocalization("Rate of fire")}: {60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer):F2}/min ";
+                _descriptionText.text += $"\n{GetLocalization("Reload")} : {gunConfig.ReloadDuration / reloadMultiplier:F2}s" +
+                                         $"\n{GetLocalization("Damage")}: {gunConfig.Damage * damageMultiplier}";
             }
 
             if (gunConfig.BulletsCount > 1)
                 _descriptionText.text += $"x{gunConfig.BulletsCount}";
-            _descriptionText.text += $" \nProjectile speed: {gunConfig.BulletSpeed} \nSpread angle: {gunConfig.SpreadAngle}\n" +
-                                     $"Bullets in mag: {gunConfig.BulletsCountInMagazine}";
+            _descriptionText.text += $" \n{GetLocalization("Projectile speed")}: {gunConfig.BulletSpeed} \n" +
+                                     $"{GetLocalization("Spread angle")}: {gunConfig.SpreadAngle}°\n" +
+                                     $"{GetLocalization("Bullets in mag")}: {gunConfig.BulletsCountInMagazine}";
             if (gunConfig.ExplosionRadius != 0)
-                _descriptionText.text += $"\nExplosion radius: {gunConfig.ExplosionRadius}\nExplosion damage: {gunConfig.ExplosionDamage}";
+                _descriptionText.text += $"\n{GetLocalization("Explosion radius")}: {gunConfig.ExplosionRadius}\n" +
+                                         $"{GetLocalization("")}Explosion damage: {gunConfig.ExplosionDamage}";
 
             if (gunConfig.BreakingThroughCount > 1)
-                _descriptionText.text += $"\nPierce count: {gunConfig.BreakingThroughCount}";
+                _descriptionText.text += $"\n{GetLocalization("Pierce count")}: {gunConfig.BreakingThroughCount}";
         }
 
         if (gunConfig.MaxRotateAngle != 0) {
-            _descriptionText.text += $"\nMax rotate angle: {gunConfig.MaxRotateAngle} \nRotate speed: {gunConfig.RotateSpeed}";
+            _descriptionText.text += $"\n{GetLocalization("Max rotate angle")}: {gunConfig.MaxRotateAngle}°" +
+                                     $"\n{GetLocalization("Rotate speed")}: {gunConfig.RotateSpeed}";
         }
     }
 }

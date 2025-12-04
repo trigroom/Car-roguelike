@@ -30,3 +30,55 @@ Sandy wasteland,Sandy wasteland,Песчаная пустошь,Sandige Ödnis,D
 Sandy wasteland is the first location of the game,Sandy wasteland is the first location of the game,Песчаная пустошь - первая локация игры,Die sandige Ödnis ist die erste Spiel-Location,El desierto arenoso es la primera ubicación del juego,Le désert sablonneux est le premier lieu du jeu
 Select difficulty,Select difficulty,Выбрать сложность,Schwierigkeit wählen,Seleccionar dificultad,Choisir la difficulté
 Start game,Play,Играть,Spielen,Jugar,Jouer
+Inventory,INVENTORY,ИНВЕНТАРЬ,INVENTAR,INVENTARIO,INVENTAIRE
+Shop,SHOP,МАГАЗИН,LADEN,TIENDA,BOUTIQUE
+Move to inventory,STORE,УБРАТЬ,EINLAGERN,GUARDAR,RANGER
+Settings,OPTIONS,НАСТРОЙКИ,OPTIONEN,OPCIONES,OPTIONS
+Save settings,SAVE,СОХРАНИТЬ,SPEICHERN,GUARDAR,SAUVEGARDER
+Update for,Update for,Обновить за,Aktualisieren für,Actualizar por,Mettre à jour pour
+Redact up level,Upper parts,Верхние детали,Obere Teile,Piezas superiores,Pièces supérieures
+Redact down level,Lower parts,Нижние детали,Untere Teile,Piezas inferiores,Pièces inférieures
+Car shop,Car shop,Автосалон,Autohandel,Taller de coches,Atelier automobile
+Car parts shop,Parts shop,Магазин запчастей,Autoteile Shop,Tienda de repuestos,Boutique de pièces
+Max move speed,Max speed,Макс. скорость,Höchstgeschwindigkeit,Velocidad máxima,Vitesse maximale
+m/s,m/s,м/с,m/s,m/s,m/s
+Added boosted speed,Boost speed,Доп. скорость ускорения,Boost-Geschwindigkeit,Velocidad de impulso,Vitesse de boost
+fuel consumption,Fuel consumption,Расход топлива,Kraftstoffverbrauch,Consumo de combustible,Consommation de carburant
+Default fuel consumption,Base consumption,Базовый расход топлива,Grundverbrauch,Consumo base,Consommation de base
+Rotate speed,Rotation speed,Скорость поворота,Drehgeschwindigkeit,Velocidad de rotación,Vitesse de rotation
+Weight,Weight,Вес,Gewicht,Peso,Poids
+kg,kg,кг,kg,kg,kg
+Fuel,Fuel,Топливо,Kraftstoff,Combustible,Carburant
+Remaining car parts,Remaining parts,Остальные детали,Verbleibende Teile,Piezas restantes,Pièces restantes
+Upgrade car,Upgrade car,Улучшить машину,Auto verbessern,Mejorar coche,Améliorer voiture
+Heal all car for,Repair all,Починить всё,Alles reparieren,Reparar todo,Réparer tout
+to upgrade,to upgrade,для улучшения,zum Verbessern,para mejorar,pour améliorer
+lvl,LVL,УР,STF,NVL,NV
+Heal car part for,Repair part,Починить деталь,Teil reparieren,Reparar pieza,Réparer pièce
+Sell for,Sell,Продать,Verkaufen,Vender,Vendre
+HP,HP,ОЗ,LP,PS,PV
+Part rare,Rarity,Редкость,Seltenheit,Rareza,Rareté
+Damage,Damage,Урон,Schaden,Daño,Dégâts
+Attack countdown,Attack cooldown,Перезарядка атаки,Angriff Abklingzeit,Tiempo de ataque,Temps de recharge attaque
+Defence,Defense,Защита,Verteidigung,Defensa,Défense
+Defence from,Defense from,Защита от,Verteidigung gegen,Defensa de,Défense contre
+Defence from all directions,All-around defense,Круговая защита,Rundum-Verteidigung,Defensa total,Défense tous azimuts
+Prevents explosion,Explosion protection,Защита от взрыва,Explosionsschutz,Protección explosión,Protection explosion
+Car max weight,Max weight,Макс. вес машины,Maximalgewicht Auto,Peso máximo coche,Poids max voiture
+Added max move speed,+Max speed,+Макс. скорость,+Höchstgeschwindigkeit,+Velocidad máxima,+Vitesse max
+Added fuel,+Fuel,+Топливо,+Kraftstoff,+Combustible,+Carburant
+Added fuel consumption,+Fuel use,+Расход топлива,+Kraftstoffverbrauch,+Consumo combustible,+Consommation carburant
+Added money after end round,+Money per round,+Деньги за раунд,+Geld pro Runde,+Dinero por ronda,+Argent par round
+Boost reload speed neighboring cells,Boost nearby reload,Ускор. перезарядки рядом,Beschleunige nahe Nachladen,Acelera recarga cercana,Accélère rechargement proche
+Reload,Reload,Перезарядка,Nachladen,Recarga,Rechargement
+Laser time,Laser duration,Длительность лазера,Laserdauer,Duración láser,Durée laser
+Laser range,Range,Дальность,Reichweite,Alcance,Portée
+Rate of fire,Fire rate,Скорострельность,Feuerrate,Cadencia,Cadence
+Projectile speed,Bullet speed,Скорость пули,Geschossgeschwindigkeit,Velocidad balle,Vitesse balle
+Spread angle,Spread,Разброс,Streuung,Dispersión,Dispersion
+Bullets in mag,Ammo,Патроны,Munition,Municion,Munitions
+Explosion radius,Blast radius,Радиус взрыва,Explosionsradius,Radio explosión,Rayon explosion
+Explosion damage,Blast damage,Урон взрыва,Explosionsschaden,Daño explosión,Dégâts explosion
+Pierce count,Pierce,Пробивание,Durchschlag,Penetración,Perçage
+Max rotate angle,Rotation limit,Угол поворота,Drehwinkel,Límite rotación,Limite rotation
+Rotate speed,Rotation speed,Скорость вращения,Drehgeschwindigkeit,Velocidad rotación,Vitesse rotation

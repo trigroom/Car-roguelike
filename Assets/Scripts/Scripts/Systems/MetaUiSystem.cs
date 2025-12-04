@@ -17,7 +17,9 @@ sealed class MetaUiSystem : IEcsInitSystem {
 
             for (int i = 0; i < _metaSceneService.Value._selectMapButtons.Length; i++) {
                 int mapIndex = i;
-                _metaSceneService.Value._selectMapButtons[i].SetupSelectMapButton(SelectMap,mapIndex);
+                var selectMapButton = _metaSceneService.Value._selectMapButtons[i];
+                selectMapButton.SetupSelectMapButton(SelectMap,mapIndex);
+                selectMapButton.SetMapName(_betweenSceneService.Value._carStuffListsConfig.MapConfigs[mapIndex].MapName);
             }
 
             for (int i = 0; i < _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons.Length; i++) {
