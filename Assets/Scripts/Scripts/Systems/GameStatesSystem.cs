@@ -8,6 +8,7 @@ using Leopotam.EcsLite.ExtendedSystems;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
@@ -73,6 +74,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         settingsView._redColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._greenColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._setPixelizedEffectModeButton.onClick.AddListener(ChangePixelizedEffectsMode);
+
+        settingsView._quitButton.onClick.AddListener(GoToDesktop);
+        settingsView._mainMenuButton.onClick.AddListener(GoToMainMenu);
+        settingsView._restartButton.onClick.AddListener(RestartGame);
+        
+        settingsView._closeSettingsButton.onClick.AddListener(SetSettingsState);
         SetColorSliderEnemyProjectilesValues();
         GenerateMap();
     }
@@ -149,6 +156,19 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     private void SetSettingsState() {
         _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneService.Value._settingsView._settingsContainer.gameObject.activeInHierarchy);
+    }
+
+    private void GoToDesktop() {
+        DataPersistenceManagerSystem.SaveGame();
+        Application.Quit();
+    }
+
+    private void GoToMainMenu() {
+        SceneManager.LoadScene("MetaScene");
+    }
+
+    private void RestartGame() {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     private void SetColorSliderEnemyProjectilesValues() {
@@ -364,12 +384,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 }
             });
 
-        _sceneService.Value._mapUIView.RoundNumberText.text = "Round" + (curGameCmp.CurrentRound + 1);
+        _sceneService.Value._mapUIView.RoundNumberText.text = GetLocalization("Round") + (curGameCmp.CurrentRound + 1);
         ChangeInventoryState(false);
 
         ChangeRoundDescription(RoundType.None);
     }
-
+    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     private void ChangeRoundDescription(RoundType roundType, PointerEventData data = null) {
         var descriptionText = _sceneService.Value._mapUIView.RoundDescriptionText;
         switch (roundType) {
@@ -377,31 +397,31 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 descriptionText.text = "";
                 break;
             case RoundType.Task:
-                descriptionText.text = " Get task with reward";
+                descriptionText.text =  GetLocalization("RoundTask");
                 break;
             case RoundType.BattleDefault:
-                descriptionText.text = " Fight until the timer runs out";
+                descriptionText.text = GetLocalization("RoundBattleDefault");
                 break;
             case RoundType.Chest:
-                descriptionText.text = " Get random free car part";
+                descriptionText.text = GetLocalization("RoundChest");
                 break;
             case RoundType.FromAToB:
-                descriptionText.text = " Check all the given points";
+                descriptionText.text = GetLocalization("RoundFromAToB");
                 break;
             case RoundType.Shop:
-                descriptionText.text = " Go to shop with big sales";
+                descriptionText.text = GetLocalization("RoundShop");
                 break;
             case RoundType.Transfer:
-                descriptionText.text = " Exchange two of your parts for one of higher quality";
+                descriptionText.text = GetLocalization("RoundTransfer");
                 break;
             case RoundType.ZoneDefence:
-                descriptionText.text = " Stay and defence zone";
+                descriptionText.text = GetLocalization("RoundZoneDefence");
                 break;
             case RoundType.BossBattle:
-                descriptionText.text = " Fight with boss of this map";
+                descriptionText.text = GetLocalization("RoundBossBattle");
                 break;
             case RoundType.TeammateForSupport:
-                descriptionText.text = " Get the opportunity to recruit an ally for battle";
+                descriptionText.text = GetLocalization("RoundTeammateForSupport");
                 break;
         }
     }

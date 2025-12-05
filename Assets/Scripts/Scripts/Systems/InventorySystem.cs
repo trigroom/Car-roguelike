@@ -110,9 +110,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryCmp.PlayerTeammateCarsEntity = new List<int>();
         inventoryCmp.PlayerTeammateCarsEntity.Add(playerEntity);
         inventoryCmp.CurrentRedactedCarEntity = playerEntity;
-        SetUpAdminButtons();
         AddRareToShopItems();
         _sceneData.Value._staticTextsView.SetTextLanguage();
+        SetupLocalizationButtons();
+        
+        SetUpAdminButtons();
     }
 
     public void Run(IEcsSystems systems) {
@@ -285,7 +287,21 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
+    string[] languages = { "en", "ru", "de", "es", "fr" };
+    private void SetupLocalizationButtons() {
+        for (int i = 0; i < _sceneData.Value._settingsView._selectLocalizationButtons.Length; i++) {
+            int langIndex = i;
+            _sceneData.Value._settingsView._selectLocalizationButtons[langIndex].onClick
+                .AddListener(()=> {
+                    ChangeLocalization(langIndex);
+                });
+        }
+    }
 
+    private void ChangeLocalization(int langIndex) {
+        _betweenScenesService.Value.CsvLocalization.ChangeLanguage(languages[langIndex]);
+        _sceneData.Value._staticTextsView.SetTextLanguage();
+    }
     private void UpdateButtonEnter() {
         Debug.Log("enter");
         _sceneData.Value._carPartInfoUIView.SetDescriptionInfo(true);
@@ -520,6 +536,8 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
             [_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound].Chances;
     }
     private void SetupShopCells() {
+        _sceneData.Value._shopUIView._shopModeText.text = GetLocalization("Car parts shop");
+        
         ref var shopCmp = ref _shopComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         shopCmp.ListShopItemsForRares = new List<List<int>>(){new List<int>(),new List<int>(),new List<int>(),new List<int>()};
         shopCmp.CurrentShopItemsChances = new List<float>(4);
@@ -2151,6 +2169,8 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
             inventoryCell.Construct( /*_world.Value,*/ TakeItemFromInventory, cellId, SetCarPartInfoPanel);
             i++;
         }
+        
+        _sceneData.Value._inventoryUIView._changeToRedactModeText.text = GetLocalization("Redact down level");
     }
 
     private void TakeItemFromInventory(int cellEntity) {

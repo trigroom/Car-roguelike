@@ -86,7 +86,7 @@ public class CarPartInfoUIView : MonoBehaviour
     
         _descriptionText.text =
             $"{CurrentMarkedCarPartHealth:F2}/{_currentCarPartConfig.MaxHealth} {GetLocalization("HP")} \n{GetLocalization("Part rare")}:" +
-            $" {_currentCarPartConfig.RartRare}\n{GetLocalization("Weight")}: {_currentCarPartConfig.Weight} {GetLocalization("kg")}";
+            $" {GetLocalization(_currentCarPartConfig.RartRare.ToString())}\n{GetLocalization("Weight")}: {_currentCarPartConfig.Weight} {GetLocalization("kg")}";
         int needLevel = isUpdate ? _level + 1 : _level;
         
         if (_currentCarPartConfig.PartType == CarPartType.Gun) {

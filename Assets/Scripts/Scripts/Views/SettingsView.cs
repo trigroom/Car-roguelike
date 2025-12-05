@@ -5,6 +5,14 @@ using UnityEngine.UI;
 public class SettingsView : MonoBehaviour
 {
     [field:SerializeField]
+    public Button _closeSettingsButton { get; private set; }
+    [field:SerializeField]
+    public Button _restartButton { get; private set; }
+    [field:SerializeField]
+    public Button _mainMenuButton { get; private set; }
+    [field:SerializeField]
+    public Button _quitButton { get; private set; }
+    [field:SerializeField]
     public Button _setPixelizedEffectModeButton { get; private set; }
     [field:SerializeField]
     public Transform _setPixelizedEffectModeChecker{ get; private set; }
@@ -28,5 +36,6 @@ public class SettingsView : MonoBehaviour
     public TMP_Text _greenColorText{ get; private set; }
     [field:SerializeField]
     public TMP_Text _blueColorText{ get; private set; }
-    
+     [field:SerializeField]
+        public Button[] _selectLocalizationButtons{ get; private set; }
 }

@@ -20,15 +20,15 @@ public class EndGameScreenView : MonoBehaviour
             endGameButton.onClick.AddListener(CloseEndGameUI);
         }
     }
-
+    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     public void SetEndScreenInfo(int moneyCount, int roundNumber) {
-        _moneyCountText.text = $"You earned {moneyCount.ToString()} $";
-        _mainEndSreenTitle.text = $"Round {roundNumber} is completed";
+        _moneyCountText.text = $"{GetLocalization("You earned")} {moneyCount.ToString()} $";
+        _mainEndSreenTitle.text = $"{GetLocalization("Round")} {roundNumber} {GetLocalization("is completed")}";
         gameObject.SetActive(true);
     }
     public void SetLoseScreenInfo(int roundNumber, int scrapCount) {
-        _moneyCountText.text = $"You get {scrapCount} scrap\nClick ro restart";
-        _mainEndSreenTitle.text = $"You lose on round {roundNumber}";
+        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount}{GetLocalization("")} {GetLocalization("Scrap")}\n{GetLocalization("Click ro restart")}";
+        _mainEndSreenTitle.text = $"{GetLocalization("You lose on round")} {roundNumber}";
         foreach (var endGameButton in closeEndGameMenuButtons) {
             endGameButton.onClick.RemoveAllListeners();
             endGameButton.onClick.AddListener(GoToMetaScene);
@@ -37,8 +37,8 @@ public class EndGameScreenView : MonoBehaviour
     }
     
     public void SetWinScreenInfo(int scrapCount) {
-        _moneyCountText.text = $"You get {scrapCount} scrap!";
-        _mainEndSreenTitle.text = "You complete all rounds!";
+        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount} {GetLocalization("Scrap")}!";
+        _mainEndSreenTitle.text = $"{GetLocalization("You complete all rounds")}!";
         foreach (var endGameButton in closeEndGameMenuButtons) {
             endGameButton.onClick.RemoveAllListeners();
             endGameButton.onClick.AddListener(GoToMetaScene);

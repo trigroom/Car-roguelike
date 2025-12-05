@@ -82,3 +82,29 @@ Explosion damage,Blast damage,Урон взрыва,Explosionsschaden,Daño expl
 Pierce count,Pierce,Пробивание,Durchschlag,Penetración,Perçage
 Max rotate angle,Rotation limit,Угол поворота,Drehwinkel,Límite rotación,Limite rotation
 Rotate speed,Rotation speed,Скорость вращения,Drehgeschwindigkeit,Velocidad rotación,Vitesse rotation
+Low,Common,Обычная,Häufig,Común,Commune
+Medium,Rare,Редкая,Selten,Rara,Rare
+High,Epic,Эпическая,Episch,Épica,Épique
+VeryHigh,Legendary,Легендарная,Legendär,Legendaria,Légendaire
+Use pixelized effects,Pixel effects,Пиксельные эффекты,Pixel Effekte,Efectos píxel,Effets pixel
+Enemy projectiles offset color,Enemy projectile color,Цвет вражеских снарядов,Gegnerprojektilfarbe,Color proyectil enemigo,Couleur projectile ennemi
+RoundTask,Task with reward,Задание с наградой,Aufgabe mit Belohnung,Misión con recompensa,Mission avec récompense
+RoundBattleDefault,Survive until timer ends,Выжить до конца таймера,Bis Timerende überleben,Sobrevivir hasta que acabe el tiempo,Survivre jusqu'à fin du temps
+RoundChest,Free random part,Бесплатная случайная деталь,Kostenloses Zufallsteil,Pieza aleatoria gratis,Pièce aléatoire gratuite
+RoundFromAToB,Visit all points,Посетить все точки,Alle Punkte besuchen,Visitar todos los puntos,Visiter tous les points
+RoundShop,Big sale shop,Магазин с распродажей,Rabatt Shop,Tienda con rebajas,Magasin en promotion
+RoundTransfer,Upgrade via exchange,Улучшить через обмен,Durch Tausch verbessern,Mejorar mediante intercambio,Améliorer par échange
+RoundZoneDefence,Defend the zone,Защитить зону,Die Zone verteidigen,Defender la zona,Défendre la zone
+RoundBossBattle,Boss fight,Бой с боссом,Bosskampf,Pelea con jefe,Combat boss
+Round,Round,Раунд,Runde,Ronda,Manche
+Down level health,Lower section health,Здоровье нижней секции,Unterer Abschnitt Gesundheit,Salud sección inferior,Santé section inférieure
+Up level health,Upper section health,Здоровье верхней секции,Oberer Abschnitt Gesundheit,Salud sección superior,Santé section supérieure
+You earned,You earned,Вы заработали,Du hast verdient,Has ganado,Tu as gagné
+is completed,completed,завершён,abgeschlossen,completado,terminé
+You complete all rounds,All rounds completed,Все раунды пройдены,Alle Runden abgeschlossen,Todas rondas completadas,Tous les rounds terminés
+Scrap,Scrap,Лом,Schrott,Chatarra,Ferraille
+You lose on round,Defeated on Round,Поражение на Раунде,In Runde besiegt,Derrotado en Ronda,Défaite au Round
+Click to restart,Click to restart,Нажмите для перезапуска,Klicken zum Neustart,Haz clic para reiniciar,Cliquer pour redémarrer
+Go in start menu,Main Menu,Главное меню,Hauptmenú,Menú principal,Menu principal
+Restart map,Restart,Перезапустить,Neustart,Reiniciar,Redémarrer
+Quit to desktop,Quit,Выйти,Beenden,Salir,Quitter

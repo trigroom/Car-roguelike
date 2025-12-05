@@ -85,7 +85,7 @@ public class CSVLocalization : MonoBehaviour
     {
         CurrentLanguage = newLanguage;
         DataPersistenceManagerSystem._gameData.CurrentLanguage = newLanguage;
-        
+        DataPersistenceManagerSystem.SaveGame();
         // Оповещаем все объекты об изменении языка
       /*  var textLocalizers = FindObjectsOfType<TextLocalizer>();
         foreach (var localizer in textLocalizers)
