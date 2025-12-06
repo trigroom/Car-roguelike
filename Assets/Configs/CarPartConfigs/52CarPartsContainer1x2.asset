@@ -20,7 +20,7 @@ MonoBehaviour:
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 12
   <UpgradedPartCost>k__BackingField: 14
-  <PartName>k__BackingField: Car parts container 1x2
+  <PartName>k__BackingField: 1x2 car base
   <DefaultModuleCount>k__BackingField: 1
   <PartForm>k__BackingField:
   - {x: 0, y: 1}

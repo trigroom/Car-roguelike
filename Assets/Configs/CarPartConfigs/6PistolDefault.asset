@@ -20,7 +20,7 @@ MonoBehaviour:
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 5
-  <PartName>k__BackingField: Pistol default
+  <PartName>k__BackingField: Pistol
   <DefaultModuleCount>k__BackingField: 2
   <PartForm>k__BackingField:
   - {x: 0, y: 0}

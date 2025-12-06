@@ -63,7 +63,7 @@ public class CarPartInfoUIView : MonoBehaviour
             _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig).ToString()}$ {GetLocalization("to upgrade")}";
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
 
-        _nameText.text = carPartConfig.PartName;
+        _nameText.text = GetLocalization(carPartConfig.PartName);
 
         if (carPartLevel != 0)
             _nameText.text += $"\n{carPartLevel} {GetLocalization("lvl")}.";

@@ -108,3 +108,71 @@ Click to restart,Click to restart,Нажмите для перезапуска,K
 Go in start menu,Main Menu,Главное меню,Hauptmenú,Menú principal,Menu principal
 Restart map,Restart,Перезапустить,Neustart,Reiniciar,Redémarrer
 Quit to desktop,Quit,Выйти,Beenden,Salir,Quitter
+Crossbow,Crossbow,Арбалет,Armbrust,Ballesta,Arbalète
+3x3 car base,3x3 Car Base,Основа 3x3 машины,3x3 Auto Basis,Base Coche 3x3,Base Voiture 3x3
+Fuel pack,Fuel Pack,Топливный бак,Kraftstoffpack,Paquete Combustible,Paquet Carburant
+Driver cabine,Driver Cabin,Кабина водителя,Fahrerkabine,Cabina Conductor,Cabine Conducteur
+Car engine,Car Engine,Двигатель машины,Automotor,Motor Coche,Moteur Voiture
+Double crossbow,Double Crossbow,Двойной арбалет,Doppelarmbrust,Ballesta Doble,Arbalète Double
+Pistol,Pistol,Пистолет,Pistole,Pistola,Pistolet
+Revolver,Revolver,Револьвер,Revolver,Revólver,Revolver
+SMG,SMG,ПП,MP,Subfusil,Pistolet Mitrailleur
+Sawed off shotgun,Sawed-off,Обрез,Abgesägt,Recortada,Fusil Scié
+Quad rocket launcher,Quad Rocket,Квадро-ракетница,Vierfachraketenwerfer,Cuádruple Cohete,Quadruple Rocket
+2x2 car base,2x2 Car Base,Основа 2x2 машины,2x2 Auto Basis,Base Coche 2x2,Base Voiture 2x2
+1x2 truck base,1x2 Truck Base,Основа 1x2 грузовика,1x2 LKW Basis,Base Camión 1x2,Base Camion 1x2
+Double fuel pack,Double Fuel Pack,Двойной топливный бак,Doppelkraftstoffpack,Paquete Doble Combustible,Paquet Double Carburant
+Recovery pack,Repair Kit,Ремонтный набор,Reparaturset,Kit Reparación,Kit Réparation
+Small shield,Small Shield,Маленький щит,Kleiner Schild,Escudo Pequeño,Petit Bouclier
+1x2 moto base,1x2 Moto Base,Основа 1x2 мотоцикла,1x2 Moto Basis,Base Moto 1x2,Base Moto 1x2
+Spear,Spear,Копье,Speer,Lanza,Lance
+Ammo pack,Ammo Pack,Патронный набор,Munitionspack,Paquete Munición,Paquet Munitions
+Rusted turbine,Rusted Turbine,Ржавая турбина,Rostige Turbine,Turbina Oxidada,Turbine Rouillée
+Big turbine,Big Turbine,Большая турбина,Große Turbine,Turbina Grande,Grosse Turbine
+Chainsaw,Chainsaw,Бензопила,Kettensäge,Motosierra,Tronçonneuse
+Rocket launcher,Rocket Launcher,Ракетница,Raketenwerfer,Lanzacohetes,Lance-Roquettes
+Shotgun,Shotgun,Дробовик,Schrotflinte,Escopeta,Fusil à Pompe
+Spike,Spike,Шип,Stachel,Púa,Pointe
+1x2 armored moto base,1x2 Armored Moto Base,Бронированная основа 1x2 мото,1x2 Gepanzerte Moto Basis,Base Moto Blindada 1x2,Base Moto Blindée 1x2
+Laser gun,Laser Gun,Лазерная пушка,Lasergeschütz,Arma Láser,Arme Laser
+Heavy MG,Heavy MG,Тяжёлый пулемёт,Schweres MG,Ametralladora Pesada,Mitrailleuse Lourde
+Shocked Rocket launcher,Shock Rocket,Шок-ракетница,Schockrakete,Cohete Choque,Roquette Choc
+Shocked crossbow,Shock Crossbow,Шок-арбалет,Schockarmbrust,Ballesta Choque,Arbalète Choc
+Ballista,Ballista,Баллиста,Balliste,Balista,Balliste
+Laser weapon system,Laser System,Лазерная система,Lasersystem,Sistema Láser,Système Laser
+Wheels 3x1,3x1 Wheels,Колёса 3x1,3x1 Räder,Ruedas 3x1,Roues 3x1
+2x4 car base,2x4 Car Base,Основа 2x4 машины,2x4 Auto Basis,Base Coche 2x4,Base Voiture 2x4
+Stone fence,Stone Fence,Каменный забор,Steinzaun,Valla Piedra,Clôture Pierre
+Small cannon,Small Cannon,Маленькая пушка,Kleine Kanone,Cañón Pequeño,Petit Canon
+Mining farm,Mining Rig,Майнинг-ферма,Mining Rig,Granja Minería,Ferme Minage
+Moto engine,Moto Engine,Двигатель мото,Motomotor,Motor Moto,Moteur Moto
+3x1 moto base,3x1 Moto Base,Основа 3x1 мото,3x1 Moto Basis,Base Moto 3x1,Base Moto 3x1
+Moto wheel,Moto Wheel,Колесо мото,Motorradrad,Rueda Moto,Roue Moto
+Truck engine,Truck Engine,Двигатель грузовика,LKW Motor,Motor Camión,Moteur Camion
+Truck wheels 4x2,4x2 Truck Wheels,Колёса грузовика 4x2,4x2 LKW Räder,Ruedas Camión 4x2,Roues Camion 4x2
+4x2 truck base,4x2 Truck Base,Основа 4x2 грузовика,4x2 LKW Basis,Base Camión 4x2,Base Camion 4x2
+Sand bags barricade,Sandbag Barricade,Баррикада из мешков,Sandsackbarrikade,Barricada Sacos Arena,Barricade Sacs Sable
+Dinamic defence corner,Dynamic Defense Corner,Динамический угол обороны,Dynamische Verteidigungsecke,Esquina Defensa Dinámica,Coin Défense Dynamique
+Battering ram,Battering Ram,Таран,Rammbock,Ariete,Bélier
+Drill,Drill,Дрель,Bohrer,Taladro,Foreuse
+Car wheels 2x1,2x1 Car Wheels,Колёса машины 2x1,2x1 Autoräder,Ruedas Coche 2x1,Roues Voiture 2x1
+Armored moto wheel,Armored Moto Wheel,Бронированное колесо мото,Gepanzertes Motorradrad,Rueda Moto Blindada,Roue Moto Blindée
+Armored car wheel,Armored Car Wheel,Бронированное колесо машины,Gepanzertes Autorad,Rueda Coche Blindada,Roue Voiture Blindée
+Car wheel,Car Wheel,Колесо машины,Autorad,Rueda Coche,Roue Voiture
+1x2 car base,1x2 Car Base,Основа 1x2 машины,1x2 Auto Basis,Base Coche 1x2,Base Voiture 1x2
+3x2 car base,3x2 Car Base,Основа 3x2 машины,3x2 Auto Basis,Base Coche 3x2,Base Voiture 3x2
+3x1 car base,3x1 Car Base,Основа 3x1 машины,3x1 Auto Basis,Base Coche 3x1,Base Voiture 3x1
+Fire crossbow,Fire Crossbow,Огненный арбалет,Feuerarmbrust,Ballesta Fuego,Arbalète Feu
+Homemade shotgun,Homemade Shotgun,Самодельный дробовик,Schrotflinte Selbstgebaut,Escopeta Casera,Fusil à Pompe Artisanal
+Multi arrow crossbow,Multi Crossbow,Многострельный арбалет,Multiarmbrust,Ballesta Múltiple,Arbalète Multiple
+Stone beam,Stone Beam,Каменная балка,Steinbalken,Viga Piedra,Poutre Pierre
+Minigun,Minigun,Миниган,Minigun,Minigun,Minigun
+Nailgun,Nailgun,Пневмомолот,Nagelpistole,Pistola Clavos,Pistolet à Clous
+Sniper rifle,Sniper Rifle,Снайперская винтовка,Scharfschützengewehr,Fusil Francotirador,Fusil de Précision
+Heavy revolver,Heavy Revolver,Тяжёлый револьвер,Schwerer Revolver,Revólver Pesado,Revolver Lourd
+Semi-auto shotgun,Semi-auto Shotgun,Полуавтоматический дробовик,Halbauto-Schrotflinte,Escopeta Semiautomática,Fusil à Pompe Semi-auto
+Heavy sniper rifle,Heavy Sniper,Тяжёлая снайперка,Schwerer Scharfschütze,Francotirador Pesado,Sniper Lourd
+Wooden barricade,Wooden Barricade,Деревянная баррикада,Holzbarrikade,Barricada Madera,Barricade Bois
+Bolt action rifle,Bolt Action,Винтовка с затвором,Repetiergewehr,Fusil Cerrojo,Fusil à Verrou
+Homemade SMG,Homemade SMG,Самодельный ПП,MP Selbstgebaut,Subfusil Casero,Pistolet Mitrailleur Artisanal
+Big ammo pack,Big Ammo Pack,Большой патронный набор,Großer Munitionspack,Paquete Grande Munición,Grand Paquet Munitions
