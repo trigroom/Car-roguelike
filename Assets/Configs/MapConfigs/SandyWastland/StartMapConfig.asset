@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: StartMapConfig
   m_EditorClassIdentifier: 
   <MapDescription>k__BackingField: Sandy wasteland is the first location of the game
-  <MapSprite>k__BackingField: {fileID: 21300000, guid: 7ce86f52b533b614b9a8b0afe7292b59, type: 3}
+  <MapSprite>k__BackingField: {fileID: 21300000, guid: 8f90e1a5ada29d241ba57070babf940f, type: 3}
   <MapName>k__BackingField: Sandy wasteland
   <GameProcessConfig>k__BackingField: {fileID: 11400000, guid: 9fd1157b9bed16445bef3f79570f869f, type: 2}
   <MapDifficltyConfigs>k__BackingField:

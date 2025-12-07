@@ -8,6 +8,7 @@ public class CarPartStuffView : MonoBehaviour
 
     private Action<int> _takeDamageAction;
     public Vector2Int _gridPosition { get;private set; }
+    [field: SerializeField]
     public int _mainEntity { get;private set; }
 
     public void SetupCarPart(Vector2Int gridposition, string carPartLayer, int mainEntity) {

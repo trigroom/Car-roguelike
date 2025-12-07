@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Client;
 using DG.Tweening;
 using Leopotam.EcsLite;
@@ -54,7 +55,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
     public void Init(IEcsSystems systems) {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int playerEntity = _world.Value.NewEntity();
+        _sceneService.Value.PlayerEntity = playerEntity;
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
       //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         var diificultyConfig = _sceneService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
@@ -271,6 +274,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.None;
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
+        Debug.Log("End round game st system");
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
@@ -941,8 +945,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private bool CanStartRound() {
-        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-      
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRedactedCarEntity);
+      Debug.Log(carCmp.CurrentWeight +">"+ carCmp.CurrentMaxWeight + " weight, "+MainPartIsPlaced() + " main parts, "+CanUseThisCarPartContainers() + " car containers");
         if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) return false;
        if (MainPartIsPlaced() &&  CanUseThisCarPartContainers()) return true;
         return false;
@@ -951,7 +955,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private bool CanUseThisCarPartContainers() {
         int wheelsCount = 0;
         Vector2Int lastWheelMinMaxY = Vector2Int.zero;
-        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRedactedCarEntity);
         foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
             var carPartCmp = _carPartComponentsPool.Value.Get(carPartContainer.Key);
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);

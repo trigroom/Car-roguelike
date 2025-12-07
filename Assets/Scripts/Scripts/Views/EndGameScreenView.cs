@@ -27,7 +27,8 @@ public class EndGameScreenView : MonoBehaviour
         gameObject.SetActive(true);
     }
     public void SetLoseScreenInfo(int roundNumber, int scrapCount) {
-        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount}{GetLocalization("")} {GetLocalization("Scrap")}\n{GetLocalization("Click ro restart")}";
+        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount} {GetLocalization("Scrap")}" +
+                               $"\n{GetLocalization("Click to restart")}";
         _mainEndSreenTitle.text = $"{GetLocalization("You lose on round")} {roundNumber}";
         foreach (var endGameButton in closeEndGameMenuButtons) {
             endGameButton.onClick.RemoveAllListeners();

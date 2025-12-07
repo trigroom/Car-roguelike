@@ -25,6 +25,7 @@ public class MovementSystem : IEcsRunSystem {
         foreach (var endRound in _endRoundEventsFilter.Value) {
             _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
             _sceneData.Value._playerUIView._fuelLampLightImage.gameObject.SetActive(false);
+            Debug.Log("End round Movement System");
         }
 
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);

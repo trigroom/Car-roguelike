@@ -40,6 +40,7 @@ public enum AttackType {
         private EcsPoolInject<FuelComponent> _fuelComponentsPool;
         private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
         private EcsPoolInject<CompleteTaskEvent> _completeTaskEventsPool;
+        private EcsPoolInject<UpdateCarsStatsInfoEvent> _updateCarsStatsInfoEventsPool;
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
@@ -257,12 +258,15 @@ public enum AttackType {
             laserLineRenderer.gameObject.SetActive(true);
         }
         private void EndRound() {
+            Debug.Log("End round attack system");
             DestroyAllProjectiles();
             DestroyAllCars();
 
             DestroyBrokenParts();
 
             SetPlayerCarGrids();
+            if(!_updateCarsStatsInfoEventsPool.Value.Has(_sceneService.Value.PlayerEntity))
+            _updateCarsStatsInfoEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         }
 
         private void SetPlayerCarGrids() {
@@ -641,6 +645,7 @@ public enum AttackType {
         }
 
         private void ChangeHealth(float health, int cellEntity) {
+            
             ref var carPartCellCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
             if(carPartCellCmp.CurrentHealth <= 0)return;
             carPartCellCmp.CurrentHealth -= health;

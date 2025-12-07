@@ -31,8 +31,8 @@ public class EcsStartUp : MonoBehaviour
             .Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem())
 #endif 
             
-            .Add(new InventorySystem())
             .Add(new GameStatesSystem())
+            .Add(new InventorySystem())
             .Add(new MovementSystem())
             .Add(new PlayerInputSystem())
             .Add(new EnemyInputSystem())
@@ -42,6 +42,7 @@ public class EcsStartUp : MonoBehaviour
             .DelHere<DestroyEntityEvent>()
            .DelHere<ConstructMeleeCellEvent>()
             .DelHere<StartRoundEvent>()
+            .DelHere<EndRoundEvent>()
 
          .Inject(_sceneService)
             .Inject(_betweenSceneService)

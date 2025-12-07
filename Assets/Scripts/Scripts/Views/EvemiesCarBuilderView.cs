@@ -14,6 +14,9 @@ public class EvemiesCarBuilderView : MonoBehaviour {
     public TMP_InputField GetCarPartIdInputField;
     public Button GetCarPartIdButton;
     public Transform AdminPanelContainer;
+    public Button GetMediumButton;
+    public Button GetHighButton;
+    public Button GetVeryHighButton;
     private string _filePath = "Assets/Configs/EnemyCarsConfigs";
     private void Start() {
         AdminPanelSwitch.onClick.AddListener(SwitchAdminPanelMode);
