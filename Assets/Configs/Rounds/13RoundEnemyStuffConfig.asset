@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: 13RoundEnemyStuffConfig
   m_EditorClassIdentifier: 
   EnemyCarChances:
-  - 0
-  - 10
-  - 5
+  - 1
+  - 1
+  - 4
+  - 8
+  - 2
   MoneyCount: 56

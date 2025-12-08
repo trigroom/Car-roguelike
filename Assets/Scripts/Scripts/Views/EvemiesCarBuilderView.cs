@@ -28,6 +28,7 @@ public class EvemiesCarBuilderView : MonoBehaviour {
 
     public void SaveEnemyCarConfig(int carId, int carLevel,List<CarPartTypeRow> inputGridDownLevel, List<CarPartTypeRow> inputGridUpLevel, Vector2Int gridSize) {
         if (EnemyConfigNameInputField.text == "") return;
+        #if UNITY_EDITOR
         EnemyCarPartsMaps config = ScriptableObject.CreateInstance<EnemyCarPartsMaps>();
         config.CreateGrid(carId,carLevel,inputGridDownLevel, inputGridUpLevel, gridSize);
 
@@ -43,5 +44,6 @@ public class EvemiesCarBuilderView : MonoBehaviour {
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
+        #endif
     }
 }

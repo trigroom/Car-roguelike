@@ -10,6 +10,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
+    private Sequence _warningSequence;
+    [field: SerializeField] public TMP_Text _warningText { get; private set; }
     [field: SerializeField] public StaticTextsView _staticTextsView { get; private set; }
     [field: SerializeField] public Transform _dontUsedUIImagesPool{ get; private set; }
     [field: SerializeField] public Transform _markForTeammatesContainer{ get; private set; }
@@ -365,5 +367,48 @@ public class SceneService : MonoBehaviour {
     public Transform InstantiateObject(Transform spawnObject, Vector2 spawnPosition)
     {
         return Instantiate(spawnObject, spawnPosition, Quaternion.identity).transform;
+    }
+    
+    public void PlayWarningAnimation(string message)
+    {
+        // Устанавливаем текст
+        _warningText.text = message;
+        _warningText.gameObject.SetActive(true);
+        // Устанавливаем позицию в место курсора
+        _warningText.transform.position = Input.mousePosition;
+        
+        _warningSequence.Kill();
+        _warningSequence = DOTween.Sequence();
+        
+        _warningSequence.Append(_warningText.DOColor(new Color(0.8f, 0.2f, 0.2f,1), 0.3f));
+        
+        // 2. Движение вверх
+        float endPos = _warningText.transform.position.y + 50;
+        _warningSequence.Join(_warningText.transform.DOMoveY(endPos, 0.3f).SetEase(Ease.OutCubic));
+        
+        // 3. Эффект пульсации
+        _warningSequence.Join(_warningText.transform.DOScale(1.3f,0.3f)
+            .SetEase(Ease.OutBack)
+            .OnComplete(() => 
+            {
+                _warningText.transform.DOScale(1, 0.3f).SetEase(Ease.InBack);
+            }));
+        
+        // Задержка для отображения текста
+        _warningSequence.AppendInterval(1f);
+        
+        // Анимация исчезновения
+        // 1. Дополнительное движение вверх
+        float disappearPos = endPos + 10f;
+        _warningSequence.Append(_warningText.transform.DOMoveY(disappearPos, 0.3f));
+        
+        // 2. Фейд аут
+        _warningSequence.Join(_warningText.DOColor(new Color(0f, 0f, 0f, 0), 0.3f));
+        
+        // Уничтожаем объект после завершения анимации
+        _warningSequence.OnComplete(() => _warningText.gameObject.SetActive(false));
+        
+        // Запускаем анимацию
+        _warningSequence.Play();
     }
 }

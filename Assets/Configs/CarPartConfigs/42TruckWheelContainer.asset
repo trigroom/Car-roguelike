@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 42TruckWheelContainer
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 42
-  <MaxHealth>k__BackingField: 100
+  <MaxHealth>k__BackingField: 250
   <Weight>k__BackingField: 50
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 7c54d5e5d4bf2e6499947501df54fc87, type: 3}
   <PartType>k__BackingField: 4

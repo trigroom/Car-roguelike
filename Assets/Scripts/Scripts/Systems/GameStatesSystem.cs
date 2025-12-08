@@ -945,10 +945,23 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private bool CanStartRound() {
-        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRedactedCarEntity);
-      Debug.Log(carCmp.CurrentWeight +">"+ carCmp.CurrentMaxWeight + " weight, "+MainPartIsPlaced() + " main parts, "+CanUseThisCarPartContainers() + " car containers");
-        if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) return false;
-       if (MainPartIsPlaced() &&  CanUseThisCarPartContainers()) return true;
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)
+            .CurrentRedactedCarEntity);
+        Debug.Log(carCmp.CurrentWeight + ">" + carCmp.CurrentMaxWeight + " weight, " + MainPartIsPlaced() + " main parts, " +
+                  CanUseThisCarPartContainers() + " car containers");
+        if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) {
+            _sceneService.Value.PlayWarningAnimation(GetLocalization("The weight of the vehicle exceeds the maximum") + "!");
+            return false;
+        }
+
+        bool mainPartIsPlaced = MainPartIsPlaced();
+        bool canUseThisCarPartContainers = CanUseThisCarPartContainers();
+        if (!canUseThisCarPartContainers)
+            _sceneService.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!");
+        else if (!mainPartIsPlaced)
+            _sceneService.Value.PlayWarningAnimation(GetLocalization("Place the engine and driver's cabin on the car") + "!");
+
+        if (mainPartIsPlaced && canUseThisCarPartContainers) return true;
         return false;
     }
     

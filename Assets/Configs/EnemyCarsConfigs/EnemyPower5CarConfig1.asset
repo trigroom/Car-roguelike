@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31ffd1037cc574c4f90a2762730ba894, type: 3}
+  m_Name: EnemyPower5CarConfig1
+  m_EditorClassIdentifier: 
+  CarPartDownLevelGrid:
+  - gridPosition: {x: 2, y: 1}
+    partId: 11
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 1, y: 0}
+    partId: 48
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 0, y: 1}
+    partId: 11
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 1, y: 3}
+    partId: 48
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 1, y: 4}
+    partId: 52
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 2, y: 4}
+    partId: 52
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 1, y: 6}
+    partId: 48
+    rotate: 0
+    level: 1
+  CarPartUpLevelGrid:
+  - gridPosition: {x: 2, y: 2}
+    partId: 4
+    rotate: 0
+    level: 7
+  - gridPosition: {x: 1, y: 1}
+    partId: 3
+    rotate: 0
+    level: 7
+  - gridPosition: {x: 2, y: 5}
+    partId: 8
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 3, y: 1}
+    partId: 35
+    rotate: 90
+    level: 1
+  - gridPosition: {x: 1, y: 6}
+    partId: 22
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 2, y: 4}
+    partId: 67
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 1, y: 4}
+    partId: 55
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 1, y: 3}
+    partId: 19
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 2, y: 0}
+    partId: 66
+    rotate: 180
+    level: 1
+  - gridPosition: {x: 2, y: 3}
+    partId: 9
+    rotate: 270
+    level: 1
+  - gridPosition: {x: 1, y: 2}
+    partId: 2
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 2, y: 6}
+    partId: 45
+    rotate: 270
+    level: 1
+  - gridPosition: {x: 0, y: 1}
+    partId: 44
+    rotate: 90
+    level: 1
+  CarId: 3
+  CarLevel: 6
+  GridSize: {x: 4, y: 7}
