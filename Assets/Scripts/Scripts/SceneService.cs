@@ -370,24 +370,24 @@ public class SceneService : MonoBehaviour {
         return Instantiate(spawnObject, spawnPosition, Quaternion.identity).transform;
     }
     
-    public void PlayWarningAnimation(string message)
+    public void PlayWarningAnimation(string message, bool inScreenCentre)
     {
         // Устанавливаем текст
         _warningText.text = message;
         _warningText.gameObject.SetActive(true);
-        // Устанавливаем позицию в место курсора
-        _warningText.transform.position = Input.mousePosition;
+        
+        _warningText.transform.position =inScreenCentre? new Vector2(0,300): Input.mousePosition;
+        
+        var needColor =inScreenCentre? new Color(0.4f, 0.6f, 0.3f, 1):new Color(0.8f, 0.2f, 0.2f,1);
         
         _warningSequence.Kill();
         _warningSequence = DOTween.Sequence();
         
-        _warningSequence.Append(_warningText.DOColor(new Color(0.8f, 0.2f, 0.2f,1), 0.3f));
+        _warningSequence.Append(_warningText.DOColor(needColor, 0.3f));
         
-        // 2. Движение вверх
         float endPos = _warningText.transform.position.y + 50;
         _warningSequence.Join(_warningText.transform.DOMoveY(endPos, 0.3f).SetEase(Ease.OutCubic));
         
-        // 3. Эффект пульсации
         _warningSequence.Join(_warningText.transform.DOScale(1.3f,0.3f)
             .SetEase(Ease.OutBack)
             .OnComplete(() => 
@@ -395,21 +395,15 @@ public class SceneService : MonoBehaviour {
                 _warningText.transform.DOScale(1, 0.3f).SetEase(Ease.InBack);
             }));
         
-        // Задержка для отображения текста
         _warningSequence.AppendInterval(1f);
         
-        // Анимация исчезновения
-        // 1. Дополнительное движение вверх
         float disappearPos = endPos + 10f;
         _warningSequence.Append(_warningText.transform.DOMoveY(disappearPos, 0.3f));
         
-        // 2. Фейд аут
         _warningSequence.Join(_warningText.DOColor(new Color(0f, 0f, 0f, 0), 0.3f));
         
-        // Уничтожаем объект после завершения анимации
         _warningSequence.OnComplete(() => _warningText.gameObject.SetActive(false));
         
-        // Запускаем анимацию
         _warningSequence.Play();
     }
 }

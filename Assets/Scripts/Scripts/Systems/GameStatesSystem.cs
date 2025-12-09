@@ -168,6 +168,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         carPartCmp.CurrentHealth = carPartCmp.MaxHealth;
        //set need box sprite
        supportBox.transform.position = GetPositionAroundPlayer();
+       _sceneService.Value.PlayWarningAnimation(GetLocalization("Supply drop")+"!",true);
     }
 
     private void SetupSupportBox() {
@@ -986,16 +987,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         Debug.Log(carCmp.CurrentWeight + ">" + carCmp.CurrentMaxWeight + " weight, " + MainPartIsPlaced() + " main parts, " +
                   CanUseThisCarPartContainers() + " car containers");
         if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) {
-            _sceneService.Value.PlayWarningAnimation(GetLocalization("The weight of the vehicle exceeds the maximum") + "!");
+            _sceneService.Value.PlayWarningAnimation(GetLocalization("The weight of the vehicle exceeds the maximum") + "!",false);
             return false;
         }
 
         bool mainPartIsPlaced = MainPartIsPlaced();
         bool canUseThisCarPartContainers = CanUseThisCarPartContainers();
         if (!canUseThisCarPartContainers)
-            _sceneService.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!");
+            _sceneService.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!",false);
         else if (!mainPartIsPlaced)
-            _sceneService.Value.PlayWarningAnimation(GetLocalization("Place the engine and driver's cabin on the car") + "!");
+            _sceneService.Value.PlayWarningAnimation(GetLocalization("Place the engine and driver's cabin on the car") + "!",false);
 
         if (mainPartIsPlaced && canUseThisCarPartContainers) return true;
         return false;

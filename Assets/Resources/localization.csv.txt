@@ -179,3 +179,4 @@ Big ammo pack,Big Ammo Pack,Большой патронный набор,Großer
 The weight of the vehicle exceeds the maximum,WEIGHT LIMIT EXCEEDED,ПРЕВЫШЕН ЛИМИТ ВЕСА,GEWICHTSLIMIT ÜBERSCHRITTEN,LÍMITE PESO EXCEDIDO,LIMITE POIDS DÉPASSÉ
 Place the engine and driver's cabin on the car,ENGINE + CABIN REQUIRED,ТРЕБУЕТСЯ ДВИГАТЕЛЬ И КАБИНА,MOTOR + KABINE ERFORDERLICH,MOTOR + CABINA REQUERIDOS,MOTEUR + CABINE REQUIS
 The car is unstable and needs wheels,ADD WHEELS FOR STABILITY,ДОБАВЬТЕ КОЛЁСА ДЛЯ УСТОЙЧИВОСТИ,FÜGE RÄDER FÜR STABILITÄT HINZU,AÑADE RUEDAS PARA ESTABILIDAD,AJOUTEZ ROUES POUR STABILITÉ
+Supply drop,Supply drop,Сброс припасов,Nachschubabwurf,Lanzamiento suministros,Largage ravitaillement
