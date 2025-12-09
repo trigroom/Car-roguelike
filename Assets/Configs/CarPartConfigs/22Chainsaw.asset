@@ -19,7 +19,7 @@ MonoBehaviour:
   <PartType>k__BackingField: 7
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Chainsaw
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:

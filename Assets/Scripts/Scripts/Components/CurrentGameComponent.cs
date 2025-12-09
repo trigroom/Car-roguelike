@@ -22,6 +22,8 @@
 
         public float DifficultyHealthMultiplayer;
         public float DifficultyDamageMultiplayer;
+
+        public bool SupportBoxIsSend;
  }
 
  public enum RoundType {

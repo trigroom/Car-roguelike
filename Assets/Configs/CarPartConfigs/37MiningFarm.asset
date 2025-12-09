@@ -19,7 +19,7 @@ MonoBehaviour:
   <PartType>k__BackingField: 3
   <RartRare>k__BackingField: 1
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Mining farm
   <DefaultModuleCount>k__BackingField: 0
   <PartForm>k__BackingField:

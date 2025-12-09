@@ -11,6 +11,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public SupportBoxStuffView _supportBoxStuffView{ get; private set; }
     [field: SerializeField] public TMP_Text _warningText { get; private set; }
     [field: SerializeField] public StaticTextsView _staticTextsView { get; private set; }
     [field: SerializeField] public Transform _dontUsedUIImagesPool{ get; private set; }

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2691728331417854324}
   - component: {fileID: -6712694133279507477}
   - component: {fileID: 7245686766473792499}
+  - component: {fileID: 6770856967817643288}
   m_Layer: 7
   m_Name: SupportDropBox
   m_TagString: Enemy
@@ -93,6 +94,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <_carPartCollider>k__BackingField: {fileID: 2691728331417854324}
+  <_mainEntity>k__BackingField: 0
 --- !u!212 &7245686766473792499
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -148,3 +150,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &6770856967817643288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1418696653531373643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 125073edbe7cbcd4c9169ea4127caf2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <_supportBoxSprite>k__BackingField: {fileID: 7245686766473792499}
+  <_supportBoxcarPartStuffView>k__BackingField: {fileID: -6712694133279507477}
+  <defaultBoxSprite>k__BackingField: {fileID: 21300000, guid: 44cddd5113d31d54c8f901dc6d6bb4e7, type: 3}
+  <rareBoxSprite>k__BackingField: {fileID: 21300000, guid: 2c1faa4aebe3ffd4c89ad14f897e72d9, type: 3}

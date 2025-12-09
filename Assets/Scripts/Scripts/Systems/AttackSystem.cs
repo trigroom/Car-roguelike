@@ -40,6 +40,7 @@ public enum AttackType {
         private EcsPoolInject<FuelComponent> _fuelComponentsPool;
         private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
         private EcsPoolInject<CompleteTaskEvent> _completeTaskEventsPool;
+        private EcsPoolInject<ShopComponent> _shopComponentsPool;
         private EcsPoolInject<UpdateCarsStatsInfoEvent> _updateCarsStatsInfoEventsPool;
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         
@@ -491,11 +492,16 @@ public enum AttackType {
                 ReleaseProjectileForObstacle(projectile);
                 return;
             }
-            
-            var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-            int damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
-                ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
-                : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+
+            int damagedEntity = 0;
+            if (damagedEntityGridPosition == -Vector2Int.one * 10) {
+                damagedEntity = damagedMainEntity;
+            } else {
+                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                damagedEntity = carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y] == 0
+                    ? carCmpDamaged.CarPartContainerGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y]
+                    : carCmpDamaged.CarPartGroupsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+            }
             
             if(damagedEntity == 0)return;
             
@@ -573,11 +579,18 @@ public enum AttackType {
                 var meleeWeaponConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(weaponId);
                 meleeCmp.Countdown += meleeWeaponConfig.AttackCountdown;
                 var moveCmp = _movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity);
-                var moveCmpDamaged = _movementComponentsPool.Value.Get(damagedMainEntity);
+               
+                float damagedObjectMass = 10;
+                float damagedObjectSpeed = 0;
+                if (_movementComponentsPool.Value.Has(damagedMainEntity)) {
+                     var moveCmpDamaged = _movementComponentsPool.Value.Get(damagedMainEntity);
+                     damagedObjectMass = moveCmpDamaged.MovableObjectRigidbody.mass;
+                     damagedObjectSpeed = moveCmpDamaged.CurrentMoveSpeed;
+                }
                 float damageByCollision = meleeCmp.DamageBySpeed *
-                                          ((moveCmpDamaged.MovableObjectRigidbody.mass * moveCmp.MovableObjectRigidbody.mass) /
-                                           (moveCmp.MovableObjectRigidbody.mass + moveCmpDamaged.MovableObjectRigidbody.mass)) *
-                                          Mathf.Pow(Mathf.Abs(moveCmp.CurrentMoveSpeed - moveCmpDamaged.CurrentMoveSpeed), 2)/5;
+                                          ((damagedObjectMass * moveCmp.MovableObjectRigidbody.mass) /
+                                           (moveCmp.MovableObjectRigidbody.mass + damagedObjectMass)) *
+                                          Mathf.Pow(Mathf.Abs(moveCmp.CurrentMoveSpeed - damagedObjectSpeed), 2)/5;
                 damagePoints = meleeCmp.CurrentDamage + damageByCollision;
                 
             } else /*laser*/ {
@@ -602,7 +615,8 @@ public enum AttackType {
             if (damagePoints > 0) {
                 var damagedCarPartCmp = _carPartComponentsPool.Value.Get(damagedEntity);
 
-                if (_sceneService.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
+                if (damagedEntityGridPosition.x >= 0 && _sceneService.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
+                    var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
                     var damagedCell = carCmpDamaged.CarPartViewsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
                     var armorConfig = _sceneService.Value.GetArmorFromCarPart(damagedCarPartCmp.CarPartId);
                     if (GetBulletDirection(damagedCell.transform, collisionPoint, armorConfig)) {
@@ -634,6 +648,7 @@ public enum AttackType {
 
         private void ProjectileImpulse(float impulseForce, int damagedEntity, Vector2 collisionPoint) {
             int mainEntity = _carPartComponentsPool.Value.Get(damagedEntity).MainEntity;
+            if(mainEntity < 0)return;
             ref var moveCmp = ref _movementComponentsPool.Value.Get(mainEntity);
             float weight = _carComponentsPool.Value.Get(mainEntity).CurrentWeight;
             moveCmp.MovableObjectRigidbody.AddForce(collisionPoint * impulseForce / weight * 2, ForceMode2D.Impulse);
@@ -649,6 +664,13 @@ public enum AttackType {
             ref var carPartCellCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
             if(carPartCellCmp.CurrentHealth <= 0)return;
             carPartCellCmp.CurrentHealth -= health;
+
+            if (carPartCellCmp.MainEntity == -10) {
+                if (carPartCellCmp.CurrentHealth <= 0)
+                    OpenSupportBox();
+                return;
+            }
+            
             var healthPercent = carPartCellCmp.CurrentHealth / carPartCellCmp.MaxHealth;
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCellCmp.CarPartId);
             if (carPartCellCmp.HealthMaterialIndex == 0 && healthPercent < 0.6f) {
@@ -694,6 +716,22 @@ public enum AttackType {
                 carPartCellCmp.CellCarPartsStuffViews = null;
             }
             
+        }
+
+        private void OpenSupportBox() {
+            _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
+            ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+
+            int itemsCount = _carPartComponentsPool.Value.Get(_sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView._mainEntity)
+                .MaxHealth == 100
+                ? 1
+                : 3;
+            var shopCmp = _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            for (int i = 0; i < itemsCount; i++) {
+                int rareIndex = GridUtils.GetRandomIndexFromChancesList(shopCmp.CurrentShopItemsChances);
+                inventoryCmp.CurrentGivenItems.Add(
+                    shopCmp.ListShopItemsForRares[rareIndex][Random.Range(0, shopCmp.ListShopItemsForRares[rareIndex].Count)]);
+            }
         }
 
         private void ChangeCarPartMaterial(int cellEntity, CarPartComponent carPartCellCmp, Material needMaterial, CarPartConfig carPartConfig) {

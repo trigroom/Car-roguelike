@@ -85,6 +85,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         settingsView._closeSettingsButton.onClick.AddListener(SetSettingsState);
         SetColorSliderEnemyProjectilesValues();
         GenerateMap();
+        SetupSupportBox();
     }
 
     public void Run(IEcsSystems systems) {
@@ -139,8 +140,41 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             curGameCmp.RoundAddedEnemies++;
         }
 
+        if (RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) && !curGameCmp.SupportBoxIsSend && curGameCmp.CurrentRound > 3 &&
+            curGameCmp.CurrentRound % 2 == 0 && curGameCmp.RoundTime > 20)
+            SendSupportBox();
+        
+
         if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
 
+    }
+
+    private void SendSupportBox() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        curGameCmp.SupportBoxIsSend = true;
+        var supportBoxView = _sceneService.Value._supportBoxStuffView;
+        var supportBox = supportBoxView._supportBoxcarPartStuffView;
+        //warning text
+        supportBox.gameObject.SetActive(true);
+        ref var carPartCmp = ref _carPartComponentsPool.Value.Get(supportBox._mainEntity);
+        float randomValue = Random.value;
+        if (randomValue > 0.75f) {
+            carPartCmp.MaxHealth = 100;
+            supportBoxView._supportBoxSprite.sprite = supportBoxView.defaultBoxSprite;
+        } else {
+            carPartCmp.MaxHealth = 300;
+            supportBoxView._supportBoxSprite.sprite = supportBoxView.rareBoxSprite;
+        }
+        carPartCmp.CurrentHealth = carPartCmp.MaxHealth;
+       //set need box sprite
+       supportBox.transform.position = GetPositionAroundPlayer();
+    }
+
+    private void SetupSupportBox() {
+        var supportBox = _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView;
+        int entitySupportBox = _world.Value.NewEntity();
+        _carPartComponentsPool.Value.Add(entitySupportBox).MainEntity = -10;
+        supportBox.SetupCarPart(Vector2Int.one * -10, "UpCarPartEnemy" ,entitySupportBox);
     }
 
     private void WinGame() {
@@ -273,6 +307,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void EndRound() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.None;
+        curGameCmp.SupportBoxIsSend = false;
+        _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         Debug.Log("End round game st system");
         int currentRound = curGameCmp.CurrentRound - 1;
@@ -364,7 +400,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             float posX = (newIndex + 1) * (mapImageRect.rect.width / ((float)randomRounds.Length + 1)) - mapImageRect.rect.width / 2;
             float posY = (curGameCmp.CurrentRound + 1) * (mapImageRect.rect.height /
                                                           ((float)_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds
-                                                              .Length + 2)) - mapImageRect.rect.height / 2;
+                                                              .Length + 2)) - mapImageRect.rect.height/2;
             roundButton.transform.localPosition = new Vector2(posX, posY);
             curGameCmp.RoundButtons[i] = roundButton;
 
@@ -377,7 +413,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
 
         _sceneService.Value._mapUIView.MapImage.transform.DOMoveY(
-                _sceneService.Value._mapUIView.MapImage.transform.position.y - (mapImageRect.rect.height / 2 *
+                _sceneService.Value._mapUIView.MapImage.transform.position.y - (mapImageRect.rect.height *
                     _sceneService.Value.mainCanvas.localScale.x / _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length), 0.5f)
             .SetEase(Ease.InOutBack).OnComplete(() => {
                 if (moneyMultPosition) {
@@ -902,8 +938,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         // Вычисляем размер каждого квадрата
         float cellSize = Mathf.Min(parentHeight / columns,  parentWidth/ rows);
 
-        float gridWidth =  rows * cellSize  ;
-        float gridHeight = columns* cellSize ;
+        float gridWidth = rows * cellSize;
+        float gridHeight = columns * cellSize;
 
         // Начальная позиция (левый верхний угол)
         float startX = (cellSize/2 - gridWidth/ 2) ;
