@@ -180,3 +180,5 @@ The weight of the vehicle exceeds the maximum,WEIGHT LIMIT EXCEEDED,ПРЕВЫШ
 Place the engine and driver's cabin on the car,ENGINE + CABIN REQUIRED,ТРЕБУЕТСЯ ДВИГАТЕЛЬ И КАБИНА,MOTOR + KABINE ERFORDERLICH,MOTOR + CABINA REQUERIDOS,MOTEUR + CABINE REQUIS
 The car is unstable and needs wheels,ADD WHEELS FOR STABILITY,ДОБАВЬТЕ КОЛЁСА ДЛЯ УСТОЙЧИВОСТИ,FÜGE RÄDER FÜR STABILITÄT HINZU,AÑADE RUEDAS PARA ESTABILIDAD,AJOUTEZ ROUES POUR STABILITÉ
 Supply drop,Supply drop,Сброс припасов,Nachschubabwurf,Lanzamiento suministros,Largage ravitaillement
+Max level,Max Level,Максимальный уровень,Maximalstufe,Nivel Máximo,Niveau Max
+RMB,RMB,ПКМ,RMT,RMD,CD

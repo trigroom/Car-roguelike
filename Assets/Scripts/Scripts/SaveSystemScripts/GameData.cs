@@ -8,6 +8,8 @@ public class GameData
     public int[] LevelRounds;
     public string CurrentLanguage;
 
+    public bool TutorialIsComplated;
+
     public GameData()
     {
         LevelRounds = new int[3];

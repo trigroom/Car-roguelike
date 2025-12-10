@@ -11,6 +11,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public TutorialStuffView _tutorialStuffView{ get; private set; }
     [field: SerializeField] public SupportBoxStuffView _supportBoxStuffView{ get; private set; }
     [field: SerializeField] public TMP_Text _warningText { get; private set; }
     [field: SerializeField] public StaticTextsView _staticTextsView { get; private set; }
@@ -375,8 +376,10 @@ public class SceneService : MonoBehaviour {
         // Устанавливаем текст
         _warningText.text = message;
         _warningText.gameObject.SetActive(true);
-        
-        _warningText.transform.position =inScreenCentre? new Vector2(0,300): Input.mousePosition;
+        if (inScreenCentre)
+            _warningText.transform.localPosition = new Vector2(0, 300);
+        else
+            _warningText.transform.position = Input.mousePosition;
         
         var needColor =inScreenCentre? new Color(0.4f, 0.6f, 0.3f, 1):new Color(0.8f, 0.2f, 0.2f,1);
         

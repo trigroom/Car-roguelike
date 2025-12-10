@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour
 {
     [field: SerializeField]
+    public RectTransform _rotateCarPartIconContainer { get;private set; }
+    [field: SerializeField]
     public TMP_Text _healCarText { get;private set; }
     [field: SerializeField]
     public Button _healCarButton { get;private set; }
@@ -68,4 +70,55 @@ public class InventoryUIView : MonoBehaviour
     public Button _playButton { get;private set; }
     [field: SerializeField]
     public Button[] _selectCarButtons { get;private set; }
+    
+    public void SetUIBottomRight() {
+        SetToBottomRight(_rotateCarPartIconContainer, _draggedInventoryCell.rectTransform);
+    }
+
+    private float _lastRotateAngle;
+
+    public void SetToBottomRight(RectTransform target, RectTransform reference) {
+        Vector3[] refCorners = new Vector3[4];
+        Vector3[] targetCorners = new Vector3[4];
+
+        reference.GetWorldCorners(refCorners);
+        int cornerIndex;
+        float speedMultiplayer;
+        switch (reference.localEulerAngles.z) {
+            case < 90:
+                cornerIndex = 3;
+                speedMultiplayer = reference.sizeDelta.y;
+                break;
+            case < 180:
+                cornerIndex = 0;
+                speedMultiplayer = reference.sizeDelta.x;
+                break;
+            case < 270:
+                cornerIndex = 1;
+                speedMultiplayer = reference.sizeDelta.y;
+                break;
+            case < 360:
+                cornerIndex = 2;
+                speedMultiplayer = reference.sizeDelta.x;
+                break;
+            default:
+                return;
+                break;
+        }
+
+        Vector3 refBottomRightWorld = refCorners[cornerIndex];
+
+        RectTransform parentRect = target.parent as RectTransform;
+        if (parentRect == null) return;
+
+        Vector2 localPos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, RectTransformUtility.WorldToScreenPoint(null, refBottomRightWorld),
+            null, out localPos);
+        if (_lastRotateAngle != reference.localEulerAngles.z)
+            target.anchoredPosition = Vector3.MoveTowards(target.anchoredPosition, localPos, 5 * speedMultiplayer * Time.deltaTime);
+        else
+            target.anchoredPosition = localPos;
+
+        _lastRotateAngle = reference.localEulerAngles.z;
+    }
 }

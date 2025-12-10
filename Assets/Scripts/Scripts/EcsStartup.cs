@@ -19,8 +19,7 @@ public class EcsStartUp : MonoBehaviour
         Time.timeScale = 1;
     }
 
-    void Start()
-    {
+    void Start() {
         _betweenSceneService = BetweenScenesService.Instance;
         _world = new EcsWorld();
         _systemsUpdate = new EcsSystems(_world);
@@ -29,29 +28,18 @@ public class EcsStartUp : MonoBehaviour
         _systemsUpdate
 #if UNITY_EDITOR
             .Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem())
-#endif 
-            
-            .Add(new GameStatesSystem())
-            .Add(new InventorySystem())
-            .Add(new MovementSystem())
-            .Add(new PlayerInputSystem())
-            .Add(new EnemyInputSystem())
-            .Add(new AttackSystem())
-            .Add(new DestroyDontUsedEntitesSystem())
-      
-            .DelHere<DestroyEntityEvent>()
-           .DelHere<ConstructMeleeCellEvent>()
-            .DelHere<StartRoundEvent>()
-            .DelHere<EndRoundEvent>()
+#endif
 
-         .Inject(_sceneService)
-            .Inject(_betweenSceneService)
-         .Init();
-        _systemsLateUpdate
-            .Add(new ForwardWheelsRotateSystem())
-            .Inject(_sceneService)
-            .Inject(_betweenSceneService)
-            .Init();
+            .Add(new GameStatesSystem()).Add(new InventorySystem()).Add(new MovementSystem()).Add(new PlayerInputSystem())
+            .Add(new EnemyInputSystem()).Add(new AttackSystem()).Add(new DestroyDontUsedEntitesSystem());
+
+        if (!DataPersistenceManagerSystem._gameData.TutorialIsComplated) {
+            _systemsUpdate.Add(new TutorialSystem());
+        }
+
+        _systemsUpdate.DelHere<DestroyEntityEvent>().DelHere<ConstructMeleeCellEvent>().DelHere<StartRoundEvent>().DelHere<EndRoundEvent>()
+            .Inject(_sceneService).Inject(_betweenSceneService).Init();
+        _systemsLateUpdate.Add(new ForwardWheelsRotateSystem()).Inject(_sceneService).Inject(_betweenSceneService).Init();
     }
     void Update()
     {

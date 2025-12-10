@@ -74,7 +74,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         movementComponent.Acceleration = carConfig.Acceleration;
         movementComponent.Deceleration = carConfig.Deceleration;
         SetCarUpgradeButtonInfo();
-        SortCarParts(CarPartType.All);
+        
+        SortCarParts(CarPartType.None, false);
+        SortCarParts(CarPartType.CarStuffContainer, false);
+        SortCarParts(CarPartType.WheelsContainer, false);
 
         SetCarGrid();
 
@@ -187,6 +190,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
                 _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position = (Vector2)Input.mousePosition +
                     _sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.sizeDelta - inventoryCmp.OnCarCellSize;
+               
             }
 
             inventoryCmp.CellIsSetup = true;
@@ -261,6 +265,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                                                     currentPartType == CarPartType.Armor))
                     RotateCarPart();
                 if (Input.GetMouseButtonUp(0)) {
+                    _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(false);
                     if (inventoryCmp.IsCarPartsRedactorMode) {
                         if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType ==
                             RoundType.Transfer) { } else {
@@ -288,6 +293,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
                     inventoryCmp.CellIsSetup = false;
                 }
+
+                if (_sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.activeInHierarchy)
+                    _sceneData.Value._inventoryUIView.SetUIBottomRight();
             }
         }
 
@@ -321,6 +329,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         Debug.Log("exit");
         _sceneData.Value._carPartInfoUIView.SetDescriptionInfo(false);
     }
+
     private void SetCarPartRedactorMode() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (!inventoryCmp.IsCarPartsRedactorMode && !CanUseThisCarPartContainers()) {
@@ -331,11 +340,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 SortCarParts(CarPartType.CarStuffContainer);
             return;
         }
-           
+
         //messege about this
 
         inventoryCmp.IsCarPartsRedactorMode = !inventoryCmp.IsCarPartsRedactorMode;
-var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.sizeDelta;
+        var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.sizeDelta;
         if (inventoryCmp.IsCarPartsRedactorMode) {
             _sceneData.Value._inventoryUIView._changeToRedactModeImage.sprite =
                 _sceneData.Value._inventoryUIView._changeToRedactCarPartsModeSprite;
@@ -349,7 +358,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
             inventoryCmp.CurrentCarPartContainersTween.Join(
                 _sceneData.Value._inventoryUIView._carPartsContainer.DOLocalMove(
                     new Vector2(200 - containerSize.x - 100, 200 - containerSize.y + 38), 0.3f));
-           
+
             // _sceneData.Value._inventoryUIView._carPartsContainer.transform.localPosition =
             //   new Vector2((200-containerSizeX)  - 100, (200-containerSizeY) + 38);
             SortCarParts(CarPartType.All);
@@ -357,17 +366,15 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
             _sceneData.Value._inventoryUIView._changeToRedactModeImage.sprite =
                 _sceneData.Value._inventoryUIView._changeToRedactCarContainersModeSprite;
             _sceneData.Value._inventoryUIView._changeToRedactModeText.text = GetLocalization("Redact down level");
-            
+
             inventoryCmp.CurrentCarPartContainersTween.Kill();
             inventoryCmp.CurrentCarPartContainersTween = DOTween.Sequence();
 
-            inventoryCmp.CurrentCarPartContainersTween.Append(
-                _sceneData.Value._inventoryUIView._carPartsContainer.DOScale(Vector3.one, 0.3f));
+            inventoryCmp.CurrentCarPartContainersTween.Append(_sceneData.Value._inventoryUIView._carPartsContainer.DOScale(Vector3.one, 0.3f));
             inventoryCmp.CurrentCarPartContainersTween.Join(
                 _sceneData.Value._inventoryUIView._carPartsContainer.DOLocalMove(
-                    new Vector2((200 - containerSize.x)/2 - 100, (200 - containerSize.y)/2 + 38), 0.3f));
-            
-            
+                    new Vector2((200 - containerSize.x) / 2 - 100, (200 - containerSize.y) / 2 + 38), 0.3f));
+
             _sceneData.Value._inventoryUIView._carPartsUpLevelContainer.alpha = 0.25f;
 
             SortCarParts(CarPartType.None);
@@ -393,6 +400,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         inventoryCmp.StartOffsetFromCell = GridUtils.GetNormalizedMouseOffset(_sceneData.Value._shopUIView
             ._buttonsShop[_shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).ShopButtonIndex].ItemSprite.rectTransform);
         SetDraggedCell(ref inventoryCmp, inventoryPartIndex, inventoryView);
+        _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(GridUtils.IsWeaponType(partInfo)||partInfo.PartType == CarPartType.Armor);
     }
 
     private void StartDragInventoryCell(ref InventoryComponent inventoryCmp) {
@@ -413,6 +421,7 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         inventoryCmp.StartOffsetFromCell =
             GridUtils.GetNormalizedMouseOffset(inventoryView._inventoryCellViews[inventoryCellIndex]._inventoryCellImage.rectTransform);
         SetDraggedCell(ref inventoryCmp, inventoryCellCmp.CarPartId, inventoryView);
+        _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(GridUtils.IsWeaponType(partInfo)||partInfo.PartType == CarPartType.Armor);
  
         inventoryView._inventoryCellViews[inventoryCellIndex].gameObject.SetActive(false);
     }
@@ -889,6 +898,9 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
         carPartCmp.carPartCellImage.rectTransform.sizeDelta = gridCellNewSize * carPartSize;
         carPartCmp.carPartCellImage.sprite = carPartConfig.PartSprite;
         UpdateCarDescription(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
+        
+        if(GetSortedCarPartList().Count == 0 && CanUseThisCarPartContainers())
+            SetCarPartRedactorMode();
     }
 
     private CarPartType[] _firstCarPartTypesForShop = new[] {
@@ -2458,8 +2470,15 @@ var containerSize = _sceneData.Value._inventoryUIView._carPartsDownContainer.siz
     private void SetCarUpgradeButtonInfo() {
         ref var carCmp = ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
-        var upgradeCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * (1 + carCmp.CarLevel * 0.3f));
-        _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Upgrade car")} {upgradeCost}$";
+        if (carCmp.CarLevel > 15) {
+            _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = false;
+            _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Max level")}";
+        } else {
+            _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = true;
+            var upgradeCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * (1 + carCmp.CarLevel * 0.3f));
+            _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Upgrade car")} {upgradeCost}$";
+        }
+      
     }
 
     private void IncriseCarLevel() {

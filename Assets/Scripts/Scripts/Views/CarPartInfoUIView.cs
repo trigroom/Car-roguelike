@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -59,8 +60,15 @@ public class CarPartInfoUIView : MonoBehaviour
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
         CurrentMarkedCarPartHealth = currentHealth;
-        if (GridUtils.GetUpgradeCost(carPartLevel, carPartConfig) != 0)
+        if (GridUtils.GetUpgradeCost(carPartLevel, carPartConfig) != 0 && _maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
             _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig).ToString()}$ {GetLocalization("to upgrade")}";
+            _upgradeButton.enabled = true;
+        } else {
+            _upgradeButton.enabled = false;
+            _upgradeButtonText.text = GetLocalization("Max level");
+        }
+            
+        
         //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
 
         _nameText.text = GetLocalization(carPartConfig.PartName);
@@ -81,6 +89,13 @@ public class CarPartInfoUIView : MonoBehaviour
 
         _sellCarPartText.text = $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(carPartConfig, carPartLevel)}$";
     }
+
+    private Dictionary<CarPartRare, int> _maxLevelsForRare = new Dictionary<CarPartRare, int>() {
+        {CarPartRare.Low, 5},
+        {CarPartRare.Medium, 7},
+        {CarPartRare.High, 10},
+        {CarPartRare.VeryHigh, 15}
+    };
 
     public void SetDescriptionInfo(bool isUpdate) {
     
