@@ -22,8 +22,10 @@ public class BetweenScenesService : MonoBehaviour {
         DataPersistenceManagerSystem.Instance.LoadGame();
         CsvLocalization.SetupLocalizationManager();
         CsvLocalization.CurrentLanguage = DataPersistenceManagerSystem._gameData.CurrentLanguage;
-        SceneManager.LoadScene("Scenes/MetaScene");
-
+        if (DataPersistenceManagerSystem._gameData.TutorialIsCompleted)
+            SceneManager.LoadScene("Scenes/MetaScene");
+        else
+            SceneManager.LoadScene("Scenes/SampleScene");
     }
 
     public MapConfig GetMapConfig() {

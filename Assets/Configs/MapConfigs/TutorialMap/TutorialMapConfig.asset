@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986a3b5f1ec467a4c820b09f41191cbd, type: 3}
+  m_Name: TutorialMapConfig
+  m_EditorClassIdentifier: 
+  <MapDescription>k__BackingField: Tutorial
+  <MapSprite>k__BackingField: {fileID: 21300000, guid: 8f90e1a5ada29d241ba57070babf940f, type: 3}
+  <MapName>k__BackingField: Tutorial map
+  <GameProcessConfig>k__BackingField: {fileID: 11400000, guid: 67926d61d969eff489b2d75b934c9b29, type: 2}
+  <MapDifficltyConfigs>k__BackingField:
+  - {fileID: 11400000, guid: 64073b798db27724f9aa9404f164c60d, type: 2}
+  EnemyMapConfigs:
+  - CarMapsList:
+    - {fileID: 11400000, guid: 2a14a018cc05403479f7992655f165c4, type: 2}
+    - {fileID: 11400000, guid: 3f44e32f18d1b0f479e1ccb2ec767b8c, type: 2}
+    - {fileID: 11400000, guid: 2ae318bb22fd7f64b90a5affa7445620, type: 2}
+    - {fileID: 11400000, guid: 64642d06c5b6bba4ebc5feb572ebeda4, type: 2}
+  - CarMapsList:
+    - {fileID: 11400000, guid: bb8c3e92cca948c4a90ba3f26a825218, type: 2}
+    - {fileID: 11400000, guid: 4e78714b56613744fa8778398882c410, type: 2}
+    - {fileID: 11400000, guid: 041d2aac663d26b4e8e929265ecfff81, type: 2}
+    - {fileID: 11400000, guid: fe5f4772d09eb6145b46cdc2f6534f58, type: 2}
+    - {fileID: 11400000, guid: 3fa18a9a351b1a541aec4ebd8dc9d3ef, type: 2}
+    - {fileID: 11400000, guid: 575110159e3a27341a12cb27ec065849, type: 2}
+    - {fileID: 11400000, guid: c8e29aecfba614341b7e8f620f152d37, type: 2}
+    - {fileID: 11400000, guid: 27d1afaf35c80db4eba1a9fb1f634fff, type: 2}
+  - CarMapsList:
+    - {fileID: 11400000, guid: f6ca96985f1cfce4cba2d5d14e55d39d, type: 2}
+    - {fileID: 11400000, guid: 9bf65502ee28cd141ade2d385ae6f284, type: 2}
+    - {fileID: 11400000, guid: 6bc236d0cb50af3489a57ac74bce678f, type: 2}
+    - {fileID: 11400000, guid: 79bc2517da970c24fadf7f2665924d53, type: 2}
+    - {fileID: 11400000, guid: 0aee9fd4e45070d46afd02d0f1eaac95, type: 2}
+    - {fileID: 11400000, guid: f5ce1f16230b7fd42a8731295859f94c, type: 2}

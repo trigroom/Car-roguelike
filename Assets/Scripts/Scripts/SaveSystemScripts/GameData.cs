@@ -8,7 +8,7 @@ public class GameData
     public int[] LevelRounds;
     public string CurrentLanguage;
 
-    public bool TutorialIsComplated;
+    public bool TutorialIsCompleted;
 
     public GameData()
     {

@@ -33,7 +33,7 @@ public class EcsStartUp : MonoBehaviour
             .Add(new GameStatesSystem()).Add(new InventorySystem()).Add(new MovementSystem()).Add(new PlayerInputSystem())
             .Add(new EnemyInputSystem()).Add(new AttackSystem()).Add(new DestroyDontUsedEntitesSystem());
 
-        if (!DataPersistenceManagerSystem._gameData.TutorialIsComplated) {
+        if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
             _systemsUpdate.Add(new TutorialSystem());
         }
 

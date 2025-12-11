@@ -60,10 +60,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
       //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
-        var diificultyConfig = _sceneService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
+
+        if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted)
+            _betweenScenesService.Value.CurrentSelectedMap = _sceneService.Value._tutorialStuffView._tutorialMapIndex;
+        
+        var difficultyConfig = _sceneService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
             .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
-        curGameCmp.DifficultyDamageMultiplayer = diificultyConfig.DamageMultiplayer;
-        curGameCmp.DifficultyHealthMultiplayer = diificultyConfig.HealthMultiplayer;
+        curGameCmp.DifficultyDamageMultiplayer = difficultyConfig.DamageMultiplayer;
+        curGameCmp.DifficultyHealthMultiplayer = difficultyConfig.HealthMultiplayer;
            
         _settingsComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).pixelizedEffectIsUsed = true;
         _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
@@ -212,9 +216,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void SetColorSliderEnemyProjectilesValues() {
         var settingsView = _sceneService.Value._settingsView;
         var needColor = _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial.GetColor("_OffsetColor");
-        settingsView._redColorSlider.value = needColor.r*settingsView._redColorSlider.maxValue;
-            settingsView._greenColorSlider.value = needColor.g*settingsView._greenColorSlider.maxValue;
-                settingsView._blueColorSlider.value = needColor.b*settingsView._blueColorSlider.maxValue;
+        settingsView._redColorSlider.value = needColor.r * settingsView._redColorSlider.maxValue;
+        settingsView._greenColorSlider.value = needColor.g * settingsView._greenColorSlider.maxValue;
+        settingsView._blueColorSlider.value = needColor.b * settingsView._blueColorSlider.maxValue;
     }
 
     private void SaveSettings() {
@@ -383,6 +387,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         Transform moneyMultPosition = null;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.localScale = Vector3.zero;
+        float posY = (curGameCmp.CurrentRound + 1) * (mapImageRect.rect.height /
+                                                      ((float)_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length +
+                                                       2)) - mapImageRect.rect.height / 2;
         for (int i = 0; i < randomRounds.Length; i++) {
             var roundButton = _sceneService.Value.InstantiateRoundButton();
             int newIndex = i;
@@ -399,9 +406,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             roundButton.triggers.Add(clickEntry);
             roundButton.triggers.Add(enterEntry);
             float posX = (newIndex + 1) * (mapImageRect.rect.width / ((float)randomRounds.Length + 1)) - mapImageRect.rect.width / 2;
-            float posY = (curGameCmp.CurrentRound + 1) * (mapImageRect.rect.height /
-                                                          ((float)_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds
-                                                              .Length + 2)) - mapImageRect.rect.height/2;
+           
             roundButton.transform.localPosition = new Vector2(posX, posY);
             curGameCmp.RoundButtons[i] = roundButton;
 
@@ -413,9 +418,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         }
 
-        _sceneService.Value._mapUIView.MapImage.transform.DOMoveY(
-                _sceneService.Value._mapUIView.MapImage.transform.position.y - (mapImageRect.rect.height *
-                    _sceneService.Value.mainCanvas.localScale.x / _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length), 0.5f)
+        _sceneService.Value._mapUIView.MapImage.transform.DOLocalMoveY(-posY, 0.5f)
             .SetEase(Ease.InOutBack).OnComplete(() => {
                 if (moneyMultPosition) {
                     _sceneService.Value._mapUIView.RoundDifficltyContainer.position =

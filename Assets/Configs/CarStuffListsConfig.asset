@@ -119,6 +119,7 @@ MonoBehaviour:
   <DestroyedCarPartColor>k__BackingField: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
   <MapConfigs>k__BackingField:
   - {fileID: 11400000, guid: fbce5cb28c1563e48a066e40d88df59f, type: 2}
+  - {fileID: 11400000, guid: 8bf2a48ef96670346b51c2c62a4cfa0a, type: 2}
   <RoundShopChances>k__BackingField:
   - Chances:
     - 10

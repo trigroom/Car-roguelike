@@ -11216,7 +11216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47a5551cc11d45d46b1963fc225b00d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <_tutorialStuffView>k__BackingField: {fileID: 0}
+  <_tutorialStuffView>k__BackingField: {fileID: 1917447286}
   <_supportBoxStuffView>k__BackingField: {fileID: 1514647936}
   <_warningText>k__BackingField: {fileID: 1731229366}
   <_staticTextsView>k__BackingField: {fileID: 1065153040}
@@ -21241,11 +21241,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2691728331417854324, guid: be87985c7e065804b82deef800ac433e, type: 3}
       propertyPath: m_ForceSendLayers.m_Bits
-      value: 0
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 2691728331417854324, guid: be87985c7e065804b82deef800ac433e, type: 3}
       propertyPath: m_ForceReceiveLayers.m_Bits
-      value: 0
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 4047934135361891508, guid: be87985c7e065804b82deef800ac433e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -26746,6 +26746,53 @@ RectTransform:
   m_AnchoredPosition: {x: 1.8, y: -10.5969}
   m_SizeDelta: {x: 140, y: 140}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1917447285
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1917447287}
+  - component: {fileID: 1917447286}
+  m_Layer: 0
+  m_Name: TutorialStuffView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1917447286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1917447285}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11449ea0e2cfd9547a26d4d7c84963cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <_shopContainer>k__BackingField: {fileID: 994807420}
+  <_sortButtonsContainer>k__BackingField: {fileID: 414088975}
+  <_tutorialMapIndex>k__BackingField: 1
+--- !u!4 &1917447287
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1917447285}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1380.9948, y: 889.81476, z: 5.8430066}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1924443095
 GameObject:
   m_ObjectHideFlags: 0
@@ -30775,3 +30822,4 @@ SceneRoots:
   - {fileID: 549882471}
   - {fileID: 1065153041}
   - {fileID: 1514647935}
+  - {fileID: 1917447287}
