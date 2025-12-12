@@ -26775,8 +26775,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11449ea0e2cfd9547a26d4d7c84963cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_tutorialTextPrefab>k__BackingField: {fileID: 4800120990390563296, guid: 7d1b159dacf58ca4bbb63471b7887cfb, type: 3}
   <_shopContainer>k__BackingField: {fileID: 994807420}
+  <_shopText>k__BackingField: {fileID: 1093679733}
   <_sortButtonsContainer>k__BackingField: {fileID: 414088975}
+  TutorialText: {fileID: 0}
   <_tutorialMapIndex>k__BackingField: 1
 --- !u!4 &1917447287
 Transform:

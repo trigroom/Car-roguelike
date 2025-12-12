@@ -366,11 +366,16 @@ public class SceneService : MonoBehaviour {
     }
 
 
-    public Transform InstantiateObject(Transform spawnObject, Vector2 spawnPosition)
+    public Transform InstantiateObject(Transform spawnObject, Vector2 spawnPosition = default)
     {
         return Instantiate(spawnObject, spawnPosition, Quaternion.identity).transform;
     }
     
+    public Transform InstantiateObject(Transform spawnObject, Transform parent, Vector2 spawnPosition = default)
+    {
+        return Instantiate(spawnObject, spawnPosition, Quaternion.identity, parent).transform;
+    }
+
     public void PlayWarningAnimation(string message, bool inScreenCentre)
     {
         // Устанавливаем текст
