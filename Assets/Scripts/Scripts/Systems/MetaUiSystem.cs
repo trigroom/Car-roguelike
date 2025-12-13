@@ -28,11 +28,21 @@ sealed class MetaUiSystem : IEcsInitSystem {
             }
             _metaSceneService.Value.selectMapDifficultyUIView.backButton.onClick.AddListener(BackToMapSelect);
             _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(BackToCarSelect);
-            
+            _metaSceneService.Value._backToMainMenuButton.onClick.AddListener(BackToMainMenu);
+            _metaSceneService.Value._playButton.onClick.AddListener(Play);
             _metaSceneService.Value._staticTextsView.SetTextLanguage();
             SetupLocalizationButtons();
         }
 
+        private void Play() {
+            if (DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
+                _metaSceneService.Value._mainMenuUIContainer.gameObject.SetActive(false);
+                _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(true);
+            } else {
+                BetweenScenesService.Instance.ShowBlackScreen( ()=>SceneManager.LoadScene("Scenes/SampleScene"));
+            }
+        }
+        
         string[] languages = { "en", "ru", "de", "es", "fr" };
         private void SetupLocalizationButtons() {
             for (int i = 0; i < _metaSceneService.Value._localizationButtons.Length; i++) {
@@ -58,8 +68,11 @@ sealed class MetaUiSystem : IEcsInitSystem {
             }
             _metaSceneService.Value.selectMapDifficultyUIView.SetLocalizationText(_betweenSceneService.Value.GetMapConfig());
         }
-        
-        
+
+        public void BackToMainMenu() {
+            _metaSceneService.Value._mainMenuUIContainer.gameObject.SetActive(true);
+            _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(false);
+        }
         public void BackToCarSelect() {
             _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(true);
             _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(false);

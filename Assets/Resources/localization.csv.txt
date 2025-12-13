@@ -182,3 +182,13 @@ The car is unstable and needs wheels,ADD WHEELS FOR STABILITY,ДОБАВЬТЕ �
 Supply drop,Supply drop,Сброс припасов,Nachschubabwurf,Lanzamiento suministros,Largage ravitaillement
 Max level,Max Level,Максимальный уровень,Maximalstufe,Nivel Máximo,Niveau Max
 RMB,RMB,ПКМ,RMT,RMD,CD
+Change shop mode,Change shop mode,Смени режим магазина,Ändere Shop-Modus,Cambia modo tienda,Change mode boutique
+Buy teammate car,Buy teammate car,Купи машину союзника,Kaufe Teamkamerad Auto,Compra coche aliado,Achète voiture coéquipier
+Use the right mouse button to indicate the target to allied vehicles,Use RMB to ping target for allies in battle,Используй ПКМ чтобы отметить цель для союзников в бою,Benutze RMT um Ziel für Verbündete im Kampf zu pingen,Usa RMB para señalar objetivo a aliados en batalla,Utilise CD pour indiquer cible aux alliés en combat
+Place new car parts,Place new parts,Размести новые детали,Platziere neue Teile,Coloca piezas nuevas,Place pièces nouvelles
+Change redacted car level,Change edit level,Измени уровень редактирования,Ändere Edit-Stufe,Cambia nivel edición,Change niveau édition
+Go play and select round type,Go play and select mode,Играй и выбери режим,Geh spielen und wähle Modus,Ve a jugar y selecciona modo,Vas jouer et choisis mode
+Place car parts to car,Attach parts to car,Прикрепи детали к машине,Befestige Teile am Auto,Une piezas al coche,Fixe pièces à voiture
+Place car parts to car redactor field (drag and drop them to center),Drag parts to center,Перетащи детали в центр,Ziehe Teile ins Zentrum,Arrastra piezas al centro,Dépose pièces au centre
+Buy car part in shop,Buy part in shop,Купи деталь в магазине,Kaufe Teil im Shop,Compra pieza en tienda,Achète pièce en boutique
+Upgrade car to increase stats and get new car parts,Upgrade car to boost stats and unlock new parts,Улучшай машину чтобы повысить характеристики и получить новые детали,Verbessere Auto um Werte zu steigern und neue Teile freizuschalten,Mejora coche para aumentar estadísticas y conseguir piezas nuevas,Améliore voiture pour augmenter stats et obtenir pièces nouvelles

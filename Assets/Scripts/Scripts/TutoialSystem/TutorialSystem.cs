@@ -32,7 +32,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         var textPos = new Vector2(
             _sceneData.Value._inventoryUIView._carPartsContainer.position.x,
             _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x);
-        _sceneData.Value._tutorialStuffView.HideText(false,textPos,"Place car parts to car redactor field");
+        _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Place car parts to car redactor field (drag and drop them to center)"));
         //remove listeners from play again button
     }
 
@@ -49,14 +49,14 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _tutorialStep = 1;
             _sceneData.Value._tutorialStuffView.HideText(false);
             var shopTextPosition = _sceneData.Value._tutorialStuffView._shopText.position;
-            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects("Buy car part in shop",
+            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Buy car part in shop"),
                 new Vector2(shopTextPosition.x, shopTextPosition.y - 100*_sceneData.Value.mainCanvas.localScale.x), 30);
             //show buy item text
         } else if (_tutorialStep == 1) {
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
                 if (!buttonShop.BuyButton.enabled) {
                     _tutorialStep = 2;
-                    _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects("Place car part to car",
+                    _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Place car parts to car"),
                         new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
                             _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 30);
                     //place car part to car text
@@ -65,23 +65,20 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             }
         } else if ((_tutorialStep == 1 || _tutorialStep == 2) && _inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0) {
             _tutorialStep = 3;
-            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects("Go play and select round type",
+            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Go play and select round type"),
                 new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
                     _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 30);
-            //hide buy item text
-            //show place buy item text
         } else if ((_tutorialStep == 3 || _tutorialStep == 2) && _inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0) {
             _tutorialStep = 4;
             _sceneData.Value._tutorialStuffView.HideText(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
-            //hide buy item text
         } else if (_tutorialStep == 5 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0 ) {
             foreach (var inventoryCellEntity in _inventoryCellComponentsFilter.Value) {
                 if (_sceneData.Value.GetCarPartConfig(_inventoryCellComponentsPool.Value.Get(inventoryCellEntity).CarPartId).PartType ==
                     CarPartType.CarStuffContainer) {
                     _tutorialStep = 6;
                     var carPartRedactModeButtonPosition = _sceneData.Value._inventoryUIView._changeToRedactModeButton.transform.position;
-                    _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects("Click change mode button",
+                    _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Change redacted car level"),
                         new Vector2(carPartRedactModeButtonPosition.x,
                             carPartRedactModeButtonPosition.y + 100 * _sceneData.Value.mainCanvas.localScale.x), 30);
                 }
@@ -91,7 +88,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         } else if (_tutorialStep == 6 && !_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsCarPartsRedactorMode) {
             _tutorialStep = 7;
             _sceneData.Value._inventoryUIView._changeToRedactModeButton.interactable = false;
-            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects("Place new car parts",
+            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Place new car parts"),
                 new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
                     _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 20);
         } else if (_tutorialStep == 7 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0) {
@@ -103,7 +100,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         } else if (_tutorialStep == 9 && _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > 1) {
             _tutorialStep = 10;
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
-                buttonShop.BuyButton.enabled = true;
+                buttonShop.BuyButton.interactable = true;
                 buttonShop.enabled = true;
             }
                 
@@ -112,12 +109,16 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._upgradeCarButton.interactable = true;
             var shopTextPosition = _sceneData.Value._tutorialStuffView._shopText.position;
             _sceneData.Value._shopUIView._updateItemsText.gameObject.SetActive(false);
-            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects("Go win last round",
+            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Use the right mouse button to indicate the target to allied vehicles"),
                 new Vector2(shopTextPosition.x, shopTextPosition.y - 50 * _sceneData.Value.mainCanvas.localScale.x), 20);
         }
 
-        _sceneData.Value._carPartInfoUIView._moveToInventoryButton.gameObject.SetActive(_tutorialStep <= 6 || _tutorialStep > 9);
-        _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(_tutorialStep == 6 || _tutorialStep > 9);
+        if (_tutorialStep is <= 2 or 5 or 9) {
+            _sceneData.Value._carPartInfoUIView._moveToInventoryButton.gameObject.SetActive(false);
+            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
+            _sceneData.Value._carPartInfoUIView._destroyButton.gameObject.SetActive(false);
+        }
+       
     }
 
     private void RoundCheck() {
@@ -134,9 +135,9 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._shopUIView._updateItemsText.gameObject.SetActive(true);
             
             var textPos = new Vector2(
-                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.x,
-                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.y + 100*_sceneData.Value.mainCanvas.localScale.x);
-            _sceneData.Value._tutorialStuffView.HideText(false,textPos,"Upgrade car to increase stats and det new car parts");
+                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.x + 250*_sceneData.Value.mainCanvas.localScale.x,
+                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.y);
+            _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Upgrade car to increase stats and get new car parts"));
             //upgrade car text
         } else if (currentRound == 1) {
             _sceneData.Value._inventoryUIView._upgradeCarButton.interactable = false;
@@ -144,17 +145,19 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(false);
             _tutorialStep = 9;
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
-                buttonShop.BuyButton.enabled = false;
+                buttonShop.BuyButton.interactable = false;
                 buttonShop.enabled = false;
             }
             var textPos = new Vector2(
                 _sceneData.Value._shopUIView._shopModeButton.transform.position.x,
                 _sceneData.Value._shopUIView._shopModeButton.transform.position.y - 50*_sceneData.Value.mainCanvas.localScale.x);
-            _sceneData.Value._tutorialStuffView.HideText(false,textPos,"Change shop mode");
+            _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Change shop mode"));
             //buy friend car text
         }
 
     }
+    
+    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
     private void ShopModeCheck() {
         _sceneData.Value._shopUIView._shopModeButton.enabled = true;
@@ -162,7 +165,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._shopUIView._updateItemsText.gameObject.SetActive(false);
         var shopTextPosition = _sceneData.Value._tutorialStuffView._shopText.position;
         var textPos = new Vector2(shopTextPosition.x, shopTextPosition.y - 50 * _sceneData.Value.mainCanvas.localScale.x);
-        _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects("Buy friend car", textPos, 20);
+        _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Buy teammate car"), textPos, 20);
         //buy car text
     }
 }

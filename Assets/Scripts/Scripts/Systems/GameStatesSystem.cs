@@ -316,6 +316,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         Debug.Log("End round game st system");
+        ChangePlayerUIState(false);
+        if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length)return;
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
@@ -348,7 +350,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetMoneyText();
         _sceneService.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
         ChangeInventoryState(true);
-        ChangePlayerUIState(false);
+        
       //  ReleaseAllCarPartUI();
     }
 
