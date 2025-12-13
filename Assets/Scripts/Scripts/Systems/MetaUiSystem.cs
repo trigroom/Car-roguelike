@@ -7,8 +7,13 @@ sealed class MetaUiSystem : IEcsInitSystem {
         private EcsWorldInject _world;
         private EcsCustomInject<MetaSceneService> _metaSceneService;
         private EcsCustomInject<BetweenScenesService> _betweenSceneService;
+        
+        private EcsPoolInject<MetaUIComponent> _metaUIComponentsPool;
         public void Init (IEcsSystems systems) {
             Time.timeScale = 1;
+            _metaSceneService.Value.MainEntity = _world.Value.NewEntity();
+            _metaUIComponentsPool.Value.Add(_metaSceneService.Value.MainEntity).CurrentOpenedWindow =
+                _metaSceneService.Value._mainMenuView.transform;
             _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
@@ -26,21 +31,48 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 int difficultyIndex = i;
                 _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons[i].onClick.AddListener(() => SelectMapDifficulty(difficultyIndex));
             }
-            _metaSceneService.Value.selectMapDifficultyUIView.backButton.onClick.AddListener(BackToMapSelect);
-            _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(BackToCarSelect);
-            _metaSceneService.Value._backToMainMenuButton.onClick.AddListener(BackToMainMenu);
-            _metaSceneService.Value._playButton.onClick.AddListener(Play);
+
+            foreach (var backButton in _metaSceneService.Value._backToMainMenuButtons) {
+                backButton.onClick.AddListener(() =>
+                    OpenNewWindow(_metaSceneService.Value._mainMenuView.transform));
+            }
+            
+            _metaSceneService.Value.selectMapDifficultyUIView.backButton.onClick.AddListener(() =>
+                OpenNewWindow(_metaSceneService.Value._selectMapUIContainer.transform));
+            _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(() =>
+                OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform));
+            _metaSceneService.Value._mainMenuView._achivementsButton.onClick.AddListener(() =>
+                OpenNewWindow(_metaSceneService.Value._achievementsUIContainer.transform));
+            _metaSceneService.Value._mainMenuView._shopButton.onClick.AddListener(() =>
+                OpenNewWindow(_metaSceneService.Value._shopUIContainer.transform));
+            _metaSceneService.Value._mainMenuView._playButton.onClick.AddListener(Play);
+            _metaSceneService.Value._mainMenuView._exitButton.onClick.AddListener(ExitFromGame);
             _metaSceneService.Value._staticTextsView.SetTextLanguage();
             SetupLocalizationButtons();
+
+            if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
+                _metaSceneService.Value._mainMenuView._achivementsButton.gameObject.SetActive(false);
+                _metaSceneService.Value._mainMenuView._shopButton.gameObject.SetActive(false);
+            }
         }
+
+        private void OpenNewWindow(Transform newWindow) {
+            ref var metaUICmp = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
+            metaUICmp.CurrentOpenedWindow.gameObject.SetActive(false);
+            newWindow.gameObject.SetActive(true);
+            metaUICmp.CurrentOpenedWindow = newWindow;
+        }
+        
 
         private void Play() {
             if (DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
-                _metaSceneService.Value._mainMenuUIContainer.gameObject.SetActive(false);
-                _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(true);
+                OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform);
             } else {
                 BetweenScenesService.Instance.ShowBlackScreen( ()=>SceneManager.LoadScene("Scenes/SampleScene"));
             }
+        }
+        private void ExitFromGame() {
+                BetweenScenesService.Instance.ShowBlackScreen( Application.Quit);
         }
         
         string[] languages = { "en", "ru", "de", "es", "fr" };
@@ -68,30 +100,15 @@ sealed class MetaUiSystem : IEcsInitSystem {
             }
             _metaSceneService.Value.selectMapDifficultyUIView.SetLocalizationText(_betweenSceneService.Value.GetMapConfig());
         }
-
-        public void BackToMainMenu() {
-            _metaSceneService.Value._mainMenuUIContainer.gameObject.SetActive(true);
-            _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(false);
-        }
-        public void BackToCarSelect() {
-            _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(true);
-            _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(false);
-        }
-
-        public void BackToMapSelect() {
-            _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(true);
-            _metaSceneService.Value.selectMapDifficultyUIView.gameObject.SetActive(false);
-        }
         public void SelectCar(int carId) {
             _betweenSceneService.Value.CurrentSelectedCar = carId;
-            _metaSceneService.Value._selectCarUIContainer.gameObject.SetActive(false);
-            _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(true);
+            OpenNewWindow(_metaSceneService.Value._selectMapUIContainer.transform);
             //go to select map
         }
 
         public void SelectMap(int mapId) {
             _betweenSceneService.Value.CurrentSelectedMap = mapId;
-            _metaSceneService.Value._selectMapUIContainer.gameObject.SetActive(false);
+            OpenNewWindow(_metaSceneService.Value.selectMapDifficultyUIView.transform);
             _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficultyScreen(
                 _betweenSceneService.Value._carStuffListsConfig.MapConfigs[_betweenSceneService.Value.CurrentSelectedMap]);
             SelectMapDifficulty(0);

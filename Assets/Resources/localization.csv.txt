@@ -192,3 +192,4 @@ Place car parts to car,Attach parts to car,Прикрепи детали к ма
 Place car parts to car redactor field (drag and drop them to center),Drag parts to center,Перетащи детали в центр,Ziehe Teile ins Zentrum,Arrastra piezas al centro,Dépose pièces au centre
 Buy car part in shop,Buy part in shop,Купи деталь в магазине,Kaufe Teil im Shop,Compra pieza en tienda,Achète pièce en boutique
 Upgrade car to increase stats and get new car parts,Upgrade car to boost stats and unlock new parts,Улучшай машину чтобы повысить характеристики и получить новые детали,Verbessere Auto um Werte zu steigern und neue Teile freizuschalten,Mejora coche para aumentar estadísticas y conseguir piezas nuevas,Améliore voiture pour augmenter stats et obtenir pièces nouvelles
+Achievements,Achievements,Достижения,Errungenschaften,Logros,Succès

@@ -11,6 +11,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
     private EcsPoolInject<InventoryCellComponent> _inventoryCellComponentsPool;
     private EcsPoolInject<CarComponent> _carComponentsPool;
+    private EcsPoolInject<PlayerCurrencyComponent> _playerCurrencyComponentsPool;
     
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -26,6 +27,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._shopUIView._updateItemsText.gameObject.SetActive(false);
         _sceneData.Value._shopUIView._shopModeButton.onClick.AddListener(ShopModeCheck);
         _sceneData.Value._settingsView._mainMenuButton.gameObject.SetActive(false);
+        
         _sceneData.Value._tutorialStuffView.TutorialText = _sceneData.Value
             .InstantiateObject(_sceneData.Value._tutorialStuffView._tutorialTextPrefab.transform, _sceneData.Value._inventoryUIView.transform)
             .GetComponent<TMP_Text>();
@@ -133,7 +135,9 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _tutorialStep = 5;
             _sceneData.Value._tutorialStuffView._shopContainer.gameObject.SetActive(false);
             _sceneData.Value._shopUIView._updateItemsText.gameObject.SetActive(true);
-            
+            ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+            playerCurrencyCmp.MoneyCount += 30;
+            _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "$";
             var textPos = new Vector2(
                 _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.x + 250*_sceneData.Value.mainCanvas.localScale.x,
                 _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.y);
@@ -144,6 +148,9 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(false);
             _tutorialStep = 9;
+            ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+            playerCurrencyCmp.MoneyCount += 70;
+            _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "$";
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
                 buttonShop.BuyButton.interactable = false;
                 buttonShop.enabled = false;
