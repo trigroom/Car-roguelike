@@ -3765,6 +3765,7 @@ GameObject:
   - component: {fileID: 830768434}
   - component: {fileID: 830768436}
   - component: {fileID: 830768435}
+  - component: {fileID: 830768437}
   m_Layer: 5
   m_Name: AchievementsUIContainer
   m_TagString: Untagged
@@ -3786,6 +3787,7 @@ RectTransform:
   m_Children:
   - {fileID: 1529935976}
   - {fileID: 2015375431}
+  - {fileID: 1063102742}
   m_Father: {fileID: 1404432440}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -3831,6 +3833,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 830768433}
   m_CullTransparentMesh: 1
+--- !u!114 &830768437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 830768433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27d08af0e7a9bda45be17d3139821a35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AchievementsContainer: {fileID: 1063102742}
+  AchievementStuffView: {fileID: 8708828301097101028, guid: 7db8f5e6e4632dd4b9d26e77e24fecf2, type: 3}
 --- !u!1 &845378012
 GameObject:
   m_ObjectHideFlags: 0
@@ -4282,6 +4298,75 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!1 &1063102741
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1063102742}
+  - component: {fileID: 1063102744}
+  - component: {fileID: 1063102743}
+  m_Layer: 5
+  m_Name: AcievmentsContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1063102742
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1063102741}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 830768434}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -0.0010471, y: -34.92}
+  m_SizeDelta: {x: 690.41, y: 620.57}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1063102743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1063102741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 20
+    m_Right: 20
+    m_Top: 20
+    m_Bottom: 20
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 100, y: 100}
+  m_Spacing: {x: 10, y: 10}
+  m_Constraint: 0
+  m_ConstraintCount: 2
+--- !u!222 &1063102744
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1063102741}
+  m_CullTransparentMesh: 1
 --- !u!1 &1106731352
 GameObject:
   m_ObjectHideFlags: 0
@@ -4393,7 +4478,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 40, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1118980408
 MonoBehaviour:
@@ -7434,7 +7519,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 40, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1685616522
 MonoBehaviour:
@@ -7572,7 +7657,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 40, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1760697525
 MonoBehaviour:
@@ -7705,11 +7790,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MainEntity: 0
+  <_achievementsUIView>k__BackingField: {fileID: 830768437}
   <_backToMainMenuButtons>k__BackingField:
   - {fileID: 2005644923}
   - {fileID: 1876826740}
   - {fileID: 1529935977}
-  <_achievementsUIContainer>k__BackingField: {fileID: 830768434}
   <_shopUIContainer>k__BackingField: {fileID: 1922315250}
   <_mainMenuView>k__BackingField: {fileID: 678359446}
   <_localizationButtons>k__BackingField:

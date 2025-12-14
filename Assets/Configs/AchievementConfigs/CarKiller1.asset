@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ce507d25b292c41a0317e537df5620, type: 3}
+  m_Name: CarKiller1
+  m_EditorClassIdentifier: 
+  <achivementIcon>k__BackingField: {fileID: 21300000, guid: 2284cd2f3f74ceb439bdd662f6fd9d7b, type: 3}
+  <achivementName>k__BackingField: Car killer 1
+  <needCount>k__BackingField: 10
+  <needSecondCount>k__BackingField: 0
+  <rewardType>k__BackingField: 1
+  <achievementType>k__BackingField: 0
+  <rewardCount>k__BackingField: 8

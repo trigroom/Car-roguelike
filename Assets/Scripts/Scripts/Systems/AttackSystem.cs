@@ -415,6 +415,7 @@ public enum AttackType {
 
                 if (currentProjectile.entity != 0) {
                     ref var projectileCmp = ref _projectileComponentsPool.Value.Get(currentProjectile.entity);
+                    projectileCmp.MainEntity = carPartCmp.MainEntity;
                     projectileCmp.IsActive = true;
                     projectileCmp.LifeTime = 50f / gunConfig.BulletSpeed;
                     projectileCmp.Damage = gunCmp.CurrentDamage;
@@ -423,6 +424,7 @@ public enum AttackType {
                     int newEntity = _world.Value.NewEntity();
                     currentProjectile.entity = newEntity;
                     ref var projectileCmp = ref _projectileComponentsPool.Value.Add(currentProjectile.entity);
+                    projectileCmp.MainEntity = carPartCmp.MainEntity;
                     projectileCmp.IsActive = true;
                     projectileCmp.ProjectileView = currentProjectile;
                     projectileCmp.LifeTime = 50f / gunConfig.BulletSpeed;
@@ -504,7 +506,7 @@ public enum AttackType {
             }
             
             if(damagedEntity == 0)return;
-            
+            bool isPlayer = false;
             if /*gunProjectile*/ (attackType == AttackType.Projectile) {
                 if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
                 ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectile.entity);
@@ -516,6 +518,8 @@ public enum AttackType {
                     projectile.rigidbody2D.linearVelocity = Vector2.zero;
                 }
 
+                isPlayer = projectileCmp.MainEntity == _sceneService.Value.PlayerEntity;
+                
                 var gunConfig = _sceneService.Value.GetGunFromCarPart(weaponId);
                 damagePoints = projectileCmp.Damage;
 
@@ -563,7 +567,8 @@ public enum AttackType {
 
                         _sceneService.Value.GetFloatingTextPrefab(castedObject.transform.position, explosionDamagePoints.ToString("F2"),
                             Color.white);
-
+                        if(isPlayer)
+                        DataPersistenceManagerSystem._gameData.PlayerDamage += explosionDamagePoints;
                         ChangeHealth(explosionDamagePoints, currentDamagedEntity);
 
                         SetEffectComponent(currentDamagedEntity, gunConfig.EffectType, gunConfig.EffectDuration);
@@ -578,8 +583,9 @@ public enum AttackType {
                 meleeCmp.isTriggered = true;
                 var meleeWeaponConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(weaponId);
                 meleeCmp.Countdown += meleeWeaponConfig.AttackCountdown;
-                var moveCmp = _movementComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity);
-               
+                int mainEntity = _carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity;
+                var moveCmp = _movementComponentsPool.Value.Get(mainEntity);
+                isPlayer = mainEntity == _sceneService.Value.PlayerEntity;
                 float damagedObjectMass = 10;
                 float damagedObjectSpeed = 0;
                 if (_movementComponentsPool.Value.Has(damagedMainEntity)) {
@@ -601,7 +607,8 @@ public enum AttackType {
                 float radiusDamageMultiplayer = (1 - distanceBetween / gunConfig.BulletSpeed) * gunConfig.ExplosionRadius +
                                                 (1 - gunConfig.ExplosionRadius);
                 damagePoints = gunCmp.CurrentDamage * radiusDamageMultiplayer * Time.deltaTime;
-
+                int mainEntity = _carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity;
+                isPlayer = mainEntity == _sceneService.Value.PlayerEntity;
                 // gunConfig.ExplosionRadius is damage that can be minus from all damage from distance - smaller = higher damage
             }
 
@@ -641,7 +648,10 @@ public enum AttackType {
                     }
                 } else
                     _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
-
+               
+                if(isPlayer)
+                    DataPersistenceManagerSystem._gameData.PlayerDamage += damagePoints;
+                
                 ChangeHealth(damagePoints, damagedEntity);
             }
         }
@@ -721,7 +731,7 @@ public enum AttackType {
         private void OpenSupportBox() {
             _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
             ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-
+            DataPersistenceManagerSystem._gameData.SupportBoxOpened++;
             int itemsCount = _carPartComponentsPool.Value.Get(_sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView._mainEntity)
                 .MaxHealth == 100
                 ? 1
@@ -833,8 +843,6 @@ public enum AttackType {
                 if (isEnemy)
                     carCmp.CarPartContainerGroupsList.Remove(cellEntity);
 
-               //
-                
             } else {
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
@@ -1011,6 +1019,7 @@ public enum AttackType {
             if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.None) return;
             if (!_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Contains(carEntity) && !_destroyEntityEventsPool.Value.Has(carEntity)) {
                 _destroyEntityEventsPool.Value.Add(carEntity);
+                DataPersistenceManagerSystem._gameData.BrokenCars++;
                 CheckTasks(TaskType.Kills);
             }
         }
@@ -1033,6 +1042,7 @@ public enum AttackType {
                 if (taskCmp.CurrentCount >= taskCmp.NeedCount) {
                     taskCmp.TaskText.gameObject.SetActive(false);
                     _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount += taskCmp.MoneyReward;
+                    DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += taskCmp.MoneyReward;
                 }
             }
         }

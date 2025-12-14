@@ -8,5 +8,7 @@ struct ProjectileComponent {
     public int CurrentBreakingThroughCount;
     public float Damage;
 
+    public int MainEntity;
+    
     public ProjectileView ProjectileView;
 }

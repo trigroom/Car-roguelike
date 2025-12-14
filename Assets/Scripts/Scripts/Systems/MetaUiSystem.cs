@@ -16,8 +16,13 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 _metaSceneService.Value._mainMenuView.transform;
             _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
-                var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
-                _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName,i);
+                if (DataPersistenceManagerSystem._gameData.CarsUnlocked[i]) {
+                    var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
+                                   _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName,i); 
+                }
+                else 
+                    _metaSceneService.Value._selectCarButtonViews[i].gameObject.SetActive(false);
+               
             }
 
             for (int i = 0; i < _metaSceneService.Value._selectMapButtons.Length; i++) {
@@ -42,7 +47,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
             _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(() =>
                 OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform));
             _metaSceneService.Value._mainMenuView._achivementsButton.onClick.AddListener(() =>
-                OpenNewWindow(_metaSceneService.Value._achievementsUIContainer.transform));
+                OpenNewWindow(_metaSceneService.Value._achievementsUIView.transform));
             _metaSceneService.Value._mainMenuView._shopButton.onClick.AddListener(() =>
                 OpenNewWindow(_metaSceneService.Value._shopUIContainer.transform));
             _metaSceneService.Value._mainMenuView._playButton.onClick.AddListener(Play);
@@ -54,8 +59,75 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 _metaSceneService.Value._mainMenuView._achivementsButton.gameObject.SetActive(false);
                 _metaSceneService.Value._mainMenuView._shopButton.gameObject.SetActive(false);
             }
+
+            SetupAchievements();
         }
 
+        private void SetupAchievements() {
+            for (int i = 0; i < DataPersistenceManagerSystem._gameData.AchievementsCompleted.Length; i++) { 
+                var achievementConfig = _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[i];
+                if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) {
+                   
+                    if (CheckAchievementCount(achievementConfig)) {
+                        Debug.Log("Achievement Completed");
+                        GiveAchievementReward(achievementConfig);
+                        DataPersistenceManagerSystem._gameData.AchievementsCompleted[i] = true;
+                    }
+                }
+
+                var acievementStuffView = _metaSceneService.Value._achievementsUIView.GetAchievementStuffView();
+                if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) 
+                    acievementStuffView.SetAchievementInfo(achievementConfig,GetCountForAchievement(achievementConfig.achievementType) );
+                else
+                    acievementStuffView.CompleteAchievement(achievementConfig);
+            }
+        }
+
+        private float GetCountForAchievement(AchivementType type) {
+            switch (type) {
+                case AchivementType.CarKills:
+                    return  DataPersistenceManagerSystem._gameData.BrokenCars;
+                    break;
+                case AchivementType.DistanceDrived:
+                    return  DataPersistenceManagerSystem._gameData.DistanceDrived;
+                    break;
+                case AchivementType.PlayerDamage:
+                    return DataPersistenceManagerSystem._gameData.PlayerDamage;
+                    break;
+                case AchivementType.GetMoney:
+                    return  DataPersistenceManagerSystem._gameData.MoneyEarnedInGame;
+                    break;
+                case AchivementType.CompleteMap:
+                    return 0;
+                    break;
+                default: return 0;
+            }
+        }
+        private void GiveAchievementReward(AchivementConfig achievementConfig) {
+            //show window
+        }
+        private bool CheckAchievementCount(AchivementConfig achievementConfig) {
+            switch (achievementConfig.achievementType) {
+                case AchivementType.CarKills:
+                    return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.BrokenCars;
+                    break;
+                case AchivementType.DistanceDrived:
+                    return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.DistanceDrived;
+                    break;
+                case AchivementType.PlayerDamage:
+                    return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.PlayerDamage;
+                    break;
+                case AchivementType.GetMoney:
+                    return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.MoneyEarnedInGame;
+                    break;
+                case AchivementType.CompleteMap:
+                    return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.LevelRounds[achievementConfig.needSecondCount];
+                    break;
+                default: return false;
+            }
+
+            return false;
+        }
         private void OpenNewWindow(Transform newWindow) {
             ref var metaUICmp = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
             metaUICmp.CurrentOpenedWindow.gameObject.SetActive(false);

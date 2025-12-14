@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 public class MetaSceneService : MonoBehaviour {
     public int MainEntity; 
+    [field: SerializeField]public AchievementsUIView _achievementsUIView{ get; private set; }
     [field: SerializeField] public Button[] _backToMainMenuButtons { get; private set; }
-    [field: SerializeField] public Transform _achievementsUIContainer { get; private set; }
     [field: SerializeField] public Transform _shopUIContainer { get; private set; }
     [field: SerializeField] public MainMenuView _mainMenuView { get; private set; }
     [field: SerializeField] public Button[] _localizationButtons { get; private set; }

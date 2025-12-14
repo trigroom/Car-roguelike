@@ -345,7 +345,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 _completeTaskEventsPool.Value.Add(taskEntity);
             }
         }
-        
+
+        DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += moneyCount;
         _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount += moneyCount;
         SetMoneyText();
         _sceneService.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);

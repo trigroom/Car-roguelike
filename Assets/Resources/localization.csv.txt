@@ -193,3 +193,4 @@ Place car parts to car redactor field (drag and drop them to center),Drag parts 
 Buy car part in shop,Buy part in shop,Купи деталь в магазине,Kaufe Teil im Shop,Compra pieza en tienda,Achète pièce en boutique
 Upgrade car to increase stats and get new car parts,Upgrade car to boost stats and unlock new parts,Улучшай машину чтобы повысить характеристики и получить новые детали,Verbessere Auto um Werte zu steigern und neue Teile freizuschalten,Mejora coche para aumentar estadísticas y conseguir piezas nuevas,Améliore voiture pour augmenter stats et obtenir pièces nouvelles
 Achievements,Achievements,Достижения,Errungenschaften,Logros,Succès
+Car move to cursor and press LMB to speed boost,Car follows cursor and LMB boosts,Машина едет за курсором и ускоряется на ЛКМ,Auto folgt Cursor und LMB boostet,Coche sigue cursor y LMB impulsa,Voiture suit curseur et ClicG booste

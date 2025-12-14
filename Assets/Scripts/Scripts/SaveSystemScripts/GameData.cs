@@ -3,11 +3,22 @@ using UnityEngine;
 [System.Serializable]
 public class GameData
 {
+    //game statistics
+    public float DistanceDrived;
+    public int BrokenCars;
+    public float PlayerDamage;
+    public float MoneyEarnedInGame;
+    public int SupportBoxOpened;
+    //game info
     public string lastGameVersion;
     public int ScrapCount;
     public int[] LevelRounds;
     public string CurrentLanguage;
-
+    
+    public bool[] AchievementsCompleted;
+    public bool[] CarPartsUnlocked;
+    public bool[] CarsUnlocked;
+    
     public bool TutorialIsCompleted;
 
     public GameData()
@@ -22,7 +33,7 @@ public class GameData
     {
         // Получаем системный язык
         SystemLanguage systemLang = Application.systemLanguage;
-        
+        Debug.Log(systemLang);
         // Маппим только на нужные языки
         switch (systemLang)
         {

@@ -10,6 +10,7 @@ public class TutorialStuffView : MonoBehaviour
    [field:SerializeField] public Transform _sortButtonsContainer { get; private set; }
    public TMP_Text TutorialText;
    public Sequence _tutorialSequence;
+   public TMP_Text TutorialInGoundText;
    [field:SerializeField] public int _tutorialMapIndex { get; private set; }
    public void AnimateTMPTextWithHideShow(
        TMP_Text tmpText, 

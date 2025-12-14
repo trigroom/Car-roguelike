@@ -221,3 +221,10 @@ MonoBehaviour:
     - 8
     - 10
     - 5
+  <AchievementConfigs>k__BackingField:
+  - {fileID: 11400000, guid: c2067576ee208054a9b807fafeeabb43, type: 2}
+  - {fileID: 11400000, guid: 848bfbda67923884eb4b265d15ec39b0, type: 2}
+  - {fileID: 11400000, guid: 2397115fdee209f43bdee32616fbaddb, type: 2}
+  - {fileID: 11400000, guid: 9d449630434302e4a88fbeba9bcbcd97, type: 2}
+  - {fileID: 11400000, guid: 1571097b09ccb2d4686fe9d2fd9182b3, type: 2}
+  - {fileID: 11400000, guid: e1fe2451008f9744e8c9e8416a68f4db, type: 2}

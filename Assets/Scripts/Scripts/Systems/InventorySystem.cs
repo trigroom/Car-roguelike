@@ -153,7 +153,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             UpdateHealAllCarPartButton();
             _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
             Debug.Log("End round Inv System");
-            
+            CloseShowInfoPanel();
             //_endRoundEventsPool.Value.Del(endRound);
         }
         foreach (var updateSaleShop in _updateShopToSaleRoundEventsFilter.Value) {
@@ -562,11 +562,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         shopCmp.ListShopItemsForRares = new List<List<int>>(){new List<int>(),new List<int>(),new List<int>(),new List<int>()};
         shopCmp.CurrentShopItemsChances = new List<float>(4);
         foreach (var shopItem in _sceneData.Value._carStuffListsConfig.ShopItems) {
+            
+            if(!DataPersistenceManagerSystem._gameData.CarPartsUnlocked[shopItem])continue;
+            
             var partRare = (int)GetCarPartConfig(shopItem).RartRare;
            
             shopCmp.ListShopItemsForRares[partRare].Add(shopItem);
-         //   if (partRare == CarPartRare.Low)
-            //    shopCmp.CurrentShopItemsChances.Add(shopItem);
         }
 
         _sceneData.Value._shopUIView._buttonUpdateShop.onClick.AddListener(UpdateShopItems);
@@ -2663,6 +2664,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
            ref var inventoryCellCmp = ref _inventoryCellComponentsPool.Value.Get(entity);
            inventoryCellCmp.CurrentHealth = GetCarPartConfig(inventoryCellCmp.CarPartId).MaxHealth;
         }
+        UpdateHealAllCarPartButton();
     }
     
     //for admin 

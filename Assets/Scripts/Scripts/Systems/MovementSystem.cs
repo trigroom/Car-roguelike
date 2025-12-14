@@ -123,6 +123,9 @@ public class MovementSystem : IEcsRunSystem {
 
             var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
             movementCmp.Velocity = ((Vector2)moveObjectTransform.position - movementCmp.PreviousPosition) / deltaTime;
+            if (isPlayer)
+                DataPersistenceManagerSystem._gameData.DistanceDrived +=
+                    Vector2.Distance(movementCmp.PreviousPosition, moveObjectTransform.position);
             movementCmp.PreviousPosition = moveObjectTransform.position;
             if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0 && movementCmp.MaxMoveSpeed > 0) {
                 Vector3 directionToTarget = (movementCmp.TargetPosition - movementCmp.MovableObjectRigidbody.position).normalized;

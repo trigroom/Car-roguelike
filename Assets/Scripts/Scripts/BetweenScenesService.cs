@@ -15,9 +15,9 @@ public class BetweenScenesService : MonoBehaviour {
    
    public static BetweenScenesService Instance;
     void Awake()
-    {
-        DataPersistenceManagerSystem.SetupManager();
+    { 
         Instance = this;
+        DataPersistenceManagerSystem.SetupManager();
         DontDestroyOnLoad(this);
         DataPersistenceManagerSystem.Instance.LoadGame();
         CsvLocalization.SetupLocalizationManager();
