@@ -296,6 +296,7 @@ public enum AttackType {
                 .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty].ScrapForRound*currentRound;
             DataPersistenceManagerSystem._gameData.ScrapCount += scrapCount;
             _sceneService.Value._endGameScreenView.SetLoseScreenInfo(currentRound,scrapCount);
+            DataPersistenceManagerSystem.SaveGame();
             //go to meta
         }
         private void DestroyAllProjectiles() {
@@ -727,8 +728,9 @@ public enum AttackType {
             }
             
         }
-
+        private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
         private void OpenSupportBox() {
+            _sceneService.Value.PlayWarningAnimation(GetLocalization("Supplies received")+"!",true);
             _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
             ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
             DataPersistenceManagerSystem._gameData.SupportBoxOpened++;

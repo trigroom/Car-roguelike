@@ -69,7 +69,7 @@ public class InventoryUIView : MonoBehaviour
     [field: SerializeField]
     public Button _playButton { get;private set; }
     [field: SerializeField]
-    public Button[] _selectCarButtons { get;private set; }
+    public SelectCarButtonView[] _selectCarButtons { get;private set; }
     
     public void SetUIBottomRight() {
         SetToBottomRight(_rotateCarPartIconContainer, _draggedInventoryCell.rectTransform);

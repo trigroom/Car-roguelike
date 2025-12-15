@@ -29,7 +29,8 @@
         
         public Vector2Int LastCheckedGridCellPosition;
         public bool IsSnappingToGrid;
-
+        public bool SelectCarButtonsNotInteractable;
+        
         public List<int> PlayerTeammateCarsEntity;
         public int CurrentRedactedCarEntity;
 

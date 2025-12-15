@@ -6,6 +6,7 @@ public class AchievementStuffView : MonoBehaviour
     public Image achievementImage;
     public Image filledImage;
     public TMP_Text achievementCount;
+    public Button achievementInfoButton;
     public Material grayscaleMaterial;
     public AchivementConfig achivementConfig;
    
@@ -23,5 +24,6 @@ public class AchievementStuffView : MonoBehaviour
     {
         achievementCount.gameObject.SetActive(false);
         achivementConfig = achievement;
+        filledImage.gameObject.SetActive(false);
     }
 }

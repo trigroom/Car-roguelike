@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ce507d25b292c41a0317e537df5620, type: 3}
-  m_Name: CarKiller1
+  m_Name: 3MoneyCollect1
   m_EditorClassIdentifier: 
-  <achivementIcon>k__BackingField: {fileID: 21300000, guid: 2284cd2f3f74ceb439bdd662f6fd9d7b, type: 3}
-  <achivementName>k__BackingField: Car killer 1
-  <needCount>k__BackingField: 10
+  <achievementId>k__BackingField: 3
+  <achivementIcon>k__BackingField: {fileID: 21300000, guid: 030010c7cd1694942acd20f25d6b5244, type: 3}
+  <achivementName>k__BackingField: Money collect 1
+  <needCount>k__BackingField: 300
   <needSecondCount>k__BackingField: 0
   <rewardType>k__BackingField: 1
-  <achievementType>k__BackingField: 0
-  <rewardCount>k__BackingField: 8
+  <achievementType>k__BackingField: 3
+  <rewardCount>k__BackingField: 2

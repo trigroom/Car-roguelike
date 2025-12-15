@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03ce507d25b292c41a0317e537df5620, type: 3}
-  m_Name: MoneyCollect3
+  m_Name: 5MoneyCollect3
   m_EditorClassIdentifier: 
+  <achievementId>k__BackingField: 5
   <achivementIcon>k__BackingField: {fileID: 21300000, guid: a28fd4061364ec348a0e75ae26c571a5, type: 3}
   <achivementName>k__BackingField: Money collect 3
   <needCount>k__BackingField: 5000

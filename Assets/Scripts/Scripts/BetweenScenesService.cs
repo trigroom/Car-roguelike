@@ -25,6 +25,7 @@ public class BetweenScenesService : MonoBehaviour {
             SceneManager.LoadScene("Scenes/MetaScene");
     }
 
+    
     public MapConfig GetMapConfig() {
        return _carStuffListsConfig.MapConfigs[CurrentSelectedMap];
     }
@@ -47,4 +48,20 @@ public class BetweenScenesService : MonoBehaviour {
         BlackScreen.DOAnchorPosX(0, 0.75f).SetEase(Ease.InBack).OnComplete(()=>endAction?.Invoke());
     }
 
+    public string GetAchievementReward(AchivementConfig achievement) {
+        switch (achievement.rewardType) {
+            case AchievementRewardType.Car:
+                return _carStuffListsConfig.CarConfigs[achievement.rewardCount].CarName;
+                
+            case AchievementRewardType.CarPart:
+                return _carStuffListsConfig.CarPartConfigs[achievement.rewardCount].PartName;
+               
+            case AchievementRewardType.Scrap:
+                return achievement.rewardCount + " scrap";
+               
+            default: return "";
+        }
+
+        
+    }
 }

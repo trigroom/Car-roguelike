@@ -295,6 +295,7 @@ MonoBehaviour:
   achievementImage: {fileID: 4657975138450256407}
   filledImage: {fileID: 6567546432011834912}
   achievementCount: {fileID: 3531354686606287544}
+  achievementInfoButton: {fileID: 305013209411015164}
   grayscaleMaterial: {fileID: 2100000, guid: 2d020c70610f29c4690259730e2953af, type: 2}
   achivementConfig: {fileID: 0}
 --- !u!1 &7937040811916423138

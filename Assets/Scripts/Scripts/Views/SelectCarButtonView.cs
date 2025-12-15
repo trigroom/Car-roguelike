@@ -1,18 +1,21 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SelectCarButtonView : MonoBehaviour {
+public class SelectCarButtonView : MonoBehaviour
+{
     public Button selectCarButton;
+    public Button sellCarButton;
     public TMP_Text carNameText;
+    public TMP_Text sellCarText;
 
-    public void SelectCarSetup(Action <int> onClickAction, string carName, int carId) {
-        selectCarButton.onClick.AddListener(()=>onClickAction(carId));
-        SetCarButtonText(carName);
+    public void SelectCarButtonSetup(string carName, float price) {
+        carNameText.text = CSVLocalization.Instance.GetLocalizedValue(carName);
+        gameObject.SetActive(true);
+        sellCarText.text = CSVLocalization.Instance.GetLocalizedValue("Sell for")+price+"$";
     }
 
-    public void SetCarButtonText(string carName) {
-        carNameText.text = CSVLocalization.Instance.GetLocalizedValue(carName);
+    public void HideSelectCarButton() {
+        gameObject.SetActive(false);
     }
 }

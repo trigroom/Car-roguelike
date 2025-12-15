@@ -990,8 +990,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private bool CanStartRound() {
         var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity)
             .CurrentRedactedCarEntity);
-        Debug.Log(carCmp.CurrentWeight + ">" + carCmp.CurrentMaxWeight + " weight, " + MainPartIsPlaced() + " main parts, " +
-                  CanUseThisCarPartContainers() + " car containers");
         if (carCmp.CurrentWeight > carCmp.CurrentMaxWeight) {
             _sceneService.Value.PlayWarningAnimation(GetLocalization("The weight of the vehicle exceeds the maximum") + "!",false);
             return false;

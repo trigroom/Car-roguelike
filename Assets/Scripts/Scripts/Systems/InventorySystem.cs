@@ -8,6 +8,7 @@ using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
+using System.Threading.Tasks;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -105,7 +106,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         for (int i = 0; i < _sceneData.Value._inventoryUIView._selectCarButtons.Length; i++) {
             int needIndex = i;
-            _sceneData.Value._inventoryUIView._selectCarButtons[i].onClick.AddListener(() => ClearAndSetNewCarUI(needIndex));
+            var needButtonStuff = _sceneData.Value._inventoryUIView._selectCarButtons[i];
+            needButtonStuff.selectCarButton.onClick.AddListener(() => ClearAndSetNewCarUI(needIndex));
+            if (i != 0)
+                needButtonStuff.sellCarButton.onClick.AddListener(() => SellCarButtonAction(needIndex));
+            var carNameText = needButtonStuff.carNameText;
+            if (i == 0)
+                carNameText.text = GetLocalization("Main car");
+            else
+                carNameText.text = $"{GetLocalization("Car")} {i}";
         }
 
         //AddNewTeammateCarToPlayer(playerEntity);
@@ -1052,6 +1061,82 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         return (int)carCost;
     }
 
+    private void SellCarButtonAction(int indexButton) {
+        SellCar(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity[indexButton]);
+    }
+
+    private async void SellCar(int carEntity) {
+        
+        var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        if (inventoryCmp.CurrentRedactedCarEntity == carEntity) {
+            if (!CanUseThisCarPartContainers()) {
+                _sceneData.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!", false);
+                return;
+            } else if (!MainPartIsPlaced()) {
+                _sceneData.Value.PlayWarningAnimation(GetLocalization("Place the engine and driver's cabin on the car") + "!", false);
+                return;
+            }
+        }
+
+        if (inventoryCmp.SelectCarButtonsNotInteractable) return;
+        if (inventoryCmp.CurrentRedactedCarEntity == carEntity)
+            ClearAndSetNewCarUI(inventoryCmp.PlayerTeammateCarsEntity[0]);
+
+        _sceneData.Value._inventoryUIView._selectCarButtons[inventoryCmp.PlayerTeammateCarsEntity.Count - 1].gameObject.SetActive(false);
+        if (inventoryCmp.PlayerTeammateCarsEntity.Count == 2)
+            _sceneData.Value._inventoryUIView._selectCarButtons[0].gameObject.SetActive(false);
+        SetMoneyCount(GetCarCost(carEntity));
+        _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).SelectCarButtonsNotInteractable = true;
+        await Task.Delay(500);
+        var carCmp = _carComponentsPool.Value.Get(carEntity);
+        foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
+            _world.Value.DelEntity(carPartInfo.Key);
+        }
+
+        foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+            _world.Value.DelEntity(carPartInfo.Key);
+        }
+
+        _world.Value.DelEntity(carEntity);
+
+        DeleteCar(carEntity);
+    }
+
+    private void DeleteCar(int carEntity) {
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        inventoryCmp.SelectCarButtonsNotInteractable = false;
+        inventoryCmp.PlayerTeammateCarsEntity.Remove(carEntity);
+
+        for (int i = 0; i < _sceneData.Value._inventoryUIView._selectCarButtons.Length; i++) {
+            if (i < inventoryCmp.PlayerTeammateCarsEntity.Count && i != 0) {
+                _sceneData.Value._inventoryUIView._selectCarButtons[i].sellCarText.text =
+                    GetCarCost(inventoryCmp.PlayerTeammateCarsEntity[i]) + "$";
+            }
+        }
+    }
+    private float GetCarCost(int carEntity) {
+        float carCost = 0;
+        ref var carCmp = ref _carComponentsPool.Value.Get(carEntity);
+       // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        carCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * 0.3f * carCmp.CarLevel * (carCmp.CarLevel + 1) / 2);
+        foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+            var carPartConfig = GetCarPartConfig(carPartCmp.CarPartId);
+            carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
+                                        carPartConfig.UpgradedPartCost * 0.3f * carPartCmp.PartLevel * (carPartCmp.PartLevel + 1) / 2);
+        }
+
+        foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+            var carPartConfig = GetCarPartConfig(carPartCmp.CarPartId);
+            carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
+                                        carPartConfig.UpgradedPartCost * 0.3f * carPartCmp.PartLevel * (carPartCmp.PartLevel + 1) / 2);
+        }
+
+        return carCost*0.5f;
+    }
+
     private void BuyShopItem(int entity) {
         var shopCellCmp = _shopCellComponentsPool.Value.Get(entity);
         if (RemoveMoneyForBuy(shopCellCmp)) 
@@ -1062,6 +1147,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     
     private void BuyShopCar(int entity) {
         var shopCellCmp = _shopCellCarComponentsPool.Value.Get(entity);
+        if (_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > 4) {
+            _sceneData.Value.PlayWarningAnimation(GetLocalization("No space in garage"), false);
+           return; 
+        }
+            
         if (RemoveMoneyForBuy(shopCellCmp)) 
             return;
 
@@ -1778,6 +1868,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         for (int i = 0; i < _sceneData.Value._inventoryUIView._selectCarButtons.Length; i++) {
             var selectCarButton = _sceneData.Value._inventoryUIView._selectCarButtons[i];
             selectCarButton.gameObject.SetActive(i < inventoryCmp.PlayerTeammateCarsEntity.Count);
+            if (i < inventoryCmp.PlayerTeammateCarsEntity.Count) {
+              //  Debug.Log(inventoryCmp.PlayerTeammateCarsEntity.Count + " deb int");
+                _sceneData.Value._inventoryUIView._selectCarButtons[i].sellCarText.text =
+                    GetCarCost(inventoryCmp.PlayerTeammateCarsEntity[i]) + "$";
+            }
         }
     }
 
@@ -1826,14 +1921,22 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void ClearAndSetNewCarUI(int newCarIndex) { 
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         
-        if(inventoryCmp.PlayerTeammateCarsEntity[newCarIndex] == inventoryCmp.CurrentRedactedCarEntity)return;
-        if(!CanUseThisCarPartContainers() || !MainPartIsPlaced())return;
+        if(inventoryCmp.PlayerTeammateCarsEntity[newCarIndex] == inventoryCmp.CurrentRedactedCarEntity || inventoryCmp.SelectCarButtonsNotInteractable)return;
+        if (!CanUseThisCarPartContainers()) {
+            _sceneData.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!", false);
+            return;
+        }
+
+        if (!MainPartIsPlaced()) {
+            _sceneData.Value.PlayWarningAnimation(GetLocalization("Place the engine and driver's cabin on the car") + "!", false);
+            return;
+        }
         Sequence sequence = DOTween.Sequence();
         
         sequence.AppendCallback(ClearCarUI);
-        
+        inventoryCmp.SelectCarButtonsNotInteractable = true;
         sequence.AppendInterval(0.5f);
-        
+       
         sequence.AppendCallback(()=> SetNewCarUI(newCarIndex));
         
         sequence.Play();
@@ -1896,6 +1999,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
         UpdateHealAllCarPartButton();
         SetCarUpgradeButtonInfo();
+        
+        inventoryCmp.SelectCarButtonsNotInteractable = false;
     }
     private bool MainPartIsPlaced() {
         foreach (var cellEntity in _inventoryCellComponentsFilter.Value) {

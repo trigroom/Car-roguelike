@@ -12,8 +12,11 @@ sealed class MetaUiSystem : IEcsInitSystem {
         public void Init (IEcsSystems systems) {
             Time.timeScale = 1;
             _metaSceneService.Value.MainEntity = _world.Value.NewEntity();
-            _metaUIComponentsPool.Value.Add(_metaSceneService.Value.MainEntity).CurrentOpenedWindow =
+            ref var metaUiComponent = ref _metaUIComponentsPool.Value.Add(_metaSceneService.Value.MainEntity);
+            metaUiComponent.CurrentOpenedWindow =
                 _metaSceneService.Value._mainMenuView.transform;
+            metaUiComponent.CurrentOpenedAchievementId = -1;
+            SetupAchievements();
             _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 if (DataPersistenceManagerSystem._gameData.CarsUnlocked[i]) {
@@ -60,10 +63,11 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 _metaSceneService.Value._mainMenuView._shopButton.gameObject.SetActive(false);
             }
 
-            SetupAchievements();
+            
         }
 
         private void SetupAchievements() {
+            _metaSceneService.Value._achievementsUIView.BackFromAchievementButton.onClick.AddListener((() => _metaSceneService.Value._achievementsUIView.CloseAchievementInfoPanel()));
             for (int i = 0; i < DataPersistenceManagerSystem._gameData.AchievementsCompleted.Length; i++) { 
                 var achievementConfig = _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[i];
                 if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) {
@@ -75,52 +79,79 @@ sealed class MetaUiSystem : IEcsInitSystem {
                     }
                 }
 
-                var acievementStuffView = _metaSceneService.Value._achievementsUIView.GetAchievementStuffView();
+                var achievementStuffView = _metaSceneService.Value._achievementsUIView.GetAchievementStuffView();
+
+               
+                achievementStuffView.achievementInfoButton.onClick.AddListener(() =>SetAchievementInfoPanel(achievementConfig)
+                   );
                 if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) 
-                    acievementStuffView.SetAchievementInfo(achievementConfig,GetCountForAchievement(achievementConfig.achievementType) );
+                    achievementStuffView.SetAchievementInfo(achievementConfig,GetCountForAchievement(achievementConfig.achievementType) );
                 else
-                    acievementStuffView.CompleteAchievement(achievementConfig);
+                    achievementStuffView.CompleteAchievement(achievementConfig);
             }
         }
 
-        private float GetCountForAchievement(AchivementType type) {
+        private void SetAchievementInfoPanel(AchivementConfig achievement) {
+            ref var metaUICmp = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
+            if (metaUICmp.CurrentOpenedAchievementId == achievement.achievementId) {
+                _metaSceneService.Value._achievementsUIView.CloseAchievementInfoPanel();
+                metaUICmp.CurrentOpenedAchievementId = -1;
+                return;
+            }
+            metaUICmp.CurrentOpenedAchievementId = achievement.achievementId;
+            _metaSceneService.Value._achievementsUIView.SetAchievementInfoPanel(achievement);
+        }
+
+        private float GetCountForAchievement(AchievementType type) {
             switch (type) {
-                case AchivementType.CarKills:
+                case AchievementType.CarKills:
                     return  DataPersistenceManagerSystem._gameData.BrokenCars;
                     break;
-                case AchivementType.DistanceDrived:
+                case AchievementType.DistanceDrived:
                     return  DataPersistenceManagerSystem._gameData.DistanceDrived;
                     break;
-                case AchivementType.PlayerDamage:
+                case AchievementType.PlayerDamage:
                     return DataPersistenceManagerSystem._gameData.PlayerDamage;
                     break;
-                case AchivementType.GetMoney:
+                case AchievementType.GetMoney:
                     return  DataPersistenceManagerSystem._gameData.MoneyEarnedInGame;
                     break;
-                case AchivementType.CompleteMap:
+                case AchievementType.CompleteMap:
                     return 0;
                     break;
                 default: return 0;
             }
         }
+
         private void GiveAchievementReward(AchivementConfig achievementConfig) {
-            //show window
+            switch (achievementConfig.rewardType) {
+                case AchievementRewardType.Car:
+                    DataPersistenceManagerSystem._gameData.CarsUnlocked[achievementConfig.rewardCount] = true;
+                    break;
+                case AchievementRewardType.CarPart:
+                    DataPersistenceManagerSystem._gameData.CarPartsUnlocked[achievementConfig.rewardCount] = true;
+                    break;
+                case AchievementRewardType.Scrap:
+                    DataPersistenceManagerSystem._gameData.ScrapCount += achievementConfig.rewardCount;
+                    
+                    break;
+            }
         }
         private bool CheckAchievementCount(AchivementConfig achievementConfig) {
             switch (achievementConfig.achievementType) {
-                case AchivementType.CarKills:
+                case AchievementType.CarKills:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.BrokenCars;
                     break;
-                case AchivementType.DistanceDrived:
+                case AchievementType.DistanceDrived:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.DistanceDrived;
                     break;
-                case AchivementType.PlayerDamage:
+                case AchievementType.PlayerDamage:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.PlayerDamage;
                     break;
-                case AchivementType.GetMoney:
+                case AchievementType.GetMoney:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.MoneyEarnedInGame;
                     break;
-                case AchivementType.CompleteMap:
+                case AchievementType.CompleteMap:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.LevelRounds[achievementConfig.needSecondCount];
                     break;
                 default: return false;
@@ -134,6 +165,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
             newWindow.gameObject.SetActive(true);
             metaUICmp.CurrentOpenedWindow = newWindow;
         }
+        
         
 
         private void Play() {
