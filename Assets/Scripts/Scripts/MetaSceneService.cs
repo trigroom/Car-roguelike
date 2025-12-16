@@ -23,7 +23,7 @@ public class MetaSceneService : MonoBehaviour {
     private void Awake() {
         if (BetweenScenesService.Instance == null)
             SceneManager.LoadScene("Scenes/LoadingScene");
-        else
-            BetweenScenesService.Instance.HideBlackScreen();
+       // else
+         //   BetweenScenesService.Instance.HideBlackScreen();
     }
 } 

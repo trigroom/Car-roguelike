@@ -15,8 +15,8 @@ MonoBehaviour:
   <achievementId>k__BackingField: 1
   <achivementIcon>k__BackingField: {fileID: 21300000, guid: 922f31d786f1c124f9f4093a459165f2, type: 3}
   <achivementName>k__BackingField: Car killer 2
-  <needCount>k__BackingField: 50
+  <needCount>k__BackingField: 2
   <needSecondCount>k__BackingField: 0
-  <rewardType>k__BackingField: 1
+  <rewardType>k__BackingField: 0
   <achievementType>k__BackingField: 0
-  <rewardCount>k__BackingField: 6
+  <rewardCount>k__BackingField: 2

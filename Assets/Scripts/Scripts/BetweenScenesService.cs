@@ -38,14 +38,14 @@ public class BetweenScenesService : MonoBehaviour {
         BlackScreen.anchoredPosition = new Vector3(0, BlackScreen.anchoredPosition.y);
         BlackScreen.DOKill();
         Debug.Log("Black Screen Hidden");
-        BlackScreen.DOAnchorPosX(3000, 0.75f).SetEase(Ease.OutBack).OnComplete(()=>BlackScreen.gameObject.SetActive(false));
+        BlackScreen.DOAnchorPosX(3000, 0.75f).SetEase(Ease.OutBack).OnComplete(()=>BlackScreen.gameObject.SetActive(false)).SetUpdate(true);
     }
 
     public void ShowBlackScreen(Action endAction = null) {
         BlackScreen.gameObject.SetActive(true);
         BlackScreen.anchoredPosition = new Vector3(-3000, BlackScreen.anchoredPosition.y);
         BlackScreen.DOKill();
-        BlackScreen.DOAnchorPosX(0, 0.75f).SetEase(Ease.InBack).OnComplete(()=>endAction?.Invoke());
+        BlackScreen.DOAnchorPosX(0, 0.75f).SetEase(Ease.InBack).OnComplete(()=>endAction?.Invoke()).SetUpdate(true);
     }
 
     public string GetAchievementReward(AchivementConfig achievement) {

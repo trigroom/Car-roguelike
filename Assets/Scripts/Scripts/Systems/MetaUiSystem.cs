@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using UnityEngine;
@@ -10,20 +11,21 @@ sealed class MetaUiSystem : IEcsInitSystem {
         
         private EcsPoolInject<MetaUIComponent> _metaUIComponentsPool;
         public void Init (IEcsSystems systems) {
+            _betweenSceneService.Value.HideBlackScreen();
             Time.timeScale = 1;
             _metaSceneService.Value.MainEntity = _world.Value.NewEntity();
             ref var metaUiComponent = ref _metaUIComponentsPool.Value.Add(_metaSceneService.Value.MainEntity);
             metaUiComponent.CurrentOpenedWindow =
                 _metaSceneService.Value._mainMenuView.transform;
             metaUiComponent.CurrentOpenedAchievementId = -1;
+            metaUiComponent.CurrentRewardedAchievementIds = new List<int>();
             SetupAchievements();
             _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 if (DataPersistenceManagerSystem._gameData.CarsUnlocked[i]) {
                     var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
-                                   _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName,i); 
-                }
-                else 
+                    _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName, i);
+                } else
                     _metaSceneService.Value._selectCarButtonViews[i].gameObject.SetActive(false);
                
             }
@@ -57,6 +59,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
             _metaSceneService.Value._mainMenuView._exitButton.onClick.AddListener(ExitFromGame);
             _metaSceneService.Value._staticTextsView.SetTextLanguage();
             SetupLocalizationButtons();
+            _metaSceneService.Value._achievementsUIView.NextRewardedAchievementButton.onClick.AddListener(SetNextAchievementInfo);
 
             if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
                 _metaSceneService.Value._mainMenuView._achivementsButton.gameObject.SetActive(false);
@@ -66,7 +69,21 @@ sealed class MetaUiSystem : IEcsInitSystem {
             
         }
 
+        private void SetNextAchievementInfo() {
+            ref var metaUiComponent = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
+            if (metaUiComponent.CurrentRewardedAchievementIds.Count == 0) {
+                _metaSceneService.Value._achievementsUIView.AchievementsRewardContainer.gameObject.SetActive(false);
+            } else {
+                var achievementConfig =
+                    _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[metaUiComponent.CurrentRewardedAchievementIds[0]];
+                metaUiComponent.CurrentRewardedAchievementIds.RemoveAt(0);
+                _metaSceneService.Value._achievementsUIView.SetRewardAchievementInfoPanel(achievementConfig);
+            }
+        }
+        
+
         private void SetupAchievements() {
+            ref var metaUiComponent = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
             _metaSceneService.Value._achievementsUIView.BackFromAchievementButton.onClick.AddListener((() => _metaSceneService.Value._achievementsUIView.CloseAchievementInfoPanel()));
             for (int i = 0; i < DataPersistenceManagerSystem._gameData.AchievementsCompleted.Length; i++) { 
                 var achievementConfig = _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[i];
@@ -74,6 +91,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
                    
                     if (CheckAchievementCount(achievementConfig)) {
                         Debug.Log("Achievement Completed");
+                        metaUiComponent.CurrentRewardedAchievementIds.Add(i);
                         GiveAchievementReward(achievementConfig);
                         DataPersistenceManagerSystem._gameData.AchievementsCompleted[i] = true;
                     }
@@ -89,6 +107,14 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 else
                     achievementStuffView.CompleteAchievement(achievementConfig);
             }
+
+            if (metaUiComponent.CurrentRewardedAchievementIds.Count != 0) {
+                var achievementConfig =
+                    _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[metaUiComponent.CurrentRewardedAchievementIds[0]];
+                metaUiComponent.CurrentRewardedAchievementIds.RemoveAt(0);
+                _metaSceneService.Value._achievementsUIView.SetRewardAchievementInfoPanel(achievementConfig);
+            }
+            DataPersistenceManagerSystem.SaveGame();
         }
 
         private void SetAchievementInfoPanel(AchivementConfig achievement) {

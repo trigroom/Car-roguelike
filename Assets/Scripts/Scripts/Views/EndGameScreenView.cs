@@ -48,7 +48,7 @@ public class EndGameScreenView : MonoBehaviour
     }
 
     private void GoToMetaScene() {
-        SceneManager.LoadScene("Scenes/MetaScene");
+        BetweenScenesService.Instance.ShowBlackScreen(()=>SceneManager.LoadScene("Scenes/MetaScene"));
     }
     private void CloseEndGameUI() {
         gameObject.SetActive(false);

@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03ce507d25b292c41a0317e537df5620, type: 3}
   m_Name: 0CarKiller1
   m_EditorClassIdentifier: 
+  <achievementId>k__BackingField: 0
   <achivementIcon>k__BackingField: {fileID: 21300000, guid: 2284cd2f3f74ceb439bdd662f6fd9d7b, type: 3}
   <achivementName>k__BackingField: Car killer 1
-  <needCount>k__BackingField: 10
+  <needCount>k__BackingField: 1
   <needSecondCount>k__BackingField: 0
-  <rewardType>k__BackingField: 1
+  <rewardType>k__BackingField: 2
   <achievementType>k__BackingField: 0
-  <rewardCount>k__BackingField: 8
+  <rewardCount>k__BackingField: 25

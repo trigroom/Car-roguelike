@@ -25,5 +25,6 @@ public class AchievementStuffView : MonoBehaviour
         achievementCount.gameObject.SetActive(false);
         achivementConfig = achievement;
         filledImage.gameObject.SetActive(false);
+        achievementImage.sprite = achievement.achivementIcon;
     }
 }

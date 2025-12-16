@@ -196,8 +196,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         DataPersistenceManagerSystem.SaveGame();
         _sceneService.Value._endGameScreenView.SetWinScreenInfo(scrapCount);
     }
+
     private void SetSettingsState() {
-        _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneService.Value._settingsView._settingsContainer.gameObject.activeInHierarchy);
+        _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneService.Value._settingsView._settingsContainer
+            .gameObject.activeInHierarchy);
     }
 
     private void GoToDesktop() {
@@ -314,7 +316,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentRoundType = RoundType.None;
         curGameCmp.SupportBoxIsSend = false;
         _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
-        _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
+          
         Debug.Log("End round game st system");
         ChangePlayerUIState(false);
         if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length)return;
@@ -352,6 +354,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
         ChangeInventoryState(true);
         
+   _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
       //  ReleaseAllCarPartUI();
     }
 

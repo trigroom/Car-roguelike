@@ -17,6 +17,6 @@ MonoBehaviour:
   <achivementName>k__BackingField: Money collect 2
   <needCount>k__BackingField: 1000
   <needSecondCount>k__BackingField: 0
-  <rewardType>k__BackingField: 1
+  <rewardType>k__BackingField: 2
   <achievementType>k__BackingField: 3
-  <rewardCount>k__BackingField: 2
+  <rewardCount>k__BackingField: 65

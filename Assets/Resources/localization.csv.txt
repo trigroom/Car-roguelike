@@ -198,3 +198,4 @@ Car move to cursor and press LMB to speed boost,Car follows cursor and LMB boost
 Supplies received,Supplies received,Припасы получены,Nachschub erhalten,Suministros recibidos,Ravitaillement reçu
 No space in garage,No space in garage,Нет места в гараже,Kein Platz in Garage,No espacio en garaje,Pas de place garage
 Main car,Main Car,Основная машина,Hauptauto,Coche Principal,Voiture Principale
+Continue,Continue,Продолжить,Weiter,Continuar,Continuer
