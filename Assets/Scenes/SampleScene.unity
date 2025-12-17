@@ -14736,6 +14736,8 @@ MonoBehaviour:
   <_buttonUpdateShop>k__BackingField: {fileID: 1249212080}
   <_moneyCountText>k__BackingField: {fileID: 1834432031}
   <_updateItemsText>k__BackingField: {fileID: 732146546}
+  <_lockSprite>k__BackingField: {fileID: 21300000, guid: 635ce855c585e0c4c9e3c700736e4f87, type: 3}
+  <_unlockSprite>k__BackingField: {fileID: 21300000, guid: eaed377f4976256459d6be43bb2d6bb2, type: 3}
 --- !u!1 &999509311
 GameObject:
   m_ObjectHideFlags: 0

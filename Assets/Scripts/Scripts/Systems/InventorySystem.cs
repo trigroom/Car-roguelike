@@ -585,7 +585,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             int shopCellEntity = _world.Value.NewEntity();
             ref var shopCellCmp = ref _shopCellComponentsPool.Value.Add(shopCellEntity);
             shopCellCmp.ShopButtonIndex = i;
-            shopCell.Construct(shopCellEntity, BuyShopItem, SetCarPartInfoPanel, TakeItemFromInventory);
+            shopCell.Construct(shopCellEntity, BuyShopItem, SetCarPartInfoPanel, TakeItemFromInventory,LockShopItemToggleAction);
         }
         
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsCarShop.Length; i++) {
@@ -594,7 +594,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             ref var shopCellCarCmp = ref _shopCellCarComponentsPool.Value.Add(shopCellEntity);
             shopCellCarCmp.ShopCarButtonIndex = i;
             shopCellCarCmp.CarPartsImages = new List<Image>();
-            shopCell.Construct(shopCellEntity, BuyShopCar, SetCarPartInfoPanel, TakeItemFromInventory);
+            shopCell.Construct(shopCellEntity, BuyShopCar, SetCarPartInfoPanel, TakeItemFromInventory,LockShopItemToggleAction);
         }
 
         _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)}$";
@@ -604,6 +604,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
        _sceneData.Value._shopUIView._shopModeButton.onClick.AddListener(ChangeShopMode); 
     }
 
+    private void LockShopItemToggleAction(bool locked, Image toggleImage) {
+        toggleImage.sprite = locked? _sceneData.Value._shopUIView._lockSprite:_sceneData.Value._shopUIView._unlockSprite;
+    }
     private float GetShopUpdateCost(int curUpdateCount) {
         return curUpdateCount + _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
     }
@@ -924,6 +927,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         List<int> shopItems = new();
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
+           
             int rareIndex = GridUtils.GetRandomIndexFromChancesList(shopCmp.CurrentShopItemsChances);
             int randomItem;
             if (_firstCarPartTypesForShop.Length > i) {
@@ -946,7 +950,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsShop.Length);
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
             var shopButton = _sceneData.Value._shopUIView._buttonsShop[i];
-
+            if (shopButton.LockToggle.isOn) continue;
             int randomItemIndex = Random.Range(0, shopItems.Count);
             var randomItem = shopItems[randomItemIndex];
             shopItems.RemoveAt(randomItemIndex);
@@ -983,6 +987,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
          var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs;
          int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsCarShop.Length);
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsCarShop.Length; i++) {
+            if (_sceneData.Value._shopUIView._buttonsCarShop[i].LockToggle.isOn) continue;
             var carMapsList = carsList[GridUtils.GetRandomIndexFromChancesList(roundEnemyStuff.EnemyCarChances)].CarMapsList;
             var carMap = carMapsList[Random.Range(0, carMapsList.Count)];
             

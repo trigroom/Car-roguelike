@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     public int Entity;
+    public Toggle LockToggle;
+    public Image ToggleImage;
     public Button BuyButton;
     public Button ShowInfoButton;
     public Image ItemSprite;
@@ -13,15 +15,21 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     public TMP_Text ItemPriceText;
     public TMP_Text ItemSaleText;
 
+    private Action<bool, Image> _toggleAction;
     public Action<int> TakeItemFromInventory;
 
-    public void Construct(int _entity, Action<int> _onBuy, Action<int, bool> _onShowInfo, Action<int> _takeItemFromInventory) {
+    public void Construct(int _entity, Action<int> _onBuy, Action<int, bool> _onShowInfo, Action<int> _takeItemFromInventory,Action<bool, Image> _lockAction) {
         BuyButton.onClick.AddListener(() => _onBuy?.Invoke(_entity));
         ShowInfoButton?.onClick.AddListener(() => _onShowInfo?.Invoke(_entity, true));
         Entity = _entity;
         TakeItemFromInventory = _takeItemFromInventory;
+        _toggleAction = _lockAction;
+        LockToggle.onValueChanged.AddListener(ToggleAction);
     }
 
+    private void ToggleAction(bool toggle) {
+        _toggleAction(toggle,ToggleImage );
+    }
     public void SetShopCellInfo(int price, Sprite sprite, Sprite upperSprite, Vector2 upperImageSpritePos, Vector2 upperImageSize) {
         SetPriceText(price);
 
@@ -47,6 +55,8 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
 
     public void SoldItemChangeButton() {
         //   ItemSprite.sprite = sprite;
+        if (LockToggle.isOn)
+            LockToggle.isOn = false;
         ItemPriceText.text = "sold";
         BuyButton.enabled = false;
     }

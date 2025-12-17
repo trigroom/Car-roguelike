@@ -23,6 +23,10 @@ public class ShopUIView : MonoBehaviour
     public TMP_Text _moneyCountText { get; private set; }
     [field:SerializeField]
     public TMP_Text _updateItemsText { get; private set; }
+     [field:SerializeField]
+        public Sprite _lockSprite { get; private set; }
+        [field:SerializeField]
+        public Sprite _unlockSprite { get; private set; }
 
     public void AddMoneyAnimation() {
         _moneyCountText.transform.DOKill();
