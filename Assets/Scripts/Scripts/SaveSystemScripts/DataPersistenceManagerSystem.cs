@@ -25,6 +25,7 @@ public class DataPersistenceManagerSystem : MonoBehaviour
     public void NewGame() {
         _gameData = new GameData();
         _gameData.AchievementsCompleted = new bool[BetweenScenesService.Instance._carStuffListsConfig.AchievementConfigs.Length];
+        _gameData.ShopItemsBuyed = new bool[BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs.Length];
         _gameData.CarPartsUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs.Length];
         for (int i = 0; i < _gameData.CarPartsUnlocked.Length; i++) 
             _gameData.CarPartsUnlocked[i] = true;
@@ -35,12 +36,12 @@ public class DataPersistenceManagerSystem : MonoBehaviour
 
     public void LoadGame() {
         _gameData = _dataHandler.Load();
-     //   _gameData = null;
+       // _gameData = null;
         if (_gameData == null) {
             NewGame();
         }
 
-      //  SaveGame();
+       // SaveGame();
     }
 
     public enum SavePriority {

@@ -20,6 +20,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
             metaUiComponent.CurrentOpenedAchievementId = -1;
             metaUiComponent.CurrentRewardedAchievementIds = new List<int>();
             SetupAchievements();
+            SetupShopButtons();
             _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 if (DataPersistenceManagerSystem._gameData.CarsUnlocked[i]) {
@@ -80,30 +81,77 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 _metaSceneService.Value._achievementsUIView.SetRewardAchievementInfoPanel(achievementConfig);
             }
         }
-        
+
+        private void SetupShopButtons() {
+             ref var metaUiComponent = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
+             //close shop panel info
+            for (int i = 0; i < DataPersistenceManagerSystem._gameData.ShopItemsBuyed.Length; i++) {
+              
+                if (!DataPersistenceManagerSystem._gameData.ShopItemsBuyed[i]) {
+                    var shopItemConfig = _betweenSceneService.Value._carStuffListsConfig.ShopItemConfigs[i];
+                    var shopButtonView = _metaSceneService.Value._shopUIContainer.GetMetaShopButtonView();
+                    int index = i;
+                    shopButtonView.BuyButton.onClick.AddListener(() => BuyMetaShopItem(index, shopButtonView.transform));
+                    shopButtonView.Construct(i, null, ShowMetaShopItemInfo, null, null);
+                    SetShopCellIcon(shopButtonView, shopItemConfig);
+                }
+//hide shop button after buy
+              
+            }
+        }
+
+        private void SetShopCellIcon(ShopButtonView shopButtonView, ShopItemConfig shopItemConfig) {
+            Sprite sprite = _betweenSceneService.Value._carStuffListsConfig.CarPartConfigs[0].PartSprite;
+            Sprite upperSprite =null;
+            Vector2 upperImageSpritePos = Vector2.zero;
+            Vector2 upperImageSize = Vector2.zero;
+            switch (shopItemConfig.RewardType) {
+                case AchievementRewardType.CarPart:
+                    var carPartConfig = _betweenSceneService.Value._carStuffListsConfig.CarPartConfigs[shopItemConfig.RewardCount];
+                    sprite = carPartConfig.PartSprite;
+                    (upperSprite, upperImageSize, upperImageSpritePos) = GridUtils.GetUpperPartSizesForUI(
+                        shopButtonView.ItemSprite.rectTransform.sizeDelta, carPartConfig);
+                    break;
+                case AchievementRewardType.Car:
+                    break;
+                case AchievementRewardType.Module:
+                    break;
+            }
+            shopButtonView.SetShopCellInfo(shopItemConfig.ScrapCost, sprite,upperSprite,upperImageSpritePos,upperImageSize);
+        }
+
+        private void BuyMetaShopItem(int itemIndex, Transform shopButtonView) {
+            var shopItemConfig = _betweenSceneService.Value._carStuffListsConfig.ShopItemConfigs[itemIndex];
+            if (shopItemConfig.ScrapCost > DataPersistenceManagerSystem._gameData.ScrapCount) return;
+            shopButtonView.gameObject.SetActive(false);
+            DataPersistenceManagerSystem._gameData.ScrapCount -= shopItemConfig.ScrapCost;
+            GiveAchievementReward(shopItemConfig.RewardType, shopItemConfig.RewardCount);
+            DataPersistenceManagerSystem._gameData.ShopItemsBuyed[itemIndex] = true;
+        }
+        private void ShowMetaShopItemInfo(int itemIndex, bool isShow) {
+            
+        }
 
         private void SetupAchievements() {
             ref var metaUiComponent = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
-            _metaSceneService.Value._achievementsUIView.BackFromAchievementButton.onClick.AddListener((() => _metaSceneService.Value._achievementsUIView.CloseAchievementInfoPanel()));
-            for (int i = 0; i < DataPersistenceManagerSystem._gameData.AchievementsCompleted.Length; i++) { 
+            _metaSceneService.Value._achievementsUIView.BackFromAchievementButton.onClick.AddListener(() =>
+                _metaSceneService.Value._achievementsUIView.CloseAchievementInfoPanel());
+            for (int i = 0; i < DataPersistenceManagerSystem._gameData.AchievementsCompleted.Length; i++) {
                 var achievementConfig = _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[i];
                 if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) {
-                   
                     if (CheckAchievementCount(achievementConfig)) {
                         Debug.Log("Achievement Completed");
                         metaUiComponent.CurrentRewardedAchievementIds.Add(i);
-                        GiveAchievementReward(achievementConfig);
+                        GiveAchievementReward(achievementConfig.rewardType, achievementConfig.rewardCount);
                         DataPersistenceManagerSystem._gameData.AchievementsCompleted[i] = true;
                     }
                 }
 
                 var achievementStuffView = _metaSceneService.Value._achievementsUIView.GetAchievementStuffView();
 
-               
-                achievementStuffView.achievementInfoButton.onClick.AddListener(() =>SetAchievementInfoPanel(achievementConfig)
-                   );
-                if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) 
-                    achievementStuffView.SetAchievementInfo(achievementConfig,GetCountForAchievement(achievementConfig.achievementType) );
+                achievementStuffView.achievementInfoButton.onClick.AddListener(() => SetAchievementInfoPanel(achievementConfig));
+                if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i])
+                    achievementStuffView.SetAchievementInfo(achievementConfig, GetCountForAchievement(achievementConfig.achievementType));
                 else
                     achievementStuffView.CompleteAchievement(achievementConfig);
             }
@@ -114,6 +162,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 metaUiComponent.CurrentRewardedAchievementIds.RemoveAt(0);
                 _metaSceneService.Value._achievementsUIView.SetRewardAchievementInfoPanel(achievementConfig);
             }
+
             DataPersistenceManagerSystem.SaveGame();
         }
 
@@ -149,16 +198,16 @@ sealed class MetaUiSystem : IEcsInitSystem {
             }
         }
 
-        private void GiveAchievementReward(AchivementConfig achievementConfig) {
-            switch (achievementConfig.rewardType) {
+        private void GiveAchievementReward(AchievementRewardType rewardType,int count) {
+            switch (rewardType) {
                 case AchievementRewardType.Car:
-                    DataPersistenceManagerSystem._gameData.CarsUnlocked[achievementConfig.rewardCount] = true;
+                    DataPersistenceManagerSystem._gameData.CarsUnlocked[count] = true;
                     break;
                 case AchievementRewardType.CarPart:
-                    DataPersistenceManagerSystem._gameData.CarPartsUnlocked[achievementConfig.rewardCount] = true;
+                    DataPersistenceManagerSystem._gameData.CarPartsUnlocked[count] = true;
                     break;
                 case AchievementRewardType.Scrap:
-                    DataPersistenceManagerSystem._gameData.ScrapCount += achievementConfig.rewardCount;
+                    DataPersistenceManagerSystem._gameData.ScrapCount += count;
                     
                     break;
             }

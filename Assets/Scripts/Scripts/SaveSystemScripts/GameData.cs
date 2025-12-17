@@ -19,6 +19,8 @@ public class GameData
     public bool[] CarPartsUnlocked;
     public bool[] CarsUnlocked;
     
+    public bool[] ShopItemsBuyed;
+    
     public bool TutorialIsCompleted;
 
     public GameData()

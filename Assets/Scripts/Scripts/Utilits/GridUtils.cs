@@ -512,6 +512,35 @@ public class GridUtils : MonoBehaviour {
     public static float GetSellValueForCarPart(CarPartConfig carPartConfig, int level) {
         return carPartConfig.MoneyCost /2 + Mathf.Max(level-1, 0)*carPartConfig.UpgradedPartCost;
     }
+    
+    public static ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(Vector2 cellSizeDelta, CarPartConfig carPartConfig) {
+        Vector2 cellSize = Vector2.zero;
+        Vector2 needPosition = Vector2.zero;
+        Sprite upSprite = null;
+        if (carPartConfig.PartType == CarPartType.Gun && carPartConfig is GunConfig gunConfig) {
+            if (gunConfig.UpPartSprite != null) {
+                var carPartSize = GetCarPartSize(carPartConfig);
+                cellSizeDelta = new Vector2(Mathf.Max(cellSizeDelta.x, cellSizeDelta.y), Mathf.Max(cellSizeDelta.x, cellSizeDelta.y));
+                cellSize = cellSizeDelta / (Mathf.Max(carPartSize.x, carPartSize.y) * InWorldCellSize) *
+                           gunConfig.UpPartSprite.rect.size;
+                needPosition = cellSizeDelta / Mathf.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
+                upSprite = gunConfig.UpPartSprite != null ? gunConfig.UpPartSprite : null;
+            }
+        }
+
+        if (carPartConfig.PartType == CarPartType.MeleeWeapon && carPartConfig is MeleeWeaponConfig meleeConfig) {
+            if (meleeConfig.UpSprite != null) {
+                var carPartSize = GetCarPartSize(carPartConfig);
+                cellSizeDelta = new Vector2(Mathf.Max(cellSizeDelta.x, cellSizeDelta.y), Mathf.Max(cellSizeDelta.x, cellSizeDelta.y));
+                cellSize = cellSizeDelta / (Mathf.Max(carPartSize.x, carPartSize.y) * InWorldCellSize) *
+                           meleeConfig.UpSprite.rect.size;
+                needPosition = cellSizeDelta / Mathf.Max(carPartSize.x, carPartSize.y) * meleeConfig.UpSpritePosition;
+                upSprite = meleeConfig.UpSprite != null ? meleeConfig.UpSprite : null;
+            }
+        }
+
+        return (upSprite, cellSize, needPosition);
+    }
 }
 
 

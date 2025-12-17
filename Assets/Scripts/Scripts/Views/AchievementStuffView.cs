@@ -18,6 +18,7 @@ public class AchievementStuffView : MonoBehaviour
         achievementImage.material = grayscaleMaterial;
         filledImage.fillAmount = value/achivementConfig.needCount;
         achievementImage.sprite = achievement.achivementIcon;
+        filledImage.sprite = achievement.achivementIcon;
     }
 
     public void CompleteAchievement(AchivementConfig achievement)

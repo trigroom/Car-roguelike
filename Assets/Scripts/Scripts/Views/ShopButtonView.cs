@@ -24,6 +24,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
         Entity = _entity;
         TakeItemFromInventory = _takeItemFromInventory;
         _toggleAction = _lockAction;
+        if(LockToggle != null)
         LockToggle.onValueChanged.AddListener(ToggleAction);
     }
 

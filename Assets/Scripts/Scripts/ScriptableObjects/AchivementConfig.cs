@@ -19,7 +19,8 @@ public class AchivementConfig : ScriptableObject
 public enum AchievementRewardType {
     Car,
     CarPart,
-    Scrap
+    Scrap,
+    Module
 }
 public enum AchievementType {
     CarKills,

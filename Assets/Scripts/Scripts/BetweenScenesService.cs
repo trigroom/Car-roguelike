@@ -47,17 +47,17 @@ public class BetweenScenesService : MonoBehaviour {
         BlackScreen.DOKill();
         BlackScreen.DOAnchorPosX(0, 0.75f).SetEase(Ease.InBack).OnComplete(()=>endAction?.Invoke()).SetUpdate(true);
     }
-
+    private string GetLocalization(string needString) => CsvLocalization.GetLocalizedValue(needString);
     public string GetAchievementReward(AchivementConfig achievement) {
         switch (achievement.rewardType) {
             case AchievementRewardType.Car:
-                return _carStuffListsConfig.CarConfigs[achievement.rewardCount].CarName;
+                return GetLocalization(_carStuffListsConfig.CarConfigs[achievement.rewardCount].CarName);
                 
             case AchievementRewardType.CarPart:
-                return _carStuffListsConfig.CarPartConfigs[achievement.rewardCount].PartName;
+                return GetLocalization(_carStuffListsConfig.CarPartConfigs[achievement.rewardCount].PartName);
                
             case AchievementRewardType.Scrap:
-                return achievement.rewardCount + " scrap";
+                return achievement.rewardCount +" "+ GetLocalization("Scrap");
                
             default: return "";
         }

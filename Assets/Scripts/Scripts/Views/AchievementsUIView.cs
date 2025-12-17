@@ -26,14 +26,14 @@ public class AchievementsUIView : MonoBehaviour
     AchievementsInfoContainer.gameObject.SetActive(true);
     AchievementsInfoIcon.sprite = achievement.achivementIcon;
     AchievementsInfoRewardText.text =
-      GetLocalization("Reward") + ":" + GetLocalization(BetweenScenesService.Instance.GetAchievementReward(achievement));
+      GetLocalization("Reward") + ":" + BetweenScenesService.Instance.GetAchievementReward(achievement);
     AchievementsInfoNameText.text = achievement.achivementName;
   }
   public void SetRewardAchievementInfoPanel(AchivementConfig achievement) {
     AchievementsRewardContainer.gameObject.SetActive(true);
     AchievementsRewardIcon.sprite = achievement.achivementIcon;
     AchievementsRewardText.text =
-      GetLocalization("Reward") + ":" + GetLocalization(BetweenScenesService.Instance.GetAchievementReward(achievement));
+      GetLocalization("Reward") + ":" + BetweenScenesService.Instance.GetAchievementReward(achievement);
     AchievementsRewardNameText.text = achievement.achivementName;
   }
   

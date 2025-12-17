@@ -37,6 +37,8 @@ public class CarStuffListsConfig : ScriptableObject
     public ShopIdList[] RoundShopChances{ get;private set; }
     [field: SerializeField]
     public AchivementConfig[] AchievementConfigs{ get;private set; }
+    [field: SerializeField]
+    public ShopItemConfig[] ShopItemConfigs{ get;private set; }
 }
 
 [System.Serializable]
