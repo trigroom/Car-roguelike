@@ -134,8 +134,10 @@ sealed class MetaUiSystem : IEcsInitSystem {
 
         private void SetupAchievements() {
             ref var metaUiComponent = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
-            _metaSceneService.Value._achievementsUIView.BackFromAchievementButton.onClick.AddListener(() =>
-                _metaSceneService.Value._achievementsUIView.CloseAchievementInfoPanel());
+            _metaSceneService.Value._achievementsUIView.BackFromAchievementButton.onClick.AddListener(() => {
+                _metaSceneService.Value._achievementsUIView.CloseAchievementInfoPanel();
+                _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity).CurrentOpenedAchievementId = -1;
+            });
             for (int i = 0; i < DataPersistenceManagerSystem._gameData.AchievementsCompleted.Length; i++) {
                 var achievementConfig = _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[i];
                 if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) {

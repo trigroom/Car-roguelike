@@ -58,7 +58,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
         //   ItemSprite.sprite = sprite;
         if (LockToggle.isOn)
             LockToggle.isOn = false;
-        ItemPriceText.text = "sold";
+        ItemPriceText.text = BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue("Sold");
         BuyButton.enabled = false;
     }
 

@@ -216,9 +216,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 var carSizeX = (carCmp.CarPartContainerGroupsGrid.GetLength(0));
                 var carSizeY = (carCmp.CarPartContainerGroupsGrid.GetLength(1));
                 var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
-                if (inventoryCmp.IsCarPartsRedactorMode && (carSizeX % 2 == 1 && carSizeY % 2 == 1) ||
+                if (inventoryCmp.IsCarPartsRedactorMode && (carSizeX % 2 == 1 && carSizeY % 2 == 1 ||
                     ((carSizeX % 2 == 1 && carSizeY % 2 == 0) && carSizeX > carSizeY) ||
-                    (carSizeX % 2 == 0 && carSizeY % 2 == 1) && carSizeX < carSizeY) {
+                    (carSizeX % 2 == 0 && carSizeY % 2 == 1) && carSizeX < carSizeY)) {
                     subGridNewPosition += (Vector3)currentCellSize * _sceneData.Value.mainCanvas.localScale.x / 2;
                 }
 
