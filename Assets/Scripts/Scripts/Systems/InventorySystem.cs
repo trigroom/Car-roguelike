@@ -1818,7 +1818,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 return;
             }
 
-            level = 1;
+            level = 0;
             currentHealth = GetCarPartConfig(shopCellCmp.CurrentBuyItemId).MaxHealth;
             partIndex = shopCellCmp.CurrentBuyItemId;
         }

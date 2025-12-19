@@ -194,19 +194,19 @@ public class GridUtils : MonoBehaviour {
         float attackCountdownMultiplayer=1;
 
         if (gunConfig.MissleType == MissleType.laser) {
-            damageMultiplier+=level*0.35f;
-            reloadMultiplier+=level*0.2f;
-            attackCountdownMultiplayer+=level*0.3f;
+            damageMultiplier+=level*0.18f;
+            reloadMultiplier+=level*0.1f;
+            attackCountdownMultiplayer+=level*0.15f;
         }
         else if (gunConfig.MissleType == MissleType.bullet) {
-            damageMultiplier+=level*0.3f;
-            reloadMultiplier+=level*0.3f;
-            attackCountdownMultiplayer+=level*0.2f;
+            damageMultiplier+=level*0.15f;
+            reloadMultiplier+=level*0.15f;
+            attackCountdownMultiplayer+=level*0.1f;
         } 
         else {
-            damageMultiplier+=level*0.4f;
-            reloadMultiplier+=level*0.15f;
-            attackCountdownMultiplayer+=level*0.25f;
+            damageMultiplier+=level*0.17f;
+            reloadMultiplier+=level*0.08f;
+            attackCountdownMultiplayer+=level*0.12f;
         }
         
         return (damageMultiplier, reloadMultiplier, attackCountdownMultiplayer);
@@ -216,15 +216,15 @@ public class GridUtils : MonoBehaviour {
         float damageMultiplier=1;
         float damageBySpeedMultiplier=1;
 
-        if ((meleeConfig.Damage/10f) > meleeConfig.DamageAddedFromOneSpeed) {
-            damageMultiplier+=level*0.4f;
-        }
-        else if ((meleeConfig.Damage/8f) > meleeConfig.DamageAddedFromOneSpeed) {
+        if ((meleeConfig.Damage/1000f) > meleeConfig.DamageAddedFromOneSpeed) {
             damageMultiplier+=level*0.2f;
-            damageBySpeedMultiplier+=level*0.2f;
+        }
+        else if ((meleeConfig.Damage/8000f) > meleeConfig.DamageAddedFromOneSpeed) {
+            damageMultiplier+=level*0.1f;
+            damageBySpeedMultiplier+=level*0.1f;
         } 
         else {
-            damageBySpeedMultiplier+=level*0.4f;
+            damageBySpeedMultiplier+=level*0.2f;
         }
         
         return (damageMultiplier, damageBySpeedMultiplier);
