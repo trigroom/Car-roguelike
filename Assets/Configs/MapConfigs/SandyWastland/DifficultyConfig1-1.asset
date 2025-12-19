@@ -15,7 +15,7 @@ MonoBehaviour:
   <DifficultyName>k__BackingField: EASY
   <HealthMultiplayer>k__BackingField: 0.75
   <DamageMultiplayer>k__BackingField: 0.8
-  <MapEvents>k__BackingField: 
+  <MapEvents>k__BackingField: []
   <ScrapForRound>k__BackingField: 3
   <ScrapForMapComplete>k__BackingField: 30
   <HealedHealthPartAfterEndRound>k__BackingField: 1

@@ -48,6 +48,42 @@ public class SelectDifficultyUIView : MonoBehaviour
          $"{GetLocalization("Scrap for map complete")} {difficultyConfig.ScrapForMapComplete}" +
          $"\n{GetLocalization("Start money")} {difficultyConfig.StartMoney}$\n{GetLocalization("Heal after end round to")}" +
          $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%";
+      if(difficultyConfig.MapEvents != null)
+      foreach (var mapEvent in difficultyConfig.MapEvents) {
+         _difficultyDescription.text += "\n"+GetMapEventDescription(mapEvent);
+      }
       _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
    }
+
+   private string GetMapEventDescription(MapEventInfo mapEventInfo) {
+      string needString = "";
+      switch (mapEventInfo.MapEventType) {
+         case MapEventsType.StrongWind:
+            switch (mapEventInfo.MapEventFirstCount) {
+               case <= 100 :
+                  needString = GetLocalization("Weak wind from");
+                  break;
+               case <= 250 :
+                  needString = GetLocalization("Medium wind from");
+                  break;
+               default :
+                  needString = GetLocalization("Strong wind from");
+                  break;
+            }
+           needString += " "+GetLocalization(WindDirectionNames[mapEventInfo.MapEventSecondCount]);
+            break;
+      }
+      return needString;
+   }
+   
+   private string[] WindDirectionNames = new[] {
+      "North",      // (0, 1)
+      "West",       // (-1, 0)
+      "South",      // (0, -1)
+      "Southeast",  // (1, -1)
+      "East",       // (1, 0)
+      "Northeast",  // (1, 1)
+      "Southwest",  // (-1, -1)
+      "Northwest"   // (-1, 1)
+   };
 }

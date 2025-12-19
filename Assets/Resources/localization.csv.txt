@@ -200,3 +200,14 @@ No space in garage,No space in garage,Нет места в гараже,Kein Pla
 Main car,Main Car,Основная машина,Hauptauto,Coche Principal,Voiture Principale
 Continue,Continue,Продолжить,Weiter,Continuar,Continuer
 Sold,Sold,Продано,Verkauft,Vendido,Vendu
+Strong wind from,Strong wind:,Сильный ветер:,Starker Wind:,Fuerte viento:,Vent fort:
+Medium wind from,Medium wind:,Умеренный ветер:,Mittlerer Wind:,Viento medio:,Vent moyen:
+Weak wind from,Weak wind:,Слабый ветер:,Schwacher Wind:,Viento débil:,Vent faible:
+North,Northern,Северный,Nördlich,Del Norte,Du Nord
+West,Western,Западный,Westlich,Del Oeste,De l'Ouest
+South,Southern,Южный,Südlich,Del Sur,Du Sud
+Southeast,Southeastern,Юго-Восточный,Südöstlich,Del Sureste,Du Sud-Est
+East,Eastern,Восточный,Östlich,Del Este,De l'Est
+Northeast,Northeastern,Северо-Восточный,Nordöstlich,Del Noreste,Du Nord-Est
+Southwest,Southwestern,Юго-Западный,Südwestlich,Del Suroeste,Du Sud-Ouest
+Northwest,Northwestern,Северо-Западный,Nordwestlich,Del Noroeste,Du Nord-Ouest

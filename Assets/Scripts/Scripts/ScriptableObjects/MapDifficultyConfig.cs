@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "MapDifficultyConfig", menuName = "Scriptable Objects/MapDifficultyConfig")]
@@ -10,7 +11,7 @@ public class MapDifficultyConfig : ScriptableObject
     [field: SerializeField]
     public float DamageMultiplayer { get; private set; }
     [field: SerializeField]
-    public MapEventsType[] MapEvents { get; private set; }
+    public List<MapEventInfo> MapEvents { get; private set; }
     [field: SerializeField]
     public int ScrapForRound { get; private set; }
     [field: SerializeField]
@@ -28,6 +29,12 @@ public class MapDifficultyConfig : ScriptableObject
 public enum MapEventsType {
     None,
     StrongWind
+}
+[System.Serializable]
+public class MapEventInfo {
+   public MapEventsType MapEventType;
+   public float MapEventFirstCount;
+   public int MapEventSecondCount;
 }
 
 

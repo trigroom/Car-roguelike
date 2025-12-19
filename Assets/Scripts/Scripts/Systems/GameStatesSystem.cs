@@ -18,6 +18,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsCustomInject<BetweenScenesService> _betweenScenesService;
 
     private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
+    private EcsPoolInject<WindComponent> _windComponentsPool;
     private EcsPoolInject<CarComponent> _carComponentsPool;
     private EcsPoolInject<MovementComponent> _movementComponentsPool;
     private EcsPoolInject<CarPartCellComponent> _cellComponentsPool;
@@ -68,7 +69,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
         curGameCmp.DifficultyDamageMultiplayer = difficultyConfig.DamageMultiplayer;
         curGameCmp.DifficultyHealthMultiplayer = difficultyConfig.HealthMultiplayer;
-           
+
+        if (difficultyConfig.MapEvents != null)
+            foreach (var mapEvent in difficultyConfig.MapEvents) {
+                if (mapEvent.MapEventType == MapEventsType.StrongWind) {
+                    ref var windCmp = ref _windComponentsPool.Value.Add(playerEntity);
+                    windCmp.WindDirection = WindDirections[mapEvent.MapEventSecondCount];
+                    windCmp.WindSpeed = mapEvent.MapEventFirstCount;
+                    break;
+                }
+            }
+        
         _settingsComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).pixelizedEffectIsUsed = true;
         _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
         _sceneService.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
@@ -92,6 +103,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetupSupportBox();
     }
 
+    private Vector2[] WindDirections = new[] {
+        new Vector2(0, 1), new Vector2(-1, 0), new Vector2(0, -1), new Vector2(1, -1), new Vector2(1, 0), new Vector2(1, 1), new Vector2(-1, -1),
+        new Vector2(-1, 1)
+    };
+    
     public void Run(IEcsSystems systems) {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 

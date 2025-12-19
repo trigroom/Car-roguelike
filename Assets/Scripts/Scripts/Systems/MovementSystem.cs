@@ -16,6 +16,7 @@ public class MovementSystem : IEcsRunSystem {
     private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
     private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
     private EcsPoolInject<CurrentGameComponent> _currentGameComponentsPool;
+    private EcsPoolInject<WindComponent> _windComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
@@ -198,9 +199,16 @@ public class MovementSystem : IEcsRunSystem {
                 movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
                // if (movementCmp.MovableObjectRigidbody.linearVelocity.magnitude > movementCmp.Acceleration && movementCmp.MovableObjectRigidbody.linearVelocity.magnitude < movementCmp.Deceleration)
                     movementCmp.MovableObjectRigidbody.AddForce(moveObjectTransform.up * movementCmp.CurrentMoveSpeed*carCmp.CurrentWeight/10, ForceMode2D.Force);
+                
             } else
                 movementCmp.CantMoveTime -= deltaTime;
 
+            if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
+                var windCmp = _windComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+                movementCmp.MovableObjectRigidbody.AddForce(windCmp.WindDirection * windCmp.WindSpeed, ForceMode2D.Force);
+            }
+                
+            
             carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
             carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
 
