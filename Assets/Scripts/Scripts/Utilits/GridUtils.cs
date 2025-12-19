@@ -112,7 +112,7 @@ public class GridUtils : MonoBehaviour {
 
         foreach (var needPosition in needPositions) {
             
-            if (needPosition.y + 1 < rows && grid[needPosition.x, needPosition.y + 1] != 0) 
+            if (needPosition.y + 1 < cols && grid[needPosition.x, needPosition.y + 1] != 0) 
                 uniqueNeighbors.Add( grid[needPosition.x, needPosition.y + 1]);
 
             if (needPosition.y - 1 >= 0 && grid[needPosition.x, needPosition.y - 1] != 0) 
@@ -121,7 +121,8 @@ public class GridUtils : MonoBehaviour {
             if (needPosition.x - 1 >= 0 && grid[needPosition.x - 1, needPosition.y] != 0) 
                 uniqueNeighbors.Add(grid[needPosition.x - 1, needPosition.y]);
 
-            if (needPosition.x + 1 < cols && grid[needPosition.x + 1, needPosition.y] != 0) 
+            Debug.Log(needPosition.x + 1 + "x"+rows);
+            if (needPosition.x + 1 < rows && grid[needPosition.x + 1, needPosition.y] != 0) 
                 uniqueNeighbors.Add(grid[needPosition.x + 1, needPosition.y]);
         }
 
@@ -242,7 +243,9 @@ public class GridUtils : MonoBehaviour {
         
         return defenceMultiplier;
     }
-    
+    public static float GetHealthLevelMultiplier(int level) => 1 +level * 0.1f ;
+       
+    public static float GetMaxWeightLevelMultiplier(int level) => 1 +level * 0.08f ;
     public static (float firstMultiplayer, float secondMultiplayer)GetSupportLevelMultipliers(int level, SupportModuleType supportModuleType) {
        
         float firstCountMultiplayer=1;

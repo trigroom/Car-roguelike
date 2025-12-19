@@ -59,6 +59,7 @@ public enum AttackType {
         public void Run(IEcsSystems systems) {
             foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
                 EndRound();
+                ClearHealthUI();
                 foreach (var completeTask in _completeTaskEventsFilter.Value) {
                     _completeTaskEventsPool.Value.Del(completeTask);
                     
@@ -264,7 +265,6 @@ public enum AttackType {
             DestroyAllCars();
 
             DestroyBrokenParts();
-
             SetPlayerCarGrids();
             if(!_updateCarsStatsInfoEventsPool.Value.Has(_sceneService.Value.PlayerEntity))
             _updateCarsStatsInfoEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
@@ -444,6 +444,12 @@ public enum AttackType {
                 currentProjectile.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
             }
 
+            if (gunConfig.CarRecoil != 0) {
+                Vector2 recoilDirection = -gunCmp.GunSpriteRenderer.transform.up;
+                  _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MovableObjectRigidbody
+                                    .AddForce(gunConfig.CarRecoil * recoilDirection, ForceMode2D.Impulse);
+            }
+              
             gunCmp.CurrentMagazineCount--;
             if (gunCmp.CurrentMagazineCount > 0) {
                 gunCmp.CurrentCountdown += gunCmp.CurrentMaxAttackCountdown;
@@ -817,10 +823,10 @@ public enum AttackType {
                     }
 
                     _sceneService.Value.ReleaseCarPartCell(carPart);
-                    if (isPlayer && inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]) {
+                 /*   if (isPlayer && inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]) {
                         _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]);
                         inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y] = null;
-                    }
+                    }*/
                     
                         
                 }
@@ -852,10 +858,10 @@ public enum AttackType {
                     carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] = 0;
                     string needLayer = !isEnemy ? "CarBase" : "CarBaseEnemy";
                     carPart.SetupCarPart(gridPos, needLayer, carPartCmp.MainEntity);
-                    if (isPlayer && inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]) {
+                   /* if (isPlayer && inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]) {
                          _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]);
                          inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y] = null;
-                    }
+                    }*/
                        
                 }
 
@@ -1024,6 +1030,29 @@ public enum AttackType {
                 _destroyEntityEventsPool.Value.Add(carEntity);
                 DataPersistenceManagerSystem._gameData.BrokenCars++;
                 CheckTasks(TaskType.Kills);
+            }
+        }
+
+        private void ClearHealthUI() {
+            ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        
+
+            for (int i = 0; i < inventoryCmp.CarPartInfoUIViewsGrid.GetLength(0); i++) {
+                for (int j = 0; j < inventoryCmp.CarPartInfoUIViewsGrid.GetLength(1); j++) {
+                    if (inventoryCmp.CarPartInfoUIViewsGrid[i, j]) {
+                        _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsGrid[i, j]);
+                        inventoryCmp.CarPartInfoUIViewsGrid[i, j] = null;
+                    }
+                }
+            }
+          
+            for (int i = 0; i < inventoryCmp.CarPartInfoUIViewsUpLevelGrid.GetLength(0); i++) {
+                for (int j = 0; j < inventoryCmp.CarPartInfoUIViewsUpLevelGrid.GetLength(1); j++) {
+                    if (inventoryCmp.CarPartInfoUIViewsUpLevelGrid[i, j]) {
+                        _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsUpLevelGrid[i, j]);
+                        inventoryCmp.CarPartInfoUIViewsUpLevelGrid[i, j] = null;
+                    }
+                }
             }
         }
         private void BuildNewBorder(int entity) {

@@ -26,6 +26,8 @@ public class GunConfig : CarPartConfig
     public EffectType EffectType;
     public float EffectDuration;
     public int BreakingThroughCount;
+    
+    public float CarRecoil;
 }
 
 public enum MissleType {

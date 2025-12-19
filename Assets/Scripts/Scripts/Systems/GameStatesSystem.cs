@@ -1060,9 +1060,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         int needRotate = rotateAngle;
         var needList = isContainer ? carCmp.CarPartContainerGroupsList : carCmp.CarPartGroupsList;
         Vector2Int carPartSize = GridUtils.GetCarPartSize(carPartConfig);
-        carPartCmp.MaxHealth = carPartConfig.MaxHealth;
+        carPartCmp.MaxHealth = carPartConfig.MaxHealth*GridUtils.GetHealthLevelMultiplier(carPartCmp.PartLevel);
         if (carPartCmp.CurrentHealth == 0)
-            carPartCmp.CurrentHealth = carPartConfig.MaxHealth;
+            carPartCmp.CurrentHealth = carPartCmp.MaxHealth;
 
         carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
         foreach (var carPartInfo in needList[cellEntity]) {
@@ -1186,7 +1186,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         } else if (carPartConfig.PartType == CarPartType.WheelsContainer) {
             var wheelsConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
-            carCmp.CurrentMaxWeight += wheelsConfig.MaxWeight;
+            carCmp.CurrentMaxWeight += wheelsConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCmp.PartLevel);
         }
     }
 

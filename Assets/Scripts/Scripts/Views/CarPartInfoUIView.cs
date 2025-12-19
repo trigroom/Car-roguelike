@@ -54,6 +54,7 @@ public class CarPartInfoUIView : MonoBehaviour
         _upgradeButton.triggers.Add(exitEntry);
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
+
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
         float currentHealth, float healCost) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
@@ -67,16 +68,11 @@ public class CarPartInfoUIView : MonoBehaviour
             _upgradeButton.enabled = false;
             _upgradeButtonText.text = GetLocalization("Max level");
         }
-            
-        
-        //_upgradeButton.gameObject.SetActive(carPartConfig.UpgradedPartId != 0);
 
-        _nameText.text = GetLocalization(carPartConfig.PartName);
+        _nameText.text = $"{GetLocalization(carPartConfig.PartName)}\n{carPartLevel + 1} {GetLocalization("lvl")}.";
 
-        if (carPartLevel != 0)
-            _nameText.text += $"\n{carPartLevel} {GetLocalization("lvl")}.";
-        _healCarPartButton.gameObject.SetActive(healCost > 0);
-        if (healCost > 0) {
+        _healCarPartButton.gameObject.SetActive(healCost > 0.01f);
+        if (healCost > 0.01f) {
             _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost}$";
             _healCarPartText.color = Color.clear;
         }
@@ -98,11 +94,13 @@ public class CarPartInfoUIView : MonoBehaviour
     };
 
     public void SetDescriptionInfo(bool isUpdate) {
-    
-        _descriptionText.text =
-            $"{CurrentMarkedCarPartHealth:F2}/{_currentCarPartConfig.MaxHealth} {GetLocalization("HP")} \n{GetLocalization("Part rare")}:" +
-            $" {GetLocalization(_currentCarPartConfig.RartRare.ToString())}\n{GetLocalization("Weight")}: {_currentCarPartConfig.Weight} {GetLocalization("kg")}";
         int needLevel = isUpdate ? _level + 1 : _level;
+        float maxHealth = _currentCarPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(needLevel);
+        _descriptionText.text = $"{CurrentMarkedCarPartHealth:F2}/";
+        _descriptionText.text += isUpdate ?  $"<color=#5bca4a>{maxHealth:F2}</color>":$"{maxHealth:F2}";
+        _descriptionText.text += $" {GetLocalization("HP")} \n{GetLocalization("Part rare")}:" +
+                                 $" {GetLocalization(_currentCarPartConfig.RartRare.ToString())}\n{GetLocalization("Weight")}: {_currentCarPartConfig.Weight} {GetLocalization("kg")}";
+       
         
         if (_currentCarPartConfig.PartType == CarPartType.Gun) {
             if (_currentCarPartConfig is GunConfig gunConfig) {
@@ -145,7 +143,7 @@ public class CarPartInfoUIView : MonoBehaviour
                     _descriptionText.text += $"\n{GetLocalization("Defence")}: {defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)";
                 else
                     _descriptionText.text +=
-                        $"\n{GetLocalization("")}Defence: <color=#5bca4a>{defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)</color>";
+                        $"\n{GetLocalization("Defence")}: <color=#5bca4a>{defencePoints} ({defencePoints / (defencePoints + 100f) * 100f:F2}%)</color>";
 
                 if (armorConfig.DefenceDirections.Count == 4)
                     _descriptionText.text += $"\n{GetLocalization("Defence from all directions")}";
@@ -162,7 +160,9 @@ public class CarPartInfoUIView : MonoBehaviour
         }
         else if (_currentCarPartConfig.PartType == CarPartType.WheelsContainer) {
             if (_currentCarPartConfig is WheelsContainerConfig wheelConfig) {
-                _descriptionText.text += $"\n{GetLocalization("Car max weight")}: {wheelConfig.MaxWeight}";
+                var maxWeight = wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(needLevel);
+                _descriptionText.text += $"\n{GetLocalization("Car max weight")}: ";
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{maxWeight}</color>" : maxWeight;
             }
         }
     }
@@ -250,6 +250,9 @@ public class CarPartInfoUIView : MonoBehaviour
 
             if (gunConfig.BreakingThroughCount > 1)
                 _descriptionText.text += $"\n{GetLocalization("Pierce count")}: {gunConfig.BreakingThroughCount}";
+            
+            if (gunConfig.CarRecoil > 0)
+                _descriptionText.text += $"\n{GetLocalization("Car recoil")}: {gunConfig.CarRecoil}";
         }
 
         if (gunConfig.MaxRotateAngle != 0) {

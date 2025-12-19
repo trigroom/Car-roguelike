@@ -211,3 +211,4 @@ East,Eastern,Восточный,Östlich,Del Este,De l'Est
 Northeast,Northeastern,Северо-Восточный,Nordöstlich,Del Noreste,Du Nord-Est
 Southwest,Southwestern,Юго-Западный,Südwestlich,Del Suroeste,Du Sud-Ouest
 Northwest,Northwestern,Северо-Западный,Nordwestlich,Del Noroeste,Du Nord-Ouest
+Car recoil,Shot Push,Толчок от выстрела,Schub vom Schuss,Empuje disparo,Poussée tir
