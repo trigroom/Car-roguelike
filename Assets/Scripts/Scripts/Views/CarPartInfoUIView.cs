@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class CarPartInfoUIView : MonoBehaviour
 {
+    [field: SerializeField] public ModuleStuffView[] _moduleViews { get; private set; }
     [field: SerializeField] public TMP_Text _healCarPartText { get; private set; }
     [field: SerializeField] public Button _healCarPartButton { get; private set; }
     [field: SerializeField] public Button _closeInfoPanelButton { get; private set; }
@@ -56,7 +57,7 @@ public class CarPartInfoUIView : MonoBehaviour
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
-        float currentHealth, float healCost) {
+        float currentHealth, float healCost, bool isShop) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
@@ -69,8 +70,14 @@ public class CarPartInfoUIView : MonoBehaviour
             _upgradeButtonText.text = GetLocalization("Max level");
         }
 
-        _nameText.text = $"{GetLocalization(carPartConfig.PartName)}\n{carPartLevel + 1} {GetLocalization("lvl")}.";
+        _nameText.text = $"{GetLocalization(carPartConfig.PartName)}";
+        if(!isShop)
+            _nameText.text +=  $"\n{carPartLevel + 1} {GetLocalization("lvl")}.";
 
+        for (int i = 0; i < _moduleViews.Length; i++) {
+            _moduleViews[i].gameObject.SetActive((int)carPartConfig.RartRare+1 > i && !isShop);
+        }
+        
         _healCarPartButton.gameObject.SetActive(healCost > 0.01f);
         if (healCost > 0.01f) {
             _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost}$";
@@ -90,7 +97,7 @@ public class CarPartInfoUIView : MonoBehaviour
         {CarPartRare.Low, 3},
         {CarPartRare.Medium, 5},
         {CarPartRare.High, 7},
-        {CarPartRare.VeryHigh, 10}
+        {CarPartRare.VeryHigh, 9}
     };
 
     public void SetDescriptionInfo(bool isUpdate) {

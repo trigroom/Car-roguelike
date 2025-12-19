@@ -9,7 +9,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
 
     private EcsPoolInject<CurrentGameComponent> _сurrentGameComponentsPool;
     private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
-    private EcsPoolInject<InventoryCellComponent> _inventoryCellComponentsPool;
+    private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
     private EcsPoolInject<CarComponent> _carComponentsPool;
     private EcsPoolInject<PlayerCurrencyComponent> _playerCurrencyComponentsPool;
     
@@ -83,7 +83,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
         } else if (_tutorialStep == 5 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0 ) {
             foreach (var inventoryCellEntity in _inventoryCellComponentsFilter.Value) {
-                if (_sceneData.Value.GetCarPartConfig(_inventoryCellComponentsPool.Value.Get(inventoryCellEntity).CarPartId).PartType ==
+                if (_sceneData.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(inventoryCellEntity).CarPartId).PartType ==
                     CarPartType.CarStuffContainer) {
                     _tutorialStep = 6;
                     var carPartRedactModeButtonPosition = _sceneData.Value._inventoryUIView._changeToRedactModeButton.transform.position;
