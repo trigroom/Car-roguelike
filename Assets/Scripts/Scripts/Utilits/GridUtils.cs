@@ -242,6 +242,29 @@ public class GridUtils : MonoBehaviour {
         
         return defenceMultiplier;
     }
+    
+    public static (float firstMultiplayer, float secondMultiplayer)GetSupportLevelMultipliers(int level, SupportModuleType supportModuleType) {
+       
+        float firstCountMultiplayer=1;
+        float secondCountMultiplayer=1;
+        switch (supportModuleType) {
+            case SupportModuleType.Fuel :
+                firstCountMultiplayer+=level*0.13f;
+                break;
+            case SupportModuleType.Money :
+                firstCountMultiplayer+=level*0.15f;
+                break;
+            case SupportModuleType.Ammo :
+                firstCountMultiplayer+=level*0.1f;
+                break;
+            case SupportModuleType.Turbine :
+                firstCountMultiplayer+=level*0.05f;
+                secondCountMultiplayer+=level*0.15f;
+                break;
+        }
+        
+        return (firstCountMultiplayer, secondCountMultiplayer);
+    }
 
     public static (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier)
         GetCarLevelMultipliers(int level) {

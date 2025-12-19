@@ -351,7 +351,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var supportModule = _sceneService.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
             if (supportModule && _carPartComponentsPool.Value.Get(carPartInfo.Key).CurrentHealth > 0 &&
                 supportModule.ModuleType == SupportModuleType.Money) {
-                moneyCount += (int)supportModule.FirstCount;
+                moneyCount += (int)(supportModule.FirstCount * GridUtils.GetSupportLevelMultipliers(carPartCmp.PartLevel, supportModule.ModuleType).firstMultiplayer);
             }
                 
         }
@@ -871,7 +871,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 foreach (var neighbor in neighbors) {
                     int neighborCarPartId = _carPartComponentsPool.Value.Get(neighbor).CarPartId;
                     if (_sceneService.Value.GetCarPartConfig(neighborCarPartId).PartType == CarPartType.Gun)
-                        _gunComponentsPool.Value.Get(neighbor).CurrentReloadSpeed *= 1f - supportConfig.FirstCount;
+                        _gunComponentsPool.Value.Get(neighbor).CurrentReloadSpeed *= 1f - supportConfig.FirstCount *
+                            GridUtils.GetSupportLevelMultipliers(_carPartComponentsPool.Value.Get(neighbor).PartLevel, supportConfig.ModuleType)
+                                .firstMultiplayer;
                 }
             }
         }
@@ -1169,16 +1171,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             _constructMeleeCellEventsPool.Value.Add(cellEntity);
         } else if (carPartConfig.PartType == CarPartType.Support) {
             var supportCarPartConfig = _sceneService.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
+            (float firstMultiplayer,float secondMultiplayer)= GridUtils.GetSupportLevelMultipliers(carPartCmp.PartLevel, supportCarPartConfig.ModuleType);
             switch (supportCarPartConfig.ModuleType) {
                 case SupportModuleType.Fuel:
                     ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
-                    fuelCmp.CurrentFuel += supportCarPartConfig.FirstCount;
-                    fuelCmp.MaxFuel += supportCarPartConfig.FirstCount;
+                    fuelCmp.CurrentFuel += supportCarPartConfig.FirstCount*firstMultiplayer;
+                    fuelCmp.MaxFuel += supportCarPartConfig.FirstCount*firstMultiplayer;
                     Debug.Log(fuelCmp.MaxFuel); //id breack delete current fuel
                     break;
                 case SupportModuleType.Turbine:
-                    _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption += supportCarPartConfig.FirstCount;
-                    _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed += supportCarPartConfig.SecondCount;
+                    _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption += supportCarPartConfig.FirstCount*firstMultiplayer;
+                    _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed += supportCarPartConfig.SecondCount*secondMultiplayer;
                     break;
             }
         } else if (carPartConfig.PartType == CarPartType.WheelsContainer) {

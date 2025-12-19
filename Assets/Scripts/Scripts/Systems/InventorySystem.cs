@@ -1490,11 +1490,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             carWeight += carPartConfig.Weight;
             if (carPartConfig.PartType == CarPartType.Support) {
                 var supportPartConfig = _sceneData.Value.GetSupportModuleFromCarPart(carPartId);
+                (float firstMultiplayer,float secondMultiplayer)= GridUtils.GetSupportLevelMultipliers(carPartCellCmp.PartLevel, supportPartConfig.ModuleType);
                 if (supportPartConfig.ModuleType == SupportModuleType.Fuel)
-                    maxFuel += supportPartConfig.FirstCount;
+                    maxFuel += supportPartConfig.FirstCount*firstMultiplayer;
                 else if (supportPartConfig.ModuleType == SupportModuleType.Turbine) {
-                    defaultMaxCarSpeed += supportPartConfig.SecondCount;
-                    defaultFuelConsumption += supportPartConfig.FirstCount;
+                    defaultMaxCarSpeed += supportPartConfig.SecondCount*secondMultiplayer;
+                    defaultFuelConsumption += supportPartConfig.FirstCount*firstMultiplayer;
                 }
             }
         }

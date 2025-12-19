@@ -860,16 +860,17 @@ public enum AttackType {
                 }
 
                 if (carPartConfig.PartType == CarPartType.Support) {
-                    var supportCarPartConfig = _sceneService.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId);
+                    var supportCarPartConfig = _sceneService.Value.GetSupportModuleFromCarPart(carPartCmp.CarPartId); 
+                    (float firstMultiplayer,float secondMultiplayer)= GridUtils.GetSupportLevelMultipliers(carPartCmp.PartLevel, supportCarPartConfig.ModuleType);
                     switch (supportCarPartConfig.ModuleType) {
                         case SupportModuleType.Fuel:
                           
-                            fuelCmp.MaxFuel -= supportCarPartConfig.FirstCount;
+                            fuelCmp.MaxFuel -= supportCarPartConfig.FirstCount*firstMultiplayer;
                             fuelCmp.CurrentFuel = Mathf.Min(fuelCmp.MaxFuel, fuelCmp.CurrentFuel);
                             break;
                         case SupportModuleType.Turbine:
-                            _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption -= supportCarPartConfig.FirstCount;
-                            _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed -= supportCarPartConfig.SecondCount;
+                            _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption -= supportCarPartConfig.FirstCount*firstMultiplayer;
+                            _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed -= supportCarPartConfig.SecondCount*secondMultiplayer;
                             break;
                     }
                 }

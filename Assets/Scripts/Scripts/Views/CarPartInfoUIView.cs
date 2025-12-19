@@ -91,10 +91,10 @@ public class CarPartInfoUIView : MonoBehaviour
     }
 
     private Dictionary<CarPartRare, int> _maxLevelsForRare = new Dictionary<CarPartRare, int>() {
-        {CarPartRare.Low, 5},
-        {CarPartRare.Medium, 7},
-        {CarPartRare.High, 10},
-        {CarPartRare.VeryHigh, 15}
+        {CarPartRare.Low, 3},
+        {CarPartRare.Medium, 5},
+        {CarPartRare.High, 7},
+        {CarPartRare.VeryHigh, 10}
     };
 
     public void SetDescriptionInfo(bool isUpdate) {
@@ -169,19 +169,33 @@ public class CarPartInfoUIView : MonoBehaviour
 
     private void SetSupportPartInfo(SupportModuleCarPartConfig supportConfig, int level, bool isUpdate) {
         //now level doesnt scale stats
-
+        (float firstMultiplayer,float secondMultiplayer)= GridUtils.GetSupportLevelMultipliers(level, supportConfig.ModuleType);
         switch (supportConfig.ModuleType) {
             case SupportModuleType.Fuel:
-                _descriptionText.text += $"\n{GetLocalization("Added fuel")}: {supportConfig.FirstCount}";
+                _descriptionText.text += $"\n{GetLocalization("Added fuel")}: ";
+                var needCount = supportConfig.FirstCount * firstMultiplayer;
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCount}</color>" : needCount;
                 break;
             case SupportModuleType.Turbine:
-                _descriptionText.text += $"\n{GetLocalization("Added fuel consumption")}: {supportConfig.FirstCount}\n {GetLocalization("Added max move speed")}: {supportConfig.SecondCount}";
+                _descriptionText.text +=
+                    $"\n{GetLocalization("Added fuel consumption")}: ";
+                var needCountTurbine = supportConfig.FirstCount * firstMultiplayer;
+                var needSecondCountTurbine = supportConfig.FirstCount * firstMultiplayer;
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountTurbine}</color>" : needCountTurbine;
+                _descriptionText.text +=
+                    $"\n {GetLocalization("Added max move speed")}: ";
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needSecondCountTurbine}</color>" : needSecondCountTurbine;
                 break;
             case SupportModuleType.Money:
-                _descriptionText.text += $"\n{GetLocalization("Added money after end round")}: {supportConfig.FirstCount}";
+                _descriptionText.text += $"\n{GetLocalization("Added money after end round")}: ";
+                var needCountMoney = supportConfig.FirstCount * firstMultiplayer;
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountMoney}</color>" : needCountMoney;
                 break;
             case SupportModuleType.Ammo:
-                _descriptionText.text += $"\n{GetLocalization("Boost reload speed neighboring cells")}: {supportConfig.FirstCount*100}%";
+                _descriptionText.text += $"\n{GetLocalization("Boost reload speed neighboring cells")}: ";
+                var needCountAmmo = supportConfig.FirstCount * firstMultiplayer * 100;
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountAmmo}</color>" : needCountAmmo;
+                _descriptionText.text += "%";
                 break;
         }
     }

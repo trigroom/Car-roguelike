@@ -3288,6 +3288,7 @@ MonoBehaviour:
   - {fileID: 258883860}
   - {fileID: 2015375432}
   - {fileID: 882902118}
+  - {fileID: 1760697525}
   _keys:
   - Choose car
   - Choose map
@@ -3303,6 +3304,7 @@ MonoBehaviour:
   - Shop
   - Achievements
   - Continue
+  - Back
 --- !u!4 &541622411
 Transform:
   m_ObjectHideFlags: 0
