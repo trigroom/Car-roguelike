@@ -31,8 +31,9 @@ public class InventoryCellView : MonoBehaviour, IPointerDownHandler
     public void SetInventoryCellSprite(Sprite sprite, Sprite upSprite, Vector2 size, Vector2 position, int entity) {
          _entity = entity;
         _inventoryCellImage.sprite = sprite;
+       
+        if(size == Vector2.zero)return; 
         _inventoryUpCellImage.sprite = upSprite;
-        if(size == Vector2.zero)return;
         _inventoryUpCellImage.rectTransform.sizeDelta = size;
         _inventoryUpCellImage.rectTransform.localPosition = position;
     }

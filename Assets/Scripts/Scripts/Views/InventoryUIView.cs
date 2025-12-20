@@ -3,7 +3,14 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class InventoryUIView : MonoBehaviour
-{
+{ 
+    [field: SerializeField]
+    public Transform _modulesInventoryContainer { get;private set; }
+    [field: SerializeField]
+    public TMP_Text _inventoryModeText { get;private set; }
+    [field: SerializeField]
+    public Button _inventoryModeButton { get;private set; }
+  
     [field: SerializeField]
     public RectTransform _rotateCarPartIconContainer { get;private set; }
     [field: SerializeField]
@@ -51,6 +58,8 @@ public class InventoryUIView : MonoBehaviour
     
     [field: SerializeField]
     public Button _nextInventoryCellsButton { get;private set; }
+    [field: SerializeField]
+    public InventoryCellView[] _moduleInventoryCellViews { get;private set; }
     [field: SerializeField]
     public InventoryCellView[] _inventoryCellViews { get;private set; }
     [field: SerializeField]

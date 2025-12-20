@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class CarPartInfoUIView : MonoBehaviour
 {
+    [field: SerializeField] public Transform _moduleContainer { get; private set; }
     [field: SerializeField] public ModuleStuffView[] _moduleViews { get; private set; }
     [field: SerializeField] public TMP_Text _healCarPartText { get; private set; }
     [field: SerializeField] public Button _healCarPartButton { get; private set; }
@@ -56,11 +57,22 @@ public class CarPartInfoUIView : MonoBehaviour
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
+    public void SetPanelForModuleInfo(ModuleConfig moduleConfig) {
+        _destroyButton.gameObject.SetActive(true);
+        _moveToInventoryButton.gameObject.SetActive(false);
+        _upgradeButton.gameObject.SetActive(false);
+            _moduleContainer.gameObject.SetActive(false);
+            _nameText.text =  GetLocalization(moduleConfig.ModuleName);
+            _carPartIconUpLevel.gameObject.SetActive(false);
+            _carPartIcon.sprite = moduleConfig.ModuleIcon;
+            _descriptionText.text = "";
+    }
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
-        float currentHealth, float healCost, bool isShop) {
+        float currentHealth, float healCost, bool isShop, int[] moduleIds ) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
+        _moduleContainer.gameObject.SetActive(true);
         CurrentMarkedCarPartHealth = currentHealth;
         if (GridUtils.GetUpgradeCost(carPartLevel, carPartConfig) != 0 && _maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
             _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig).ToString()}$ {GetLocalization("to upgrade")}";
@@ -75,7 +87,15 @@ public class CarPartInfoUIView : MonoBehaviour
             _nameText.text +=  $"\n{carPartLevel + 1} {GetLocalization("lvl")}.";
 
         for (int i = 0; i < _moduleViews.Length; i++) {
-            _moduleViews[i].gameObject.SetActive((int)carPartConfig.RartRare+1 > i && !isShop);
+            _moduleViews[i].gameObject.SetActive((int)carPartConfig.RartRare + 1 > i && !isShop);
+            if ((int)carPartConfig.RartRare + 1 > i && !isShop && moduleIds[i] != -1) {
+                _moduleViews[i].ModuleIcon.sprite = BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs[moduleIds[i]].ModuleIcon;
+                _moduleViews[i].ModuleButton.enabled = false;
+                _moduleViews[i].ModuleIcon.color = Color.white;
+            } else {
+                _moduleViews[i].ModuleIcon.color = Color.clear;
+                _moduleViews[i].ModuleButton.enabled = true;
+            }
         }
         
         _healCarPartButton.gameObject.SetActive(healCost > 0.01f);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CarPartConfig", menuName = "Scriptable Objects/CarPartConfig")]
@@ -30,7 +31,7 @@ public class CarPartConfig : ScriptableObject {
     public string PartName { get; private set; }
 
     [field: SerializeField]
-    public int DefaultModuleCount { get; private set; }
+    public List<ModuleType> ModuleTypes { get; private set; }
 
     [field: SerializeField]
     public Vector2Int[] PartForm { get; private set; }

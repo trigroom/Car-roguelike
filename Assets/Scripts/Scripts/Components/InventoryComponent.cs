@@ -30,9 +30,9 @@
         public Vector2Int LastCheckedGridCellPosition;
         public bool IsSnappingToGrid;
         public bool SelectCarButtonsNotInteractable;
-        
+        public bool IsModuleInventoryMode;
         public List<int> PlayerTeammateCarsEntity;
         public int CurrentRedactedCarEntity;
-
+        public int CurrentSelectedModuleCellId;
         public List<int> CurrentGivenItems;
     }

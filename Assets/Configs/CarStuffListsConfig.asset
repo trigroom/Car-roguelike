@@ -233,3 +233,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 539e2dd079d97ba448e23a2016a32c87, type: 2}
   - {fileID: 11400000, guid: 225cd5a1aeebb6945ae52aab548f7f48, type: 2}
   - {fileID: 11400000, guid: 2244bbdddeab3ba44b561e35805bffa6, type: 2}
+  <ModuleConfigs>k__BackingField:
+  - {fileID: 11400000, guid: 014e4a7372e5526458fd17166ab93f43, type: 2}
+  - {fileID: 11400000, guid: a7b350f8c981ae0488141627541bb645, type: 2}

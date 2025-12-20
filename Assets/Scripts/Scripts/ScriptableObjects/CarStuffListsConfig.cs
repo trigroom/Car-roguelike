@@ -39,6 +39,8 @@ public class CarStuffListsConfig : ScriptableObject
     public AchivementConfig[] AchievementConfigs{ get;private set; }
     [field: SerializeField]
     public ShopItemConfig[] ShopItemConfigs{ get;private set; }
+    [field: SerializeField]
+    public ModuleConfig[] ModuleConfigs{ get;private set; }
 }
 
 [System.Serializable]
