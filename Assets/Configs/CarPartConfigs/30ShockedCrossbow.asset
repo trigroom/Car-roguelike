@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Shocked crossbow
-  <DefaultModuleCount>k__BackingField: 1
+  <ModuleTypes>k__BackingField: 000000000300000002000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 15
@@ -46,3 +46,4 @@ MonoBehaviour:
   EffectType: 3
   EffectDuration: 2
   BreakingThroughCount: 1
+  CarRecoil: 0

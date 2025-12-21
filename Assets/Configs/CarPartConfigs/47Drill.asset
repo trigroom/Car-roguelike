@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Drill
-  <DefaultModuleCount>k__BackingField: 0
+  <ModuleTypes>k__BackingField: 0100000002000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 1}

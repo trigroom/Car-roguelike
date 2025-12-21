@@ -15,7 +15,8 @@ MonoBehaviour:
   ModuleId: 0
   ModuleName: Sharp tip
   ModuleIcon: {fileID: 21300000, guid: 8589bfb4c39e9d84095b7102d7dabde7, type: 3}
-  ModuleType: 2
+  ModuleType: 3
+  Cost: 25
   ModuleBuffs:
   - BuffCount: 0.25
     Buff: 3

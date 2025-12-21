@@ -5,7 +5,9 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour
 { 
     [field: SerializeField]
-    public Transform _modulesInventoryContainer { get;private set; }
+    public Transform _cancelModuleTextPanelInfo { get;private set; }
+    [field: SerializeField]
+    public Transform _noModulesTextInventory { get;private set; }
     [field: SerializeField]
     public TMP_Text _inventoryModeText { get;private set; }
     [field: SerializeField]

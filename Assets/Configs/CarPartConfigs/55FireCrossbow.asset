@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Fire crossbow
-  <DefaultModuleCount>k__BackingField: 1
+  <ModuleTypes>k__BackingField: 0100000003000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
@@ -47,3 +47,4 @@ MonoBehaviour:
   EffectType: 1
   EffectDuration: 3
   BreakingThroughCount: 2
+  CarRecoil: 0

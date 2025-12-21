@@ -60,6 +60,10 @@ public enum CarPartType {
 }
 
 public enum ModuleType {
+    wooden,
+    metal,
+    mechanism,
+    tip,
     bullet,
     armor,
     blade,

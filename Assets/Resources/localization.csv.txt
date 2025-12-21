@@ -212,3 +212,6 @@ Northeast,Northeastern,Северо-Восточный,Nordöstlich,Del Noreste,
 Southwest,Southwestern,Юго-Западный,Südwestlich,Del Suroeste,Du Sud-Ouest
 Northwest,Northwestern,Северо-Западный,Nordwestlich,Del Noroeste,Du Nord-Ouest
 Car recoil,Shot Push,Толчок от выстрела,Schub vom Schuss,Empuje disparo,Poussée tir
+Modules,Modules,Модули,Module,Módulos,Modules
+No modules to this car part,No modules for this part,Нет модулей для этой детали,Keine Module für dieses Teil,Sin módulos para esta pieza,Pas de modules pour cette pièce
+Cancel,Cancel,Отмена,Abbrechen,Cancelar,Annuler

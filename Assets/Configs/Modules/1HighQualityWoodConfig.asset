@@ -15,7 +15,8 @@ MonoBehaviour:
   ModuleId: 1
   ModuleName: High quality wood
   ModuleIcon: {fileID: 21300000, guid: 554682c8a3601db43b13d30d1348f699, type: 3}
-  ModuleType: 1
+  ModuleType: 0
+  Cost: 20
   ModuleBuffs:
   - BuffCount: 0.3
     Buff: 1

@@ -61,11 +61,46 @@ public class CarPartInfoUIView : MonoBehaviour
         _destroyButton.gameObject.SetActive(true);
         _moveToInventoryButton.gameObject.SetActive(false);
         _upgradeButton.gameObject.SetActive(false);
-            _moduleContainer.gameObject.SetActive(false);
-            _nameText.text =  GetLocalization(moduleConfig.ModuleName);
-            _carPartIconUpLevel.gameObject.SetActive(false);
-            _carPartIcon.sprite = moduleConfig.ModuleIcon;
-            _descriptionText.text = "";
+        _moduleContainer.gameObject.SetActive(false);
+        _nameText.text = GetLocalization(moduleConfig.ModuleName);
+        _carPartIconUpLevel.gameObject.SetActive(false);
+        _carPartIcon.sprite = moduleConfig.ModuleIcon;
+        SetModuleDescription(moduleConfig);
+        _healCarPartButton.gameObject.SetActive(false);
+        _sellCarPartText.text = $"{GetLocalization("Sell for")} {moduleConfig.Cost}$";
+    }
+
+    private void SetModuleDescription(ModuleConfig moduleConfig) {
+         _descriptionText.text = "";
+
+         foreach (var moduleBuff in moduleConfig.ModuleBuffs) {
+             switch (moduleBuff.Buff) {
+                 case Buff.Damage:
+                     _descriptionText.text =
+                         $"\n{GetLocalization("Damage")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     break;
+                 case Buff.Health:
+                     _descriptionText.text =
+                         $"\n{GetLocalization("HP")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     break;
+                 case Buff.AttackSpeed:
+                     _descriptionText.text =
+                         $"\n{GetLocalization("Attack countdown")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     break;
+                 case Buff.UpgradeCost:
+                     _descriptionText.text =
+                         $"\n{GetLocalization("Upgrade cost")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     break;
+                 case Buff.ReloadSpeed:
+                     _descriptionText.text =
+                         $"\n{GetLocalization("Reload")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     break;
+                 case Buff.TargetPierceing:
+                     _descriptionText.text = $"\n{GetLocalization("Pierce count")}: +{moduleBuff.BuffCount}";
+                     break;
+             }
+         }
+         
     }
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
         float currentHealth, float healCost, bool isShop, int[] moduleIds ) {

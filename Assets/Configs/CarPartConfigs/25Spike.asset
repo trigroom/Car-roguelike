@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 4
   <PartName>k__BackingField: Spike
-  <DefaultModuleCount>k__BackingField: 1
+  <ModuleTypes>k__BackingField: 0300000000000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 10
