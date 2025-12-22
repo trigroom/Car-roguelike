@@ -545,8 +545,52 @@ public class GridUtils : MonoBehaviour {
         Debug.Log(gridStr);
     }
 
-    public static float GetSellValueForCarPart(CarPartConfig carPartConfig, int level) {
-        return carPartConfig.MoneyCost /2 + Mathf.Max(level-1, 0)*carPartConfig.UpgradedPartCost;
+    public static float GetSellValueForCarPart(CarPartConfig carPartConfig, int level, int[] moduleIds) {
+        float modulesCost = 0;
+        if (moduleIds != null)
+            foreach (var moduleId in moduleIds) {
+                if (moduleId == -1) continue;
+                var moduleConfig = BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs[moduleId];
+                modulesCost += moduleConfig.Cost;
+            }
+
+        return carPartConfig.MoneyCost / 2 + Mathf.Max(level - 1, 0) * carPartConfig.UpgradedPartCost + modulesCost;
+    }
+
+    public static ( float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount, float
+        reloadSpeedMultiplayer) GetModulesMultiplyers(int[] moduleIds) {
+        float damageMultiplayer = 1;
+        float attackSpeedMultiplayer = 1;
+        float healthMultiplayer = 1;
+        int targetPiercingAddedCount = 0;
+        float reloadSpeedMultiplayer = 1;
+
+        if (moduleIds != null)
+            foreach (var moduleId in moduleIds) {
+                if (moduleId == -1) continue;
+                var moduleConfig = BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs[moduleId];
+                foreach (var moduleBuff in moduleConfig.ModuleBuffs) {
+                    switch (moduleBuff.Buff) {
+                        case Buff.Damage:
+                            damageMultiplayer += moduleBuff.BuffCount;
+                            break;
+                        case Buff.AttackSpeed:
+                            attackSpeedMultiplayer += moduleBuff.BuffCount;
+                            break;
+                        case Buff.Health:
+                            healthMultiplayer += moduleBuff.BuffCount;
+                            break;
+                        case Buff.TargetPierceing:
+                            targetPiercingAddedCount += (int)moduleBuff.BuffCount;
+                            break;
+                        case Buff.ReloadSpeed:
+                            reloadSpeedMultiplayer += moduleBuff.BuffCount;
+                            break;
+                    }
+                }
+            }
+
+        return (damageMultiplayer, attackSpeedMultiplayer, healthMultiplayer, targetPiercingAddedCount, reloadSpeedMultiplayer);
     }
     
     public static ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(Vector2 cellSizeDelta, CarPartConfig carPartConfig) {

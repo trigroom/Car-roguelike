@@ -215,3 +215,4 @@ Car recoil,Shot Push,Толчок от выстрела,Schub vom Schuss,Empuje 
 Modules,Modules,Модули,Module,Módulos,Modules
 No modules to this car part,No modules for this part,Нет модулей для этой детали,Keine Module für dieses Teil,Sin módulos para esta pieza,Pas de modules pour cette pièce
 Cancel,Cancel,Отмена,Abbrechen,Cancelar,Annuler
+Physical damage,Impact Damage,Урон от удара,Aufprallschaden,Daño Impacto,Dégâts Impact

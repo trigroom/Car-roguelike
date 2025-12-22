@@ -428,7 +428,7 @@ public enum AttackType {
                     projectileCmp.IsActive = true;
                     projectileCmp.LifeTime = 50f / gunConfig.BulletSpeed;
                     projectileCmp.Damage = gunCmp.CurrentDamage;
-                    projectileCmp.CurrentBreakingThroughCount = gunConfig.BreakingThroughCount;
+                    projectileCmp.CurrentBreakingThroughCount = gunCmp.MaxPiercingCount;
                 } else {
                     int newEntity = _world.Value.NewEntity();
                     currentProjectile.entity = newEntity;
@@ -438,7 +438,7 @@ public enum AttackType {
                     projectileCmp.ProjectileView = currentProjectile;
                     projectileCmp.LifeTime = 50f / gunConfig.BulletSpeed;
                     projectileCmp.Damage = gunCmp.CurrentDamage;
-                    projectileCmp.CurrentBreakingThroughCount = gunConfig.BreakingThroughCount;
+                    projectileCmp.CurrentBreakingThroughCount = gunCmp.MaxPiercingCount;
                 }
 
                 if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)
