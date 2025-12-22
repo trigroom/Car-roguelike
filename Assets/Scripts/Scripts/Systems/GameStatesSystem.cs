@@ -932,6 +932,61 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 SpawnTeammateCar(carEntity);
         }
     }
+    
+    public void SetModuleBuffs(int carPartEntity) {
+        ref var carPartInfo = ref _carPartInfoComponentsPool.Value.Get(carPartEntity);
+        var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfo.CarPartId);
+        var moduleIds = carPartInfo.ModuleIds;
+
+        float damageMultiplayer = 1;
+        float attackSpeedMultiplayer = 1;
+        float healthMultiplayer = 1;
+        int targetPiercingAddedCount = 1;
+        float reloadSpeedMultiplayer = 1;
+        
+        foreach (var moduleId in moduleIds) {
+            if(moduleId == -1)continue;
+            var moduleConfig = _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleId];
+            foreach (var moduleBuff in moduleConfig.ModuleBuffs) {
+                switch (moduleBuff.Buff) {
+                    case Buff.Damage:
+                        damageMultiplayer += moduleBuff.BuffCount;
+                        break;
+                    case Buff.AttackSpeed:
+                        attackSpeedMultiplayer += moduleBuff.BuffCount;
+                        break;
+                    case Buff.Health:
+                        healthMultiplayer += moduleBuff.BuffCount;
+                        break;
+                    case Buff.TargetPierceing:
+                        targetPiercingAddedCount += (int)moduleBuff.BuffCount;
+                        break;
+                    case Buff.ReloadSpeed:
+                        reloadSpeedMultiplayer += moduleBuff.BuffCount;
+                        break;
+                }
+            }
+        }
+
+        ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(carPartEntity);
+        ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
+
+        var addedHealth = carPartCmp.MaxHealth * (healthMultiplayer - 1);
+        carPartCmp.MaxHealth *= healthMultiplayer;
+        carPartInfoCmp.CurrentHealth += addedHealth;
+        if (carPartConfig.PartType == CarPartType.Gun) {
+            ref var gunCmp = ref _gunComponentsPool.Value.Get(carPartEntity);
+            gunCmp.CurrentDamage *= damageMultiplayer;
+            gunCmp.CurrentMaxAttackCountdown *= attackSpeedMultiplayer;
+            gunCmp.CurrentReloadSpeed *= reloadSpeedMultiplayer;
+            gunCmp.MaxPiercingCount += targetPiercingAddedCount;
+        } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
+            ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(carPartEntity);
+            meleeCmp.CurrentDamage *= damageMultiplayer;
+            meleeCmp.CurrentMaxCountdown *= attackSpeedMultiplayer;
+        }
+       
+    }
 
     private void SetupCarStatsFromLevelBoost(int enity) {
         ref var carCmp = ref _carComponentsPool.Value.Get(enity);
@@ -1164,6 +1219,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
             var meleeStuff = _sceneService.Value.GetMeleeCarPartCell(meleeWeaponCmp.MeleeWeaponRenderer.transform);
             meleeWeaponCmp.MeleeStuff = meleeStuff;
+            meleeWeaponCmp.CurrentMaxCountdown = meleeWeaponConfig.AttackCountdown;
             meleeStuff.transform.localRotation = Quaternion.Euler(0, 0, 0);
             meleeStuff.transform.localPosition = Vector3.zero;
             meleeStuff.MakeTriggerCollider();
@@ -1193,6 +1249,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var wheelsConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
             carCmp.CurrentMaxWeight += wheelsConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartInfoCmp.PartLevel);
         }
+
+        if (isPlayer)
+            SetModuleBuffs(cellEntity);
     }
 
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {

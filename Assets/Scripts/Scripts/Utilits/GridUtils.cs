@@ -230,8 +230,18 @@ public class GridUtils : MonoBehaviour {
         return (damageMultiplier, damageBySpeedMultiplier);
     }
 
-    public static float GetUpgradeCost(int level, CarPartConfig carPartConfig) {
-        return Mathf.FloorToInt(carPartConfig.UpgradedPartCost * (1+level*0.2f));
+    public static float GetUpgradeCost(int level, CarPartConfig carPartConfig, int[] moduleIds) {
+        float costMultiplayer = 1;
+        foreach (var moduleId in moduleIds) {
+            if(moduleId == -1)continue;
+            var moduleConfig = BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs[moduleId];
+            foreach (ModuleBuff moduleBuff in moduleConfig.ModuleBuffs) {
+                if (moduleBuff.Buff == Buff.UpgradeCost)
+                    costMultiplayer += moduleBuff.BuffCount;
+            }
+        }
+        
+        return Mathf.FloorToInt(carPartConfig.UpgradedPartCost * (1+level*0.2f))*costMultiplayer;
     }
     
     public static float GetArmorLevelMultipliers(int level) {

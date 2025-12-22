@@ -595,8 +595,7 @@ public enum AttackType {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(weaponCellEntity);
                 if (meleeCmp.Countdown > 0) return;
                 meleeCmp.isTriggered = true;
-                var meleeWeaponConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(weaponId);
-                meleeCmp.Countdown += meleeWeaponConfig.AttackCountdown;
+                meleeCmp.Countdown += meleeCmp.CurrentMaxCountdown;
                 int mainEntity = _carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity;
                 var moveCmp = _movementComponentsPool.Value.Get(mainEntity);
                 isPlayer = mainEntity == _sceneService.Value.PlayerEntity;

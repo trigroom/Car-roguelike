@@ -113,37 +113,38 @@ public class CarPartInfoUIView : MonoBehaviour
 
          return _descriptionText;
     }
+
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
-        float currentHealth, float healCost, bool isShop, int[] moduleIds ) {
+        float currentHealth, float healCost, bool isShop, int[] moduleIds) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
         _moduleContainer.gameObject.SetActive(true);
         CurrentMarkedCarPartHealth = currentHealth;
-        if (GridUtils.GetUpgradeCost(carPartLevel, carPartConfig) != 0 && _maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
-            _upgradeButtonText.text = $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig).ToString()}$ {GetLocalization("to upgrade")}";
-            _upgradeButton.enabled = true;
-        } else {
-            _upgradeButton.enabled = false;
-            _upgradeButtonText.text = GetLocalization("Max level");
-        }
 
         _nameText.text = $"{GetLocalization(carPartConfig.PartName)}";
-        if(!isShop)
-            _nameText.text +=  $"\n{carPartLevel + 1} {GetLocalization("lvl")}.";
+        if (!isShop) {
+            if (_maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
+                _upgradeButtonText.text =
+                    $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig, moduleIds).ToString()}$ {GetLocalization("to upgrade")}";
+                _upgradeButton.enabled = true;
+            } else {
+                _upgradeButton.enabled = false;
+                _upgradeButtonText.text = GetLocalization("Max level");
+            }
+
+            _nameText.text += $"\n{carPartLevel + 1} {GetLocalization("lvl")}.";
+        }
 
         for (int i = 0; i < _moduleViews.Length; i++) {
             _moduleViews[i].gameObject.SetActive((int)carPartConfig.RartRare + 1 > i && !isShop);
             if ((int)carPartConfig.RartRare + 1 > i && !isShop && moduleIds[i] != -1) {
                 _moduleViews[i].ModuleIcon.sprite = BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs[moduleIds[i]].ModuleIcon;
-              //  _moduleViews[i].ModuleButton.enabled = false;
                 _moduleViews[i].ModuleIcon.color = Color.white;
-            } else {
+            } else
                 _moduleViews[i].ModuleIcon.color = Color.clear;
-               // _moduleViews[i].ModuleButton.enabled = true;
-            }
         }
-        
+
         _healCarPartButton.gameObject.SetActive(healCost > 0.01f);
         if (healCost > 0.01f) {
             _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost}$";

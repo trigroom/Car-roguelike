@@ -4,6 +4,7 @@
 
    public struct MeleeWeaponComponent {
        public float Countdown;
+       public float CurrentMaxCountdown;
        public SpriteRenderer MeleeWeaponRenderer;
     //   public float CurrentRotateDegrees;
        public Image MeleeSpriteImage;
