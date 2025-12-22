@@ -134,7 +134,23 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         for (int i = 0; i < _sceneData.Value._carPartInfoUIView._moduleViews.Length; i++) {
             int index = i;
             var moduleStuff = _sceneData.Value._carPartInfoUIView._moduleViews[i];
-            moduleStuff.ModuleButton.onClick.AddListener(() => SelectModuleCell(index));
+            
+            EventTrigger.Entry clickEntry = new EventTrigger.Entry();
+            clickEntry.eventID = EventTriggerType.PointerClick;
+            clickEntry.callback.AddListener((data) => { SelectModuleCell(index); });
+
+            EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+            enterEntry.eventID = EventTriggerType.PointerEnter;
+            enterEntry.callback.AddListener((data) => { SetModuleWindowInfo(false, index);});
+            
+            EventTrigger.Entry exitEntry = new EventTrigger.Entry();
+            exitEntry.eventID = EventTriggerType.PointerExit;
+            exitEntry.callback.AddListener((data) => { SetModuleWindowInfo(true, index);});
+            
+            moduleStuff.ModuleButton.triggers.Add(clickEntry);
+            moduleStuff.ModuleButton.triggers.Add(enterEntry);
+            moduleStuff.ModuleButton.triggers.Add(exitEntry);
+            /*(data) => { ChangeRoundDescription(randomRounds[newIndex], (PointerEventData)data); }*/
         }
 
         //test
@@ -2684,6 +2700,7 @@ Debug.Log(moduleIds.Length + " lenguht");
     private void SelectModuleCell(int cellId) {
       
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        if(_carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo).ModuleIds[cellId] != -1)return;
         if (inventoryCmp.CurrentSelectedModuleCellId == cellId) {
             CancelModuleSelect();
             return;
@@ -2699,6 +2716,40 @@ Debug.Log(moduleIds.Length + " lenguht");
         _sceneData.Value._inventoryUIView._cancelModuleTextPanelInfo.position =
             _sceneData.Value._carPartInfoUIView._moduleViews[cellId].transform.position;
         _sceneData.Value._inventoryUIView._cancelModuleTextPanelInfo.gameObject.SetActive(true);
+    }
+
+    private void SetModuleWindowInfo(bool isHide, int index) {
+        if(!_carPartInfoComponentsPool.Value.Has(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo))return;
+        int moduleId = _carPartInfoComponentsPool.Value
+            .Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo).ModuleIds[index];
+
+        if (moduleId == -1) return;
+
+        if (!isHide) {
+            _sceneData.Value._carPartInfoUIView._moduleWindow.gameObject.SetActive(true);
+            var moduleConfig = _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleId];
+            var nameText = _sceneData.Value._carPartInfoUIView._nameModuleWindowText;
+            var descriptionText = _sceneData.Value._carPartInfoUIView._descriptionModuleWindowText;
+            nameText.text = GetLocalization(moduleConfig.ModuleName);
+            descriptionText.text = _sceneData.Value._carPartInfoUIView.GetModuleDescription(moduleConfig);
+            descriptionText.ForceMeshUpdate(true);
+            descriptionText.gameObject.GetComponent<ContentSizeFitter>().SetLayoutVertical();
+
+            var modulePosition = _sceneData.Value._carPartInfoUIView._moduleViews[index].transform.position;
+            _sceneData.Value._carPartInfoUIView._moduleWindow.position =
+                new Vector3(modulePosition.x - 200 * _sceneData.Value.mainCanvas.localScale.x, modulePosition.y, modulePosition.z);
+            _sceneData.Value._carPartInfoUIView._moduleWindow.localScale = Vector3.zero;
+            _sceneData.Value._carPartInfoUIView._moduleWindow.DOKill();
+            _sceneData.Value._carPartInfoUIView._moduleWindow.DOScale(1, 0.3f);
+            _sceneData.Value._carPartInfoUIView._moduleWindow.sizeDelta = new Vector2(
+                _sceneData.Value._carPartInfoUIView._moduleWindow.sizeDelta.x,
+                nameText.rectTransform.sizeDelta.y + descriptionText.rectTransform.sizeDelta.y + 20);
+        } else {
+            _sceneData.Value._carPartInfoUIView._moduleWindow.DOKill();
+            _sceneData.Value._carPartInfoUIView._moduleWindow.DOScale(0, 0.3f)
+                .OnComplete(() => _sceneData.Value._carPartInfoUIView._moduleWindow.gameObject.SetActive(true));
+        }
+        
     }
 
     private void CancelModuleSelect() {
@@ -2717,7 +2768,6 @@ Debug.Log(moduleIds.Length + " lenguht");
         carPartInfoCmp.ModuleIds[inventoryCmp.CurrentSelectedModuleCellId] = moduleCmp.ModuleId;
 
         var moduleView = _sceneData.Value._carPartInfoUIView._moduleViews[inventoryCmp.CurrentSelectedModuleCellId];
-        moduleView.ModuleButton.enabled = false;
         moduleView.ModuleIcon.sprite = _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleCmp.ModuleId].ModuleIcon;
         moduleView.ModuleIcon.color = Color.white;
         CancelModuleSelect();

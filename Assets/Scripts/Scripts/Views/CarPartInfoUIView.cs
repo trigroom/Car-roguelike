@@ -7,6 +7,10 @@ using UnityEngine.UI;
 
 public class CarPartInfoUIView : MonoBehaviour
 {
+    [field: SerializeField] public TMP_Text _nameModuleWindowText { get; private set; }
+    [field: SerializeField] public TMP_Text _descriptionModuleWindowText { get; private set; }
+    [field: SerializeField] public RectTransform _moduleWindow { get; private set; }
+    
     [field: SerializeField] public Transform _moduleContainer { get; private set; }
     [field: SerializeField] public ModuleStuffView[] _moduleViews { get; private set; }
     [field: SerializeField] public TMP_Text _healCarPartText { get; private set; }
@@ -65,42 +69,49 @@ public class CarPartInfoUIView : MonoBehaviour
         _nameText.text = GetLocalization(moduleConfig.ModuleName);
         _carPartIconUpLevel.gameObject.SetActive(false);
         _carPartIcon.sprite = moduleConfig.ModuleIcon;
-        SetModuleDescription(moduleConfig);
+        _descriptionText.text = GetModuleDescription(moduleConfig);
         _healCarPartButton.gameObject.SetActive(false);
         _sellCarPartText.text = $"{GetLocalization("Sell for")} {moduleConfig.Cost}$";
     }
-
-    private void SetModuleDescription(ModuleConfig moduleConfig) {
-         _descriptionText.text = "";
-
+  
+ 
+    public string GetModuleDescription(ModuleConfig moduleConfig) {
+         var _descriptionText = "";
+         int i = 0;
          foreach (var moduleBuff in moduleConfig.ModuleBuffs) {
              switch (moduleBuff.Buff) {
                  case Buff.Damage:
-                     _descriptionText.text =
-                         $"\n{GetLocalization("Damage")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     _descriptionText +=
+                         $"{GetLocalization("Damage")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
                      break;
                  case Buff.Health:
-                     _descriptionText.text =
-                         $"\n{GetLocalization("HP")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     _descriptionText +=
+                         $"{GetLocalization("HP")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
                      break;
                  case Buff.AttackSpeed:
-                     _descriptionText.text =
-                         $"\n{GetLocalization("Attack countdown")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     _descriptionText +=
+                         $"{GetLocalization("Attack countdown")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
                      break;
                  case Buff.UpgradeCost:
-                     _descriptionText.text =
-                         $"\n{GetLocalization("Upgrade cost")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     _descriptionText +=
+                         $"{GetLocalization("Upgrade cost")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
                      break;
                  case Buff.ReloadSpeed:
-                     _descriptionText.text =
-                         $"\n{GetLocalization("Reload")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
+                     _descriptionText +=
+                         $"{GetLocalization("Reload")}: {(moduleBuff.BuffCount > 0 ? "+" : "-")}{moduleBuff.BuffCount * 100}%";
                      break;
                  case Buff.TargetPierceing:
-                     _descriptionText.text = $"\n{GetLocalization("Pierce count")}: +{moduleBuff.BuffCount}";
+                     _descriptionText += $"{GetLocalization("Pierce count")}: +{moduleBuff.BuffCount}";
                      break;
              }
+
+             i++;
+             if (i < moduleConfig.ModuleBuffs.Length)
+                 _descriptionText += "\n";
+             
          }
-         
+
+         return _descriptionText;
     }
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
         float currentHealth, float healCost, bool isShop, int[] moduleIds ) {
@@ -125,11 +136,11 @@ public class CarPartInfoUIView : MonoBehaviour
             _moduleViews[i].gameObject.SetActive((int)carPartConfig.RartRare + 1 > i && !isShop);
             if ((int)carPartConfig.RartRare + 1 > i && !isShop && moduleIds[i] != -1) {
                 _moduleViews[i].ModuleIcon.sprite = BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs[moduleIds[i]].ModuleIcon;
-                _moduleViews[i].ModuleButton.enabled = false;
+              //  _moduleViews[i].ModuleButton.enabled = false;
                 _moduleViews[i].ModuleIcon.color = Color.white;
             } else {
                 _moduleViews[i].ModuleIcon.color = Color.clear;
-                _moduleViews[i].ModuleButton.enabled = true;
+               // _moduleViews[i].ModuleButton.enabled = true;
             }
         }
         
