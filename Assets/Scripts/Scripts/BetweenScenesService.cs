@@ -56,6 +56,9 @@ public class BetweenScenesService : MonoBehaviour {
             case AchievementRewardType.CarPart:
                 return GetLocalization(_carStuffListsConfig.CarPartConfigs[achievement.rewardCount].PartName);
                
+            case AchievementRewardType.Module:
+                return GetLocalization(_carStuffListsConfig.ModuleConfigs[achievement.rewardCount].ModuleName);
+            
             case AchievementRewardType.Scrap:
                 return achievement.rewardCount +" "+ GetLocalization("Scrap");
                

@@ -194,8 +194,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             CloseShowInfoPanel();
             //_endRoundEventsPool.Value.Del(endRound);
         }
+
         foreach (var updateSaleShop in _updateShopToSaleRoundEventsFilter.Value) {
-            SetShopCells(true);
+            var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+            if (shopCmp.isModulesShop) {
+                if (shopCmp.IsCarShopMode)
+                    ChangeShopMode();
+                _sceneData.Value._shopUIView._shopModeButton.gameObject.SetActive(false);
+            }
+
+            SetShopCells(!shopCmp.isModulesShop);
             //
             _updateShopToSaleRoundEventsPool.Value.Del(updateSaleShop);
         }
@@ -605,6 +613,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var shopCmp = ref _shopComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
         shopCmp.ListShopItemsForRares = new List<List<int>>(){new List<int>(),new List<int>(),new List<int>(),new List<int>()};
         shopCmp.CurrentShopItemsChances = new List<float>(4);
+        shopCmp.ShopModulesIds = new List<int>();
         foreach (var shopItem in _sceneData.Value._carStuffListsConfig.ShopItems) {
             
             if(!DataPersistenceManagerSystem._gameData.CarPartsUnlocked[shopItem])continue;
@@ -612,6 +621,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var partRare = (int)GetCarPartConfig(shopItem).RartRare;
            
             shopCmp.ListShopItemsForRares[partRare].Add(shopItem);
+        }
+
+        foreach (var moduleItem in _sceneData.Value._carStuffListsConfig.ModuleConfigs) {
+            if (!DataPersistenceManagerSystem._gameData.ModulesUnlocked[moduleItem.ModuleId]) continue;
+
+            shopCmp.ShopModulesIds.Add(moduleItem.ModuleId);
         }
 
         _sceneData.Value._shopUIView._buttonUpdateShop.onClick.AddListener(UpdateShopItems);
@@ -969,25 +984,29 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void SetShopCells(bool isShopSaleRound) {
         var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-
+        bool isModulesMode = shopCmp.isModulesShop;
         List<int> shopItems = new();
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
-           
-            int rareIndex = GridUtils.GetRandomIndexFromChancesList(shopCmp.CurrentShopItemsChances);
             int randomItem;
-            if (_firstCarPartTypesForShop.Length > i) {
-                List<int> currentItems = new List<int>();
-                foreach (var shopItem in shopCmp.ListShopItemsForRares[rareIndex]) {
-                    if (GetCarPartConfig(shopItem).PartType == _firstCarPartTypesForShop[i])
-                        currentItems.Add(shopItem);
-                }
+            if (isModulesMode) {
+                randomItem = shopCmp.ShopModulesIds[Random.Range(0, shopCmp.ShopModulesIds.Count)];
+            } else {
+                int rareIndex = GridUtils.GetRandomIndexFromChancesList(shopCmp.CurrentShopItemsChances);
 
-                if (currentItems.Count > 0)
-                    randomItem = currentItems[Random.Range(0, currentItems.Count)];
-                else
+                if (_firstCarPartTypesForShop.Length > i) {
+                    List<int> currentItems = new List<int>();
+                    foreach (var shopItem in shopCmp.ListShopItemsForRares[rareIndex]) {
+                        if (GetCarPartConfig(shopItem).PartType == _firstCarPartTypesForShop[i])
+                            currentItems.Add(shopItem);
+                    }
+
+                    if (currentItems.Count > 0)
+                        randomItem = currentItems[Random.Range(0, currentItems.Count)];
+                    else
+                        randomItem = shopCmp.ListShopItemsForRares[rareIndex][Random.Range(0, shopCmp.ListShopItemsForRares[rareIndex].Count)];
+                } else
                     randomItem = shopCmp.ListShopItemsForRares[rareIndex][Random.Range(0, shopCmp.ListShopItemsForRares[rareIndex].Count)];
-            } else
-                randomItem = shopCmp.ListShopItemsForRares[rareIndex][Random.Range(0, shopCmp.ListShopItemsForRares[rareIndex].Count)];
+            }
 
             shopItems.Add(randomItem);
         }
@@ -1001,8 +1020,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             shopItems.RemoveAt(randomItemIndex);
 
             ref var shopCellCmp = ref _shopCellComponentsPool.Value.Get(shopButton.Entity);
-            var carPartConfig = GetCarPartConfig(randomItem);
-            int price = (int)carPartConfig.MoneyCost; //maybe mult cost for smth round pow 
+            var carPartConfig = isModulesMode ? null : GetCarPartConfig(randomItem);
+            var moduleConfig = isModulesMode ? _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[randomItem] : null;
+            int price = isModulesMode ? (int)moduleConfig.Cost : (int)carPartConfig.MoneyCost; //maybe mult cost for smth round pow 
             if (i == saleIndex || isShopSaleRound) {
                 float saleSize = isShopSaleRound ? Random.Range(2, 15) * 5 : Random.Range(1, 7) * 5;
                 price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - saleSize / 100f)));
@@ -1011,13 +1031,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 shopButton.SetShopSaleInfo(0);
 
             shopCellCmp.CurrentBuyItemId = randomItem;
-
-            if (carPartConfig.PartType == CarPartType.Gun || carPartConfig.PartType == CarPartType.MeleeWeapon) {
+            var downSprite = !isModulesMode ? carPartConfig.PartSprite : moduleConfig.ModuleIcon;
+            if (!isModulesMode && (carPartConfig.PartType == CarPartType.Gun || carPartConfig.PartType == CarPartType.MeleeWeapon)) {
                 (Sprite upSprite, Vector2 size, Vector2 position) =
                     GetUpperPartSizesForUI(shopButton.ItemSprite.rectTransform.sizeDelta, carPartConfig);
-                shopButton.SetShopCellInfo(price, carPartConfig.PartSprite, upSprite, position, size);
+                shopButton.SetShopCellInfo(price, downSprite, upSprite, position, size);
             } else
-                shopButton.SetShopCellInfo(price, carPartConfig.PartSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero);
+                shopButton.SetShopCellInfo(price, downSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero);
 
             shopCellCmp.Price = price;
         }
@@ -1189,13 +1209,17 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void BuyShopItem(int entity) {
         var shopCellCmp = _shopCellComponentsPool.Value.Get(entity);
-        if (RemoveMoneyForBuy(shopCellCmp)) 
+        if (RemoveMoneyForBuy(shopCellCmp))
             return;
-        var carPartConfig = GetCarPartConfig(shopCellCmp.CurrentBuyItemId);
-        var moduleIds = new int[(int)carPartConfig.RartRare + 1];
-        Array.Fill(moduleIds, -1);
-        
-        AddInventoryItem(shopCellCmp.CurrentBuyItemId,0, carPartConfig.MaxHealth,moduleIds);
+
+        if (_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop) {
+            AddModuleInventoryItem(shopCellCmp.CurrentBuyItemId);
+        } else {
+            var carPartConfig = GetCarPartConfig(shopCellCmp.CurrentBuyItemId);
+            var moduleIds = new int[(int)carPartConfig.RartRare + 1];
+            Array.Fill(moduleIds, -1);
+            AddInventoryItem(shopCellCmp.CurrentBuyItemId, 0, carPartConfig.MaxHealth, moduleIds);
+        }
     }
     
     private void BuyShopCar(int entity) {
@@ -1653,11 +1677,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 return;
             }
 
-            var moduleCmp = _moduleInventoryItemsPool.Value.Get(entity);
-            inventoryCmp.CurrentMarkedCellForPanelInfo = entity;
-            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
-            _sceneData.Value._carPartInfoUIView.gameObject.SetActive(true);
-            _sceneData.Value._carPartInfoUIView.SetPanelForModuleInfo(_betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleCmp.ModuleId] );
+            SetModuleInfoPanel(entity);
             return;
         }
         else if (_inventoryCellComponentsPool.Value.Has(entity)) {
@@ -1691,6 +1711,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 return;
             }
 
+            if (_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop) {
+                SetModuleInfoPanel(entity);
+                return;
+            }
             var shopCellCmp = _shopCellComponentsPool.Value.Get(entity);
 
             needCarPartId = shopCellCmp.CurrentBuyItemId;
@@ -1703,6 +1727,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._carPartInfoUIView.gameObject.SetActive(true);
         _sceneData.Value._carPartInfoUIView.SetPanelForNeededPart(GetCarPartConfig(needCarPartId), showDestroyButton, showMoveButton, level,
             currentHealth, healCost, entity >= 0 && _shopCellComponentsPool.Value.Has(entity),moduleIds);
+    }
+
+    private void SetModuleInfoPanel(int entity) {
+        var moduleCmp = _moduleInventoryItemsPool.Value.Get(entity);
+        _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo = entity;
+        _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
+        _sceneData.Value._carPartInfoUIView.gameObject.SetActive(true);
+        _sceneData.Value._carPartInfoUIView.SetPanelForModuleInfo(
+            _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleCmp.ModuleId]);
     }
 
     private void CloseShowInfoPanel() {
@@ -2582,8 +2615,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void NextInventoryPage() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         inventoryCmp.CurrentInventoryPage++;
-        if (inventoryCmp.CurrentInventoryPage > Mathf.FloorToInt((float)GetSortedCarPartList().Count /
-                                                                 _sceneData.Value._inventoryUIView._inventoryCellViews.Length))
+        float itemsCount = inventoryCmp.IsModuleInventoryMode ? GetModulesList().Count : (float)GetSortedCarPartList().Count;
+        if (inventoryCmp.CurrentInventoryPage > Mathf.FloorToInt(itemsCount / _sceneData.Value._inventoryUIView._inventoryCellViews.Length))
             inventoryCmp.CurrentInventoryPage = 0;
 
         SetInventoryCells();
@@ -2591,9 +2624,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void LastInventoryPage() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        float itemsCount = inventoryCmp.IsModuleInventoryMode ? GetModulesList().Count : (float)GetSortedCarPartList().Count;
         inventoryCmp.CurrentInventoryPage--;
         if (inventoryCmp.CurrentInventoryPage < 0)
-            inventoryCmp.CurrentInventoryPage = Mathf.FloorToInt((float)GetSortedCarPartList().Count /
+            inventoryCmp.CurrentInventoryPage = Mathf.FloorToInt(itemsCount /
                                                                  _sceneData.Value._inventoryUIView._inventoryCellViews.Length);
 
         SetInventoryCells();

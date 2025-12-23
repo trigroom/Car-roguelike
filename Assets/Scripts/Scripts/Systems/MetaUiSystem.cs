@@ -115,6 +115,8 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 case AchievementRewardType.Car:
                     break;
                 case AchievementRewardType.Module:
+                    var moduleConfig = _betweenSceneService.Value._carStuffListsConfig.ModuleConfigs[shopItemConfig.RewardCount];
+                    sprite = moduleConfig.ModuleIcon;
                     break;
             }
             shopButtonView.SetShopCellInfo(shopItemConfig.ScrapCost, sprite,upperSprite,upperImageSpritePos,upperImageSize);
@@ -207,6 +209,9 @@ sealed class MetaUiSystem : IEcsInitSystem {
                     break;
                 case AchievementRewardType.CarPart:
                     DataPersistenceManagerSystem._gameData.CarPartsUnlocked[count] = true;
+                    break;
+                case AchievementRewardType.Module:
+                    DataPersistenceManagerSystem._gameData.ModulesUnlocked[count] = true;
                     break;
                 case AchievementRewardType.Scrap:
                     DataPersistenceManagerSystem._gameData.ScrapCount += count;

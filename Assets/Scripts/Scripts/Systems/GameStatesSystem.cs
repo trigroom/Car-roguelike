@@ -292,7 +292,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetSaleShopRound() {
-        _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(false);
+        _sceneService.Value._shopUIView._updateItemsText.gameObject.SetActive(false);
         _updateShopToSaleRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
     
@@ -479,6 +479,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.Shop:
                 descriptionText.text = GetLocalization("RoundShop");
                 break;
+            case RoundType.ModulesShop:
+                descriptionText.text = GetLocalization("RoundModulesShop");
+                break;
             case RoundType.Transfer:
                 descriptionText.text = GetLocalization("RoundTransfer");
                 break;
@@ -495,8 +498,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private void StartCurrentRoundType(RoundType roundType,PointerEventData data) {
-        _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
         
+        ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (shopCmp.isModulesShop) {
+            _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
+            _sceneService.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
+        }
+        shopCmp.isModulesShop = false;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var button in curGameCmp.RoundButtons) {
             button.enabled = false;
@@ -528,14 +536,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 SetFilledZoneRound();
                 break;
             case RoundType.Chest:
-                var shopCmp = _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-
                 int rareIndex = GridUtils.GetRandomIndexFromChancesList(shopCmp.CurrentShopItemsChances);
                 _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentGivenItems
                     .Add(shopCmp.ListShopItemsForRares[rareIndex][Random.Range(0, shopCmp.ListShopItemsForRares[rareIndex].Count)]);
                 ChangeInventoryState(true);
                 break;
             case RoundType.Shop:
+                SetSaleShopRound();
+                ChangeInventoryState(true);
+                break;
+            case RoundType.ModulesShop:
+                shopCmp.isModulesShop = true;
                 SetSaleShopRound();
                 ChangeInventoryState(true);
                 break;

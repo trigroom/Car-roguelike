@@ -25,10 +25,12 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(false);
         _sceneData.Value._inventoryUIView._playButton.onClick.AddListener(RoundCheck);
         _sceneData.Value._shopUIView._updateItemsText.gameObject.SetActive(false);
+        _sceneData.Value._carPartInfoUIView._moduleContainer.gameObject.SetActive(false);
+        _sceneData.Value._inventoryUIView._inventoryModeButton.gameObject.SetActive(false);
         _sceneData.Value._shopUIView._shopModeButton.onClick.AddListener(ShopModeCheck);
         _sceneData.Value._settingsView._mainMenuButton.gameObject.SetActive(false);
         _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentBattleRounds = 3;
-        
+        RoundUtilits.SupportRoundsTypes.Remove(RoundType.ModulesShop);
         _sceneData.Value._tutorialStuffView.TutorialText = _sceneData.Value
             .InstantiateObject(_sceneData.Value._tutorialStuffView._tutorialTextPrefab.transform, _sceneData.Value._inventoryUIView.transform)
             .GetComponent<TMP_Text>();
@@ -135,6 +137,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         int currentRound = _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
 
         if (currentRound > 1) {
+            RoundUtilits.SupportRoundsTypes.Add(RoundType.ModulesShop);
             DataPersistenceManagerSystem._gameData.TutorialIsCompleted = true;
             DataPersistenceManagerSystem.SaveGame();
         } else if (currentRound == 0) {

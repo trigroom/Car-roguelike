@@ -36,5 +36,6 @@
      BattleDefault,
      ZoneDefence,
      FromAToB,
-     BossBattle
+     BossBattle,
+     ModulesShop
  }

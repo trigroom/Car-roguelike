@@ -18,18 +18,20 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     private Action<bool, Image> _toggleAction;
     public Action<int> TakeItemFromInventory;
 
-    public void Construct(int _entity, Action<int> _onBuy, Action<int, bool> _onShowInfo, Action<int> _takeItemFromInventory,Action<bool, Image> _lockAction) {
+    public void Construct(int _entity, Action<int> _onBuy, Action<int, bool> _onShowInfo, Action<int> _takeItemFromInventory,
+        Action<bool, Image> _lockAction) {
         BuyButton.onClick.AddListener(() => _onBuy?.Invoke(_entity));
         ShowInfoButton?.onClick.AddListener(() => _onShowInfo?.Invoke(_entity, true));
         Entity = _entity;
         TakeItemFromInventory = _takeItemFromInventory;
         _toggleAction = _lockAction;
-        if(LockToggle != null)
-        LockToggle.onValueChanged.AddListener(ToggleAction);
+        if (LockToggle != null)
+            LockToggle.onValueChanged.AddListener(ToggleAction);
     }
 
     private void ToggleAction(bool toggle) {
-        _toggleAction(toggle,ToggleImage );
+        if (BuyButton.enabled)
+            _toggleAction(toggle, ToggleImage);
     }
     public void SetShopCellInfo(int price, Sprite sprite, Sprite upperSprite, Vector2 upperImageSpritePos, Vector2 upperImageSize) {
         SetPriceText(price);
