@@ -155,8 +155,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         //test
         SetUpAdminButtons();
-        AddModuleInventoryItem(0);
-        AddModuleInventoryItem(1);
     }
 
     public void Run(IEcsSystems systems) {

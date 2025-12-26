@@ -11,6 +11,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public ParticleSystem _carPartsParticleSystemPrefab { get; private set; }
     [field: SerializeField] public TutorialStuffView _tutorialStuffView{ get; private set; }
     [field: SerializeField] public SupportBoxStuffView _supportBoxStuffView{ get; private set; }
     [field: SerializeField] public TMP_Text _warningText { get; private set; }
@@ -92,6 +93,7 @@ public class SceneService : MonoBehaviour {
     private ObjectPool<SpriteRenderer> _explosionEffectsPool;
     private ObjectPool<Transform> _gunContainersPool;
     private ObjectPool<Image> _imagesPool;
+    private ObjectPool<ParticleSystem> _carPartsParticleSystemPool;
     
 
     private void Awake() {
@@ -117,6 +119,7 @@ public class SceneService : MonoBehaviour {
         _carPartsPool = new ObjectPool<CarPartStuffView>(() => Instantiate(_carStuffListsConfig.CarPartStuffView));
         _meleeCarPartsPool = new ObjectPool<MeleeCarPartStuffView>(() => Instantiate(_carStuffListsConfig.MeleeCarPartStuffView));
         _explosionEffectsPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_explosionEffectPrefab));
+        _carPartsParticleSystemPool = new ObjectPool<ParticleSystem>(() => Instantiate(_carPartsParticleSystemPrefab,_notUsedCarPartsContainer));
         _imagesPool = new ObjectPool<Image>(() => Instantiate(_carPartUIImage));
         _сarPartInGameUIViewsPool =
             new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsDownLevelHealthContainer));
@@ -139,6 +142,15 @@ public class SceneService : MonoBehaviour {
         var gunContainer = _gunContainersPool.Get();
         gunContainer.parent = parent;
         return gunContainer;
+    }
+    public ParticleSystem GetCarPartParticles() {
+        var gunContainer = _carPartsParticleSystemPool.Get();
+        gunContainer.gameObject.SetActive(true);
+        return gunContainer;
+    }
+    public void ReleaseCarPartParticles(ParticleSystem gunContainer) {
+        gunContainer.gameObject.SetActive(false);
+        _carPartsParticleSystemPool.Release(gunContainer);
     }
     public Image GetCarPartUIImage(Transform parent, Vector2 position) {
         var carPartImage = _imagesPool.Get();

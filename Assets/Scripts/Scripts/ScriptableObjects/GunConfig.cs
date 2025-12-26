@@ -39,6 +39,6 @@ public enum MissleType {
 public enum EffectType {
     none,
     fire,
-    armorWeak,
+    froze,
     shock,
 }

@@ -34,6 +34,7 @@ public enum AttackType {
         private EcsPoolInject<ShockEffectComponent> _shockEffectComponentsPool;
         private EcsPoolInject<PlayerCurrencyComponent> _playerCurrencyComponentsPool;
         private EcsPoolInject<FireComponent> _fireComponentsPool;
+        private EcsPoolInject<FrozenComponent> _frozenComponentsPool;
         private EcsPoolInject<CarPartComponent> _carPartComponentsPool;
         private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
         private EcsPoolInject<EnemyAIComponent> _enemyAIComponentsPool;
@@ -48,6 +49,7 @@ public enum AttackType {
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
         private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
         private EcsFilterInject<Inc<FireComponent>> _fireComponentsFilter;
+        private EcsFilterInject<Inc<FrozenComponent>> _frozenComponentsFilter;
         private EcsFilterInject<Inc<CompleteTaskEvent>> _completeTaskEventsFilter;
         private EcsFilterInject<Inc<TaskComponent>> _taskComponentsFilter;
         private EcsFilterInject<Inc<MeleeWeaponComponent>> _meleeWeaponComponentsFilter;
@@ -157,17 +159,36 @@ public enum AttackType {
             }
 
             foreach (var shockEntity in _shockEffectComponentsFilter.Value) {
+                if(!_shockEffectComponentsPool.Value.Has(shockEntity))continue;
                 ref var shockCmp = ref _shockEffectComponentsPool.Value.Get(shockEntity);
-                shockCmp.effectDuration -= deltaTime;
-                if (shockCmp.effectDuration <= 0) {
+                shockCmp.EffectDuration -= deltaTime;
+                if (shockCmp.EffectDuration <= 0) {
                     var damagedCarPart = _carPartInfoComponentsPool.Value.Get(shockEntity).CarPartId;
                     if (_sceneService.Value.GetCarPartConfig(damagedCarPart).PartType == CarPartType.Main)
                         _carComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(shockEntity).MainEntity).ShockedMainPartsCount--;
+                  
+                    foreach (var particles in shockCmp.ParticleSystem) {
+                        _sceneService.Value.ReleaseCarPartParticles(particles);
+                    }  
                     _shockEffectComponentsPool.Value.Del(shockEntity);
+                }
+            }
+            
+            foreach (var frozeEntity in _frozenComponentsFilter.Value) {
+                if(!_frozenComponentsPool.Value.Has(frozeEntity))continue;
+                ref var frozeCmp = ref _frozenComponentsPool.Value.Get(frozeEntity);
+                frozeCmp.Duration -= deltaTime;
+                if (frozeCmp.Duration <= 0) {
+                
+                    foreach (var particles in frozeCmp.ParticleSystem) {
+                        _sceneService.Value.ReleaseCarPartParticles(particles);
+                    }  
+                    _frozenComponentsPool.Value.Del(frozeEntity);
                 }
             }
 
             foreach (var burnedEntity in _fireComponentsFilter.Value) {
+                if(!_fireComponentsPool.Value.Has(burnedEntity))continue;
                 ref var fireCmp = ref _fireComponentsPool.Value.Get(burnedEntity);
                 fireCmp.Duration -= deltaTime;
                 fireCmp.LastFireSeconds += deltaTime;
@@ -177,7 +198,10 @@ public enum AttackType {
                     ChangeHealth(damage, burnedEntity);
                     if (_carPartInfoComponentsPool.Value.Get(burnedEntity).CurrentHealth <= 0 ||
                         _carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer == null) {
-                        _fireComponentsPool.Value.Del(burnedEntity);
+                     //   foreach (var particles in fireCmp.ParticleSystem) {
+                    //        _sceneService.Value.ReleaseCarPartParticles(particles);
+                     //   }  
+                      //  _fireComponentsPool.Value.Del(burnedEntity);
                         continue;
                     }
 
@@ -185,6 +209,9 @@ public enum AttackType {
                         _carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer.transform.position, damage.ToString("F2"),
                         new Color(1, 0.5f, 0.1f, 1));
                     if (damage <= 1) {
+                        foreach (var particles in fireCmp.ParticleSystem) {
+                            _sceneService.Value.ReleaseCarPartParticles(particles);
+                        }  
                         _fireComponentsPool.Value.Del(burnedEntity);
                     }
                 }
@@ -468,26 +495,84 @@ public enum AttackType {
         }
 
         private void SetEffectComponent(int carPartEntity, EffectType effectType, float duration) {
+            ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity); 
+            if(carPartCmp.CellCarPartsStuffViews == null)return;
             switch (effectType) {
                 case EffectType.shock:
                     if (_shockEffectComponentsPool.Value.Has(carPartEntity)) {
                         ref var shockCmp = ref _shockEffectComponentsPool.Value.Get(carPartEntity);
-                        if (shockCmp.effectDuration < duration)
-                            shockCmp.effectDuration = duration;
+                        if (shockCmp.EffectDuration < duration)
+                            shockCmp.EffectDuration = duration;
                     } else {
-                        _shockEffectComponentsPool.Value.Add(carPartEntity).effectDuration = duration;
+                        
+                      
                         var damagedCarPart = _carPartInfoComponentsPool.Value.Get(carPartEntity).CarPartId;
                         if (_sceneService.Value.GetCarPartConfig(damagedCarPart).PartType == CarPartType.Main)
-                            _carComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(carPartEntity).MainEntity).ShockedMainPartsCount++;
+                            _carComponentsPool.Value.Get(carPartCmp.MainEntity).ShockedMainPartsCount++;
+
+                        ref var shockCmp = ref _shockEffectComponentsPool.Value.Add(carPartEntity);
+                        shockCmp.EffectDuration = duration;
+                        shockCmp.ParticleSystem = new List<ParticleSystem>();
+                        
+                        foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
+                            var particleSystem = _sceneService.Value.GetCarPartParticles();
+                            shockCmp.ParticleSystem.Add(particleSystem);
+                            particleSystem.transform.parent = carPartStuff.transform;
+                            particleSystem.transform.localPosition = Vector3.zero;
+                            var particleMain = particleSystem.main;
+                            particleMain.startColor = new Color(1f, 1f, 1f, 0.9f);
+                        }
                     }
 
                     break;
                 case EffectType.fire:
                     if (_fireComponentsPool.Value.Has(carPartEntity)) {
-                        ref var shockCmp = ref _fireComponentsPool.Value.Get(carPartEntity);
+                        ref var fireCmp = ref _fireComponentsPool.Value.Get(carPartEntity);
+                        fireCmp.Duration += duration;
+                    } else {
+                        if (_frozenComponentsPool.Value.Has(carPartEntity)) {
+                            ref var shockCmp = ref _frozenComponentsPool.Value.Get(carPartEntity);
+                            shockCmp.Duration -= duration;
+                        } else {
+                            ref var fireCmp = ref _fireComponentsPool.Value.Add(carPartEntity);
+                            fireCmp.Duration = duration;
+                            fireCmp.ParticleSystem = new List<ParticleSystem>();
+                            foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
+                                var particleSystem = _sceneService.Value.GetCarPartParticles();
+                                fireCmp.ParticleSystem.Add(particleSystem);
+                                particleSystem.transform.parent = carPartStuff.transform;
+                                particleSystem.transform.localPosition = Vector3.zero;
+                                var particleMain = particleSystem.main;
+                                particleMain.startColor = new Color(0.9f, 0.4f, 0.2f, 0.8f);
+                            }
+                        }
+                    }
+
+                    break;
+
+                case EffectType.froze:
+                    if (_frozenComponentsPool.Value.Has(carPartEntity)) {
+                        ref var shockCmp = ref _frozenComponentsPool.Value.Get(carPartEntity);
                         shockCmp.Duration += duration;
-                    } else
-                        _fireComponentsPool.Value.Add(carPartEntity).Duration = duration;
+                    } else {
+                        if (_fireComponentsPool.Value.Has(carPartEntity)) {
+                            ref var fireCmp = ref _fireComponentsPool.Value.Get(carPartEntity);
+                            fireCmp.Duration -= duration;
+                        } else {
+                            ref var frozenCmp = ref _frozenComponentsPool.Value.Add(carPartEntity);
+                            frozenCmp.ParticleSystem = new List<ParticleSystem>();
+                            foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
+                                var particleSystem = _sceneService.Value.GetCarPartParticles();
+                                frozenCmp.ParticleSystem.Add(particleSystem);
+                                particleSystem.transform.parent = carPartStuff.transform;
+                                particleSystem.transform.localPosition = Vector3.zero;
+                                var particleMain = particleSystem.main;
+                                particleMain.startColor = new Color(0.25f, 0.5f, 0.8f, 0.7f);
+                            }
+
+                            //  _carPartComponentsPool.Value.Get(carPartEntity).CarPartCellRenderer.materials.Ad
+                        }
+                    }
 
                     break;
             }
@@ -555,19 +640,20 @@ public enum AttackType {
                     foreach (var castedObject in castedObjects) {
                         float explosionDamagePoints = gunConfig.ExplosionDamage *
                             Vector2.Distance(castedObject.transform.position, collisionPoint) / gunConfig.ExplosionRadius;
-                    
-                        if (carPartDamagedCmp.MainEntity == _sceneService.Value.PlayerEntity)
-                            explosionDamagePoints *= _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer;
 
-                        Vector2Int currentDamagedEntityGridPos = castedObject.GetComponent<CarPartStuffView>()._gridPosition;
-                        var currentCarCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                       
+                        if (!_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Contains(carPartDamagedCmp.MainEntity) )
+                            explosionDamagePoints *=
+                                _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer;
+                        var carPartStuff = castedObject.GetComponent<CarPartStuffView>();
+                        Vector2Int currentDamagedEntityGridPos = carPartStuff._gridPosition;
+                        var currentCarCmpDamaged = _carComponentsPool.Value.Get(carPartStuff._mainEntity);
+
                         if (currentCarCmpDamaged.CarPartGroupsGrid == null) break;
                         int currentDamagedEntity =
                             currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y] == 0
                                 ? currentCarCmpDamaged.CarPartContainerGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y]
                                 : currentCarCmpDamaged.CarPartGroupsGrid[currentDamagedEntityGridPos.x, currentDamagedEntityGridPos.y];
-                        if(currentDamagedEntity == 0)break;
+                        if (currentDamagedEntity == 0) break;
                         var damagedCarPartInfoCmp = _carPartInfoComponentsPool.Value.Get(currentDamagedEntity);
                         if (_sceneService.Value.GetCarPartConfig(damagedCarPartInfoCmp.CarPartId).PartType == CarPartType.Armor) {
                             var armorConfig = _sceneService.Value.GetArmorFromCarPart(damagedCarPartInfoCmp.CarPartId);
@@ -579,10 +665,14 @@ public enum AttackType {
                             }
                         }
 
+                        if (_frozenComponentsPool.Value.Has(currentDamagedEntity)) {
+                            damagePoints *= 1f + _frozenComponentsPool.Value.Get(currentDamagedEntity).Duration / 100;
+                        }
+
                         _sceneService.Value.GetFloatingTextPrefab(castedObject.transform.position, explosionDamagePoints.ToString("F2"),
                             Color.white);
-                        if(isPlayer)
-                        DataPersistenceManagerSystem._gameData.PlayerDamage += explosionDamagePoints;
+                        if (isPlayer)
+                            DataPersistenceManagerSystem._gameData.PlayerDamage += explosionDamagePoints;
                         ChangeHealth(explosionDamagePoints, currentDamagedEntity);
 
                         SetEffectComponent(currentDamagedEntity, gunConfig.EffectType, gunConfig.EffectDuration);
@@ -645,6 +735,10 @@ public enum AttackType {
                     }
                 }
 
+                if (_frozenComponentsPool.Value.Has(damagedEntity)) {
+                    damagePoints *= 1f + _frozenComponentsPool.Value.Get(damagedEntity).Duration/100;
+                }
+                
                 if (weaponCellEntity > 0 && _laserComponentsPool.Value.Has(weaponCellEntity)) {
                     ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
                     if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
@@ -782,7 +876,7 @@ public enum AttackType {
             bool isEnemy = !inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity);
 
           ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
-            
+            ClearEffectsFromCarPart(cellEntity);
             if (carPartConfig.PartType == CarPartType.Gun) {
                 ref var gunCmp = ref _gunComponentsPool.Value.Get(cellEntity);
                 if (gunCmp.UpPartContainer != null) {
@@ -963,6 +1057,31 @@ public enum AttackType {
             return destroyCarAfterCarPart;
         }
 
+        private void ClearEffectsFromCarPart(int cellEntity) {
+            if (_fireComponentsPool.Value.Has(cellEntity)) {
+                foreach (var particles in _fireComponentsPool.Value.Get(cellEntity).ParticleSystem) {
+                    _sceneService.Value.ReleaseCarPartParticles(particles);
+                }
+
+                _fireComponentsPool.Value.Del(cellEntity);
+            }
+
+            if (_frozenComponentsPool.Value.Has(cellEntity)) {
+                foreach (var particles in _frozenComponentsPool.Value.Get(cellEntity).ParticleSystem) {
+                    _sceneService.Value.ReleaseCarPartParticles(particles);
+                }
+
+                _frozenComponentsPool.Value.Del(cellEntity);
+            }
+
+            if (_shockEffectComponentsPool.Value.Has(cellEntity)) {
+                foreach (var particles in _shockEffectComponentsPool.Value.Get(cellEntity).ParticleSystem) {
+                    _sceneService.Value.ReleaseCarPartParticles(particles);
+                }
+
+                _shockEffectComponentsPool.Value.Del(cellEntity);
+            }
+        }
         private void SetEnemyCollisionCheckers(int[,] grid, CarView carView, ref EnemyAIComponent enemyAiCmp) {
             foreach (var leftPoint in enemyAiCmp.CheckedEnemyLeftPoints)
                 _sceneService.Value.ReleaseGunContainer(leftPoint);
