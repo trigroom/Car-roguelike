@@ -22,5 +22,8 @@ public enum Buff {
     Damage,
     TargetPierceing,
     UpgradeCost,
-    ReloadSpeed
+    ReloadSpeed, 
+    MaxWeight,
+    CarRotateSpeed,
+    MaxMagazineSize
 }

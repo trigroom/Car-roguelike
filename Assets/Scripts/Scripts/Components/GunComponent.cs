@@ -16,6 +16,7 @@
        public float CurrentReloadSpeed;
        public float CurrentMaxAttackCountdown;
        public float CurrentDamage;
+       public int CurrentMaxBulletsInMagazine;
        
        public int MaxPiercingCount;
    }

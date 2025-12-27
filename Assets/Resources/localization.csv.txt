@@ -81,7 +81,6 @@ Explosion radius,Blast radius,Радиус взрыва,Explosionsradius,Radio e
 Explosion damage,Blast damage,Урон взрыва,Explosionsschaden,Daño explosión,Dégâts explosion
 Pierce count,Pierce,Пробивание,Durchschlag,Penetración,Perçage
 Max rotate angle,Rotation limit,Угол поворота,Drehwinkel,Límite rotación,Limite rotation
-Rotate speed,Rotation speed,Скорость вращения,Drehgeschwindigkeit,Velocidad rotación,Vitesse rotation
 Low,Common,Обычная,Häufig,Común,Commune
 Medium,Rare,Редкая,Selten,Rara,Rare
 High,Epic,Эпическая,Episch,Épica,Épique
@@ -216,3 +215,4 @@ Modules,Modules,Модули,Module,Módulos,Modules
 No modules to this car part,No modules for this part,Нет модулей для этой детали,Keine Module für dieses Teil,Sin módulos para esta pieza,Pas de modules pour cette pièce
 Cancel,Cancel,Отмена,Abbrechen,Cancelar,Annuler
 Physical damage,Impact Damage,Урон от удара,Aufprallschaden,Daño Impacto,Dégâts Impact
+Rounds count,Rounds,Количество раундов,Rundenanzahl,Cuenta rondas,Compteur rounds

@@ -41,17 +41,18 @@ public class SelectDifficultyUIView : MonoBehaviour
    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
    public void SetDifficultyDescription(MapDifficultyConfig difficultyConfig) {
-      _difficultyDescription.text =
-         $"{GetLocalization(difficultyConfig.DifficultyName)}\n{GetLocalization("Enemy damage")} " +
-         $"x{difficultyConfig.DamageMultiplayer}\n{GetLocalization("Enemy health")} x{difficultyConfig.HealthMultiplayer} \n" +
-         $"{GetLocalization("Scrap for round")} {difficultyConfig.ScrapForRound}\n" +
-         $"{GetLocalization("Scrap for map complete")} {difficultyConfig.ScrapForMapComplete}" +
-         $"\n{GetLocalization("Start money")} {difficultyConfig.StartMoney}$\n{GetLocalization("Heal after end round to")}" +
-         $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%";
-      if(difficultyConfig.MapEvents != null)
-      foreach (var mapEvent in difficultyConfig.MapEvents) {
-         _difficultyDescription.text += "\n"+GetMapEventDescription(mapEvent);
-      }
+      _difficultyDescription.text = $"{GetLocalization(difficultyConfig.DifficultyName)}\n{GetLocalization("Enemy damage")} " +
+                                    $"x{difficultyConfig.DamageMultiplayer}\n{GetLocalization("Enemy health")} x{difficultyConfig.HealthMultiplayer} \n" +
+                                    $"{GetLocalization("Scrap for round")} {difficultyConfig.ScrapForRound}\n" +
+                                    $"{GetLocalization("Scrap for map complete")} {difficultyConfig.ScrapForMapComplete}" +
+                                    $"\n{GetLocalization("Start money")} {difficultyConfig.StartMoney}$\n{GetLocalization("Heal after end round to")}" +
+                                    $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%\n" +
+                                    $"{GetLocalization("Rounds count")}: {difficultyConfig.RoundsCount} ";
+      if (difficultyConfig.MapEvents != null)
+         foreach (var mapEvent in difficultyConfig.MapEvents) {
+            _difficultyDescription.text += "\n" + GetMapEventDescription(mapEvent);
+         }
+
       _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
    }
 

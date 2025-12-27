@@ -36,18 +36,21 @@ public class DataPersistenceManagerSystem : MonoBehaviour
         _gameData.ModulesUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs.Length];
         _gameData.ModulesUnlocked[0] = true;
         _gameData.ModulesUnlocked[1] = true;
+        _gameData.ModulesUnlocked[6] = true;
+        _gameData.ModulesUnlocked[7] = true;
+        _gameData.ModulesUnlocked[8] = true;
     }
 
     public void LoadGame() {
         _gameData = _dataHandler.Load();
         
-       // _gameData = null;
+        //_gameData = null;
         
         if (_gameData == null) {
             NewGame();
         }
 
-        //SaveGame();
+       // SaveGame();
     }
 
     public enum SavePriority {

@@ -557,13 +557,16 @@ public class GridUtils : MonoBehaviour {
         return carPartConfig.MoneyCost / 2 + Mathf.Max(level - 1, 0) * carPartConfig.UpgradedPartCost + modulesCost;
     }
 
-    public static ( float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount, float
-        reloadSpeedMultiplayer) GetModulesMultiplyers(int[] moduleIds) {
+    public static (float damageMultiplaier, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount, float
+        reloadSpeedMultiplayer, float maxWeightMultiplier,float wheelRotateSpeedMultiplier, float magSizeMultiplier) GetModulesMultipliers(int[] moduleIds) {
         float damageMultiplayer = 1;
         float attackSpeedMultiplayer = 1;
         float healthMultiplayer = 1;
         int targetPiercingAddedCount = 0;
         float reloadSpeedMultiplayer = 1;
+        float maxWeightMultiplier = 1;
+        float wheelRotateSpeedMultiplier = 1;
+        float magSizeMultiplier = 1;
 
         if (moduleIds != null)
             foreach (var moduleId in moduleIds) {
@@ -586,11 +589,21 @@ public class GridUtils : MonoBehaviour {
                         case Buff.ReloadSpeed:
                             reloadSpeedMultiplayer += moduleBuff.BuffCount;
                             break;
+                        case Buff.MaxMagazineSize:
+                            magSizeMultiplier += moduleBuff.BuffCount;
+                            break;
+                        case Buff.MaxWeight:
+                            maxWeightMultiplier += moduleBuff.BuffCount;
+                            break;
+                        case Buff.CarRotateSpeed:
+                            wheelRotateSpeedMultiplier += moduleBuff.BuffCount;
+                            break;
                     }
                 }
             }
 
-        return (damageMultiplayer, attackSpeedMultiplayer, healthMultiplayer, targetPiercingAddedCount, reloadSpeedMultiplayer);
+        return (damageMultiplayer, attackSpeedMultiplayer, healthMultiplayer, targetPiercingAddedCount, reloadSpeedMultiplayer,
+            maxWeightMultiplier, wheelRotateSpeedMultiplier, magSizeMultiplier);
     }
     
     public static ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(Vector2 cellSizeDelta, CarPartConfig carPartConfig) {

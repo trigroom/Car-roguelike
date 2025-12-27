@@ -24,6 +24,8 @@ public class MapDifficultyConfig : ScriptableObject
     public Color DifficltyUiColor { get; private set; }
     [field: SerializeField]
     public float StartMoney { get; private set; }
+    [field: SerializeField]
+    public int RoundsCount { get; private set; }
 }
 
 public enum MapEventsType {

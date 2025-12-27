@@ -67,5 +67,8 @@ public enum ModuleType {
     bullet,
     armor,
     blade,
-    explodeRadius
+    explodeRadius,
+    wheels,
+    magSize,
+    main
 }

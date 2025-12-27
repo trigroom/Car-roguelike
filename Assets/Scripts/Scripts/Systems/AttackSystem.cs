@@ -948,7 +948,7 @@ public enum AttackType {
                     }
 
                     _wheelContainerComponentsPool.Value.Del(cellEntity);
-                    carCmp.CurrentMaxWeight -= _sceneService.Value.GetWheelContainerFromCarPart(carPartInfoCmp.CarPartId).MaxWeight;
+                    carCmp.CurrentMaxWeight -= _sceneService.Value.GetWheelContainerFromCarPart(carPartInfoCmp.CarPartId).MaxWeight * GridUtils.GetModulesMultipliers(carPartInfoCmp.ModuleIds).maxWeightMultiplier* GridUtils.GetMaxWeightLevelMultiplier(carPartInfoCmp.PartLevel);
                 }
 
                 if (isEnemy)
@@ -1009,7 +1009,8 @@ public enum AttackType {
 
             if (isEnemy && !_destroyEntityEventsPool.Value.Has(cellEntity)) {
                 _destroyEntityEventsPool.Value.Add(cellEntity);
-                CheckTasks(TaskType.BrokenParts);
+                if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None)
+                    CheckTasks(TaskType.BrokenParts);
             }
 
             if (GridUtils.IsContainerType(carPartConfig) && !destroyCarAfterCarPart && checkConnectedGroup) {
@@ -1201,8 +1202,10 @@ public enum AttackType {
                 TaskUtilits.UpdateTaskText(taskCmp);
                 if (taskCmp.CurrentCount >= taskCmp.NeedCount) {
                     taskCmp.TaskText.gameObject.SetActive(false);
+                    Debug.Log("Task complete:"+taskCmp.MoneyReward+ " money");
                     _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount += taskCmp.MoneyReward;
                     DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += taskCmp.MoneyReward;
+                    _taskComponentsPool.Value.Del(taskEntity);
                 }
             }
         }

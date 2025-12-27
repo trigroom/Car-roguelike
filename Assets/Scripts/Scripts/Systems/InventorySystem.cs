@@ -155,6 +155,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         //test
         SetUpAdminButtons();
+        
+        AddModuleInventoryItem(6);
+        AddModuleInventoryItem(7);
+        AddModuleInventoryItem(8);
     }
 
     public void Run(IEcsSystems systems) {
@@ -821,7 +825,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 carCmp.CarPartContainerGroupsGrid = new int[carPartContainerGridSize.x + Mathf.Abs(xOffsetUp) + Mathf.Abs(xOffsetDown),
                     carPartContainerGridSize.y + Mathf.Abs(yOffsetUp)+ Mathf.Abs(yOffsetDown)];
             if (carPartConfig is WheelsContainerConfig wheelConfig) {
-                carCmp.CurrentMaxWeight += wheelConfig.MaxWeight* GridUtils.GetMaxWeightLevelMultiplier(level);
+                carCmp.CurrentMaxWeight += wheelConfig.MaxWeight* GridUtils.GetMaxWeightLevelMultiplier(level)* GridUtils.GetModulesMultipliers(moduleIds).maxWeightMultiplier;
                 Debug.Log(carCmp.CurrentMaxWeight);
             }
             carPartContainerGridSize = new(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1));
@@ -1296,7 +1300,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             float addedHealth = carPartConfig.MaxHealth *
                                 (GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel + 1) -
                                  GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel)) *
-                                GridUtils.GetModulesMultiplyers(carInfoPartCmp.ModuleIds).healthMultiplayer;
+                                GridUtils.GetModulesMultipliers(carInfoPartCmp.ModuleIds).healthMultiplayer;
             carInfoPartCmp.PartLevel++;
             carInfoPartCmp.CurrentHealth += addedHealth;
             carPartCmp.MaxHealth = carPartConfig.MaxHealth *GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel);
@@ -1422,7 +1426,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 carCmp.CarPartContainerGroupsList.Remove(carPartEntity);
 
                 if (carPartConfig is WheelsContainerConfig wheelConfig)
-                    carCmp.CurrentMaxWeight -= wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCmp.PartLevel);
+                    carCmp.CurrentMaxWeight -= wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCmp.PartLevel)* GridUtils.GetModulesMultipliers(carPartCmp.ModuleIds).maxWeightMultiplier;
             } else {
                 foreach (var carPartCellPosition in carCmp.CarPartGroupsList[carPartEntity]) {
                     carCmp.CarPartGroupsGrid[carPartCellPosition.x, carPartCellPosition.y] = 0;
@@ -1590,13 +1594,18 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
         fuelCmp.MaxFuel = maxFuel;
         fuelCmp.FuelConsumption = defaultFuelConsumption;
+        float rotateSpeedMultiplier = 1;
         foreach (var carPart in carCmp.CarPartContainerGroupsList.Keys) {
             var carPartCellCmp = _carPartInfoComponentsPool.Value.Get(carPart);
             int carPartId = carPartCellCmp.CarPartId;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartId);
             carWeight += carPartConfig.Weight;
-            if (carPartConfig is WheelsContainerConfig wheels)
-                carMaxWeight += wheels.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCellCmp.PartLevel);
+            if (carPartConfig is WheelsContainerConfig wheels) {
+                carMaxWeight += wheels.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCellCmp.PartLevel) *
+                                GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds).maxWeightMultiplier;
+                rotateSpeedMultiplier += GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds).wheelRotateSpeedMultiplier - 1;
+            }
+              
         }
 
         carCmp.CurrentWeight = carWeight;
@@ -1608,7 +1617,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         moveCmp.MaxBoostMoveSpeed += defaultMaxCarSpeed;
        
         moveCmp.MaxMoveSpeed = defaultMaxCarSpeed;
-        moveCmp.RotateSpeed = carRotateSpeed;
+        moveCmp.RotateSpeed = carRotateSpeed*rotateSpeedMultiplier;
     }
 
     private void UpdateCarDescription(int entity) {
@@ -2051,7 +2060,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
         ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Add(carPartCellEntity);
         carPartCmp.MainEntity = mainEntity;
-        carPartCmp.MaxHealth = carPartConfig.MaxHealth*GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
+        carPartInfoCmp.ModuleIds = new int[(int)carPartConfig.RartRare + 1];
+        Array.Fill(carPartInfoCmp.ModuleIds, -1);
+        carPartInfoCmp.PartLevel = carPartsInfo.level;
+        carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
         carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
         carPartInfoCmp.CarPartId = carPartsInfo.partId;
         carPartCmp.RotateDegrees = carPartsInfo.rotate;
@@ -2819,10 +2831,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
        // var moduleView = _sceneData.Value._carPartInfoUIView._moduleViews[inventoryCmp.CurrentSelectedModuleCellId];
    //     moduleView.ModuleIcon.sprite = moduleConfig.ModuleIcon;
        // moduleView.ModuleIcon.color = Color.white;
-        CancelModuleSelect();
-        SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
-        
-        _moduleInventoryItemsPool.Value.Del(moduleEntity);
+       CancelModuleSelect();
+       SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
+       if (GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.WheelsContainer)
+           UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
+       _moduleInventoryItemsPool.Value.Del(moduleEntity);
     }
     
     private void ActivateGiveCarPartsWindow() {
@@ -3079,7 +3092,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(entity);
         carPartInfoCmp.CurrentHealth = GetCarPartConfig(carPartInfoCmp.CarPartId).MaxHealth *
                                        GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel) *
-                                       GridUtils.GetModulesMultiplyers(carPartInfoCmp.ModuleIds).healthMultiplayer;
+                                       GridUtils.GetModulesMultipliers(carPartInfoCmp.ModuleIds).healthMultiplayer;
         
         UpdateHealAllCarPartButton();
     }

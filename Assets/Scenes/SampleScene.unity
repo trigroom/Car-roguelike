@@ -10931,7 +10931,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -75.6336, y: 252}
+  m_AnchoredPosition: {x: -69, y: 252}
   m_SizeDelta: {x: -291.2672, y: -606.8384}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &732146546
@@ -10990,7 +10990,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -12038,6 +12038,7 @@ RectTransform:
   m_Children:
   - {fileID: 1565190324}
   - {fileID: 134741215}
+  - {fileID: 913302149}
   - {fileID: 912522063}
   - {fileID: 1676706381}
   - {fileID: 903299152}
@@ -13307,7 +13308,6 @@ RectTransform:
   - {fileID: 172092174}
   - {fileID: 1482825583}
   - {fileID: 428371366}
-  - {fileID: 913302149}
   - {fileID: 291641446}
   m_Father: {fileID: 796384107}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -13858,7 +13858,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 913302148}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -13868,7 +13868,7 @@ RectTransform:
   - {fileID: 317732494}
   - {fileID: 1324492548}
   - {fileID: 1930592614}
-  m_Father: {fileID: 903299152}
+  m_Father: {fileID: 796384107}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -16924,6 +16924,7 @@ MonoBehaviour:
   - {fileID: 1497980015}
   - {fileID: 798774144}
   - {fileID: 836200569}
+  - {fileID: 1259208520}
   _keys:
   - Start game
   - Inventory
@@ -16941,6 +16942,7 @@ MonoBehaviour:
   - RMB
   - No modules to this car part
   - Cancel
+  - Continue
 --- !u!4 &1065153041
 Transform:
   m_ObjectHideFlags: 0
@@ -19078,7 +19080,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -157.1, y: 0}
+  m_AnchoredPosition: {x: -164, y: 0}
   m_SizeDelta: {x: 53.2516, y: 53.2516}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1249212080
@@ -19193,7 +19195,7 @@ GameObject:
   - component: {fileID: 1259208521}
   - component: {fileID: 1259208520}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: 'TextContinue '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33994,6 +33996,6 @@ SceneRoots:
   - {fileID: 1688199340}
   - {fileID: 1846311316}
   - {fileID: 549882471}
-  - {fileID: 1065153041}
   - {fileID: 1514647935}
   - {fileID: 1917447287}
+  - {fileID: 1065153041}

@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 4
   <PartName>k__BackingField: Wheels 3x1
-  <DefaultModuleCount>k__BackingField: 0
+  <ModuleTypes>k__BackingField: 08000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 0}

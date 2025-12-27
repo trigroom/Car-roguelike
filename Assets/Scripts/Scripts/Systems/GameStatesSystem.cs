@@ -202,9 +202,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void WinGame() {
         Time.timeScale = 0;
-        var difficultyConfig = _betweenScenesService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
-            .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
-        int scrapCount = difficultyConfig.ScrapForRound * _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length +
+        var difficultyConfig = _betweenScenesService.Value.GetMapDifficultyConfig();
+        int scrapCount = difficultyConfig.ScrapForRound * difficultyConfig.RoundsCount +
                          difficultyConfig.ScrapForMapComplete;
         DataPersistenceManagerSystem._gameData.ScrapCount += scrapCount;
         if (_betweenScenesService.Value.GetMapConfig().MapDifficltyConfigs.Length !=
@@ -337,7 +336,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
           
         Debug.Log("End round game st system");
         ChangePlayerUIState(false);
-        if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length)return;
+        if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount)return;
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
@@ -367,6 +366,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
 
         DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += moneyCount;
+        Debug.Log("End round reward :"+moneyCount+ " money");
         _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount += moneyCount;
         SetMoneyText();
         _sceneService.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
@@ -402,7 +402,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
         
         (var randomRounds, int moneyMultiplayerRound) =
-            curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length - 1
+            curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount - 1
                 ? (new[] { RoundType.BossBattle }, -1)
                 : RoundUtilits.GetRandomBattleRound(curGameCmp.CurrentBattleRounds, 3, currentSupportRoundTypes);
       //  curGameCmp.RoundTypes.Add(randomRounds);
@@ -412,7 +412,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         Transform moneyMultPosition = null;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.localScale = Vector3.zero;
         float posY = (curGameCmp.CurrentRound + 1) * (mapImageRect.rect.height /
-                                                      ((float)_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds.Length +
+                                                      ((float)_betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount +
                                                        2)) - mapImageRect.rect.height / 2;
         for (int i = 0; i < randomRounds.Length; i++) {
             var roundButton = _sceneService.Value.InstantiateRoundButton();
@@ -950,7 +950,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var moduleIds = carPartInfo.ModuleIds;
 
         (float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount,
-            float reloadSpeedMultiplayer) = GridUtils.GetModulesMultiplyers(moduleIds);
+            float reloadSpeedMultiplayer,float maxWeightMultiplier,float wheelRotateSpeedMultiplier, float magSizeMultiplier) = GridUtils.GetModulesMultipliers(moduleIds);
 
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
 
@@ -961,6 +961,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             gunCmp.CurrentMaxAttackCountdown *= attackSpeedMultiplayer;
             gunCmp.CurrentReloadSpeed *= reloadSpeedMultiplayer;
             gunCmp.MaxPiercingCount += targetPiercingAddedCount;
+            gunCmp.CurrentMaxBulletsInMagazine = Mathf.FloorToInt(gunCmp.CurrentMaxBulletsInMagazine*magSizeMultiplier);
+            gunCmp.CurrentMagazineCount = gunCmp.CurrentMaxBulletsInMagazine;
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
             ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(carPartEntity);
             meleeCmp.CurrentDamage *= damageMultiplayer;
@@ -1175,7 +1177,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             gunCmp.CurrentMaxAttackCountdown = gunConfig.AttackCouldown / attackCountdownMultiplayer;
             gunCmp.CurrentDamage = gunConfig.Damage * damageMultiplier;
             gunCmp.CurrentCountdown = gunCmp.CurrentReloadSpeed;
-            gunCmp.CurrentMagazineCount = gunConfig.BulletsCountInMagazine;
+            gunCmp.CurrentMaxBulletsInMagazine = gunConfig.BulletsCountInMagazine;
+            gunCmp.CurrentMagazineCount = gunCmp.CurrentMaxBulletsInMagazine;
             gunCmp.MaxPiercingCount = gunConfig.BreakingThroughCount;
             //   carPart.transform.localPosition = Vector3.zero;
 
@@ -1229,7 +1232,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         } else if (carPartConfig.PartType == CarPartType.WheelsContainer) {
             var wheelsConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
-            carCmp.CurrentMaxWeight += wheelsConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartInfoCmp.PartLevel);
+            carCmp.CurrentMaxWeight += wheelsConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartInfoCmp.PartLevel)
+                                                              * GridUtils.GetModulesMultipliers(carPartInfoCmp.ModuleIds).maxWeightMultiplier;
         }
 
         if (isPlayer)
@@ -1239,9 +1243,21 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {
         ref var movementComponent = ref _movementComponentsPool.Value.Get(enemyEntity);
         var carCmp = _carComponentsPool.Value.Get(enemyEntity);
+
+        float rotateSpeedMultiplier = 1;
+        foreach (var carPart in carCmp.CarPartContainerGroupsList.Keys) {
+            var carPartCellCmp = _carPartInfoComponentsPool.Value.Get(carPart);
+            int carPartId = carPartCellCmp.CarPartId;
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartId);
+            if (carPartConfig is WheelsContainerConfig wheels) {
+                rotateSpeedMultiplier += GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds).wheelRotateSpeedMultiplier - 1;
+            }
+              
+        }
+        
         movementComponent.RotateSpeed = carConfig.RotateSpeed *
                                         _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer *
-                                        (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
+                                        (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight)*rotateSpeedMultiplier;
         movementComponent.Acceleration = carConfig.Acceleration;
         movementComponent.Deceleration = carConfig.Deceleration;
 
@@ -1355,7 +1371,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                if (i == 5 && j == 5) continue;
+                if (i == 4 && j == 5) continue;
                 GenerateObstaclesInCell(i, j, randomOffset);
             }
         }
@@ -1363,14 +1379,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     
     private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise)
     {
-        // Получаем значение шума Перлина для центра клетки
         float noiseValue = PerlinNoiseUtil.GetFractalNoise(
             cellX * 20 + 20 / 2f+randomOffsetForNoise.x,
             cellY * 20 + 20 / 2f+randomOffsetForNoise.y 
         );
-        // Определяем количество препятствий на основе шума
+        
         int obstacleCount = GetObstacleCountFromNoise(noiseValue);
-        // Генерируем препятствия в клетке
+        
         for (int k = 0; k < obstacleCount; k++)
         {
             Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);

@@ -16,6 +16,8 @@ MonoBehaviour:
   <EnemyProjectilesMaterial>k__BackingField: {fileID: 2100000, guid: ac9662e825c0b1344840f44fb2f4f571, type: 2}
   <LowDamagedMaterial>k__BackingField: {fileID: 2100000, guid: c4c785079a585d54f8bd17ba9a5e8c23, type: 2}
   <HighDamagedMaterial>k__BackingField: {fileID: 2100000, guid: 3392145bcbb5ec847af29db9af7efbbb, type: 2}
+  <FrozenMaterial>k__BackingField: {fileID: 0}
+  <FireMaterial>k__BackingField: {fileID: 0}
   <CarConfigs>k__BackingField:
   - {fileID: 11400000, guid: 927f08791d5064d45b1e42f88b2686e5, type: 2}
   - {fileID: 11400000, guid: 35fbc3960db601a40a032ba933c11903, type: 2}
@@ -236,3 +238,10 @@ MonoBehaviour:
   <ModuleConfigs>k__BackingField:
   - {fileID: 11400000, guid: 014e4a7372e5526458fd17166ab93f43, type: 2}
   - {fileID: 11400000, guid: a7b350f8c981ae0488141627541bb645, type: 2}
+  - {fileID: 11400000, guid: 0135c2598947f4244a74ffd8f05f209a, type: 2}
+  - {fileID: 11400000, guid: 78d1ec1b37d96f24c8875a6457f7f1ec, type: 2}
+  - {fileID: 11400000, guid: a595d9ef6a9f1094e8bee4a73e012cee, type: 2}
+  - {fileID: 11400000, guid: 666bad5e6e7d7354caf8a6dd3b52a217, type: 2}
+  - {fileID: 11400000, guid: 2c39eca813dd887408841b4b678730d9, type: 2}
+  - {fileID: 11400000, guid: c2003e7501e8ee74ebdffa94e681a091, type: 2}
+  - {fileID: 11400000, guid: 345d7b1272bbde44b90073005dde2ee8, type: 2}
