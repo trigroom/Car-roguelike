@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,6 +15,8 @@ public class BetweenScenesService : MonoBehaviour {
       [field: SerializeField] public CarStuffListsConfig _carStuffListsConfig { get; private set; }
    
    public static BetweenScenesService Instance;
+   
+   public List<int> CompletedAchievments = new List<int>();
     void Awake()
     { 
         Instance = this;

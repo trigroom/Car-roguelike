@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: 4MoneyCollect2
   m_EditorClassIdentifier: 
   <achievementId>k__BackingField: 4
-  <achivementIcon>k__BackingField: {fileID: 21300000, guid: c8e65f3ff1e40b04981f4685fd0afa93, type: 3}
-  <achivementName>k__BackingField: Money collect 2
+  <achievementIcon>k__BackingField: {fileID: 21300000, guid: 18855a431311838429b9adf9f9226b3f, type: 3}
+  <achievementBackground>k__BackingField: {fileID: 21300000, guid: 81a2c4c335ee5a74b8c6ddad782fb85f, type: 3}
+  <achivementName>k__BackingField: 'Money collect '
   <needCount>k__BackingField: 1000
   <needSecondCount>k__BackingField: 0
+  <needAchievementToVisible>k__BackingField: 3
   <rewardType>k__BackingField: 2
   <achievementType>k__BackingField: 3
-  <rewardCount>k__BackingField: 65
+  <rewardCount>k__BackingField: 10

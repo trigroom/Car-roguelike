@@ -44,13 +44,14 @@ public class DataPersistenceManagerSystem : MonoBehaviour
     public void LoadGame() {
         _gameData = _dataHandler.Load();
         
-        //_gameData = null;
+        _gameData = null;
         
         if (_gameData == null) {
             NewGame();
         }
 
-       // SaveGame();
+        _gameData.TutorialIsCompleted = true;
+       SaveGame();
     }
 
     public enum SavePriority {

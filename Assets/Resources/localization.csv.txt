@@ -216,3 +216,19 @@ No modules to this car part,No modules for this part,Нет модулей дл�
 Cancel,Cancel,Отмена,Abbrechen,Cancelar,Annuler
 Physical damage,Impact Damage,Урон от удара,Aufprallschaden,Daño Impacto,Dégâts Impact
 Rounds count,Rounds,Количество раундов,Rundenanzahl,Cuenta rondas,Compteur rounds
+Have,Have,Имей,Haben,Tener,Avoir
+Max fuel achievement,Max fuel,Максимум топлива,Maximaler Kraftstoff,Combustible máximo,Carburant max
+Complete,Complete,Выполни,Abschließen,Completar,Terminer
+tasks,tasks,заданий,Aufgaben,tareas,missions
+Open,Open,Открой,Öffnen,Abrir,Ouvrir
+support boxes,support boxes,коробок поддержки,Unterstützungskisten,cajas de apoyo,boîtes de soutien
+Win without car and car part upgrades,Win without upgrades,Победи без улучшений,Gewinne ohne Upgrades,Gana sin mejoras,Gagne sans améliorations
+Kill,Kill,Уничтожь,Töten,Mata,Tue
+Cars,Cars,Машин,Autos,Coches,Voitures
+Difficulty,Difficulty,Сложность,Schwierigkeit,Dificultad,Difficulté
+Get,Get,Получи,Bekommt,Obtiene,Obtiens
+Deal,Deal,Нанеси,Zufügen,Inflige,Inflige
+Equip,Equip,Установи,Rüste aus,Equipa,Équipe
+modules on one car part,modules on one part,модулей на одной детали,Module an einem Teil,módulos en una pieza,modules sur une pièce
+Drive,Drive,Проезди,Fahre,Conduce,Conduis
+m,m,м,m,m,m

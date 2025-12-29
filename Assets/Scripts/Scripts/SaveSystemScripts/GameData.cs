@@ -8,6 +8,7 @@ public class GameData
     public int BrokenCars;
     public float PlayerDamage;
     public float MoneyEarnedInGame;
+    public float TasksCompleted;
     public int SupportBoxOpened;
     //game info
     public string lastGameVersion;

@@ -4,12 +4,12 @@ using UnityEngine;
 public class AchivementConfig : ScriptableObject
 {
     [field:SerializeField] public int achievementId { get; private set; }
-    [field:SerializeField] public Sprite achivementIcon { get; private set; }
-
+    [field:SerializeField] public Sprite achievementIcon { get; private set; }
+    [field:SerializeField] public Sprite achievementBackground { get; private set; }
     [field:SerializeField]public string achivementName{ get; private set; }
     [field:SerializeField]public int needCount{ get; private set; }
     [field:SerializeField]public int needSecondCount{ get; private set; }
-    
+    [field:SerializeField]public int needAchievementToVisible{ get; private set; }
     [field:SerializeField]public AchievementRewardType rewardType{ get; private set; }
     [field:SerializeField]public AchievementType achievementType{ get; private set; }
     
@@ -28,5 +28,9 @@ public enum AchievementType {
     CompleteMap,
     GetMoney,
     DistanceDrived,
-    WinWithFirstCarLevel
+    CompletedTasks,
+    ModulesOnOneCarPart,
+    WinWithoutUpgrades,
+    MaxFuelInCar,
+    SupportBoxOpened,
 }

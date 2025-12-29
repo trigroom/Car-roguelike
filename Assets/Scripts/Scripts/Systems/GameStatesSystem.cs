@@ -179,7 +179,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         supportBox.gameObject.SetActive(true);
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(supportBox._mainEntity);
         float randomValue = Random.value;
-        if (randomValue > 0.75f) {
+        if (randomValue < 0.75f) {
             carPartCmp.MaxHealth = 100;
             supportBoxView._supportBoxSprite.sprite = supportBoxView.defaultBoxSprite;
         } else {
@@ -211,9 +211,76 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             DataPersistenceManagerSystem._gameData.LevelRounds[_betweenScenesService.Value.CurrentSelectedMap] =
                 _betweenScenesService.Value.CurrentSelectedMapDifficlty + 2;
         DataPersistenceManagerSystem.SaveGame();
+        CheckCoreAchievements();
         _sceneService.Value._endGameScreenView.SetWinScreenInfo(scrapCount);
     }
 
+    private void CheckCoreAchievements() {
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int upgradedCount = carCmp.CarLevel;
+        float maxFuel = _sceneService.Value.GetCarConfig(carCmp.CarId).DefaultMaxFuel *
+                        GridUtils.GetCarLevelMultipliers(carCmp.CarLevel).baseMaxFuelMultiplier;
+        foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPartContainer.Key);
+            upgradedCount += carPartCmp.PartLevel;
+        }
+
+        foreach (var carPart in carCmp.CarPartGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
+            upgradedCount += carPartCmp.PartLevel;
+
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);
+            if (carPartConfig is SupportModuleCarPartConfig supportConfig) {
+                if (supportConfig.ModuleType == SupportModuleType.Fuel)
+                    maxFuel += supportConfig.FirstCount * GridUtils.GetSupportLevelMultipliers(carPartCmp.PartLevel, supportConfig.ModuleType)
+                        .firstMultiplayer;
+            }
+        }
+
+        foreach (var achievementConfig in _betweenScenesService.Value._carStuffListsConfig.AchievementConfigs) {
+            if (DataPersistenceManagerSystem._gameData.AchievementsCompleted[achievementConfig.achievementId])
+                switch (achievementConfig.achievementType) {
+                    case AchievementType.ModulesOnOneCarPart:
+                        if (achievementConfig.needCount <= GetMaxModulesOnCarPart())
+                            _betweenScenesService.Value.CompletedAchievments.Add(achievementConfig.achievementId);
+                        break;
+                    case AchievementType.MaxFuelInCar:
+                        if (achievementConfig.needCount <= maxFuel)
+                            _betweenScenesService.Value.CompletedAchievments.Add(achievementConfig.achievementId);
+                        break;
+                    case AchievementType.WinWithoutUpgrades:
+                        if (upgradedCount == 0)
+                            _betweenScenesService.Value.CompletedAchievments.Add(achievementConfig.achievementId);
+                        break;
+                }
+        }
+    }
+
+    private int GetMaxModulesOnCarPart() {
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int maxModules = 0;
+        foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPartContainer.Key);
+            int modulesOnCarPart = 0;
+            foreach (var moduleId in carPartCmp.ModuleIds) {
+                if (moduleId != -1)
+                    modulesOnCarPart++;
+            }
+            maxModules = Mathf.Max(maxModules, modulesOnCarPart);
+        }
+
+        foreach (var carPart in carCmp.CarPartGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
+            int modulesOnCarPart = 0;
+            foreach (var moduleId in carPartCmp.ModuleIds) {
+                if (moduleId != -1)
+                    modulesOnCarPart++;
+            }
+            maxModules = Mathf.Max(maxModules, modulesOnCarPart);
+        }
+
+        return maxModules;
+    }
     private void SetSettingsState() {
         _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneService.Value._settingsView._settingsContainer
             .gameObject.activeInHierarchy);
@@ -294,26 +361,21 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._shopUIView._updateItemsText.gameObject.SetActive(false);
         _updateShopToSaleRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
-    
-    
-    
-    private void UpdateArrowDirection(Vector2 target, Vector2 playerPosition)
-    {
+
+    private void UpdateArrowDirection(Vector2 target, Vector2 playerPosition) {
         Vector3 directionToTarget = target - playerPosition;
-        
-        if (directionToTarget.magnitude > 0.1f)
-        {
-            float targetAngle = Mathf.Atan2(directionToTarget.y,directionToTarget.x ) * Mathf.Rad2Deg;
-            
+
+        if (directionToTarget.magnitude > 0.1f) {
+            float targetAngle = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg;
+
             Quaternion targetRotation = Quaternion.Euler(0, 0, targetAngle);
             _sceneService.Value._playerUIView._arrowImageTransform.parent.rotation = Quaternion.Lerp(
-                _sceneService.Value._playerUIView._arrowImageTransform.parent.rotation, 
-                targetRotation, 
-                3 * Time.deltaTime
-            );
+                _sceneService.Value._playerUIView._arrowImageTransform.parent.rotation, targetRotation, 3 * Time.deltaTime);
         }
+
         Vector3 screenPos = _sceneService.Value.mainCamera.WorldToScreenPoint(playerPosition);
-        _sceneService.Value._playerUIView._arrowImageTransform.parent.position = Vector2.Lerp(_sceneService.Value._playerUIView._arrowImageTransform.parent.position,screenPos, 4*Time.deltaTime) ;
+        _sceneService.Value._playerUIView._arrowImageTransform.parent.position =
+            Vector2.Lerp(_sceneService.Value._playerUIView._arrowImageTransform.parent.position, screenPos, 4 * Time.deltaTime);
     }
     
     private int TaskCount() {
@@ -628,10 +690,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
         pointToPointRoundCmp.PointsToCheck = new List<Vector2>();
-        int pointsCount = 2 + curGameCmp.CurrentRound / 5;
+        int pointsCount = 2 + curGameCmp.CurrentRound / 2;
         Vector2 posToSpawn = Vector2.zero;
         for (int i = 0; i < pointsCount; i++) {
-            posToSpawn = GetRandomPointAround(posToSpawn, 15);
+            posToSpawn = GetRandomPointAround(posToSpawn, 15+ (float)curGameCmp.CurrentRound / 2);
             pointToPointRoundCmp.PointsToCheck.Add(posToSpawn);
         }
 

@@ -328,9 +328,72 @@ public enum AttackType {
                 .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty].ScrapForRound*currentRound;
             DataPersistenceManagerSystem._gameData.ScrapCount += scrapCount;
             _sceneService.Value._endGameScreenView.SetLoseScreenInfo(currentRound,scrapCount);
+            CheckCoreAchievements();
             DataPersistenceManagerSystem.SaveGame();
             //go to meta
         }
+        private void CheckCoreAchievements() {
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int upgradedCount = carCmp.CarLevel;
+        float maxFuel = _sceneService.Value.GetCarConfig(carCmp.CarId).DefaultMaxFuel *
+                        GridUtils.GetCarLevelMultipliers(carCmp.CarLevel).baseMaxFuelMultiplier;
+        foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPartContainer.Key);
+            upgradedCount += carPartCmp.PartLevel;
+        }
+
+        foreach (var carPart in carCmp.CarPartGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
+            upgradedCount += carPartCmp.PartLevel;
+
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);
+            if (carPartConfig is SupportModuleCarPartConfig supportConfig) {
+                if (supportConfig.ModuleType == SupportModuleType.Fuel)
+                    maxFuel += supportConfig.FirstCount * GridUtils.GetSupportLevelMultipliers(carPartCmp.PartLevel, supportConfig.ModuleType)
+                        .firstMultiplayer;
+            }
+        }
+
+        foreach (var achievementConfig in _betweenScenesService.Value._carStuffListsConfig.AchievementConfigs) {
+            if (DataPersistenceManagerSystem._gameData.AchievementsCompleted[achievementConfig.achievementId])
+                switch (achievementConfig.achievementType) {
+                    case AchievementType.ModulesOnOneCarPart:
+                        if (achievementConfig.needCount <= GetMaxModulesOnCarPart())
+                            _betweenScenesService.Value.CompletedAchievments.Add(achievementConfig.achievementId);
+                        break;
+                    case AchievementType.MaxFuelInCar:
+                        if (achievementConfig.needCount <= maxFuel)
+                            _betweenScenesService.Value.CompletedAchievments.Add(achievementConfig.achievementId);
+                        break;
+                }
+        }
+    }
+
+    private int GetMaxModulesOnCarPart() {
+        var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int maxModules = 0;
+        foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPartContainer.Key);
+            int modulesOnCarPart = 0;
+            foreach (var moduleId in carPartCmp.ModuleIds) {
+                if (moduleId != -1)
+                    modulesOnCarPart++;
+            }
+            maxModules = Mathf.Max(maxModules, modulesOnCarPart);
+        }
+
+        foreach (var carPart in carCmp.CarPartGroupsList) {
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
+            int modulesOnCarPart = 0;
+            foreach (var moduleId in carPartCmp.ModuleIds) {
+                if (moduleId != -1)
+                    modulesOnCarPart++;
+            }
+            maxModules = Mathf.Max(maxModules, modulesOnCarPart);
+        }
+
+        return maxModules;
+    }
         private void DestroyAllProjectiles() {
             foreach (var projectileEntity in _projectileComponentsFilter.Value) {
                 ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectileEntity);
@@ -1206,6 +1269,7 @@ public enum AttackType {
                     _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount += taskCmp.MoneyReward;
                     DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += taskCmp.MoneyReward;
                     _taskComponentsPool.Value.Del(taskEntity);
+                    DataPersistenceManagerSystem._gameData.TasksCompleted++;
                 }
             }
         }

@@ -13,10 +13,12 @@ MonoBehaviour:
   m_Name: 2CarKiller3
   m_EditorClassIdentifier: 
   <achievementId>k__BackingField: 2
-  <achivementIcon>k__BackingField: {fileID: 21300000, guid: 3f5827e5fc78d864ab8105de3c9fb024, type: 3}
-  <achivementName>k__BackingField: Car killer 3
+  <achievementIcon>k__BackingField: {fileID: 21300000, guid: e09462bfbad25b14bb61f1d32dcee8aa, type: 3}
+  <achievementBackground>k__BackingField: {fileID: 21300000, guid: b4df236d93c01dc49adebb11c3d3d27e, type: 3}
+  <achivementName>k__BackingField: 'Car killer '
   <needCount>k__BackingField: 150
   <needSecondCount>k__BackingField: 0
-  <rewardType>k__BackingField: 1
+  <needAchievementToVisible>k__BackingField: 1
+  <rewardType>k__BackingField: 2
   <achievementType>k__BackingField: 0
   <rewardCount>k__BackingField: 10

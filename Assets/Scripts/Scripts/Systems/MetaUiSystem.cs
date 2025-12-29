@@ -143,8 +143,9 @@ sealed class MetaUiSystem : IEcsInitSystem {
             for (int i = 0; i < DataPersistenceManagerSystem._gameData.AchievementsCompleted.Length; i++) {
                 var achievementConfig = _betweenSceneService.Value._carStuffListsConfig.AchievementConfigs[i];
                 if (!DataPersistenceManagerSystem._gameData.AchievementsCompleted[i]) {
-                    if (CheckAchievementCount(achievementConfig)) {
-                        Debug.Log("Achievement Completed");
+                    if (achievementConfig.needAchievementToVisible != -1 &&
+                        !DataPersistenceManagerSystem._gameData.AchievementsCompleted[achievementConfig.needAchievementToVisible]) continue;
+                    if (CheckAchievementCount(achievementConfig) || _betweenSceneService.Value.CompletedAchievments.Contains(i)) {
                         metaUiComponent.CurrentRewardedAchievementIds.Add(i);
                         GiveAchievementReward(achievementConfig.rewardType, achievementConfig.rewardCount);
                         DataPersistenceManagerSystem._gameData.AchievementsCompleted[i] = true;
@@ -167,6 +168,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 _metaSceneService.Value._achievementsUIView.SetRewardAchievementInfoPanel(achievementConfig);
             }
 
+            _betweenSceneService.Value.CompletedAchievments = new List<int>();
             DataPersistenceManagerSystem.SaveGame();
         }
 
@@ -185,19 +187,22 @@ sealed class MetaUiSystem : IEcsInitSystem {
             switch (type) {
                 case AchievementType.CarKills:
                     return  DataPersistenceManagerSystem._gameData.BrokenCars;
-                    break;
+                  
                 case AchievementType.DistanceDrived:
                     return  DataPersistenceManagerSystem._gameData.DistanceDrived;
-                    break;
+                   
                 case AchievementType.PlayerDamage:
                     return DataPersistenceManagerSystem._gameData.PlayerDamage;
-                    break;
+                   
                 case AchievementType.GetMoney:
                     return  DataPersistenceManagerSystem._gameData.MoneyEarnedInGame;
-                    break;
-                case AchievementType.CompleteMap:
-                    return 0;
-                    break;
+                
+                case AchievementType.CompletedTasks:
+                    return  DataPersistenceManagerSystem._gameData.TasksCompleted;
+                
+                case AchievementType.SupportBoxOpened:
+                    return  DataPersistenceManagerSystem._gameData.SupportBoxOpened;
+                
                 default: return 0;
             }
         }
@@ -223,20 +228,25 @@ sealed class MetaUiSystem : IEcsInitSystem {
             switch (achievementConfig.achievementType) {
                 case AchievementType.CarKills:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.BrokenCars;
-                    break;
+                    
                 case AchievementType.DistanceDrived:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.DistanceDrived;
-                    break;
+                   
                 case AchievementType.PlayerDamage:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.PlayerDamage;
-                    break;
+                    
                 case AchievementType.GetMoney:
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.MoneyEarnedInGame;
-                    break;
+                    
                 case AchievementType.CompleteMap:
+                    Debug.Log(DataPersistenceManagerSystem._gameData.LevelRounds[achievementConfig.needSecondCount]);
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.LevelRounds[achievementConfig.needSecondCount];
-                    break;
-                default: return false;
+                    
+                case AchievementType.CompletedTasks:
+                    return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.TasksCompleted;
+                
+                case AchievementType.SupportBoxOpened:
+                    return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.SupportBoxOpened;
             }
 
             return false;

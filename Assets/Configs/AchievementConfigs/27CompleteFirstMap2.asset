@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ce507d25b292c41a0317e537df5620, type: 3}
+  m_Name: 27CompleteFirstMap2
+  m_EditorClassIdentifier: 
+  <achievementId>k__BackingField: 27
+  <achievementIcon>k__BackingField: {fileID: 21300000, guid: f1ccac8cdbd06074cb8753f45af49b3d, type: 3}
+  <achievementBackground>k__BackingField: {fileID: 21300000, guid: 767501896d4a44847b389608963ae21c, type: 3}
+  <achivementName>k__BackingField: Complete map
+  <needCount>k__BackingField: 3
+  <needSecondCount>k__BackingField: 0
+  <needAchievementToVisible>k__BackingField: 26
+  <rewardType>k__BackingField: 2
+  <achievementType>k__BackingField: 2
+  <rewardCount>k__BackingField: 10
