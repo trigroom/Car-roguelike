@@ -29,7 +29,7 @@ MonoBehaviour:
   UpPartPosition: {x: 0, y: 0.2}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 1
+  Damage: 4
   AttackCouldown: 0.3
   BulletsCountInMagazine: 16
   BulletsCount: 1
@@ -46,4 +46,5 @@ MonoBehaviour:
   EffectType: 0
   EffectDuration: 0
   BreakingThroughCount: 1
+  BreakingThroughDamageFalloff: 0
   CarRecoil: 0

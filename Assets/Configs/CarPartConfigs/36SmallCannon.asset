@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Small cannon
-  <DefaultModuleCount>k__BackingField: 1
+  <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
@@ -36,7 +36,7 @@ MonoBehaviour:
   BulletsCountInMagazine: 1
   BulletsCount: 1
   BulletSpeed: 12
-  ReloadDuration: 1
+  ReloadDuration: 3.2
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 69ba86400dfe3304f85bf82ad2a1de89, type: 3}
   FirePointPosition: {x: 0, y: 1.2}
@@ -48,4 +48,5 @@ MonoBehaviour:
   EffectType: 0
   EffectDuration: 0
   BreakingThroughCount: 3
+  BreakingThroughDamageFalloff: 0.5
   CarRecoil: 850

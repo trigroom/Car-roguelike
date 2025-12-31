@@ -87,7 +87,7 @@ public class MovementSystem : IEcsRunSystem {
             bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity;
             var deltaTime = Time.deltaTime;
 
-            if (!isPlayer) {
+            if (_enemyAIComponentsPool.Value.Has(movementEntity)) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
                 if (enemyAiCmp.TargetToMove) {
                     movementCmp.TargetPosition = enemyAiCmp.TargetToMove.position;
@@ -200,8 +200,11 @@ public class MovementSystem : IEcsRunSystem {
                // if (movementCmp.MovableObjectRigidbody.linearVelocity.magnitude > movementCmp.Acceleration && movementCmp.MovableObjectRigidbody.linearVelocity.magnitude < movementCmp.Deceleration)
                     movementCmp.MovableObjectRigidbody.AddForce(moveObjectTransform.up * movementCmp.CurrentMoveSpeed*carCmp.CurrentWeight/10, ForceMode2D.Force);
                 
-            } else
-                movementCmp.CantMoveTime -= deltaTime;
+            } else {
+                  movementCmp.CantMoveTime -= deltaTime;
+                  SetWheelParticleSystemState(movementEntity, false);
+            }
+              
 
             if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
                 var windCmp = _windComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -240,9 +243,13 @@ public class MovementSystem : IEcsRunSystem {
     private void CheckForObstacles(int entity) {
         ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
         enemyAiCmp.LastCollisionWithObstacleTime = 1f;
-        var layerNames = enemyAiCmp.IsEnemy
-            ? new[] { "Obstacle", "UpCarPartEnemy", "CarBaseEnemy" }
-            : new[] { "Obstacle", "UpCarPart", "CarBase" };
+        string[] layerNames;
+        if (enemyAiCmp.TargetToMove && Vector2.Distance(enemyAiCmp.TargetToMove.position, _movementComponentsPool.Value.Get(entity).PreviousPosition) < 7)
+            layerNames = new[] { "Obstacle" };
+        else
+            layerNames = enemyAiCmp.IsEnemy
+                ? new[] { "Obstacle", "UpCarPartEnemy", "CarBaseEnemy" }
+                : new[] { "Obstacle", "UpCarPart", "CarBase" };
         var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints, layerNames);
         if (leftSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;

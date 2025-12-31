@@ -45,5 +45,6 @@ MonoBehaviour:
   ImpulseForce: 300
   EffectType: 0
   EffectDuration: 0
-  BreakingThroughCount: 2
+  BreakingThroughCount: 1
+  BreakingThroughDamageFalloff: 0
   CarRecoil: 150

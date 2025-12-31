@@ -21,9 +21,10 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Double fuel pack
-  <DefaultModuleCount>k__BackingField: 0
+  <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
+  - {x: 0, y: 1}
   <MoneyCost>k__BackingField: 15
   ModuleType: 2
   FirstCount: 50

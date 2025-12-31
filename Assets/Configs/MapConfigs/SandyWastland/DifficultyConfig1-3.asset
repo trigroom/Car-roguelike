@@ -26,3 +26,4 @@ MonoBehaviour:
   <DifficltyUiColor>k__BackingField: {r: 0.8962264, g: 0.6068732, b: 0.17332679, a: 0.101960786}
   <StartMoney>k__BackingField: 50
   <RoundsCount>k__BackingField: 15
+  <DestroyEnemyCarsAfterDeath>k__BackingField: 1

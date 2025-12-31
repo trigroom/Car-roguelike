@@ -26,6 +26,8 @@ public class MapDifficultyConfig : ScriptableObject
     public float StartMoney { get; private set; }
     [field: SerializeField]
     public int RoundsCount { get; private set; }
+    [field: SerializeField]
+    public bool DestroyEnemyCarsAfterDeath { get; private set; }
 }
 
 public enum MapEventsType {

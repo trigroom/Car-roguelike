@@ -223,8 +223,10 @@ public class CarPartInfoUIView : MonoBehaviour
 
                 } else
                     _descriptionText.text += $"\n{GetLocalization("Damage")}: {damage} \n{GetLocalization("Physical damage")}: {damageAddedFromSpeed:F2}\n";
-                       
-                _descriptionText.text += $"{GetLocalization("Attack countdown")}: {attackCountdown:F2}s";
+
+                _descriptionText.text += $"{GetLocalization("Attack countdown")}: {attackCountdown:F2}s\n";
+                if (meleeConfig.FuelConsumption != 0)
+                    _descriptionText.text += $"{GetLocalization("Added fuel consumption")}: {meleeConfig.FuelConsumption:F2}";
             }
         } else if (_currentCarPartConfig.PartType == CarPartType.Armor) {
             if (_currentCarPartConfig is ArmorConfig armorConfig) {
@@ -293,8 +295,8 @@ public class CarPartInfoUIView : MonoBehaviour
 
     private void SetGunInfo(GunConfig gunConfig, int level, bool isUpdate, float damageMultiplayer, float attackSpeedMultiplayer,
         int targetPiercingAddedCount, float reloadSpeedMultiplayer, float magSizeMultiplier) {
-        (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) = GridUtils.GetGunLevelMultipliers(gunConfig,level);
-        
+        (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) = GridUtils.GetGunLevelMultipliers(gunConfig, level);
+
         if (gunConfig.UpPartSprite != null) {
             var carPartSize = GridUtils.GetCarPartSize(gunConfig);
             _carPartIconUpLevel.rectTransform.sizeDelta = _carPartIcon.rectTransform.sizeDelta /
@@ -304,48 +306,51 @@ public class CarPartInfoUIView : MonoBehaviour
             _carPartIconUpLevel.sprite = gunConfig.UpPartSprite;
             _carPartIconUpLevel.gameObject.SetActive(true);
         }
-   float damage = gunConfig.Damage * damageMultiplier*damageMultiplayer;
-            float reloadSpeed = gunConfig.ReloadDuration / reloadMultiplier * reloadSpeedMultiplayer;
+
+        float damage = gunConfig.Damage * damageMultiplier * damageMultiplayer;
+        float reloadSpeed = gunConfig.ReloadDuration / reloadMultiplier * reloadSpeedMultiplayer;
         if (gunConfig.MissleType == MissleType.laser) {
-         
             if (isUpdate)
-               _descriptionText.text +=
+                _descriptionText.text +=
                     $"\n{GetLocalization("Damage")}: <color=#5bca4a>{damage}/s</color> \n{GetLocalization("Laser range")}: " +
-                    $"{gunConfig.BulletSpeed}" +
-                    $"\n{GetLocalization("Reload")}: <color=#5bca4a>{reloadSpeed:F2}s</color>\n" +
-                    $"{GetLocalization("Laser time")}: <color=#5bca4a>{gunConfig.AttackCouldown / attackCountdownMultiplayer/attackSpeedMultiplayer:F2}s</color>";
+                    $"{gunConfig.BulletSpeed}" + $"\n{GetLocalization("Reload")}: <color=#5bca4a>{reloadSpeed:F2}s</color>\n" +
+                    $"{GetLocalization("Laser time")}: <color=#5bca4a>{gunConfig.AttackCouldown / attackCountdownMultiplayer / attackSpeedMultiplayer:F2}s</color>";
 
             else
                 _descriptionText.text +=
                     $"\n{GetLocalization("Damage")}: {damage}/s \n{GetLocalization("Laser range")}: {gunConfig.BulletSpeed}" +
                     $"\nReload: {reloadSpeed:F2}s\n" +
-                    $"{GetLocalization("Laser time")}: {gunConfig.AttackCouldown / attackCountdownMultiplayer/attackSpeedMultiplayer:F2}s";
+                    $"{GetLocalization("Laser time")}: {gunConfig.AttackCouldown / attackCountdownMultiplayer / attackSpeedMultiplayer:F2}s";
         } else {
             if (isUpdate) {
                 if (gunConfig.BulletsCountInMagazine != 1)
                     _descriptionText.text +=
-                        $"\n{GetLocalization("Rate of fire")}: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer*attackSpeedMultiplayer):F2}/min</color> ";
+                        $"\n{GetLocalization("Rate of fire")}: <color=#5bca4a>{60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer * attackSpeedMultiplayer):F2}/min</color> ";
                 _descriptionText.text += $"\n{GetLocalization("Reload")} : <color=#5bca4a>{reloadSpeed:F2}s</color>" +
                                          $"\n{GetLocalization("Damage")}: <color=#5bca4a>{damage}</color>";
             } else {
                 if (gunConfig.BulletsCountInMagazine != 1)
-                    _descriptionText.text += $"\n{GetLocalization("Rate of fire")}: {60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer*attackSpeedMultiplayer):F2}/min ";
-                _descriptionText.text += $"\n{GetLocalization("Reload")} : {reloadSpeed:F2}s" +
-                                         $"\n{GetLocalization("Damage")}: {damage}";
+                    _descriptionText.text +=
+                        $"\n{GetLocalization("Rate of fire")}: {60f / (gunConfig.AttackCouldown / attackCountdownMultiplayer * attackSpeedMultiplayer):F2}/min ";
+                _descriptionText.text += $"\n{GetLocalization("Reload")} : {reloadSpeed:F2}s" + $"\n{GetLocalization("Damage")}: {damage}";
             }
 
             if (gunConfig.BulletsCount > 1)
                 _descriptionText.text += $"x{gunConfig.BulletsCount}";
             _descriptionText.text += $" \n{GetLocalization("Projectile speed")}: {gunConfig.BulletSpeed} \n" +
                                      $"{GetLocalization("Spread angle")}: {gunConfig.SpreadAngle}°\n" +
-                                     $"{GetLocalization("Bullets in mag")}: {Mathf.FloorToInt(gunConfig.BulletsCountInMagazine*magSizeMultiplier)}";
+                                     $"{GetLocalization("Bullets in mag")}: {Mathf.FloorToInt(gunConfig.BulletsCountInMagazine * magSizeMultiplier)}";
             if (gunConfig.ExplosionRadius != 0)
                 _descriptionText.text += $"\n{GetLocalization("Explosion radius")}: {gunConfig.ExplosionRadius}\n" +
                                          $"{GetLocalization("")}Explosion damage: {gunConfig.ExplosionDamage}";
 
-            if (gunConfig.BreakingThroughCount > 1)
-                _descriptionText.text += $"\n{GetLocalization("Pierce count")}: {gunConfig.BreakingThroughCount+targetPiercingAddedCount}";
-            
+            if (gunConfig.BreakingThroughCount > 1) {
+                _descriptionText.text += $"\n{GetLocalization("Pierce count")}: {gunConfig.BreakingThroughCount + targetPiercingAddedCount}" +
+                                         $"\n{GetLocalization("Damage fall off")}: {gunConfig.BreakingThroughDamageFalloff*100}%";
+                
+            }
+                
+
             if (gunConfig.CarRecoil > 0)
                 _descriptionText.text += $"\n{GetLocalization("Car recoil")}: {gunConfig.CarRecoil}";
         }

@@ -31,3 +31,4 @@ MonoBehaviour:
   UpSprite: {fileID: 21300000, guid: 5611ac3bbbe480241a01d3e79d1776d2, type: 3}
   UpSpritePosition: {x: 0, y: 0.35}
   IsAttackAfterCountdown: 1
+  FuelConsumption: 0.4

@@ -140,6 +140,7 @@ public class SceneService : MonoBehaviour {
     }
     public Transform GetGunContainer(Transform parent) {
         var gunContainer = _gunContainersPool.Get();
+        gunContainer.gameObject.SetActive(true);
         gunContainer.parent = parent;
         return gunContainer;
     }
@@ -194,6 +195,7 @@ public class SceneService : MonoBehaviour {
     
     public void ReleaseGunContainer(Transform gunContainer) {
         gunContainer.gameObject.SetActive(false);
+        gunContainer.SetParent(_notUsedCarPartsContainer);
         _gunContainersPool.Release(gunContainer);
     }
     

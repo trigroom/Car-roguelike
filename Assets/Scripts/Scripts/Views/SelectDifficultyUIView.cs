@@ -48,6 +48,8 @@ public class SelectDifficultyUIView : MonoBehaviour
                                     $"\n{GetLocalization("Start money")} {difficultyConfig.StartMoney}$\n{GetLocalization("Heal after end round to")}" +
                                     $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%\n" +
                                     $"{GetLocalization("Rounds count")}: {difficultyConfig.RoundsCount} ";
+      if(!difficultyConfig.DestroyEnemyCarsAfterDeath)
+         _difficultyDescription.text += "\n" + GetLocalization("Enemy cars don't destroy after driver/engine broke");
       if (difficultyConfig.MapEvents != null)
          foreach (var mapEvent in difficultyConfig.MapEvents) {
             _difficultyDescription.text += "\n" + GetMapEventDescription(mapEvent);

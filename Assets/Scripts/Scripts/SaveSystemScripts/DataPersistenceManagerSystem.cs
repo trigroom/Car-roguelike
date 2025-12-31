@@ -26,19 +26,30 @@ public class DataPersistenceManagerSystem : MonoBehaviour
         _gameData = new GameData();
         _gameData.AchievementsCompleted = new bool[BetweenScenesService.Instance._carStuffListsConfig.AchievementConfigs.Length];
         _gameData.ShopItemsBuyed = new bool[BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs.Length];
+
         _gameData.CarPartsUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs.Length];
-        for (int i = 0; i < _gameData.CarPartsUnlocked.Length; i++) 
+        for (int i = 0; i < _gameData.CarPartsUnlocked.Length; i++)
             _gameData.CarPartsUnlocked[i] = true;
-        
+
+        _gameData.ModulesUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs.Length];
+        for (int i = 0; i < _gameData.ModulesUnlocked.Length; i++)
+            _gameData.ModulesUnlocked[i] = true;
+        foreach (var achievement in BetweenScenesService.Instance._carStuffListsConfig.AchievementConfigs) {
+            if (achievement.rewardType == AchievementRewardType.CarPart)
+                _gameData.CarPartsUnlocked[achievement.rewardCount] = false;
+            else if (achievement.rewardType == AchievementRewardType.Module)
+                _gameData.ModulesUnlocked[achievement.rewardCount] = false;
+        }
+
+        foreach (var shopItem in BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs) {
+            if (shopItem.RewardType == AchievementRewardType.CarPart)
+                _gameData.CarPartsUnlocked[shopItem.RewardCount] = false;
+            else if (shopItem.RewardType == AchievementRewardType.Module)
+                _gameData.ModulesUnlocked[shopItem.RewardCount] = false;
+        }
+
         _gameData.CarsUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.CarConfigs.Length];
         _gameData.CarsUnlocked[0] = true;
-        
-        _gameData.ModulesUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs.Length];
-        _gameData.ModulesUnlocked[0] = true;
-        _gameData.ModulesUnlocked[1] = true;
-        _gameData.ModulesUnlocked[6] = true;
-        _gameData.ModulesUnlocked[7] = true;
-        _gameData.ModulesUnlocked[8] = true;
     }
 
     public void LoadGame() {

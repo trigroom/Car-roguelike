@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 70ThermalRifle
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 70
+  <MaxHealth>k__BackingField: 100
+  <Weight>k__BackingField: 13
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 9cb7520109930594bafd703fab1c194b, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 3
+  <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 5
+  <PartName>k__BackingField: Thermal rifle
+  <ModuleTypes>k__BackingField: 0900000004000000
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  - {x: 0, y: 1}
+  <MoneyCost>k__BackingField: 18
+  UpPartSprite: {fileID: 21300000, guid: 937477b494570794ab4d0edf60b547d6, type: 3}
+  UpPartPosition: {x: 0, y: -0.1}
+  MaxRotateAngle: 0
+  RotateSpeed: 0
+  Damage: 60
+  AttackCouldown: 1
+  BulletsCountInMagazine: 1
+  BulletsCount: 1
+  BulletSpeed: 15
+  ReloadDuration: 2
+  MissleType: 0
+  MissleSprite: {fileID: 21300000, guid: ca2fe94b397c8bb49839285e339d3f6c, type: 3}
+  FirePointPosition: {x: 0, y: 0.4}
+  GunContainerPosition: {x: 0, y: 0}
+  SpreadAngle: 0
+  ExplosionRadius: 0
+  ExplosionDamage: 0
+  ImpulseForce: 500
+  EffectType: 1
+  EffectDuration: 7
+  BreakingThroughCount: 3
+  BreakingThroughDamageFalloff: 0.65
+  CarRecoil: 300

@@ -9,4 +9,5 @@ public class MeleeWeaponConfig : CarPartConfig {
     public Vector2 UpSpritePosition;
 
     public bool IsAttackAfterCountdown;
+    public float FuelConsumption;
 }

@@ -47,4 +47,5 @@ MonoBehaviour:
   EffectType: 1
   EffectDuration: 3
   BreakingThroughCount: 2
+  BreakingThroughDamageFalloff: 0.25
   CarRecoil: 0
