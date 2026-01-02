@@ -22,7 +22,7 @@ public class SelectDifficultyUIView : MonoBehaviour
       SetLocalizationText(currentMapConfig);
       int maxUnlockedLevel = DataPersistenceManagerSystem._gameData.LevelRounds[BetweenScenesService.Instance.CurrentSelectedMap];
       for (int i = 0; i < DifficultyButtons.Length; i++) {
-         DifficultyButtons[i].gameObject.SetActive(maxUnlockedLevel > i);
+         DifficultyButtons[i].gameObject.SetActive(maxUnlockedLevel >= i);
       }
    }
 
@@ -31,7 +31,7 @@ public class SelectDifficultyUIView : MonoBehaviour
       _mapDescription.text = GetLocalization(currentMapConfig.MapDescription);
       int maxUnlockedLevel = DataPersistenceManagerSystem._gameData.LevelRounds[BetweenScenesService.Instance.CurrentSelectedMap];
       for (int i = 0; i < DifficultyButtons.Length; i++) {
-         if (maxUnlockedLevel > i)
+         if (maxUnlockedLevel >= i)
             DifficultyButtons[i].transform.GetComponentInChildren<TMP_Text>().text =
                GetLocalization(currentMapConfig.MapDifficltyConfigs[i].DifficultyName);
       }

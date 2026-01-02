@@ -123,6 +123,7 @@ MonoBehaviour:
   <DestroyedCarPartColor>k__BackingField: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
   <MapConfigs>k__BackingField:
   - {fileID: 11400000, guid: fbce5cb28c1563e48a066e40d88df59f, type: 2}
+  - {fileID: 11400000, guid: 4ecac651ab92afc45aaff0a9f6d6bf37, type: 2}
   - {fileID: 11400000, guid: 8bf2a48ef96670346b51c2c62a4cfa0a, type: 2}
   <RoundShopChances>k__BackingField:
   - Chances:
@@ -257,6 +258,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c600aa5b84e325945aade9c266a6c9d2, type: 2}
   - {fileID: 11400000, guid: eac161bedacb51b4b862074170297420, type: 2}
   - {fileID: 11400000, guid: dbf934b30ece79c44ab4063a36e0b83d, type: 2}
+  - {fileID: 11400000, guid: 01704e03a89a8464d98af4c329d27919, type: 2}
+  - {fileID: 11400000, guid: aa4f48f20f9123f458527d841567e92e, type: 2}
+  - {fileID: 11400000, guid: b718f70bf4e6bf44fb5d25387a09eb06, type: 2}
+  - {fileID: 11400000, guid: a3001100afd9fdf46b94c1563a98302d, type: 2}
+  - {fileID: 11400000, guid: 3134aa700f11d0d44802f7a86bbcaee6, type: 2}
   <ShopItemConfigs>k__BackingField:
   - {fileID: 11400000, guid: 539e2dd079d97ba448e23a2016a32c87, type: 2}
   - {fileID: 11400000, guid: 225cd5a1aeebb6945ae52aab548f7f48, type: 2}

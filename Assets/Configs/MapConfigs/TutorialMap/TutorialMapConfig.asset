@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 986a3b5f1ec467a4c820b09f41191cbd, type: 3}
   m_Name: TutorialMapConfig
   m_EditorClassIdentifier: 
+  <RoundOnLastMapToUnlock>k__BackingField: 0
+  <MapId>k__BackingField: 2
   <MapDescription>k__BackingField: Tutorial
   <MapSprite>k__BackingField: {fileID: 21300000, guid: 8f90e1a5ada29d241ba57070babf940f, type: 3}
   <MapName>k__BackingField: Tutorial map
@@ -40,3 +42,5 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 79bc2517da970c24fadf7f2665924d53, type: 2}
     - {fileID: 11400000, guid: 0aee9fd4e45070d46afd02d0f1eaac95, type: 2}
     - {fileID: 11400000, guid: f5ce1f16230b7fd42a8731295859f94c, type: 2}
+  MapVisualInfoConfigs:
+  - {fileID: 11400000, guid: bae9e8c54c71e0a44aaffaad8983e34d, type: 2}

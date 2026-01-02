@@ -11,6 +11,9 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public SpriteRenderer _behindMapBorderSpriteRenderer { get; private set; }
+    [field: SerializeField] public SpriteRenderer _mapGroundSpriteRenderer { get; private set; }
+    [field: SerializeField] public SpriteRenderer _behindMapGroundSpriteRenderer { get; private set; }
     [field: SerializeField] public ParticleSystem _carPartsParticleSystemPrefab { get; private set; }
     [field: SerializeField] public TutorialStuffView _tutorialStuffView{ get; private set; }
     [field: SerializeField] public SupportBoxStuffView _supportBoxStuffView{ get; private set; }
@@ -19,7 +22,6 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Transform _dontUsedUIImagesPool{ get; private set; }
     [field: SerializeField] public Transform _markForTeammatesContainer{ get; private set; }
     [field: SerializeField] public Transform _mapContainer{ get; private set; }
-    [field: SerializeField] public Transform[] _mountains{ get; private set; }
     [field: SerializeField] public Transform _pixelizedEffectsImage{ get; private set; }
     [field: SerializeField] public Transform _pixelizedEffectsUnderCarImage{ get; private set; }
     [field: SerializeField] public SettingsView _settingsView{ get; private set; }

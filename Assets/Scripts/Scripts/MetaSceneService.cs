@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class MetaSceneService : MonoBehaviour {
     public int MainEntity; 
+    [field: SerializeField]public SelectMapUiView _selectMapUiView{ get; private set; }
     [field: SerializeField]public AchievementsUIView _achievementsUIView{ get; private set; }
     [field: SerializeField] public Button[] _backToMainMenuButtons { get; private set; }
     [field: SerializeField] public MetaShopUIView _shopUIContainer { get; private set; }
@@ -14,9 +15,8 @@ public class MetaSceneService : MonoBehaviour {
     [field: SerializeField] public StaticTextsView _staticTextsView { get; private set; }
     [field: SerializeField] public MetaSelectCarButtonView[] _selectCarButtonViews { get; private set; }
     [field: SerializeField] public Transform _selectCarUIContainer { get; private set; }
-    [field: SerializeField] public Transform _selectMapUIContainer { get; private set; }
     [field: SerializeField] public SelectDifficultyUIView selectMapDifficultyUIView { get; private set; }
-    [field: SerializeField] public SelectMapButtonView[] _selectMapButtons { get; private set; }
+    
      [field: SerializeField] public Button _backToCarSelectButton { get; private set; }
      [field: SerializeField] public TMP_Text _scrapCountText { get; private set; }
      [field: SerializeField] public Button _backToMainMenuButton { get; private set; }

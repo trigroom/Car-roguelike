@@ -5,6 +5,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "MapConfig", menuName = "Scriptable Objects/MapConfig")]
 public class MapConfig : ScriptableObject {
      [field: SerializeField]
+     public int RoundOnLastMapToUnlock { get; private set; }
+     [field: SerializeField]
+     public int MapId { get; private set; }
+     [field: SerializeField]
      public string MapDescription { get; private set; }
 
      [field: SerializeField]
@@ -20,6 +24,8 @@ public class MapConfig : ScriptableObject {
      public MapDifficultyConfig[] MapDifficltyConfigs { get; private set; }
 
      public List<EnemyListConfigsList> EnemyMapConfigs;
+     
+     public List<MapVisualInfoConfig> MapVisualInfoConfigs;
 }
 [System.Serializable]
 public class EnemyListConfigsList {

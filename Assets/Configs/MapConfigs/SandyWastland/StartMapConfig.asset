@@ -52,3 +52,5 @@ MonoBehaviour:
   - CarMapsList:
     - {fileID: 11400000, guid: e42a3d5f219c58f47a804994e13aa517, type: 2}
     - {fileID: 11400000, guid: 1944121b7825d014f96a06ec442ca80f, type: 2}
+  MapVisualInfoConfigs:
+  - {fileID: 11400000, guid: bae9e8c54c71e0a44aaffaad8983e34d, type: 2}

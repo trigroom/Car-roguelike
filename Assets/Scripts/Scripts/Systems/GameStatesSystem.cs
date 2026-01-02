@@ -64,7 +64,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentBattleRounds = 2;
 
         if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted)
-            _betweenScenesService.Value.CurrentSelectedMap = _sceneService.Value._tutorialStuffView._tutorialMapIndex;
+            _betweenScenesService.Value.CurrentSelectedMap = _betweenScenesService.Value._carStuffListsConfig.MapConfigs.Length-1;
         
         var difficultyConfig = _sceneService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
             .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
@@ -209,7 +209,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         if (_betweenScenesService.Value.GetMapConfig().MapDifficltyConfigs.Length !=
             _betweenScenesService.Value.CurrentSelectedMapDifficlty + 1)
             DataPersistenceManagerSystem._gameData.LevelRounds[_betweenScenesService.Value.CurrentSelectedMap] =
-                _betweenScenesService.Value.CurrentSelectedMapDifficlty + 2;
+                _betweenScenesService.Value.CurrentSelectedMapDifficlty + 1;
         DataPersistenceManagerSystem.SaveGame();
         CheckCoreAchievements();
         _sceneService.Value._endGameScreenView.SetWinScreenInfo(scrapCount);
@@ -1430,7 +1430,30 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void GenerateMap() {
+        var mapVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[0];
+        _sceneService.Value._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
+        _sceneService.Value._behindMapBorderSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
+        _sceneService.Value._mapGroundSpriteRenderer.material = mapVisualConfig.GroundMaterial;
         Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
+        if (_betweenScenesService.Value.GetMapConfig().MapId == 1) {
+            Vector2 buildingSize = new Vector2(Random.Range(2, 6), Random.Range(2, 6)) * 20;
+            var building = GenerateBuilding();
+            var buildingSprite = building.GetComponent<SpriteRenderer>();
+            var buildingVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[1];
+            buildingSprite.material = buildingVisualConfig.GroundMaterial;
+            building.transform.localScale = buildingSize;
+            building.localPosition =
+                new Vector2(Random.Range(-100 + buildingSize.x / 2, 100 - buildingSize.x / 2) ,
+                    Random.Range(20 + buildingSize.y / 2, 100 - buildingSize.y / 2) * Random.value > 0.5f ? -1 : 1);
+
+            for (int i = 0; i < buildingSize.x / 20+1; i++) {
+                for (int j = 0; j < buildingSize.y / 20+1; j++) {
+                    Vector2 obstaclePosition = new Vector2(i, j) * 20 - buildingSize / 2 + (Vector2)building.localPosition;
+                    SpawnObstacle(obstaclePosition, buildingVisualConfig.MapObstacles[Random.Range(0, buildingVisualConfig.MapObstacles.Length)]);
+                }
+            }
+        }   
+        
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (i == 4 && j == 5) continue;
@@ -1438,6 +1461,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         }
     }
+
+    private Transform GenerateBuilding() {
+      return  _sceneService.Value.InstantiateObject(_sceneService.Value._mapGroundSpriteRenderer.transform, _sceneService.Value._mapContainer, Vector2.zero);
+        
+    }
+    
     
     private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise)
     {
@@ -1446,18 +1475,19 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             cellY * 20 + 20 / 2f+randomOffsetForNoise.y 
         );
         
-        int obstacleCount = GetObstacleCountFromNoise(noiseValue);
+        var mapVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[0];
+        int obstacleCount = GetObstacleCountFromNoise(noiseValue, mapVisualConfig.NoiseObstaclesCountChances);
         
         for (int k = 0; k < obstacleCount; k++)
         {
             Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);
-            SpawnObstacle(randomPosition);
+            SpawnObstacle(randomPosition, mapVisualConfig.MapObstacles[Random.Range(0,mapVisualConfig.MapObstacles.Length)]);
         }
     }
     
-    private void SpawnObstacle(Vector2 position)
+    private void SpawnObstacle(Vector2 position, Transform obstaclePrefab)
     {
-        Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
+       // Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
         
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4)*90);
         
@@ -1479,13 +1509,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return new Vector2(worldX, worldY);
     }
 
-    
-    private int GetObstacleCountFromNoise(float noiseValue)
-    {
-        if (noiseValue < 0.47f) return 0;
-        else if (noiseValue < 0.7f) return 1;
-        else if (noiseValue < 0.9f) return 2;
-        else return 3;
+    private int GetObstacleCountFromNoise(float noiseValue, float[] chances) {
+        for (int k = 0; k < chances.Length; k++) {
+            if (noiseValue < chances[k])
+                return k;
+        }
+
+        /* if (noiseValue < 0.47f) return 0;
+         else if (noiseValue < 0.7f) return 1;
+         else if (noiseValue < 0.9f) return 2;*/
+        return 0;
     }
     private void ChangeInventoryState(bool state) => _sceneService.Value._inventoryUIView.gameObject.SetActive(state);
     private void ChangePlayerUIState(bool state) => _sceneService.Value._playerUIView.gameObject.SetActive(state);

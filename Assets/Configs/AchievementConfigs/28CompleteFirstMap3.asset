@@ -16,7 +16,7 @@ MonoBehaviour:
   <achievementIcon>k__BackingField: {fileID: 21300000, guid: 1b7270f588adff64bbb1179b3c56b50e, type: 3}
   <achievementBackground>k__BackingField: {fileID: 21300000, guid: 767501896d4a44847b389608963ae21c, type: 3}
   <achivementName>k__BackingField: Complete map
-  <needCount>k__BackingField: 4
+  <needCount>k__BackingField: 3
   <needSecondCount>k__BackingField: 0
   <needAchievementToVisible>k__BackingField: 27
   <rewardType>k__BackingField: 2

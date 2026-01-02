@@ -28,7 +28,6 @@ public class GameData
     public GameData()
     {
         LevelRounds = new int[3];
-        LevelRounds[0] = 1;
         lastGameVersion = Application.version;
         CurrentLanguage = GetSystemLanguageCode();
     }

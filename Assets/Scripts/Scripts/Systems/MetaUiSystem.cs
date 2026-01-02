@@ -31,11 +31,11 @@ sealed class MetaUiSystem : IEcsInitSystem {
                
             }
 
-            for (int i = 0; i < _metaSceneService.Value._selectMapButtons.Length; i++) {
+            for (int i = 0; i < _metaSceneService.Value._selectMapUiView._selectMapButtons.Length; i++) {
                 int mapIndex = i;
-                var selectMapButton = _metaSceneService.Value._selectMapButtons[i];
+                var selectMapButton = _metaSceneService.Value._selectMapUiView._selectMapButtons[i];
                 selectMapButton.SetupSelectMapButton(SelectMap,mapIndex);
-                selectMapButton.SetMapName(_betweenSceneService.Value._carStuffListsConfig.MapConfigs[mapIndex].MapName);
+                selectMapButton.SetMapName(_betweenSceneService.Value._carStuffListsConfig.MapConfigs[mapIndex]);
             }
 
             for (int i = 0; i < _metaSceneService.Value.selectMapDifficultyUIView.DifficultyButtons.Length; i++) {
@@ -49,7 +49,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
             }
             
             _metaSceneService.Value.selectMapDifficultyUIView.backButton.onClick.AddListener(() =>
-                OpenNewWindow(_metaSceneService.Value._selectMapUIContainer.transform));
+                OpenNewWindow(_metaSceneService.Value._selectMapUiView.transform));
             _metaSceneService.Value._backToCarSelectButton.onClick.AddListener(() =>
                 OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform));
             _metaSceneService.Value._mainMenuView._achivementsButton.onClick.AddListener(() =>
@@ -239,7 +239,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.MoneyEarnedInGame;
                     
                 case AchievementType.CompleteMap:
-                    Debug.Log(DataPersistenceManagerSystem._gameData.LevelRounds[achievementConfig.needSecondCount]);
+                 //   Debug.Log(DataPersistenceManagerSystem._gameData.LevelRounds[achievementConfig.needSecondCount]);
                     return achievementConfig.needCount <= DataPersistenceManagerSystem._gameData.LevelRounds[achievementConfig.needSecondCount];
                     
                 case AchievementType.CompletedTasks:
@@ -290,15 +290,15 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
                 _metaSceneService.Value._selectCarButtonViews[i].SetCarButtonText(carConfig.CarName);
             }
-            for (int i = 0; i < _metaSceneService.Value._selectMapButtons.Length; i++) {
+            for (int i = 0; i < _metaSceneService.Value._selectMapUiView._selectMapButtons.Length; i++) {
                 int mapIndex = i;
-                _metaSceneService.Value._selectMapButtons[i].SetMapName(_betweenSceneService.Value._carStuffListsConfig.MapConfigs[mapIndex].MapName);
+                _metaSceneService.Value._selectMapUiView._selectMapButtons[i].SetMapName(_betweenSceneService.Value._carStuffListsConfig.MapConfigs[mapIndex]);
             }
             _metaSceneService.Value.selectMapDifficultyUIView.SetLocalizationText(_betweenSceneService.Value.GetMapConfig());
         }
         public void SelectCar(int carId) {
             _betweenSceneService.Value.CurrentSelectedCar = carId;
-            OpenNewWindow(_metaSceneService.Value._selectMapUIContainer.transform);
+            OpenNewWindow(_metaSceneService.Value._selectMapUiView.transform);
             //go to select map
         }
 
