@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e25345b7fbb8e94588096f78c65fc3b, type: 3}
+  m_Name: QuicksandsVisualInfoConfig
+  m_EditorClassIdentifier: 
+  MapObstacles:
+  - {fileID: 5901465273616574507, guid: 6dc365d95ed5de544b9c3f96a86b62d0, type: 3}
+  GroundMaterial: {fileID: 0}
+  BehindMapGroundMaterial: {fileID: 0}
+  NoiseObstaclesCountChances: []

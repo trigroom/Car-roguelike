@@ -1,91 +1,99 @@
-// Shader "Custom/WeaponMultiTexture"
-Shader "Custom/WeaponMultiTexture"
+Shader "Custom/CloudShadows"
 {
     Properties
     {
-        _MainTex ("Base Texture", 2D) = "white" {}
-        _FrostTex ("Frost Texture", 2D) = "white" {}
-        _DamageTex ("Damage Texture", 2D) = "white" {}
-        _FrostAmount ("Frost Amount", Range(0, 1)) = 0.0
-        _DamageAmount ("Damage Amount", Range(0, 1)) = 0.0
-        _FrostColor ("Frost Color", Color) = (0.8, 0.9, 1.0, 1.0)
-        _DamageColor ("Damage Color", Color) = (0.3, 0.2, 0.1, 1.0)
+        _CloudTex ("Cloud Texture", 2D) = "white" {}  // Текстура облаков
+        _BaseTex ("Base Texture", 2D) = "white" {}    // Основная текстура спрайта (опционально)
+        _ShadowColor ("Shadow Color", Color) = (0.5, 0.5, 0.5, 0.3)
+        _Speed ("Scroll Speed", Vector) = (0.5, 0.2, 0, 0)
+        _Tiling ("Tiling", Vector) = (3, 3, 0, 0)
+        _CloudOpacity ("Cloud Opacity", Range(0, 1)) = 0.5
+        _UseBaseTexture ("Use Base Texture", Float) = 0
     }
     
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
+        Tags 
+        { 
+            "Queue" = "Transparent"
+            "RenderType" = "Transparent"
+            "IgnoreProjector" = "True"
+        }
+        
+        Blend SrcAlpha OneMinusSrcAlpha
+        ZWrite Off
+        Cull Off
         
         Pass
         {
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            
             #include "UnityCG.cginc"
             
             struct appdata
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+                float4 color : COLOR;
             };
             
             struct v2f
             {
                 float2 uv : TEXCOORD0;
+                float2 cloudUV : TEXCOORD1;
                 float4 vertex : SV_POSITION;
+                float4 color : COLOR;
             };
             
-            sampler2D _MainTex;
-            sampler2D _FrostTex;
-            sampler2D _DamageTex;
-            float4 _MainTex_ST;
-            float _FrostAmount;
-            float _DamageAmount;
-            float4 _FrostColor;
-            float4 _DamageColor;
+            sampler2D _CloudTex;
+            sampler2D _BaseTex;
+            float4 _CloudTex_ST;
+            float4 _BaseTex_ST;
+            float4 _ShadowColor;
+            float2 _Speed;
+            float2 _Tiling;
+            float _CloudOpacity;
+            float _UseBaseTexture;
             
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.color = v.color;
+                
+                // UV для основной текстуры
+                o.uv = TRANSFORM_TEX(v.uv, _BaseTex);
+                
+                // UV для облаков с тайлингом и анимацией
+                o.cloudUV = v.uv * _Tiling;
+                o.cloudUV += _Speed * _Time.y;
+                
                 return o;
             }
             
             fixed4 frag (v2f i) : SV_Target
             {
-                // Основная текстура
-                fixed4 base = tex2D(_MainTex, i.uv);
+                // Получаем цвет облаков
+                fixed4 cloudColor = tex2D(_CloudTex, i.cloudUV);
                 
-                // Текстура изморози
-                fixed4 frost = tex2D(_FrostTex, i.uv);
-                frost.rgb *= _FrostColor.rgb;
-                
-                // Текстура повреждений
-                fixed4 damage = tex2D(_DamageTex, i.uv);
-                damage.rgb *= _DamageColor.rgb;
-                
-                // Смешивание
-                fixed4 result = base;
-                
-                // Наложение повреждений (используем multiply/overlay)
-                if (_DamageAmount > 0)
+                // Если используем базовую текстуру
+                fixed4 finalColor;
+                if (_UseBaseTexture > 0.5)
                 {
-                    result.rgb = lerp(result.rgb, damage.rgb * result.rgb, _DamageAmount);
+                    fixed4 baseColor = tex2D(_BaseTex, i.uv);
+                    // Смешиваем базовую текстуру с облаками
+                    finalColor = lerp(baseColor, cloudColor * _ShadowColor, _CloudOpacity);
+                    finalColor.a = baseColor.a * i.color.a;
+                }
+                else
+                {
+                    // Только облака
+                    finalColor = cloudColor * _ShadowColor * i.color;
+                    finalColor.a *= _CloudOpacity;
                 }
                 
-                // Наложение изморози (добавляем поверх)
-                if (_FrostAmount > 0)
-                {
-                    // Иморозь добавляет белый оттенок и собственную текстуру
-                    fixed frostEffect = frost.r * _FrostAmount;
-                    result.rgb = lerp(result.rgb, result.rgb + frost.rgb * frostEffect, _FrostAmount * 0.5);
-                    result.rgb += frost.rgb * frostEffect * 0.3;
-                }
-                
-                return result;
+                return finalColor;
             }
             ENDCG
         }

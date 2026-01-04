@@ -65,6 +65,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     }
 
     public void OnPointerDown(PointerEventData eventData) {
+        Debug.Log("OnPointerDown");
         if (!ItemSprite) return;
         if (BuyButton.enabled && Input.GetMouseButtonDown(0))
             TakeItemFromInventory?.Invoke(Entity);

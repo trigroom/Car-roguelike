@@ -46,6 +46,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<AddTeammateEvent> _addTeammateEventsPool;
     private EcsPoolInject<InventoryCellComponent> _inventoryCellComponentsPool;
     private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
+    private EcsPoolInject<QuicksandComponent> _quicksandComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -1430,13 +1431,15 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void GenerateMap() {
-        var mapVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[0];
+        var mapConfig = _betweenScenesService.Value.GetMapConfig();
+        var mapVisualConfig = mapConfig.MapVisualInfoConfigs[0];
         _sceneService.Value._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         _sceneService.Value._behindMapBorderSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         _sceneService.Value._mapGroundSpriteRenderer.material = mapVisualConfig.GroundMaterial;
         Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
-        if (_betweenScenesService.Value.GetMapConfig().MapId == 1) {
-            var buildingVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[1];
+        
+        if (mapConfig.MapId == 1) {
+            var buildingVisualConfig = mapConfig.MapVisualInfoConfigs[1];
             List<Vector2> maxPoints = new List<Vector2>();
             List<Vector2> minPoints = new List<Vector2>();
             for (int i = 0; i < 4; i++) {
@@ -1470,6 +1473,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
 
             return;
+        } else if (mapConfig.MapId == 0 && _betweenScenesService.Value.CurrentSelectedMapDifficlty > 0) {
+            var quicksandVisualConfig = mapConfig.MapVisualInfoConfigs[1];
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    if (i == 2 && j == 2) continue;
+                    Vector2 obstaclePosition = new Vector2(Random.Range(0, 40) + (i - 1) * 40 - 100, Random.Range(0, 40) + (j - 1) * 40 - 100);
+                    SpawnObstacle(obstaclePosition,
+                            quicksandVisualConfig.MapObstacles[Random.Range(0, quicksandVisualConfig.MapObstacles.Length)])
+                        .GetComponent<QuicksandView>().Construct(EnterInQuicksand,ExitFromQuicksand);
+                }
+            }
         }
 
         for (int i = 0; i < 10; i++) {
@@ -1480,16 +1494,48 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
 
+    private void EnterInQuicksand(Vector2Int gridPosition, int mainEntity) {
+        var carPartComponent = _carComponentsPool.Value.Get(mainEntity).CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
+        if (_movementComponentsPool.Value.Has(mainEntity) && _carPartInfoComponentsPool.Value.Has(carPartComponent) &&
+            _sceneService.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(carPartComponent).CarPartId).PartType ==
+            CarPartType.WheelsContainer) {
+            if (!_quicksandComponentsPool.Value.Has(mainEntity))
+                _quicksandComponentsPool.Value.Add(mainEntity).wheelsCount++;
+            else
+                _quicksandComponentsPool.Value.Get(mainEntity).wheelsCount++;
+        }
+    }
+
+    private void ExitFromQuicksand(Vector2Int gridPosition, int mainEntity) {
+        var carPartComponent = _carComponentsPool.Value.Get(mainEntity).CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
+        if (_movementComponentsPool.Value.Has(mainEntity) && _carPartInfoComponentsPool.Value.Has(carPartComponent) &&
+            _sceneService.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(carPartComponent).CarPartId).PartType ==
+            CarPartType.WheelsContainer) {
+            ref var quicksandCmp = ref _quicksandComponentsPool.Value.Get(mainEntity);
+            quicksandCmp.wheelsCount--;
+            if (quicksandCmp.wheelsCount <= 0)
+                _quicksandComponentsPool.Value.Del(mainEntity);
+        }
+    }
+
     private Vector2 GetCornerPositionForBuilding(Vector2 buildingSize, int index) {
         Vector2 needPosition = Vector2.zero;
         float halfWidth = buildingSize.x / 2f;
         float halfDepth = buildingSize.y / 2f;
 
         float sign = index == 1 || index == 2 ? -1f : 1f;
-        needPosition.x = sign * Random.Range(20 + halfWidth, 100 - halfWidth);
+        needPosition.x = sign * Random.Range(halfWidth, 100 - halfWidth);
 
         float signY = index == 3 || index == 2 ? -1f : 1f;
-        needPosition.y = signY * Random.Range(20 + halfDepth, 100 - halfDepth);
+        needPosition.y = signY * Random.Range(halfDepth, 100 - halfDepth);
+
+        if (halfDepth + 20 > needPosition.y && halfWidth + 20 > needPosition.x) {
+            bool isXFix = Random.value > 0.5f;
+            if (isXFix)
+                needPosition.x += sign * 20;
+            else
+                needPosition.y += signY * 20;
+        }
         
         return needPosition;
     }
@@ -1527,7 +1573,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
     
-    private void SpawnObstacle(Vector2 position, Transform obstaclePrefab)
+    private Transform SpawnObstacle(Vector2 position, Transform obstaclePrefab)
     {
        // Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
         
@@ -1535,7 +1581,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
         Transform obstacle = _sceneService.Value.InstantiateObject(obstaclePrefab, new Vector3(position.x, position.y, 0f));
        obstacle.localRotation = randomRotation;
-       
+       return obstacle;
     }
     
     private Vector2 GetRandomPositionInCell(int cellX, int cellY)

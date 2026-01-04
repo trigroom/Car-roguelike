@@ -17,6 +17,7 @@ public class MovementSystem : IEcsRunSystem {
     private EcsPoolInject<InventoryComponent> _inventoryComponentsPool;
     private EcsPoolInject<CurrentGameComponent> _currentGameComponentsPool;
     private EcsPoolInject<WindComponent> _windComponentsPool;
+    private EcsPoolInject<QuicksandComponent> _quicksandComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
@@ -180,7 +181,10 @@ public class MovementSystem : IEcsRunSystem {
                     float maxSpeed = fuelCmp.UseSpeedBoost
                         ? movementCmp.MaxMoveSpeed + movementCmp.MaxBoostMoveSpeed
                         : movementCmp.MaxMoveSpeed;
-
+                    
+                    if (_quicksandComponentsPool.Value.Has(movementEntity))
+                        maxSpeed *= 0.35f;
+                    
                     if (!isReversing) {
                         movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, maxSpeed, movementCmp.Acceleration * deltaTime);
                     } else {

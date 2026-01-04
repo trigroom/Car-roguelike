@@ -103,7 +103,6 @@ GameObject:
   - component: {fileID: 2143559111098805916}
   - component: {fileID: 3901338086707334801}
   - component: {fileID: 5349089979565016394}
-  - component: {fileID: 2387221514126464833}
   m_Layer: 5
   m_Name: ShowInfoButton
   m_TagString: Untagged
@@ -184,25 +183,6 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 2, y: -2}
   m_UseGraphicAlpha: 1
---- !u!114 &2387221514126464833
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 692906443568171108}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hoverScale: 1.035
-  clickScale: 0.97
-  normalScale: {x: 0, y: 0, z: 0}
-  duration: 0.2
-  easeType: 27
-  targetButton: {fileID: 0}
-  _rectTransform: {fileID: 7294678704315383402}
 --- !u!1 &774972124105108607
 GameObject:
   m_ObjectHideFlags: 0
@@ -848,6 +828,7 @@ GameObject:
   - component: {fileID: 3592605604703402681}
   - component: {fileID: 6049228664639487450}
   - component: {fileID: 7526418419655710581}
+  - component: {fileID: 6294460682897960573}
   m_Layer: 5
   m_Name: ShopButton
   m_TagString: Untagged
@@ -951,6 +932,25 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6294460682897960573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7785176363392586498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverScale: 1.035
+  clickScale: 0.97
+  normalScale: {x: 0, y: 0, z: 0}
+  duration: 0.2
+  easeType: 27
+  targetButton: {fileID: 0}
+  _rectTransform: {fileID: 7294678704315383402}
 --- !u!1 &8280294049808394194
 GameObject:
   m_ObjectHideFlags: 0
