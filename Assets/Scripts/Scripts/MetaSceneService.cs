@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class MetaSceneService : MonoBehaviour {
     public int MainEntity; 
+    
     [field: SerializeField]public SelectMapUiView _selectMapUiView{ get; private set; }
     [field: SerializeField]public AchievementsUIView _achievementsUIView{ get; private set; }
     [field: SerializeField] public Button[] _backToMainMenuButtons { get; private set; }

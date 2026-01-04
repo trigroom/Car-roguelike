@@ -16,13 +16,14 @@ public class SelectMapButtonView : MonoBehaviour {
   MapImage.sprite = mapConfig.MapSprite;
   MapImage.color = Color.white;
   MapName.text = GetLocalization(mapConfig.MapName);
-  
+
   if (mapConfig.MapId != 0 && DataPersistenceManagerSystem._gameData.LevelRounds[mapConfig.MapId - 1] < mapConfig.RoundOnLastMapToUnlock) {
    SelectMapButton.enabled = false;
    var lastMapConfig = BetweenScenesService.Instance._carStuffListsConfig.MapConfigs[mapConfig.MapId - 1];
-   MapName.text = GetLocalization("Complete") + " " +
-                  GetLocalization(lastMapConfig.MapDifficltyConfigs[mapConfig.RoundOnLastMapToUnlock - 2].DifficultyName) + " " +
-                  GetLocalization("difficulty in") + " " + GetLocalization(lastMapConfig.MapName) + " " + GetLocalization("to unlock this map");
+   MapName.text =
+    $"{GetLocalization("Complete")} \"{GetLocalization(lastMapConfig.MapDifficltyConfigs[mapConfig.RoundOnLastMapToUnlock - 2].DifficultyName)}\" " +
+    $"{GetLocalization("difficulty in")} \"{GetLocalization(lastMapConfig.MapName)}\" {GetLocalization("to unlock this map")}";
+
   } else {
    MapImage.sprite = mapConfig.MapSprite;
    MapImage.color = Color.white;

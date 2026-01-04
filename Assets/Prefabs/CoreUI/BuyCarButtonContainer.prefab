@@ -653,7 +653,8 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
-  _rectTransform: {fileID: 0}
+  targetButton: {fileID: 2133775888897029679}
+  _rectTransform: {fileID: 4293185455325059826}
 --- !u!1 &5725768196809574955
 GameObject:
   m_ObjectHideFlags: 0
@@ -850,7 +851,8 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
-  _rectTransform: {fileID: 0}
+  targetButton: {fileID: 3585286191442024415}
+  _rectTransform: {fileID: 3952498922880661315}
 --- !u!114 &1432920853483102717
 MonoBehaviour:
   m_ObjectHideFlags: 0

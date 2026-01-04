@@ -57,7 +57,7 @@ public class AchievementsUIView : MonoBehaviour
         var mapConfig = BetweenScenesService.Instance._carStuffListsConfig.MapConfigs[achievement.needSecondCount];
         return $"{GetLocalization("Complete")} " +
                $"{GetLocalization(mapConfig.MapName)} " +
-               $"{GetLocalization("Difficulty")} \"{GetLocalization(mapConfig.MapDifficltyConfigs[achievement.needCount-2].DifficultyName)}\"";
+               $"{GetLocalization("Difficulty")} \"{GetLocalization(mapConfig.MapDifficltyConfigs[achievement.needCount-1].DifficultyName)}\"";
       case AchievementType.GetMoney:
         return $"{GetLocalization("Get")} {achievement.needCount}$" ;
       case AchievementType.PlayerDamage:

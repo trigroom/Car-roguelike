@@ -304,17 +304,18 @@ sealed class MetaUiSystem : IEcsInitSystem {
 
         public void SelectMap(int mapId) {
             _betweenSceneService.Value.CurrentSelectedMap = mapId;
+            var mapConfig = _betweenSceneService.Value.GetMapConfig();
             OpenNewWindow(_metaSceneService.Value.selectMapDifficultyUIView.transform);
-            _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficultyScreen(
-                _betweenSceneService.Value._carStuffListsConfig.MapConfigs[_betweenSceneService.Value.CurrentSelectedMap]);
+            _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficultyScreen(mapConfig);
+            _metaSceneService.Value._selectMapUiView._groundFieldSpriteRenderer.material =
+                mapConfig.MapVisualInfoConfigs[0].BehindMapGroundMaterial;
             SelectMapDifficulty(0);
             //go to select diff
         }
 
         public void SelectMapDifficulty(int difficultyLevel) {
             _betweenSceneService.Value.CurrentSelectedMapDifficlty = difficultyLevel;
-            _metaSceneService.Value.selectMapDifficultyUIView.SetDifficultyDescription(_betweenSceneService.Value._carStuffListsConfig
-                .MapConfigs[_betweenSceneService.Value.CurrentSelectedMap].MapDifficltyConfigs[difficultyLevel]);
+            _metaSceneService.Value.selectMapDifficultyUIView.SetDifficultyDescription(_betweenSceneService.Value.GetMapDifficultyConfig());
             //SceneManager.LoadScene("Scenes/SampleScene");
         }
     }

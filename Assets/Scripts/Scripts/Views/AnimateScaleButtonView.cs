@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
@@ -13,9 +14,11 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
     [SerializeField] private float duration = 0.2f;
     [SerializeField] private Ease easeType = Ease.OutBack;
     
+    [SerializeField] private MonoBehaviour targetButton;
     [SerializeField] private RectTransform _rectTransform;
     private Tween _currentTween;
-    private bool _buttonIsDisabled;
+    
+    
     
     private void Awake()
     {
@@ -34,7 +37,7 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
     }
 
     public void OnPointerDown(PointerEventData eventData) {
-        if (_buttonIsDisabled) return;
+        if (targetButton && !targetButton.enabled) return;
         _currentTween?.Kill();
 
         _currentTween = _rectTransform.DOScale(normalScale * clickScale, duration * 0.5f).SetEase(Ease.OutQuad);

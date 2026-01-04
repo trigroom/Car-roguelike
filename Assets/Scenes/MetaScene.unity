@@ -477,8 +477,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 209.57922}
-  m_SizeDelta: {x: -24.6, y: -443.7585}
+  m_AnchoredPosition: {x: 0, y: 128.88861}
+  m_SizeDelta: {x: -24.6, y: -282.3773}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &64870062
 MonoBehaviour:
@@ -535,7 +535,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -637,6 +637,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 86147366}
 --- !u!114 &86147368
 MonoBehaviour:
@@ -1188,6 +1189,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 142385250}
 --- !u!114 &142385252
 MonoBehaviour:
@@ -1491,7 +1493,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 26bd6cbfe5602f7479b14ca75f53fc31, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1512,7 +1514,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 064604ea32c98b043ae84faead2b87a1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5d0266faf1568064ba182e18f299c9dc, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1533,8 +1535,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.0275, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1882,6 +1884,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 279901310}
 --- !u!114 &279901312
 MonoBehaviour:
@@ -2109,6 +2112,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 334095684}
 --- !u!114 &334095686
 MonoBehaviour:
@@ -2462,6 +2466,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 395528222}
 --- !u!114 &395528224
 MonoBehaviour:
@@ -2721,6 +2726,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 400506490}
 --- !u!1 &410780505
 GameObject:
@@ -4807,7 +4813,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -5584,11 +5590,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hoverScale: 1.1
-  clickScale: 0.95
+  hoverScale: 1.03
+  clickScale: 0.98
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 1177049235}
   _rectTransform: {fileID: 1177049232}
 --- !u!114 &1177049235
 MonoBehaviour:
@@ -6517,6 +6524,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 1290023637}
 --- !u!114 &1290023639
 MonoBehaviour:
@@ -8064,8 +8072,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 209.57922}
-  m_SizeDelta: {x: -24.6, y: -443.7585}
+  m_AnchoredPosition: {x: 0, y: 128.88861}
+  m_SizeDelta: {x: -24.6, y: -282.3773}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1508276883
 MonoBehaviour:
@@ -8122,7 +8130,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -8598,6 +8606,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 1592825390}
 --- !u!114 &1592825392
 MonoBehaviour:
@@ -9174,11 +9183,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hoverScale: 1.1
-  clickScale: 0.95
+  hoverScale: 1.03
+  clickScale: 0.98
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 1770331139}
   _rectTransform: {fileID: 1770331136}
 --- !u!114 &1770331139
 MonoBehaviour:
@@ -9716,6 +9726,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 1891848933}
 --- !u!114 &1891848935
 MonoBehaviour:
@@ -11026,6 +11037,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e5cfb9b418f65844adafb25a06c9685, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_groundFieldSpriteRenderer>k__BackingField: {fileID: 219357888}
   <_selectMapButtons>k__BackingField:
   - {fileID: 7262448647807563534}
   - {fileID: 1177049233}
@@ -11108,7 +11120,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 47
+  m_fontSize: 56.4
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -11116,7 +11128,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -11182,11 +11194,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7338763fc5fcf84288bc6f562dc2368, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hoverScale: 1.1
-  clickScale: 0.95
+  hoverScale: 1.03
+  clickScale: 0.98
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 3350998839304019923}
   _rectTransform: {fileID: 6208598866930835670}
 --- !u!222 &1678422263856404098
 CanvasRenderer:
@@ -11331,8 +11344,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 209.57922}
-  m_SizeDelta: {x: -24.6, y: -443.7585}
+  m_AnchoredPosition: {x: 0, y: 128.88861}
+  m_SizeDelta: {x: -24.6, y: -282.3773}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &5811045261862276117
 PrefabInstance:
@@ -11689,6 +11702,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
+  targetButton: {fileID: 0}
   _rectTransform: {fileID: 3269913154063112472}
 --- !u!1 &8053299368150690062
 GameObject:

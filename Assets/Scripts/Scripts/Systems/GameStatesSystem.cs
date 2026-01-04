@@ -1436,24 +1436,42 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._mapGroundSpriteRenderer.material = mapVisualConfig.GroundMaterial;
         Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
         if (_betweenScenesService.Value.GetMapConfig().MapId == 1) {
-            Vector2 buildingSize = new Vector2(Random.Range(2, 6), Random.Range(2, 6)) * 20;
-            var building = GenerateBuilding();
-            var buildingSprite = building.GetComponent<SpriteRenderer>();
             var buildingVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[1];
-            buildingSprite.material = buildingVisualConfig.GroundMaterial;
-            building.transform.localScale = buildingSize;
-            building.localPosition =
-                new Vector2(Random.Range(-100 + buildingSize.x / 2, 100 - buildingSize.x / 2) ,
-                    Random.Range(20 + buildingSize.y / 2, 100 - buildingSize.y / 2) * Random.value > 0.5f ? -1 : 1);
+            List<Vector2> maxPoints = new List<Vector2>();
+            List<Vector2> minPoints = new List<Vector2>();
+            for (int i = 0; i < 4; i++) {
+                Vector2 buildingSize = new Vector2(Random.Range(2, 4), Random.Range(2, 4)) * 20;
+                var building = GenerateBuilding();
+                var buildingSprite = building.GetComponent<SpriteRenderer>();
+                buildingSprite.material = buildingVisualConfig.GroundMaterial;
+                building.transform.localScale = buildingSize;
 
-            for (int i = 0; i < buildingSize.x / 20+1; i++) {
-                for (int j = 0; j < buildingSize.y / 20+1; j++) {
-                    Vector2 obstaclePosition = new Vector2(i, j) * 20 - buildingSize / 2 + (Vector2)building.localPosition;
-                    SpawnObstacle(obstaclePosition, buildingVisualConfig.MapObstacles[Random.Range(0, buildingVisualConfig.MapObstacles.Length)]);
+                var needPosition = GetCornerPositionForBuilding(buildingSize, i);
+
+                building.localPosition = new Vector3(needPosition.x, needPosition.y, 0f);
+
+                maxPoints.Add(new Vector2(building.localPosition.x + buildingSize.x / 2, building.localPosition.y + buildingSize.y / 2));
+                minPoints.Add(new Vector2(building.localPosition.x - buildingSize.x / 2, building.localPosition.y - buildingSize.y / 2));
+
+                for (int k = 0; k < buildingSize.x / 20 + 1; k++) {
+                    for (int j = 0; j < buildingSize.y / 20 + 1; j++) {
+                        Vector2 obstaclePosition = new Vector2(k, j) * 20 - buildingSize / 2 + (Vector2)building.localPosition;
+                        SpawnObstacle(obstaclePosition,
+                            buildingVisualConfig.MapObstacles[Random.Range(0, buildingVisualConfig.MapObstacles.Length)]);
+                    }
                 }
             }
-        }   
-        
+
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    if (i == 4 && j == 5) continue;
+                    GenerateObstaclesInCell(i, j, randomOffset, minPoints, maxPoints);
+                }
+            }
+
+            return;
+        }
+
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 if (i == 4 && j == 5) continue;
@@ -1462,13 +1480,27 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
 
+    private Vector2 GetCornerPositionForBuilding(Vector2 buildingSize, int index) {
+        Vector2 needPosition = Vector2.zero;
+        float halfWidth = buildingSize.x / 2f;
+        float halfDepth = buildingSize.y / 2f;
+
+        float sign = index == 1 || index == 2 ? -1f : 1f;
+        needPosition.x = sign * Random.Range(20 + halfWidth, 100 - halfWidth);
+
+        float signY = index == 3 || index == 2 ? -1f : 1f;
+        needPosition.y = signY * Random.Range(20 + halfDepth, 100 - halfDepth);
+        
+        return needPosition;
+    }
+
     private Transform GenerateBuilding() {
       return  _sceneService.Value.InstantiateObject(_sceneService.Value._mapGroundSpriteRenderer.transform, _sceneService.Value._mapContainer, Vector2.zero);
         
     }
     
     
-    private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise)
+    private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise,List<Vector2> minPoint=null,List<Vector2> maxPoint=null)
     {
         float noiseValue = PerlinNoiseUtil.GetFractalNoise(
             cellX * 20 + 20 / 2f+randomOffsetForNoise.x,
@@ -1477,11 +1509,21 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
         var mapVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[0];
         int obstacleCount = GetObstacleCountFromNoise(noiseValue, mapVisualConfig.NoiseObstaclesCountChances);
-        
-        for (int k = 0; k < obstacleCount; k++)
-        {
+
+        for (int k = 0; k < obstacleCount; k++) {
             Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);
-            SpawnObstacle(randomPosition, mapVisualConfig.MapObstacles[Random.Range(0,mapVisualConfig.MapObstacles.Length)]);
+            bool canPlaceObstacle = true;
+            if (minPoint != null)
+                for (int i = 0; i < minPoint.Count; i++) {
+                    if ((randomPosition.x > minPoint[i].x-5 && randomPosition.x < maxPoint[i].x+5) && (randomPosition.y > minPoint[i].y-5 &&
+                            randomPosition.y < maxPoint[i].y+5)) {
+                        canPlaceObstacle = false;
+                        break;
+                    }
+                }
+
+            if (canPlaceObstacle)
+                SpawnObstacle(randomPosition, mapVisualConfig.MapObstacles[Random.Range(0, mapVisualConfig.MapObstacles.Length)]);
         }
     }
     

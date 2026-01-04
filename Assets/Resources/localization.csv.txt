@@ -232,3 +232,9 @@ Equip,Equip,Установи,Rüste aus,Equipa,Équipe
 modules on one car part,modules on one part,модулей на одной детали,Module an einem Teil,módulos en una pieza,modules sur une pièce
 Drive,Drive,Проезди,Fahre,Conduce,Conduis
 m,m,м,m,m,m
+Abandoned valley,Abandoned Valley,Заброшенная долина,Verlassenes Tal,Valle Abandonado,Vallée Abandonnée
+Abandoned valley is the second location of the game,Abandoned Valley - Second Location,Заброшенная долина - Вторая локация,Verlassenes Tal - Zweiter Ort,Valle Abandonado - Segunda Ubicación,Vallée Abandonnée - Deuxième Lieu
+Fuel cistern,Fuel Cistern,Топливная цистерна,Kraftstoffzisterne,Cisterna Combustible,Citerne Carburant
+Thermal rifle,Thermal Rifle,Тепловая винтовка,Thermischgewehr,Fusil Térmico,Fusil Thermique
+difficulty in,difficulty on,сложность на,Schwierigkeit auf,dificultad en,difficulté sur
+to unlock this map,to unlock this map,чтобы открыть эту карту,um diese Karte freizuschalten,para desbloquear este mapa,pour débloquer cette carte
