@@ -26,6 +26,7 @@ public class MapConfig : ScriptableObject {
      public List<EnemyListConfigsList> EnemyMapConfigs;
      
      public List<MapVisualInfoConfig> MapVisualInfoConfigs;
+     public Color LightColor;
 }
 [System.Serializable]
 public class EnemyListConfigsList {

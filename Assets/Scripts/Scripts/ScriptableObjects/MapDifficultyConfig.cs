@@ -32,7 +32,8 @@ public class MapDifficultyConfig : ScriptableObject
 
 public enum MapEventsType {
     None,
-    StrongWind
+    StrongWind,
+    ThunderStorm
 }
 [System.Serializable]
 public class MapEventInfo {

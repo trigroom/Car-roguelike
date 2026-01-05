@@ -199,17 +199,9 @@ No space in garage,No space in garage,Нет места в гараже,Kein Pla
 Main car,Main Car,Основная машина,Hauptauto,Coche Principal,Voiture Principale
 Continue,Continue,Продолжить,Weiter,Continuar,Continuer
 Sold,Sold,Продано,Verkauft,Vendido,Vendu
-Strong wind from,Strong wind:,Сильный ветер:,Starker Wind:,Fuerte viento:,Vent fort:
-Medium wind from,Medium wind:,Умеренный ветер:,Mittlerer Wind:,Viento medio:,Vent moyen:
-Weak wind from,Weak wind:,Слабый ветер:,Schwacher Wind:,Viento débil:,Vent faible:
-North,Northern,Северный,Nördlich,Del Norte,Du Nord
-West,Western,Западный,Westlich,Del Oeste,De l'Ouest
-South,Southern,Южный,Südlich,Del Sur,Du Sud
-Southeast,Southeastern,Юго-Восточный,Südöstlich,Del Sureste,Du Sud-Est
-East,Eastern,Восточный,Östlich,Del Este,De l'Est
-Northeast,Northeastern,Северо-Восточный,Nordöstlich,Del Noreste,Du Nord-Est
-Southwest,Southwestern,Юго-Западный,Südwestlich,Del Suroeste,Du Sud-Ouest
-Northwest,Northwestern,Северо-Западный,Nordwestlich,Del Noroeste,Du Nord-Ouest
+Strong wind from,Strong wind,Сильный ветер,Starker Wind,Fuerte viento,Vent fort
+Medium wind from,Medium wind,Умеренный ветер,Mittlerer Wind,Viento medio,Vent moyen
+Weak wind from,Weak wind,Слабый ветер,Schwacher Wind,Viento débil,Vent faible
 Car recoil,Shot Push,Толчок от выстрела,Schub vom Schuss,Empuje disparo,Poussée tir
 Modules,Modules,Модули,Module,Módulos,Modules
 No modules to this car part,No modules for this part,Нет модулей для этой детали,Keine Module für dieses Teil,Sin módulos para esta pieza,Pas de modules pour cette pièce
@@ -231,10 +223,11 @@ Deal,Deal,Нанеси,Zufügen,Inflige,Inflige
 Equip,Equip,Установи,Rüste aus,Equipa,Équipe
 modules on one car part,modules on one part,модулей на одной детали,Module an einem Teil,módulos en una pieza,modules sur une pièce
 Drive,Drive,Проезди,Fahre,Conduce,Conduis
-m,m,м,m,m,m
+m,m,м,m,m,m  
 Abandoned valley,Abandoned Valley,Заброшенная долина,Verlassenes Tal,Valle Abandonado,Vallée Abandonnée
 Abandoned valley is the second location of the game,Abandoned Valley - Second Location,Заброшенная долина - Вторая локация,Verlassenes Tal - Zweiter Ort,Valle Abandonado - Segunda Ubicación,Vallée Abandonnée - Deuxième Lieu
 Fuel cistern,Fuel Cistern,Топливная цистерна,Kraftstoffzisterne,Cisterna Combustible,Citerne Carburant
 Thermal rifle,Thermal Rifle,Тепловая винтовка,Thermischgewehr,Fusil Térmico,Fusil Thermique
 difficulty in,difficulty on,сложность на,Schwierigkeit auf,dificultad en,difficulté sur
 to unlock this map,to unlock this map,чтобы открыть эту карту,um diese Karte freizuschalten,para desbloquear este mapa,pour débloquer cette carte
+Thunderstorm,Thunderstorm,Гроза,Gewitter,Tormenta eléctrica,Orage

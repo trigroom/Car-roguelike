@@ -12282,6 +12282,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47a5551cc11d45d46b1963fc225b00d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_thunderCloudsSprite>k__BackingField: {fileID: 21300000, guid: 37620ea51ecdc784e90a17d93809910a, type: 3}
+  <_thunderPrefab>k__BackingField: {fileID: 8074046972565327555, guid: 8d2f60d982144194282c1470a619439f, type: 3}
+  <_cloudsSpriteRenderer>k__BackingField: {fileID: 176192520}
   <_behindMapBorderSpriteRenderer>k__BackingField: {fileID: 319312761}
   <_mapGroundSpriteRenderer>k__BackingField: {fileID: 1675750767}
   <_behindMapGroundSpriteRenderer>k__BackingField: {fileID: 1688199339}
@@ -12381,7 +12384,7 @@ MonoBehaviour:
   <gameVersionText>k__BackingField: {fileID: 134741216}
   <emptyCell>k__BackingField: {fileID: 0}
   <moneyText>k__BackingField: {fileID: 0}
-  <gloabalLight>k__BackingField: {fileID: 0}
+  <globalLight>k__BackingField: {fileID: 619394801}
   <mainCamera>k__BackingField: {fileID: 519420031}
   aspectRatio: 0
   PlayerEntity: 0

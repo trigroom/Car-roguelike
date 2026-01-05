@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DifficultyConfig1-3
   m_EditorClassIdentifier: 
   <DifficultyName>k__BackingField: HARD
-  <HealthMultiplayer>k__BackingField: 1.1
+  <HealthMultiplayer>k__BackingField: 1
   <DamageMultiplayer>k__BackingField: 1.25
   <MapEvents>k__BackingField:
   - MapEventType: 1
@@ -21,7 +21,7 @@ MonoBehaviour:
     MapEventSecondCount: 0
   <ScrapForRound>k__BackingField: 5
   <ScrapForMapComplete>k__BackingField: 80
-  <HealedHealthPartAfterEndRound>k__BackingField: 0.75
+  <HealedHealthPartAfterEndRound>k__BackingField: 0.5
   <TimeBetweenInRoundEnemySpawn>k__BackingField: 28
   <DifficltyUiColor>k__BackingField: {r: 0.8962264, g: 0.6068732, b: 0.17332679, a: 0.101960786}
   <StartMoney>k__BackingField: 50

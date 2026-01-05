@@ -11,6 +11,9 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public Sprite _thunderCloudsSprite{ get; private set; }
+    [field: SerializeField] public Transform _thunderPrefab{ get; private set; }
+    [field: SerializeField] public SpriteRenderer _cloudsSpriteRenderer { get; private set; }
     [field: SerializeField] public SpriteRenderer _behindMapBorderSpriteRenderer { get; private set; }
     [field: SerializeField] public SpriteRenderer _mapGroundSpriteRenderer { get; private set; }
     [field: SerializeField] public SpriteRenderer _behindMapGroundSpriteRenderer { get; private set; }
@@ -78,7 +81,7 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public TMP_Text gameVersionText { get; private set; }
     [field: SerializeField] public CellView emptyCell { get; private set; }
     [field: SerializeField] public TMP_Text moneyText { get; private set; }
-    [field: SerializeField] public Light gloabalLight { get; set; }
+    [field: SerializeField] public Light2D globalLight { get; set; }
     [field: SerializeField] public Camera mainCamera { get; private set; }
     public float aspectRatio;
    // public InputSystem_Actions gameInput;

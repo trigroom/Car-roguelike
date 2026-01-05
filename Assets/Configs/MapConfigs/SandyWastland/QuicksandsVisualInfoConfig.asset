@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MapObstacles:
   - {fileID: 5901465273616574507, guid: 6dc365d95ed5de544b9c3f96a86b62d0, type: 3}
+  - {fileID: 5901465273616574507, guid: 11831ed722cd0ac49b9755b62b88e471, type: 3}
   GroundMaterial: {fileID: 0}
   BehindMapGroundMaterial: {fileID: 0}
   NoiseObstaclesCountChances: []

@@ -21,8 +21,9 @@ MonoBehaviour:
     MapEventSecondCount: 7
   <ScrapForRound>k__BackingField: 7
   <ScrapForMapComplete>k__BackingField: 120
-  <HealedHealthPartAfterEndRound>k__BackingField: 0.5
+  <HealedHealthPartAfterEndRound>k__BackingField: 0.25
   <TimeBetweenInRoundEnemySpawn>k__BackingField: 26
   <DifficltyUiColor>k__BackingField: {r: 0.9056604, g: 0.38228816, b: 0.18369527, a: 0.16862746}
   <StartMoney>k__BackingField: 50
   <RoundsCount>k__BackingField: 20
+  <DestroyEnemyCarsAfterDeath>k__BackingField: 0

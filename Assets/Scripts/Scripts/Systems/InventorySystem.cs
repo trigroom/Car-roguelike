@@ -710,7 +710,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             (200 - containerSizeX) * _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x / 2 - 100,
             (200 - containerSizeY) * _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x / 2 + 38);
 
-        Debug.Log(containerSizeX + " x " + containerSizeY + " y");
         _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).OnCarCellSize = new Vector2(
             containerSizeX / carCmp.CarPartContainerGroupsGrid.GetLength(0), containerSizeX / carCmp.CarPartContainerGroupsGrid.GetLength(0));
     }

@@ -47,6 +47,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<InventoryCellComponent> _inventoryCellComponentsPool;
     private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
     private EcsPoolInject<QuicksandComponent> _quicksandComponentsPool;
+    private EcsPoolInject<ThunderstormComponent> _thunderstormComponentsPool;
     
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -66,7 +67,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted)
             _betweenScenesService.Value.CurrentSelectedMap = _betweenScenesService.Value._carStuffListsConfig.MapConfigs.Length-1;
-        
+        var mapConfig = _betweenScenesService.Value.GetMapConfig();
+        _sceneService.Value.globalLight.color = mapConfig.LightColor;
         var difficultyConfig = _sceneService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
             .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
         curGameCmp.DifficultyDamageMultiplayer = difficultyConfig.DamageMultiplayer;
@@ -76,11 +78,35 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             foreach (var mapEvent in difficultyConfig.MapEvents) {
                 if (mapEvent.MapEventType == MapEventsType.StrongWind) {
                     ref var windCmp = ref _windComponentsPool.Value.Add(playerEntity);
-                    windCmp.WindDirection = WindDirections[mapEvent.MapEventSecondCount];
+                    windCmp.WindDirection = WindDirections[Random.Range(0, WindDirections.Length)];
                     windCmp.WindSpeed = mapEvent.MapEventFirstCount;
-                    break;
+
+                    var instanceMaterial = new Material(_sceneService.Value._cloudsSpriteRenderer.material);
+                    _sceneService.Value._cloudsSpriteRenderer.material = instanceMaterial;
+
+                    instanceMaterial.SetVector("_Speed",
+                        new Vector4(-windCmp.WindDirection.x * windCmp.WindSpeed / 2000, -windCmp.WindDirection.y * windCmp.WindSpeed / 2000, 0,
+                            0));
+                }
+                else if (mapEvent.MapEventType == MapEventsType.ThunderStorm) {
+                    
+                    _thunderstormComponentsPool.Value.Add(playerEntity).TimeToNextThunder = 5;
+
+                    _sceneService.Value._cloudsSpriteRenderer.material.SetTexture("_CloudTex",
+                        _sceneService.Value._thunderCloudsSprite.texture);
+                    _sceneService.Value.globalLight.color = Color.gray;
+                    _sceneService.Value.globalLight.intensity = 0.92f;
                 }
             }
+
+        if (!_windComponentsPool.Value.Has(playerEntity)) {
+            var instanceMaterial = new Material(_sceneService.Value._cloudsSpriteRenderer.material);
+            _sceneService.Value._cloudsSpriteRenderer.material = instanceMaterial;
+            var windDirection = WindDirections[Random.Range(0, WindDirections.Length)];
+            instanceMaterial.SetVector("_Speed",
+                new Vector4(windDirection.x * 0.005f, windDirection.y * 0.005f, 0,
+                    0));
+        }
         
         _settingsComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).pixelizedEffectIsUsed = true;
         _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
@@ -116,6 +142,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         foreach (var filledZone in _filledZoneComponentsFilter.Value) {
             TriggerFilledZone();
         }
+
+       
 
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
@@ -1479,16 +1507,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 for (int j = 0; j < 5; j++) {
                     if (i == 2 && j == 2) continue;
                     Vector2 obstaclePosition = new Vector2(Random.Range(0, 40) + (i - 1) * 40 - 100, Random.Range(0, 40) + (j - 1) * 40 - 100);
-                    SpawnObstacle(obstaclePosition,
-                            quicksandVisualConfig.MapObstacles[Random.Range(0, quicksandVisualConfig.MapObstacles.Length)])
-                        .GetComponent<QuicksandView>().Construct(EnterInQuicksand,ExitFromQuicksand);
+                    var quickSand = SpawnObstacle(obstaclePosition,
+                        quicksandVisualConfig.MapObstacles[Random.Range(0, quicksandVisualConfig.MapObstacles.Length)]);
+                    if(quickSand)
+                        quickSand.GetComponent<QuicksandView>().Construct(EnterInQuicksand,ExitFromQuicksand);
                 }
             }
         }
 
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                if (i == 4 && j == 5) continue;
                 GenerateObstaclesInCell(i, j, randomOffset);
             }
         }
@@ -1573,8 +1601,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
     
-    private Transform SpawnObstacle(Vector2 position, Transform obstaclePrefab)
-    {
+    private Transform SpawnObstacle(Vector2 position, Transform obstaclePrefab) {
+        if ((position.x < 10 && position.x > -10) || (position.y < 10 && position.y > -10)) return null;
        // Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
         
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4)*90);

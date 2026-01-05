@@ -73,13 +73,16 @@ public class SelectDifficultyUIView : MonoBehaviour
                   needString = GetLocalization("Strong wind from");
                   break;
             }
-           needString += " "+GetLocalization(WindDirectionNames[mapEventInfo.MapEventSecondCount]);
+       //   needString += " "+GetLocalization(WindDirectionNames[mapEventInfo.MapEventSecondCount]);
+            break;
+         case MapEventsType.ThunderStorm :
+            needString = GetLocalization("Thunderstorm");
             break;
       }
       return needString;
    }
    
-   private string[] WindDirectionNames = new[] {
+  /* private string[] WindDirectionNames = new[] {
       "North",      // (0, 1)
       "West",       // (-1, 0)
       "South",      // (0, -1)
@@ -88,5 +91,5 @@ public class SelectDifficultyUIView : MonoBehaviour
       "Northeast",  // (1, 1)
       "Southwest",  // (-1, -1)
       "Northwest"   // (-1, 1)
-   };
+   };*/
 }

@@ -20,11 +20,11 @@ MonoBehaviour:
   <MapName>k__BackingField: Abandoned valley
   <GameProcessConfig>k__BackingField: {fileID: 11400000, guid: 9fd1157b9bed16445bef3f79570f869f, type: 2}
   <MapDifficltyConfigs>k__BackingField:
-  - {fileID: 11400000, guid: 9776b4665f1c60c4a9ab3ead86f75228, type: 2}
-  - {fileID: 11400000, guid: 9b2baf15722a58541b310d7b9e53b32e, type: 2}
-  - {fileID: 11400000, guid: 56bc3451caab86e478f8f3fcfb468bfc, type: 2}
-  - {fileID: 11400000, guid: 3538d8699dfe7b747aeb6b5be659ca56, type: 2}
-  - {fileID: 11400000, guid: 35cfcb7804e7d43409da710bc3581b41, type: 2}
+  - {fileID: 11400000, guid: 378f8f237ad2f1f4cbca64829971c422, type: 2}
+  - {fileID: 11400000, guid: 4fda9fa6c3d2cd04494608371fa53419, type: 2}
+  - {fileID: 11400000, guid: 68b1f6bd9cc238b4ea1e5bd80d28bd68, type: 2}
+  - {fileID: 11400000, guid: 22a642945c436ae46b8220857bb63514, type: 2}
+  - {fileID: 11400000, guid: caebfbbe689712f409a6042d65a2c8f2, type: 2}
   EnemyMapConfigs:
   - CarMapsList:
     - {fileID: 11400000, guid: 2a14a018cc05403479f7992655f165c4, type: 2}
@@ -58,3 +58,4 @@ MonoBehaviour:
   MapVisualInfoConfigs:
   - {fileID: 11400000, guid: 8dddd5f28f8aa9846bdcdbbdc2ad73d8, type: 2}
   - {fileID: 11400000, guid: dfd5a269d3f2b1e488a3faf52cbb811b, type: 2}
+  LightColor: {r: 0.972549, g: 0.8980392, b: 0.8745098, a: 1}

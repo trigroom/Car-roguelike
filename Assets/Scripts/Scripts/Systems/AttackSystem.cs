@@ -45,6 +45,7 @@ public enum AttackType {
         private EcsPoolInject<UpdateCarsStatsInfoEvent> _updateCarsStatsInfoEventsPool;
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
+        private EcsPoolInject<ThunderstormComponent> _thunderstormComponentsPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
         private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -58,6 +59,7 @@ public enum AttackType {
         private EcsFilterInject<Inc<CarPartCellComponent>> _carPartCellComponentsFilter;
         private EcsFilterInject<Inc<ProjectileComponent>> _projectileComponentsFilter;
         private EcsFilterInject<Inc<ConstructMeleeCellEvent>> _constructMeleeCellEventsFilter;
+        private EcsFilterInject<Inc<ThunderstormComponent>> _thunderstormComponentsFilter;
 
         public void Run(IEcsSystems systems) {
             foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
@@ -73,8 +75,55 @@ public enum AttackType {
 
             float deltaTime = Time.deltaTime;
             ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-            if (curGameCmp.CurrentRoundType != RoundType.BattleDefault && curGameCmp.CurrentRoundType != RoundType.FromAToB &&
-                curGameCmp.CurrentRoundType != RoundType.ZoneDefence&&curGameCmp.CurrentRoundType != RoundType.BossBattle) return;
+            if (RoundUtilits.IsNotBattleRound(curGameCmp.CurrentRoundType)) return;
+           
+            foreach (var thunderEntity in _thunderstormComponentsFilter.Value) {
+                ref var thunderstormCmp = ref _thunderstormComponentsPool.Value.Get(thunderEntity);
+                thunderstormCmp.TimeToNextThunder -= deltaTime;
+                if (thunderstormCmp.TimeToNextThunder <= 0) {
+                    if (thunderstormCmp.ThunderTransform) {
+                       _sceneService.Value.DestroyGameobject(thunderstormCmp.ThunderTransform); 
+                       thunderstormCmp.ThunderTransform = null;
+                       thunderstormCmp.TimeToNextThunder = Random.Range(5, 15);
+                    } else { 
+                        thunderstormCmp.ExplosionIsSpawned = false;
+                        var needPosition = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MovableObjectRigidbody.transform
+                            .position;
+                        Vector2 randomCircle = Random.insideUnitCircle * 15f;
+
+                        if (randomCircle.magnitude < 2f)
+                            randomCircle = randomCircle.normalized * 2f;
+
+                        needPosition += new Vector3(randomCircle.x, randomCircle.y, 0);
+                        thunderstormCmp.TimeToNextThunder = 1;
+                        thunderstormCmp.ThunderTransform = _sceneService.Value.InstantiateObject(_sceneService.Value._thunderPrefab, needPosition);
+                    }
+                } else if (thunderstormCmp.ThunderTransform && !thunderstormCmp.ExplosionIsSpawned &&
+                           thunderstormCmp.TimeToNextThunder <= 0.5f) {
+                    thunderstormCmp.ExplosionIsSpawned = true;
+                    //thunder explosion
+
+                    LayerMask layerMask = LayerMask.GetMask(new string[] { "CarBase", "UpCarPart", "CarBaseEnemy", "UpCarPartEnemy" });
+
+                    var castedObjects = Physics2D.OverlapCircleAll(thunderstormCmp.ThunderTransform.position, 3, layerMask);
+
+                    foreach (var damagedObject in castedObjects) {
+                        damagedObject.TryGetComponent(out CarPartStuffView damagedCarPartView);
+                        if (!damagedCarPartView || !_carComponentsPool.Value.Has(damagedCarPartView._mainEntity)) continue;
+
+                        var carCmp = _carComponentsPool.Value.Get(damagedCarPartView._mainEntity);
+                        int carPartEntity = carCmp.CarPartGroupsGrid[damagedCarPartView._gridPosition.x, damagedCarPartView._gridPosition.y];
+                        if (carPartEntity == 0)
+                            carPartEntity =
+                                carCmp.CarPartContainerGroupsGrid[damagedCarPartView._gridPosition.x, damagedCarPartView._gridPosition.y];
+                        SetEffectComponent(carPartEntity, EffectType.shock, 3);
+                        SetEffectComponent(carPartEntity, EffectType.fire, 10);
+                    }
+                }
+                
+               
+            }
+            
             foreach (var gunEntity in _gunComponentsFilter.Value) {
                 if (_shockEffectComponentsPool.Value.Has(gunEntity)) {
                     if (_laserComponentsPool.Value.Has(gunEntity))
