@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 986a3b5f1ec467a4c820b09f41191cbd, type: 3}
   m_Name: SecondMapConfig
   m_EditorClassIdentifier: 
-  <RoundOnLastMapToUnlock>k__BackingField: 3
+  <RoundOnLastMapToUnlock>k__BackingField: 2
   <MapId>k__BackingField: 1
   <MapDescription>k__BackingField: Abandoned valley is the second location of the
     game

@@ -61,8 +61,8 @@ public class DataPersistenceManagerSystem : MonoBehaviour
             NewGame();
         }
 
-       // _gameData.TutorialIsCompleted = true;
-     //   _gameData.LevelRounds[0] = 2;
+      //  _gameData.TutorialIsCompleted = true;
+        //_gameData.LevelRounds[0] = 2;
         
       // SaveGame();
     }

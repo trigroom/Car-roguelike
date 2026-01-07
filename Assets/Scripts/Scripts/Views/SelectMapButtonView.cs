@@ -21,7 +21,7 @@ public class SelectMapButtonView : MonoBehaviour {
    SelectMapButton.enabled = false;
    var lastMapConfig = BetweenScenesService.Instance._carStuffListsConfig.MapConfigs[mapConfig.MapId - 1];
    MapName.text =
-    $"{GetLocalization("Complete")} \"{GetLocalization(lastMapConfig.MapDifficltyConfigs[mapConfig.RoundOnLastMapToUnlock - 2].DifficultyName)}\" " +
+    $"{GetLocalization("Complete")} \"{GetLocalization(lastMapConfig.MapDifficltyConfigs[mapConfig.RoundOnLastMapToUnlock - 1].DifficultyName)}\" " +
     $"{GetLocalization("difficulty in")} \"{GetLocalization(lastMapConfig.MapName)}\" {GetLocalization("to unlock this map")}";
 
   } else {

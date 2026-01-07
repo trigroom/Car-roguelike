@@ -48,4 +48,6 @@ MonoBehaviour:
   EffectType: 0
   EffectDuration: 0
   BreakingThroughCount: 1
+  BreakingThroughDamageFalloff: 0
   CarRecoil: 100
+  ProjectileLifeTime: 3

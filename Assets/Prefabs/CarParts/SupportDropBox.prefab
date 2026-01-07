@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: -6712694133279507477}
   - component: {fileID: 7245686766473792499}
   - component: {fileID: 6770856967817643288}
-  m_Layer: 7
+  m_Layer: 14
   m_Name: SupportDropBox
   m_TagString: Enemy
   m_Icon: {fileID: 0}

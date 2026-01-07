@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Quad rocket launcher
-  <DefaultModuleCount>k__BackingField: 25
+  <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 45
@@ -46,3 +46,6 @@ MonoBehaviour:
   EffectType: 0
   EffectDuration: 0
   BreakingThroughCount: 1
+  BreakingThroughDamageFalloff: 0
+  CarRecoil: 0
+  ProjectileLifeTime: 3.5

@@ -37,8 +37,12 @@ public class ProjectileView : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.gameObject.layer == LayerMask.NameToLayer("Obstacle")) {
-            hitTargetAction?.Invoke(AttackType.Projectile, gunId, -Vector2Int.one, -1, EstimateCollisionPoint(other, collider), this, entity,
-                needTag);
+            if (other.gameObject.TryGetComponent(out CarPartStuffView damagedCarPart))
+                hitTargetAction?.Invoke(AttackType.Projectile, gunId, damagedCarPart._gridPosition, damagedCarPart._mainEntity,
+                    EstimateCollisionPoint(other, collider), this, entity, needTag);
+            else
+                hitTargetAction?.Invoke(AttackType.Projectile, gunId, -Vector2Int.one, -1, EstimateCollisionPoint(other, collider), this,
+                    entity, needTag);
         } else if (other.CompareTag(needTag)) {
             lastCollider = other;
 

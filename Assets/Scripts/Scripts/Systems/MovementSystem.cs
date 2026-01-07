@@ -252,8 +252,8 @@ public class MovementSystem : IEcsRunSystem {
             layerNames = new[] { "Obstacle" };
         else
             layerNames = enemyAiCmp.IsEnemy
-                ? new[] { "Obstacle", "UpCarPartEnemy", "CarBaseEnemy" }
-                : new[] { "Obstacle", "UpCarPart", "CarBase" };
+                ? new[] { "Obstacle", "UpCarPartEnemy", "CarBaseEnemy","PlayerDamageable" }
+                : new[] { "Obstacle", "UpCarPart", "CarBase","PlayerDamageable" };
         var leftSide = CheckOneSideForObstacles(enemyAiCmp.CheckedEnemyLeftPoints, layerNames);
         if (leftSide < 2) {
             enemyAiCmp.CurrentEnemyDirection = EnemyDirection.Back;

@@ -137,6 +137,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     };
     
     public void Run(IEcsSystems systems) {
+        if(!_currentGameComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))return;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         foreach (var filledZone in _filledZoneComponentsFilter.Value) {
@@ -226,7 +227,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         int entitySupportBox = _world.Value.NewEntity();
         _carPartComponentsPool.Value.Add(entitySupportBox).MainEntity = -10;
         _carPartInfoComponentsPool.Value.Add(entitySupportBox);
-        supportBox.SetupCarPart(Vector2Int.one * -10, "UpCarPartEnemy" ,entitySupportBox);
+        supportBox.SetupCarPart(Vector2Int.one * -10, "Obstacle" ,entitySupportBox);
     }
 
     private void WinGame() {
@@ -425,7 +426,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.SupportBoxIsSend = false;
         _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
           
-        Debug.Log("End round game st system");
         ChangePlayerUIState(false);
         if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount)return;
         int currentRound = curGameCmp.CurrentRound - 1;
@@ -457,14 +457,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
 
         DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += moneyCount;
-        Debug.Log("End round reward :"+moneyCount+ " money");
         _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount += moneyCount;
         SetMoneyText();
         _sceneService.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
         ChangeInventoryState(true);
-        
-   _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
-      //  ReleaseAllCarPartUI();
+
+        _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
+    
     }
 
     private void ReleaseAllCarPartUI() {
@@ -1488,7 +1487,23 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     for (int j = 0; j < buildingSize.y / 20 + 1; j++) {
                         Vector2 obstaclePosition = new Vector2(k, j) * 20 - buildingSize / 2 + (Vector2)building.localPosition;
                         SpawnObstacle(obstaclePosition,
-                            buildingVisualConfig.MapObstacles[Random.Range(0, buildingVisualConfig.MapObstacles.Length)]);
+                            buildingVisualConfig.MapObstacles[Random.Range(0, buildingVisualConfig.MapObstacles.Length-2)]);
+                        if (Random.value > 0.8f) {
+                            int randomBarrel = Random.Range(0, 2);
+                            Debug.Log(buildingVisualConfig.MapObstacles[buildingVisualConfig.MapObstacles.Length - 2 + randomBarrel] + " barindex");
+                            var needObstacle = SpawnObstacle(obstaclePosition + (Random.insideUnitCircle * 5f).normalized * 3.5f,
+                                    buildingVisualConfig.MapObstacles[buildingVisualConfig.MapObstacles.Length - 2 + randomBarrel]);
+                            if(!needObstacle)continue;
+                            int barrelEntity = _world.Value.NewEntity();
+                            _carPartInfoComponentsPool.Value.Add(barrelEntity).CurrentHealth = 150;
+                            ref var carPartCmp = ref _carPartComponentsPool.Value.Add(barrelEntity);
+                            carPartCmp.MainEntity = -11 - randomBarrel;
+                            carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
+
+                            carPartCmp.CellCarPartsStuffViews.Add(needObstacle.gameObject.GetComponent<CarPartStuffView>());
+
+                            carPartCmp.CellCarPartsStuffViews[0].SetupCarPart(Vector2Int.one * (-11 - randomBarrel), "Obstacle", barrelEntity);
+                        }
                     }
                 }
             }
@@ -1602,7 +1617,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private Transform SpawnObstacle(Vector2 position, Transform obstaclePrefab) {
-        if ((position.x < 10 && position.x > -10) || (position.y < 10 && position.y > -10)) return null;
+        if ((position.x < 10 && position.x > -10) && (position.y < 10 && position.y > -10)) return null;
        // Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
         
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4)*90);

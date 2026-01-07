@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 3
   <PartName>k__BackingField: Shocked Rocket launcher
-  <DefaultModuleCount>k__BackingField: 0
+  <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 40
@@ -46,4 +46,6 @@ MonoBehaviour:
   EffectType: 3
   EffectDuration: 3
   BreakingThroughCount: 1
+  BreakingThroughDamageFalloff: 0
   CarRecoil: 200
+  ProjectileLifeTime: 3.5

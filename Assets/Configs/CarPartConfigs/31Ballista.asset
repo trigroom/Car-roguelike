@@ -51,3 +51,4 @@ MonoBehaviour:
   BreakingThroughCount: 3
   BreakingThroughDamageFalloff: 0.3
   CarRecoil: 0
+  ProjectileLifeTime: 3

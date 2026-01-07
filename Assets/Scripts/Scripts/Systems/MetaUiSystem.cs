@@ -56,6 +56,8 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 OpenNewWindow(_metaSceneService.Value._achievementsUIView.transform));
             _metaSceneService.Value._mainMenuView._shopButton.onClick.AddListener(() =>
                 OpenNewWindow(_metaSceneService.Value._shopUIContainer.transform));
+            _metaSceneService.Value._mainMenuView._catalogButton.onClick.AddListener(() =>
+                OpenNewWindow(_metaSceneService.Value._catalogUIView.transform));
             _metaSceneService.Value._mainMenuView._playButton.onClick.AddListener(Play);
             _metaSceneService.Value._mainMenuView._exitButton.onClick.AddListener(ExitFromGame);
             _metaSceneService.Value._staticTextsView.SetTextLanguage();
@@ -65,6 +67,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
             if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
                 _metaSceneService.Value._mainMenuView._achivementsButton.gameObject.SetActive(false);
                 _metaSceneService.Value._mainMenuView._shopButton.gameObject.SetActive(false);
+                _metaSceneService.Value._mainMenuView._catalogButton.gameObject.SetActive(false);
             }
 
             

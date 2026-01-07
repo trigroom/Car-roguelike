@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <DifficultyName>k__BackingField: VERY HARD
   <HealthMultiplayer>k__BackingField: 1.15
-  <DamageMultiplayer>k__BackingField: 1.4
+  <DamageMultiplayer>k__BackingField: 1.5
   <MapEvents>k__BackingField:
   - MapEventType: 1
     MapEventFirstCount: 150

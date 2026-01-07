@@ -231,3 +231,4 @@ Thermal rifle,Thermal Rifle,Тепловая винтовка,Thermischgewehr,Fu
 difficulty in,difficulty on,сложность на,Schwierigkeit auf,dificultad en,difficulté sur
 to unlock this map,to unlock this map,чтобы открыть эту карту,um diese Karte freizuschalten,para desbloquear este mapa,pour débloquer cette carte
 Thunderstorm,Thunderstorm,Гроза,Gewitter,Tormenta eléctrica,Orage
+Catalog,Catalog,Каталог,Katalog,Catálogo,Catalogue
