@@ -11,6 +11,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public Transform[] _tornadoPrefabs { get; private set; }
     [field: SerializeField] public Sprite _thunderCloudsSprite{ get; private set; }
     [field: SerializeField] public Transform _thunderPrefab{ get; private set; }
     [field: SerializeField] public SpriteRenderer _cloudsSpriteRenderer { get; private set; }

@@ -48,7 +48,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
     private EcsPoolInject<QuicksandComponent> _quicksandComponentsPool;
     private EcsPoolInject<ThunderstormComponent> _thunderstormComponentsPool;
-    
+    private EcsPoolInject<TornadoSpawnControllerComponent> _tornadoSpawnControllerComponentsPool;
+    private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
+
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -76,7 +78,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         if (difficultyConfig.MapEvents != null)
             foreach (var mapEvent in difficultyConfig.MapEvents) {
-                if (mapEvent.MapEventType == MapEventsType.StrongWind) {
+                if (mapEvent.MapEventType == MapEventsType.Wind) {
                     ref var windCmp = ref _windComponentsPool.Value.Add(playerEntity);
                     windCmp.WindDirection = WindDirections[Random.Range(0, WindDirections.Length)];
                     windCmp.WindSpeed = mapEvent.MapEventFirstCount;
@@ -96,6 +98,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                         _sceneService.Value._thunderCloudsSprite.texture);
                     _sceneService.Value.globalLight.color = Color.gray;
                     _sceneService.Value.globalLight.intensity = 0.92f;
+                } else if (mapEvent.MapEventType == MapEventsType.Tornado) {
+                    if (_tornadoSpawnControllerComponentsPool.Value.Has(playerEntity))
+                        _tornadoSpawnControllerComponentsPool.Value.Get(playerEntity).TornadoToSpawn.Add((int)mapEvent.MapEventFirstCount);
+                    else
+                        _tornadoSpawnControllerComponentsPool.Value.Add(playerEntity).TornadoToSpawn =
+                            new List<int>() { (int)mapEvent.MapEventFirstCount };
                 }
             }
 
@@ -143,8 +151,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         foreach (var filledZone in _filledZoneComponentsFilter.Value) {
             TriggerFilledZone();
         }
-
-       
 
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
@@ -463,7 +469,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ChangeInventoryState(true);
 
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
-    
+        if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
+            _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextTornado = 0;
+        }
     }
 
     private void ReleaseAllCarPartUI() {
@@ -1525,7 +1533,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     var quickSand = SpawnObstacle(obstaclePosition,
                         quicksandVisualConfig.MapObstacles[Random.Range(0, quicksandVisualConfig.MapObstacles.Length)]);
                     if(quickSand)
-                        quickSand.GetComponent<QuicksandView>().Construct(EnterInQuicksand,ExitFromQuicksand);
+                        quickSand.GetComponent<QuicksandView>().Construct(EnterInQuicksand,ExitFromQuicksand,0);
                 }
             }
         }
@@ -1536,8 +1544,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         }
     }
-
-    private void EnterInQuicksand(Vector2Int gridPosition, int mainEntity) {
+    
+    private void EnterInQuicksand(Vector2Int gridPosition, int mainEntity, int quicksandEntity) {
         var carPartComponent = _carComponentsPool.Value.Get(mainEntity).CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
         if (_movementComponentsPool.Value.Has(mainEntity) && _carPartInfoComponentsPool.Value.Has(carPartComponent) &&
             _sceneService.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(carPartComponent).CarPartId).PartType ==
@@ -1549,7 +1557,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
 
-    private void ExitFromQuicksand(Vector2Int gridPosition, int mainEntity) {
+    private void ExitFromQuicksand(Vector2Int gridPosition, int mainEntity, int quicksandEntity) {
         var carPartComponent = _carComponentsPool.Value.Get(mainEntity).CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
         if (_movementComponentsPool.Value.Has(mainEntity) && _carPartInfoComponentsPool.Value.Has(carPartComponent) &&
             _sceneService.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(carPartComponent).CarPartId).PartType ==

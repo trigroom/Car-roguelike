@@ -22,6 +22,12 @@ MonoBehaviour:
   - MapEventType: 2
     MapEventFirstCount: 0
     MapEventSecondCount: 0
+  - MapEventType: 3
+    MapEventFirstCount: 0
+    MapEventSecondCount: 0
+  - MapEventType: 3
+    MapEventFirstCount: 1
+    MapEventSecondCount: 0
   <ScrapForRound>k__BackingField: 9
   <ScrapForMapComplete>k__BackingField: 160
   <HealedHealthPartAfterEndRound>k__BackingField: 0

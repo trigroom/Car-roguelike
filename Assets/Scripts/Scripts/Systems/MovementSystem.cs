@@ -18,20 +18,52 @@ public class MovementSystem : IEcsRunSystem {
     private EcsPoolInject<CurrentGameComponent> _currentGameComponentsPool;
     private EcsPoolInject<WindComponent> _windComponentsPool;
     private EcsPoolInject<QuicksandComponent> _quicksandComponentsPool;
+    private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
+    private EcsFilterInject<Inc<TornadoComponent>> _tornadoComponentsFilter;
 
 
     public void Run(IEcsSystems systems) {
         foreach (var endRound in _endRoundEventsFilter.Value) {
             _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
             _sceneData.Value._playerUIView._fuelLampLightImage.gameObject.SetActive(false);
-            Debug.Log("End round Movement System");
+            
+            foreach (var tornadoEntity in _tornadoComponentsFilter.Value) {
+                ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
+               _sceneData.Value.DestroyGameobject(tornadoCmp.TornadoAnimator.transform);
+               _tornadoComponentsPool.Value.Del(tornadoEntity);
+            }
         }
 
+        var deltaTime = Time.deltaTime;
+        foreach (var tornadoEntity in _tornadoComponentsFilter.Value) {
+            ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
+            tornadoCmp.LifeTime -= deltaTime;
+            tornadoCmp.TimeToChangeDirection -= deltaTime;
+            if (tornadoCmp.LifeTime <= 0) {
+                _sceneData.Value.DestroyGameobject(tornadoCmp.TornadoAnimator.transform);
+                _tornadoComponentsPool.Value.Del(tornadoEntity);
+                continue;
+            }
+
+            var tornadoPos = tornadoCmp.TornadoAnimator.transform.position;
+            if (tornadoCmp.TimeToChangeDirection <= 0 || tornadoPos.x > 100 || tornadoPos.x < -100 || tornadoPos.y > 100 ||
+                tornadoPos.y < -100) {
+                var movementArray = _movementComponentsFilter.Value.GetRawEntities();
+                var randomMovementEntity = movementArray[Random.Range(0, movementArray.Length)];
+                var moveCmp = _movementComponentsPool.Value.Get(randomMovementEntity);
+                tornadoCmp.TornadoDirection = (moveCmp.PreviousPosition - (Vector2)tornadoPos).normalized;
+                tornadoCmp.TimeToChangeDirection = Random.Range(3f, 9f);
+                tornadoCmp.TornadoSpeed = Random.Range(3f, 6f);
+            }
+
+            tornadoCmp.TornadoAnimator.transform.position += (Vector3)tornadoCmp.TornadoDirection * tornadoCmp.TornadoSpeed * deltaTime;
+        }
+        
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        if (Input.GetMouseButtonDown(1) && !RoundUtilits.IsNotBattleRound(curGameCmp.CurrentRoundType)) {
+        if (Input.GetMouseButtonDown(1) && RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType)) {
             var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             if (inventoryCmp.PlayerTeammateCarsEntity.Count == 1) return;
             Vector3 worldPosition = _sceneData.Value.mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -86,7 +118,7 @@ public class MovementSystem : IEcsRunSystem {
             if (movementCmp.MovableObjectRigidbody == null) continue;
 
             bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity;
-            var deltaTime = Time.deltaTime;
+            
 
             if (_enemyAIComponentsPool.Value.Has(movementEntity)) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);

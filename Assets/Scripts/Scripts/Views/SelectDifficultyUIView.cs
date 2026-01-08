@@ -61,7 +61,7 @@ public class SelectDifficultyUIView : MonoBehaviour
    private string GetMapEventDescription(MapEventInfo mapEventInfo) {
       string needString = "";
       switch (mapEventInfo.MapEventType) {
-         case MapEventsType.StrongWind:
+         case MapEventsType.Wind:
             switch (mapEventInfo.MapEventFirstCount) {
                case <= 100 :
                   needString = GetLocalization("Weak wind from");
@@ -77,6 +77,20 @@ public class SelectDifficultyUIView : MonoBehaviour
             break;
          case MapEventsType.ThunderStorm :
             needString = GetLocalization("Thunderstorm");
+            break;
+         case MapEventsType.Tornado :
+            switch (mapEventInfo.MapEventFirstCount) {
+               case 0:
+                  needString = GetLocalization("Tornado");
+                  break;
+               case 1:
+                  needString = GetLocalization("Fire tornado");
+                  break;
+               case 2:
+                  needString = GetLocalization("Frost tornado");
+                  break;
+            }
+         
             break;
       }
       return needString;

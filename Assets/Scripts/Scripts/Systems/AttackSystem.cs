@@ -46,6 +46,8 @@ public enum AttackType {
         private EcsPoolInject<WheelContainerComponent> _wheelContainerComponentsPool;
         private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
         private EcsPoolInject<ThunderstormComponent> _thunderstormComponentsPool;
+        private EcsPoolInject<TornadoSpawnControllerComponent> _tornadoSpawnControllerComponentsPool;
+        private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
         private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -76,7 +78,26 @@ public enum AttackType {
             float deltaTime = Time.deltaTime;
             ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
             if (RoundUtilits.IsNotBattleRound(curGameCmp.CurrentRoundType)) return;
-           
+            
+            if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity) && RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) ) {
+                ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                tornadoControllerCmp.TimeToNextTornado -= Time.deltaTime;
+                if (tornadoControllerCmp.TimeToNextTornado <= 0) {
+                    tornadoControllerCmp.TimeToNextTornado = Random.Range(10f, 15f);
+                    int tornadoEntity = _world.Value.NewEntity();
+                    ref var tornadoCmp = ref _tornadoComponentsPool.Value.Add(tornadoEntity);
+                    tornadoCmp.LifeTime = Random.Range(20f, 30f);
+               
+                    int tornadoIndex = tornadoControllerCmp.TornadoToSpawn[Random.Range(0, tornadoControllerCmp.TornadoToSpawn.Count)];
+                    tornadoCmp.TornadoAnimator = _sceneService.Value
+                        .InstantiateObject(
+                            _sceneService.Value._tornadoPrefabs[tornadoIndex],
+                            Random.insideUnitCircle * 80).GetComponent<Animator>();
+                    tornadoCmp.TornadoAnimator.gameObject.GetComponent<TornadoView>().Construct(StayInTornado,tornadoEntity);
+                    tornadoCmp.EffectType = (EffectType)tornadoIndex;
+                }
+            }
+            
             foreach (var thunderEntity in _thunderstormComponentsFilter.Value) {
                 ref var thunderstormCmp = ref _thunderstormComponentsPool.Value.Get(thunderEntity);
                 thunderstormCmp.TimeToNextThunder -= deltaTime;
@@ -896,6 +917,25 @@ public enum AttackType {
             moveCmp.CurrentMoveSpeed -= impulseForce / weight / 2;
             if (moveCmp.CurrentMoveSpeed < 0)
                 moveCmp.CurrentMoveSpeed = 0;
+        }
+        
+        private void StayInTornado(Vector2Int gridPosition, int mainEntity, int tornadoEntity) {
+            Debug.Log("stay tornado " + mainEntity);
+            ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
+            ref var carCmp = ref _carComponentsPool.Value.Get(mainEntity);
+            if (_movementComponentsPool.Value.Has(mainEntity)) {
+                var carPartEntity = carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y] == 0
+                    ? carCmp.CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y]
+                    : carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y];
+            
+                ref var moveCmp = ref _movementComponentsPool.Value.Get(mainEntity);
+                moveCmp.MovableObjectRigidbody.AddForce(100*tornadoCmp.TornadoSpeed*tornadoCmp.TornadoDirection);
+                if (tornadoCmp.EffectType == EffectType.none) {
+                    ChangeHealth(5f*Time.fixedDeltaTime, carPartEntity);
+                } else {
+                    SetEffectComponent(carPartEntity,tornadoCmp.EffectType,2f*Time.fixedDeltaTime);
+                }
+            }
         }
 
         private void ExplodeBarrel(EffectType barrelType, int barrelEntity) {
