@@ -48,6 +48,9 @@ public class MovementSystem : IEcsRunSystem {
                 continue;
             }
 
+            if (tornadoCmp.LifeTime <= 1f) {
+                tornadoCmp.TornadoAnimator.SetBool("isEnd", true);
+            }
             var tornadoPos = tornadoCmp.TornadoAnimator.transform.position;
             if (tornadoCmp.TimeToChangeDirection <= 0 || tornadoPos.x > 100 || tornadoPos.x < -100 || tornadoPos.y > 100 ||
                 tornadoPos.y < -100) {
