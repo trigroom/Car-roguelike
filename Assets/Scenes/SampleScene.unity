@@ -12282,6 +12282,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47a5551cc11d45d46b1963fc225b00d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_defaultMaterial>k__BackingField: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  <_bomberProjectiles>k__BackingField:
+  - {fileID: 21300000, guid: 20431d417d46b374da55d2613eb07b8a, type: 3}
+  - {fileID: 21300000, guid: 2bfa2dc91da311f46b28e988c10f11a2, type: 3}
+  <_whiteCircle>k__BackingField: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
+  <_bomberSprite>k__BackingField: {fileID: 21300000, guid: e1880bed0a7dabe46928e7ef8790c843, type: 3}
   <_tornadoPrefabs>k__BackingField:
   - {fileID: 5901465273616574507, guid: 0fb8cf42bc4bc9544a08df6976a6ed55, type: 3}
   - {fileID: 5901465273616574507, guid: de1a03ec3a0b5ca4f9492bfc5ef69c13, type: 3}

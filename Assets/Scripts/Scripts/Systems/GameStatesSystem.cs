@@ -50,6 +50,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<ThunderstormComponent> _thunderstormComponentsPool;
     private EcsPoolInject<TornadoSpawnControllerComponent> _tornadoSpawnControllerComponentsPool;
     private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
+    private EcsPoolInject<BomberPlaneControllerComponent> _bomberPlaneControllerComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -105,6 +106,22 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                         _tornadoSpawnControllerComponentsPool.Value.Add(playerEntity).TornadoToSpawn =
                             new List<int>() { (int)mapEvent.MapEventFirstCount };
                 }
+                else if (mapEvent.MapEventType == MapEventsType.Bomber) {
+                    ref var bomberController = ref _bomberPlaneControllerComponentsPool.Value.Add(playerEntity);
+                    bomberController.BombIndex = (int)mapEvent.MapEventFirstCount;
+                    var bomberSpriteRenderer = _sceneService.Value.GetSpriteRenderer();
+                    bomberController.BomberShadowTransform = bomberSpriteRenderer.transform;
+                    bomberSpriteRenderer.sprite = _sceneService.Value._bomberSprite;
+                    bomberSpriteRenderer.color = new Color(0, 0, 0, 0.3f);
+                    bomberSpriteRenderer.transform.localScale = Vector3.one*4.5f;
+                    bomberSpriteRenderer.gameObject.SetActive(false);
+                    bomberSpriteRenderer.sortingOrder = 15;
+                    //  if (_tornadoSpawnControllerComponentsPool.Value.Has(playerEntity))
+                    // _tornadoSpawnControllerComponentsPool.Value.Get(playerEntity).TornadoToSpawn.Add((int)mapEvent.MapEventFirstCount);
+                    //    else
+                    //   _tornadoSpawnControllerComponentsPool.Value.Add(playerEntity).TornadoToSpawn =
+                    //     new List<int>() { (int)mapEvent.MapEventFirstCount };
+                }
             }
 
         if (!_windComponentsPool.Value.Has(playerEntity)) {
@@ -145,7 +162,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     };
     
     public void Run(IEcsSystems systems) {
-        if(!_currentGameComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))return;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         foreach (var filledZone in _filledZoneComponentsFilter.Value) {
@@ -1229,7 +1245,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             // need check
         }
 
-        carPartCmp.CarPartCellRenderer = _sceneService.Value.GetCarPartSpriteRenderer(carView.transform);
+        carPartCmp.CarPartCellRenderer = _sceneService.Value.GetSpriteRenderer(carView.transform);
         carPartCmp.CarPartCellRenderer.sprite = carPartConfig.PartSprite;
         carPartCmp.CarPartCellRenderer.sortingOrder = needSpriteLevel;
 
@@ -1258,7 +1274,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 gunCmp.FirePointTransform.localPosition = gunConfig.FirePointPosition - gunConfig.GunContainerPosition;
                 gunCmp.FirePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
 
-                gunCmp.GunSpriteRenderer = _sceneService.Value.GetCarPartSpriteRenderer(gunCmp.UpPartContainer);
+                gunCmp.GunSpriteRenderer = _sceneService.Value.GetSpriteRenderer(gunCmp.UpPartContainer);
                 gunCmp.GunSpriteRenderer.sprite = gunConfig.UpPartSprite;
                 gunCmp.GunSpriteRenderer.sortingOrder = 3;
                 gunCmp.GunSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition - gunConfig.GunContainerPosition;
@@ -1294,8 +1310,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 : _meleeWeaponComponentsPool.Value.Add(cellEntity);
             var meleeWeaponConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(carPartInfoCmp.CarPartId);
             if (meleeWeaponConfig.UpSprite != null) {
-                meleeWeaponCmp.MeleeWeaponRenderer = _sceneService.Value.GetCarPartSpriteRenderer(carPartCmp.CarPartCellRenderer.transform);
+                meleeWeaponCmp.MeleeWeaponRenderer = _sceneService.Value.GetSpriteRenderer(carPartCmp.CarPartCellRenderer.transform);
                 meleeWeaponCmp.MeleeWeaponRenderer.sprite = meleeWeaponConfig.UpSprite;
+              
+                meleeWeaponCmp.MeleeWeaponRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 meleeWeaponCmp.MeleeWeaponRenderer.sortingOrder = 3;
                 meleeWeaponCmp.MeleeWeaponRenderer.transform.localPosition = meleeWeaponConfig.UpSpritePosition;
             }

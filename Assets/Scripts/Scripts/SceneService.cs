@@ -11,6 +11,10 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public Material _defaultMaterial{ get; private set; }
+    [field: SerializeField] public Sprite[] _bomberProjectiles{ get; private set; }
+    [field: SerializeField] public Sprite _whiteCircle{ get; private set; }
+    [field: SerializeField] public Sprite _bomberSprite{ get; private set; }
     [field: SerializeField] public Transform[] _tornadoPrefabs { get; private set; }
     [field: SerializeField] public Sprite _thunderCloudsSprite{ get; private set; }
     [field: SerializeField] public Transform _thunderPrefab{ get; private set; }
@@ -96,7 +100,7 @@ public class SceneService : MonoBehaviour {
     private ObjectPool<LineRenderer> _laserLineRenderersPool;
     private ObjectPool<MeleeCarPartStuffView> _meleeCarPartsPool;
     private ObjectPool<CarPartInGameUIView> _сarPartInGameUIViewsPool;
-    private ObjectPool<SpriteRenderer> _explosionEffectsPool;
+    private ObjectPool<SpriteRenderer> _spriteRenderersPool;
     private ObjectPool<Transform> _gunContainersPool;
     private ObjectPool<Image> _imagesPool;
     private ObjectPool<ParticleSystem> _carPartsParticleSystemPool;
@@ -124,7 +128,7 @@ public class SceneService : MonoBehaviour {
         _floatingTextsPool = new ObjectPool<TMP_Text>(() => Instantiate(_floatingTextPrefab, _floatingTextContainer));
         _carPartsPool = new ObjectPool<CarPartStuffView>(() => Instantiate(_carStuffListsConfig.CarPartStuffView));
         _meleeCarPartsPool = new ObjectPool<MeleeCarPartStuffView>(() => Instantiate(_carStuffListsConfig.MeleeCarPartStuffView));
-        _explosionEffectsPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_explosionEffectPrefab));
+        _spriteRenderersPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_carPartSpriteRenderer));
         _carPartsParticleSystemPool = new ObjectPool<ParticleSystem>(() => Instantiate(_carPartsParticleSystemPrefab,_notUsedCarPartsContainer));
         _imagesPool = new ObjectPool<Image>(() => Instantiate(_carPartUIImage));
         _сarPartInGameUIViewsPool =
@@ -141,9 +145,10 @@ public class SceneService : MonoBehaviour {
         projectile.gameObject.SetActive(true);
         return projectile;
     }
-    public SpriteRenderer GetCarPartSpriteRenderer(Transform parent) {
-        return Instantiate(_carPartSpriteRenderer, parent);
-    }
+
+  /*  public SpriteRenderer GetCarPartSpriteRenderer(Transform parent = null) {
+        return parent ? Instantiate(_carPartSpriteRenderer, parent) : Instantiate(_carPartSpriteRenderer);
+    }*/
     public Transform GetGunContainer(Transform parent) {
         var gunContainer = _gunContainersPool.Get();
         gunContainer.gameObject.SetActive(true);
@@ -215,18 +220,25 @@ public class SceneService : MonoBehaviour {
         laser.gameObject.SetActive(false);
         _laserLineRenderersPool.Release(laser);
     }
-    
-    
-    public SpriteRenderer GetExplosionEffect() {
-        var explosion = _explosionEffectsPool.Get();
+
+    public SpriteRenderer GetSpriteRenderer(Transform parent = null) {
+        var explosion = _spriteRenderersPool.Get();
         explosion.color = Color.white;
+        explosion.transform.localScale = Vector3.one;
+        explosion.sortingOrder = 0;
+        explosion.material = _defaultMaterial;
+        explosion.gameObject.layer = LayerMask.NameToLayer("Default");
         explosion.gameObject.SetActive(true);
+        if (parent)
+            explosion.transform.parent = parent;
+        transform.localEulerAngles = Vector3.zero;
         return explosion;
     }
     
-    public void ReleaseExplosionEffect(SpriteRenderer explosion) {
+    public void ReleaseSpriteRenderer(SpriteRenderer explosion) {
         explosion.gameObject.SetActive(false);
-        _explosionEffectsPool.Release(explosion);
+        explosion.transform.SetParent(_notUsedCarPartsContainer);
+        _spriteRenderersPool.Release(explosion);
     }
 
     public EventTrigger InstantiateRoundButton() {

@@ -7,5 +7,8 @@
        public float TimeToChangeDirection;
        public float LifeTime;
        public float TornadoSpeed;
+       public bool TargetSpeedIsChanged;
+       public float TornadoTargetSpeed;
+       public float ChangeToTargetSpeedTime;
        public EffectType EffectType;
    }

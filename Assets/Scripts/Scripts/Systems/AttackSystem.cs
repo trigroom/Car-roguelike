@@ -48,6 +48,8 @@ public enum AttackType {
         private EcsPoolInject<ThunderstormComponent> _thunderstormComponentsPool;
         private EcsPoolInject<TornadoSpawnControllerComponent> _tornadoSpawnControllerComponentsPool;
         private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
+        private EcsPoolInject<BomberPlaneControllerComponent> _bomberPlaneControllerComponentsPool;
+        private EcsPoolInject<BomberProjectile> _bomberProjectilesPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
         private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -62,10 +64,12 @@ public enum AttackType {
         private EcsFilterInject<Inc<ProjectileComponent>> _projectileComponentsFilter;
         private EcsFilterInject<Inc<ConstructMeleeCellEvent>> _constructMeleeCellEventsFilter;
         private EcsFilterInject<Inc<ThunderstormComponent>> _thunderstormComponentsFilter;
-
+        private EcsFilterInject<Inc<BomberProjectile>> _bomberProjectilesFilter;
+        
         public void Run(IEcsSystems systems) {
             foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
                 EndRound();
+                EndAllMapEvent();
                 ClearHealthUI();
                 foreach (var completeTask in _completeTaskEventsFilter.Value) {
                     _completeTaskEventsPool.Value.Del(completeTask);
@@ -79,23 +83,12 @@ public enum AttackType {
             ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
             if (RoundUtilits.IsNotBattleRound(curGameCmp.CurrentRoundType)) return;
             
-            if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity) && RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) ) {
-                ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-                tornadoControllerCmp.TimeToNextTornado -= Time.deltaTime;
-                if (tornadoControllerCmp.TimeToNextTornado <= 0) {
-                    tornadoControllerCmp.TimeToNextTornado = Random.Range(10f, 15f);
-                    int tornadoEntity = _world.Value.NewEntity();
-                    ref var tornadoCmp = ref _tornadoComponentsPool.Value.Add(tornadoEntity);
-                    tornadoCmp.LifeTime = Random.Range(20f, 30f);
-               
-                    int tornadoIndex = tornadoControllerCmp.TornadoToSpawn[Random.Range(0, tornadoControllerCmp.TornadoToSpawn.Count)];
-                    tornadoCmp.TornadoAnimator = _sceneService.Value
-                        .InstantiateObject(
-                            _sceneService.Value._tornadoPrefabs[tornadoIndex],
-                            Random.insideUnitCircle * 80).GetComponent<Animator>();
-                    tornadoCmp.TornadoAnimator.gameObject.GetComponent<TornadoView>().Construct(StayInTornado,tornadoEntity);
-                    tornadoCmp.EffectType = (EffectType)tornadoIndex;
-                }
+            if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
+                CheckTornadoController();
+            }
+
+            if (_bomberPlaneControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
+                CheckBomberController();
             }
             
             foreach (var thunderEntity in _thunderstormComponentsFilter.Value) {
@@ -295,8 +288,124 @@ public enum AttackType {
             }
         }
 
-     
+        private void CheckTornadoController() {
+            ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            tornadoControllerCmp.TimeToNextTornado -= Time.deltaTime;
+            if (tornadoControllerCmp.TimeToNextTornado <= 0) {
+                tornadoControllerCmp.TimeToNextTornado = Random.Range(10f, 15f);
+                int tornadoEntity = _world.Value.NewEntity();
+                ref var tornadoCmp = ref _tornadoComponentsPool.Value.Add(tornadoEntity);
+                tornadoCmp.LifeTime = Random.Range(20f, 30f);
+               
+                int tornadoIndex = tornadoControllerCmp.TornadoToSpawn[Random.Range(0, tornadoControllerCmp.TornadoToSpawn.Count)];
+                tornadoCmp.TornadoAnimator = _sceneService.Value
+                    .InstantiateObject(
+                        _sceneService.Value._tornadoPrefabs[tornadoIndex],
+                        Random.insideUnitCircle * 80).GetComponent<Animator>();
+                tornadoCmp.TornadoAnimator.gameObject.GetComponent<TornadoView>().Construct(StayInTornado,tornadoEntity);
+                tornadoCmp.EffectType = (EffectType)tornadoIndex;
+            }
+        }
         
+        private void CheckBomberController() {
+            ref var bomberControllerCmp = ref _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            var bomberShadow = bomberControllerCmp.BomberShadowTransform;
+            if(!bomberShadow.gameObject.activeInHierarchy)
+            bomberControllerCmp.TimeToNextBomber -= Time.deltaTime;
+            if (bomberControllerCmp.TimeToNextBomber <= 0) {
+                if (!bomberShadow.gameObject.activeInHierarchy) {
+                    int sideIndex = Random.Range(0, 4);
+                    float xPos;
+                    float yPos;
+                    if (sideIndex > 1) {
+                        xPos = sideIndex == 2 ? 140 : -140;
+                        yPos = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PreviousPosition.y;
+                        bomberShadow.position = new Vector2(-xPos, yPos);
+                        bomberShadow.localEulerAngles = new Vector3(0, 0, -90*xPos/140);
+                    } else {
+                        yPos = sideIndex == 1 ? 140 : -140;
+
+                        xPos = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PreviousPosition.x;
+                        bomberShadow.position = new Vector2(xPos, -yPos);
+                        bomberShadow.localEulerAngles = new Vector3(0, 0, yPos<0?180:0);
+                    }
+
+                    bomberControllerCmp.TimeToNextBomb = 3f;
+                    bomberControllerCmp.FinalPosition = new Vector2(xPos, yPos);
+                    bomberShadow.gameObject.SetActive(true);
+
+                    bomberShadow.DOKill();
+                    bomberShadow.DOMove(bomberControllerCmp.FinalPosition, 20).SetEase(Ease.Linear).OnComplete(() => {
+                        bomberShadow.gameObject.SetActive(false);
+                        _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextBomber = Random.Range(8f, 15f);
+                    });
+
+                } else {
+                    bomberControllerCmp.TimeToNextBomb -= Time.deltaTime;
+                    if (bomberControllerCmp.TimeToNextBomb <= 0) {
+                        
+                        bomberControllerCmp.TimeToNextBomb = 3;
+                        var bombSpriteRenderer = _sceneService.Value.GetSpriteRenderer();
+                        bombSpriteRenderer.sortingOrder = 16;
+                        bombSpriteRenderer.sprite = _sceneService.Value._bomberProjectiles[bomberControllerCmp.BombIndex];
+                        bombSpriteRenderer.transform.position = bomberShadow.position;
+                        bombSpriteRenderer.transform.rotation = bomberShadow.rotation;
+                        int bombEntity = _world.Value.NewEntity();
+                        ref var bombCmp = ref _bomberProjectilesPool.Value.Add(bombEntity);
+                        bombCmp.BombLifetime = 5;
+                        bombCmp.BombSpriteRenderer = bombSpriteRenderer;
+                    }
+                }
+            }
+
+            foreach (var bombEntity in _bomberProjectilesFilter.Value) {
+                ref var bombCmp = ref _bomberProjectilesPool.Value.Get(bombEntity);
+                bombCmp.BombLifetime -= Time.deltaTime;
+                bombCmp.BombSpriteRenderer.transform.localScale = Vector3.one*(bombCmp.BombLifetime+1);
+                if (bombCmp.BombLifetime <= 0) 
+                    ExplodeBomberProjectile(bombEntity);
+            }
+
+          
+        }
+
+        private void ExplodeBomberProjectile(int bombEntity) {
+            var bombCmp = _bomberProjectilesPool.Value.Get(bombEntity);
+            var bomberControllerCmp = _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            CalculateExplodeDamage((EffectType)bomberControllerCmp.BombIndex, bomberControllerCmp.BombIndex == 0 ? 250 : 15, 5,
+                bombCmp.BombSpriteRenderer.transform.position);
+            CreateExplosionEffect(5f, bombCmp.BombSpriteRenderer.transform.position, (EffectType)bomberControllerCmp.BombIndex);
+           
+            _sceneService.Value.ReleaseSpriteRenderer(bombCmp.BombSpriteRenderer);
+            _bomberProjectilesPool.Value.Del(bombEntity);
+        }
+
+        private void CalculateExplodeDamage(EffectType effect, float duration, float radius, Vector2 explodePosition) {
+            LayerMask layerMask = LayerMask.GetMask( "CarBase", "UpCarPart", "CarBaseEnemy", "UpCarPartEnemy" );
+
+            var castedObjects = Physics2D.OverlapCircleAll(explodePosition, radius, layerMask);
+
+            foreach (var damagedObject in castedObjects) {
+                damagedObject.TryGetComponent(out CarPartStuffView damagedCarPartView);
+                if (!damagedCarPartView || !_carComponentsPool.Value.Has(damagedCarPartView._mainEntity)) continue;
+
+                var carCmp = _carComponentsPool.Value.Get(damagedCarPartView._mainEntity);
+                if(!carCmp.CarView)continue;
+                int carPartEntity = carCmp.CarPartGroupsGrid[damagedCarPartView._gridPosition.x, damagedCarPartView._gridPosition.y];
+                if (carPartEntity == 0)
+                    carPartEntity = carCmp.CarPartContainerGroupsGrid[damagedCarPartView._gridPosition.x, damagedCarPartView._gridPosition.y];
+           
+                float distanceMultiplayer = Vector2.Distance(damagedCarPartView.transform.position, explodePosition) / radius;
+                if (effect != EffectType.none)
+                    SetEffectComponent(carPartEntity, effect, duration * distanceMultiplayer);
+                else {
+                     ChangeHealth(duration * distanceMultiplayer, carPartEntity);
+                     _sceneService.Value.GetFloatingTextPrefab(explodePosition, (duration * distanceMultiplayer).ToString("F2"), Color.white);
+                }
+                   
+                    
+            }
+        }
         private void UpdateHealAllCarPartButton() {
             float healCost = GetHealAllCarPartCost();
             _sceneService.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost>0);
@@ -369,6 +478,7 @@ public enum AttackType {
             laserLineRenderer.gameObject.SetActive(true);
         }
         private void EndRound() {
+            
             DestroyAllProjectiles();
             DestroyAllCars();
 
@@ -376,8 +486,24 @@ public enum AttackType {
             SetPlayerCarGrids();
             if(!_updateCarsStatsInfoEventsPool.Value.Has(_sceneService.Value.PlayerEntity))
             _updateCarsStatsInfoEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
+
+         
         }
 
+        private void EndAllMapEvent() {
+            if (_bomberPlaneControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
+                ref var bomberControllerCmp = ref _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                bomberControllerCmp.BomberShadowTransform.gameObject.SetActive(false);
+                bomberControllerCmp.TimeToNextBomber = 5f;
+                bomberControllerCmp.BomberShadowTransform.DOKill();
+                foreach (var bombEntity in _bomberProjectilesFilter.Value) {
+                    var bombCmp = _bomberProjectilesPool.Value.Get(bombEntity);
+                    _sceneService.Value.ReleaseSpriteRenderer(bombCmp.BombSpriteRenderer);
+                    _bomberProjectilesPool.Value.Del(bombEntity);
+                }
+            }
+           
+        }
         private void SetPlayerCarGrids() {
             var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
@@ -536,8 +662,11 @@ public enum AttackType {
         }
 
         private void CreateExplosionEffect(float radius, Vector2 position, EffectType effectType) {
-            var explosionPrefab = _sceneService.Value.GetExplosionEffect();
-
+            var explosionPrefab = _sceneService.Value.GetSpriteRenderer();
+            explosionPrefab.gameObject.layer = LayerMask.NameToLayer("PixelPerfect");
+            explosionPrefab.sortingOrder = 8;
+            explosionPrefab.sprite = _sceneService.Value._whiteCircle;
+            explosionPrefab.transform.localScale = Vector3.zero;
             explosionPrefab.transform.position = position;
             var firstColor = effectType != EffectType.shock ? new Color(0.88f, 0.81f, 0.37f, 0.8f) : new Color(0.35f, 0.82f, 0.9f, 0.8f);
             var secondColor = effectType != EffectType.shock ? new Color(0.82f, 0.27f, 0.17f, 0.6f) : new Color(0.2f, 0.3f, 0.8f, 0.6f);
@@ -566,7 +695,7 @@ public enum AttackType {
             explosionSequence.OnComplete(() => {
                   explosionSequence?.Kill();
                 explosionPrefab.transform.localScale = Vector3.zero;
-                _sceneService.Value.ReleaseExplosionEffect(explosionPrefab);
+                _sceneService.Value.ReleaseSpriteRenderer(explosionPrefab);
             });
         }
 
@@ -920,7 +1049,7 @@ public enum AttackType {
         }
         
         private void StayInTornado(Vector2Int gridPosition, int mainEntity, int tornadoEntity) {
-            Debug.Log("stay tornado " + mainEntity);
+        
             ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
             ref var carCmp = ref _carComponentsPool.Value.Get(mainEntity);
             if (_movementComponentsPool.Value.Has(mainEntity)) {
@@ -941,27 +1070,10 @@ public enum AttackType {
         private void ExplodeBarrel(EffectType barrelType, int barrelEntity) {
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(barrelEntity);
             var barrelPosition = carPartCmp.CellCarPartsStuffViews[0].transform.position;
-            CreateExplosionEffect(4.5f, barrelPosition, barrelType);
+            CreateExplosionEffect(4f, barrelPosition, barrelType);
             _sceneService.Value.DestroyGameobject(carPartCmp.CellCarPartsStuffViews[0].transform);
-            LayerMask layerMask = LayerMask.GetMask(new string[] { "CarBase", "UpCarPart", "CarBaseEnemy", "UpCarPartEnemy" });
-
-            var castedObjects = Physics2D.OverlapCircleAll(barrelPosition, 4.5f, layerMask);
-
-            foreach (var damagedObject in castedObjects) {
-                damagedObject.TryGetComponent(out CarPartStuffView damagedCarPartView);
-                if (!damagedCarPartView || !_carComponentsPool.Value.Has(damagedCarPartView._mainEntity)) continue;
-
-                var carCmp = _carComponentsPool.Value.Get(damagedCarPartView._mainEntity);
-                int carPartEntity = carCmp.CarPartGroupsGrid[damagedCarPartView._gridPosition.x, damagedCarPartView._gridPosition.y];
-                if (carPartEntity == 0)
-                    carPartEntity = carCmp.CarPartContainerGroupsGrid[damagedCarPartView._gridPosition.x, damagedCarPartView._gridPosition.y];
-                float distanceMultiplayer = Vector2.Distance(damagedCarPartView.transform.position, barrelPosition) / 4.5f;
-                if (barrelType != EffectType.none)
-                    SetEffectComponent(carPartEntity, barrelType, 15f * distanceMultiplayer);
-                else 
-                    ChangeHealth(100f * distanceMultiplayer, carPartEntity);
-                    
-            }
+            
+            CalculateExplodeDamage(barrelType,(int)barrelType == 0 ? 100 : 10,4f,barrelPosition);
 
             _destroyEntityEventsPool.Value.Add(barrelEntity) ;
             //circlecast and set effect or take damage
@@ -1365,7 +1477,11 @@ public enum AttackType {
            allObjects.Sort((a, b) => GetDepth(b).CompareTo(GetDepth(a)));
 
            foreach (Transform obj in allObjects) {
-               if (obj.GetComponents<Component>().Length > 1 ) {
+               if (obj.TryGetComponent(out SpriteRenderer spriteRenderer)) {
+                   _sceneService.Value.ReleaseSpriteRenderer(spriteRenderer);
+                   Debug.Log("Rls sr");
+               } 
+               else if (obj.GetComponents<Component>().Length > 1 ) {
                    _sceneService.Value.DestroyGameobject(obj);
                    Debug.Log("Des obj");
                } else {
@@ -1421,22 +1537,21 @@ public enum AttackType {
                     //fix double delete
                 }
 
-                if (carCmp.CarView.MainCarContainer)
+                if (carCmp.CarView && carCmp.CarView.MainCarContainer)
                     _sceneService.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
             }
             
-            if (dontDestroyEnemyCar) {
-                Debug.Log("Try Destroy full car"+carCmp.CarPartContainerGroupsList.Count);
-            }
             
             if (currentRoundType == RoundType.None) return;
             if (dontDestroyEnemyCar && carCmp.CarPartContainerGroupsList.Count == 0 && !_destroyEntityEventsPool.Value.Has(carEntity) ) {
                 _destroyEntityEventsPool.Value.Add(carEntity);
-                Debug.Log("Destroy full car");
+                carCmp.CarView = null;
             }
             else if (!dontDestroyEnemyCar && !_destroyEntityEventsPool.Value.Has(carEntity) ) {
+                if(carEntity != _sceneService.Value.PlayerEntity)
                 _destroyEntityEventsPool.Value.Add(carEntity);
                 DataPersistenceManagerSystem._gameData.BrokenCars++;
+                carCmp.CarView = null;
                 CheckTasks(TaskType.Kills);
             }
             else if (dontDestroyEnemyCar && carCmp.ShockedMainPartsCount < 5) {

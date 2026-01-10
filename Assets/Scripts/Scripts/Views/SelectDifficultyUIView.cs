@@ -90,7 +90,9 @@ public class SelectDifficultyUIView : MonoBehaviour
                   needString = GetLocalization("Frost tornado");
                   break;
             }
-         
+            break;
+         case MapEventsType.Bomber :
+            needString = GetLocalization("Bomber airplane");
             break;
       }
       return needString;

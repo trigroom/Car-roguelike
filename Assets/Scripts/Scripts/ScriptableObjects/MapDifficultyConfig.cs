@@ -34,7 +34,8 @@ public enum MapEventsType {
     None,
     Wind,
     ThunderStorm,
-    Tornado
+    Tornado,
+    Bomber
 }
 [System.Serializable]
 public class MapEventInfo {
