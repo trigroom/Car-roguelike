@@ -714,6 +714,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             containerSizeX / carCmp.CarPartContainerGroupsGrid.GetLength(0), containerSizeX / carCmp.CarPartContainerGroupsGrid.GetLength(0));
     }
 
+    private void PlaceAnimationCarPartContainers() {
+        var startScale = _sceneData.Value._inventoryUIView._carPartsContainer.localScale;
+        _sceneData.Value._inventoryUIView._carPartsContainer.DOScale(startScale * 0.98f, 0.11f).SetEase(Ease.InQuad).OnComplete(() =>
+            _sceneData.Value._inventoryUIView._carPartsContainer.DOScale(startScale, 0.11f).SetEase(Ease.OutQuad));
+    }
     private void SetFirstCarPartContainer() {
         (var carPartConfig,int level, float health, int[] moduleIds) = GetCurrentDraggedCellCarPartWithLevel();
        
@@ -975,6 +980,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         
         if(GetSortedCarPartList().Count == 0 && CanUseThisCarPartContainers())
             SetCarPartRedactorMode();
+       // else 
+        //    PlaceAnimationCarPartContainers();
+        
     }
 
     private CarPartType[] _firstCarPartTypesForShop = new[] {
@@ -1981,11 +1989,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         var gridPos = inventoryCmp.LastCheckedGridCellPosition;
         var worldPos = GetWorldPositionFromGrid(gridPos);
-        returnSequence.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform.DOMove(worldPos + offset, 0.1f)
-            .SetEase(Ease.InOutQuad));
-
-        returnSequence.OnComplete(() => { SetCarPartInfo(worldPos, partInfo, carPartEntity, gridPos, offset); });
-
+        returnSequence.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform.DOMove(worldPos + offset, 0.1f)
+            .SetEase(Ease.InOutQuad)).OnComplete(() => { SetCarPartInfo(worldPos, partInfo, carPartEntity, gridPos, offset); });
+      
         inventoryCmp.CurrentDraggedCellEntity = -1;
         inventoryCmp.CurrentCellCarPart = null;
     }
@@ -2262,6 +2268,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
 
+        PlaceAnimationCarPartContainers();
+       
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
     }
     public bool AreNonZeroAndNonDeletedConnected(int[,] grid, int deletedInt)

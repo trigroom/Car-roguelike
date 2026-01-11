@@ -53,7 +53,7 @@ public class MovementSystem : IEcsRunSystem {
                 tornadoCmp.TornadoAnimator.SetBool("isEnd", true);
                 tornadoCmp.TornadoTargetSpeed = 0;
                 DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
-                        x => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed = x, tornadoCmp.TornadoTargetSpeed, 1)
+                        x => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed = x, tornadoCmp.TornadoTargetSpeed, 0.5f)
                     .SetEase(Ease.InOutQuad);
             }
             var tornadoPos = tornadoCmp.TornadoAnimator.transform.position;

@@ -347,9 +347,10 @@ public enum AttackType {
                         bomberControllerCmp.TimeToNextBomb = 3;
                         var bombSpriteRenderer = _sceneService.Value.GetSpriteRenderer();
                         bombSpriteRenderer.sortingOrder = 16;
-                        bombSpriteRenderer.sprite = _sceneService.Value._bomberProjectiles[bomberControllerCmp.BombIndex];
+                        bombSpriteRenderer.sprite = _sceneService.Value._bomberProjectilesShadows[bomberControllerCmp.BombIndex];
                         bombSpriteRenderer.transform.position = bomberShadow.position;
                         bombSpriteRenderer.transform.rotation = bomberShadow.rotation;
+                        bombSpriteRenderer.color = new Color(0,0,0,0.3f);
                         int bombEntity = _world.Value.NewEntity();
                         ref var bombCmp = ref _bomberProjectilesPool.Value.Add(bombEntity);
                         bombCmp.BombLifetime = 5;
@@ -361,8 +362,17 @@ public enum AttackType {
             foreach (var bombEntity in _bomberProjectilesFilter.Value) {
                 ref var bombCmp = ref _bomberProjectilesPool.Value.Get(bombEntity);
                 bombCmp.BombLifetime -= Time.deltaTime;
-                bombCmp.BombSpriteRenderer.transform.localScale = Vector3.one*(bombCmp.BombLifetime+1);
-                if (bombCmp.BombLifetime <= 0) 
+
+                if (bombCmp.BombLifetime > 3) {
+                    bombCmp.BombSpriteRenderer.transform.localScale = Vector3.one * (3-bombCmp.BombLifetime/2);
+                } else if (bombCmp.BombLifetime > 0) {
+                    if (bombCmp.BombSpriteRenderer.color != Color.white) {
+                         bombCmp.BombSpriteRenderer.sprite = _sceneService.Value._bomberProjectiles[bomberControllerCmp.BombIndex];
+                         bombCmp.BombSpriteRenderer.color = Color.white;
+                    }
+                   
+                    bombCmp.BombSpriteRenderer.transform.localScale = Vector3.one * (bombCmp.BombLifetime * 2 + 2);
+                } else
                     ExplodeBomberProjectile(bombEntity);
             }
 
@@ -522,8 +532,9 @@ public enum AttackType {
             }
         }
         private void LoseGame() {
-            if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None)
-                EndRound();
+            _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType = RoundType.None;
+         //   if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None)
+       //      EndRound();
             Time.timeScale = 0;
             int currentRound = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRound;
             int scrapCount = _betweenScenesService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
@@ -1518,6 +1529,7 @@ public enum AttackType {
 
         private void DestroyNeedCar(int carEntity) {
             ref var carCmp = ref _carComponentsPool.Value.Get(carEntity);
+            if (!carCmp.CarView)return;
             carCmp.ForwardWheels = new List<Animator>();
             bool isEnemy = !_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Contains(carEntity);
             var containersList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
@@ -1541,18 +1553,20 @@ public enum AttackType {
                     _sceneService.Value.DestroyGameobject(carCmp.CarView.MainCarContainer);
             }
             
-            
+            var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
             if (currentRoundType == RoundType.None) return;
             if (dontDestroyEnemyCar && carCmp.CarPartContainerGroupsList.Count == 0 && !_destroyEntityEventsPool.Value.Has(carEntity) ) {
                 _destroyEntityEventsPool.Value.Add(carEntity);
                 carCmp.CarView = null;
-            }
-            else if (!dontDestroyEnemyCar && !_destroyEntityEventsPool.Value.Has(carEntity) ) {
-                if(carEntity != _sceneService.Value.PlayerEntity)
-                _destroyEntityEventsPool.Value.Add(carEntity);
-                DataPersistenceManagerSystem._gameData.BrokenCars++;
+            } else if (!dontDestroyEnemyCar && !_destroyEntityEventsPool.Value.Has(carEntity)) {
+              //  if (carEntity != _sceneService.Value.PlayerEntity)
+                    
                 carCmp.CarView = null;
-                CheckTasks(TaskType.Kills);
+                if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carEntity)) {
+                    DataPersistenceManagerSystem._gameData.BrokenCars++;
+                    CheckTasks(TaskType.Kills);
+                    _destroyEntityEventsPool.Value.Add(carEntity);
+                }
             }
             else if (dontDestroyEnemyCar && carCmp.ShockedMainPartsCount < 5) {
                 carCmp.ShockedMainPartsCount = 10;

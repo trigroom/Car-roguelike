@@ -12286,6 +12286,9 @@ MonoBehaviour:
   <_bomberProjectiles>k__BackingField:
   - {fileID: 21300000, guid: 20431d417d46b374da55d2613eb07b8a, type: 3}
   - {fileID: 21300000, guid: 2bfa2dc91da311f46b28e988c10f11a2, type: 3}
+  <_bomberProjectilesShadows>k__BackingField:
+  - {fileID: 21300000, guid: 85fa051166aa33f4b8c3c3ca218a6816, type: 3}
+  - {fileID: 21300000, guid: f1f9e15dc56307f4694053079851909b, type: 3}
   <_whiteCircle>k__BackingField: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
   <_bomberSprite>k__BackingField: {fileID: 21300000, guid: e1880bed0a7dabe46928e7ef8790c843, type: 3}
   <_tornadoPrefabs>k__BackingField:

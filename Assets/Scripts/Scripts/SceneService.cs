@@ -13,6 +13,7 @@ public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
     [field: SerializeField] public Material _defaultMaterial{ get; private set; }
     [field: SerializeField] public Sprite[] _bomberProjectiles{ get; private set; }
+    [field: SerializeField] public Sprite[] _bomberProjectilesShadows{ get; private set; }
     [field: SerializeField] public Sprite _whiteCircle{ get; private set; }
     [field: SerializeField] public Sprite _bomberSprite{ get; private set; }
     [field: SerializeField] public Transform[] _tornadoPrefabs { get; private set; }
