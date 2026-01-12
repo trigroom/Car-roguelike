@@ -19,6 +19,9 @@ MonoBehaviour:
   - MapEventType: 1
     MapEventFirstCount: 255
     MapEventSecondCount: 2
+  - MapEventType: 3
+    MapEventFirstCount: 0
+    MapEventSecondCount: 0
   <ScrapForRound>k__BackingField: 9
   <ScrapForMapComplete>k__BackingField: 160
   <HealedHealthPartAfterEndRound>k__BackingField: 0
@@ -26,3 +29,4 @@ MonoBehaviour:
   <DifficltyUiColor>k__BackingField: {r: 0.8301887, g: 0.16055535, b: 0.16055535, a: 0.2509804}
   <StartMoney>k__BackingField: 40
   <RoundsCount>k__BackingField: 20
+  <DestroyEnemyCarsAfterDeath>k__BackingField: 0

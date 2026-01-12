@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour
 { 
     [field: SerializeField]
+    public Transform _placeFirstCarPartText { get;private set; }
+    [field: SerializeField]
     public Transform _cancelModuleTextPanelInfo { get;private set; }
     [field: SerializeField]
     public Transform _noModulesTextInventory { get;private set; }

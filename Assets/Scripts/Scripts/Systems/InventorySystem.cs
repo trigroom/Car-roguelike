@@ -100,7 +100,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
          foreach (var endGameButton in _sceneData.Value._endGameScreenView.closeEndGameMenuButtons) {
              endGameButton.onClick.AddListener(ActivateGiveCarPartsWindow);
          }
-        
+         _sceneData.Value._givingCarPartsUIView._getAllButton.onClick.AddListener(GetAllCarParts);
          _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
          _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(SellCarPartAndActiveNext);
         _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(SaveEnemyCarConfig);
@@ -756,7 +756,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             SetCarContainersContainerSize();
             carCmp.CarPartContainerGroupsList.Add(carPartEntity,carPartConfig.PartForm.ToList());
             carPartInfoCmp.CarPartId = carPartConfig.Id;
-            
+            _sceneData.Value._inventoryUIView._placeFirstCarPartText.gameObject.SetActive(false);
             UpdateCarDescription(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
         } else {
                CancelCarPartPlace(ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity));
@@ -1465,6 +1465,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             carCmp.CarPartContainerGroupsGrid = new int[3, 3];
             _sceneData.Value._inventoryUIView._carPartsDownContainer.gameObject.GetComponent<CellView>()._gridPosition = -Vector2Int.one * 999;
             SetCarContainersContainerSize();
+            _sceneData.Value._inventoryUIView._placeFirstCarPartText.gameObject.SetActive(true);
             return;
         }
 
@@ -2847,7 +2848,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     
     private void ActivateGiveCarPartsWindow() {
         var giveCarPartsUiView = _sceneData.Value._givingCarPartsUIView;
-       
+        giveCarPartsUiView._getAllButton.gameObject.SetActive(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity)
+            .CurrentGivenItems.Count > 1);
         giveCarPartsUiView.gameObject.SetActive(ChangeGiveCarPartWindowInfo());
     }
 
@@ -2858,6 +2860,19 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         Array.Fill(moduleIds, -1);
         AddInventoryItem(inventoryCmp.CurrentGivenItems[0], 0,carPartConfig.MaxHealth,moduleIds);
         inventoryCmp.CurrentGivenItems.RemoveAt(0);
+        ActivateGiveCarPartsWindow();
+    }
+
+    private void GetAllCarParts() {
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        foreach (var givenItemId in inventoryCmp.CurrentGivenItems) {
+            var carPartConfig = GetCarPartConfig(givenItemId);
+            var moduleIds = new int[(int)carPartConfig.RartRare + 1];
+            Array.Fill(moduleIds, -1);
+            AddInventoryItem(givenItemId, 0, carPartConfig.MaxHealth, moduleIds);
+        }
+
+        inventoryCmp.CurrentGivenItems = new List<int>();
         ActivateGiveCarPartsWindow();
     }
     
@@ -2880,7 +2895,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
        
        giveCarPartsUiView._carPartImageDown.transform.localScale = Vector3.zero; 
        giveCarPartsUiView._carPartImageDown.transform.DOScale(1f, 0.3f);
-       
+       giveCarPartsUiView._destroyCarPartButton.gameObject.SetActive(!GridUtils.IsContainerType(carPartConfig));
        if (carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun) {
            (Sprite upSprite, Vector2 size, Vector2 position) =
                GetUpperPartSizesForUI(giveCarPartsUiView._carPartImageDown.rectTransform.sizeDelta, carPartConfig);
@@ -2891,7 +2906,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
        } else {
            giveCarPartsUiView._carPartImageUp.sprite = _sceneData.Value._transparentPixel;
        }
-       
+
+       giveCarPartsUiView._sellCarPartText.text =
+           $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(_sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]), 0, null)}$";
        giveCarPartsUiView._remainingCarPartsText.text = inventoryCmp.CurrentGivenItems.Count > 1
            ? $"{GetLocalization("Remaining car parts")}: \n{inventoryCmp.CurrentGivenItems.Count}"
            : "";

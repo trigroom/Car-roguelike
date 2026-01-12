@@ -14,4 +14,8 @@ public class GivingCarPartsUIView : MonoBehaviour
     public Button _getCarPartButton { get; private set; }
     [field: SerializeField]
     public Button _destroyCarPartButton { get; private set; }
+    [field: SerializeField]
+    public Button _getAllButton { get; private set; }
+    [field: SerializeField]
+    public TMP_Text _sellCarPartText { get; private set; }
 }

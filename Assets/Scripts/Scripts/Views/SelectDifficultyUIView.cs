@@ -49,7 +49,7 @@ public class SelectDifficultyUIView : MonoBehaviour
                                     $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%\n" +
                                     $"{GetLocalization("Rounds count")}: {difficultyConfig.RoundsCount} ";
       if(!difficultyConfig.DestroyEnemyCarsAfterDeath)
-         _difficultyDescription.text += "\n" + GetLocalization("Enemy cars don't destroy after driver/engine broke");
+         _difficultyDescription.text += "\n" + GetLocalization("Enemy cars don't destroy");
       if (difficultyConfig.MapEvents != null)
          foreach (var mapEvent in difficultyConfig.MapEvents) {
             _difficultyDescription.text += "\n" + GetMapEventDescription(mapEvent);

@@ -232,3 +232,10 @@ difficulty in,difficulty on,сложность на,Schwierigkeit auf,dificultad
 to unlock this map,to unlock this map,чтобы открыть эту карту,um diese Karte freizuschalten,para desbloquear este mapa,pour débloquer cette carte
 Thunderstorm,Thunderstorm,Гроза,Gewitter,Tormenta eléctrica,Orage
 Catalog,Catalog,Каталог,Katalog,Catálogo,Catalogue
+Place first car part,Place first part,Размести первую деталь,Platziere erstes Teil,Coloca primera pieza,Place première pièce
+Bomber airplane,Bomber,Бомбардировщик,Bomber,Bombardero,Bombardier
+Tornado,Tornado,Торнадо,Tornado,Tornado,Tornade
+Fire tornado,Fire Tornado,Огненный торнадо,Feuertornado,Tornado de fuego,Tornade de feu
+Frost tornado,Frost Tornado,Ледяной торнадо,Eistornado,Tornado de escarcha,Tornade de givre
+Enemy cars don't destroy,Enemy cars survive driver/engine loss,Вражеские машины не уничтожаются после потери водителя/двигателя,Gegnerautos überleben Fahrer/Motor Verlust,Coches enemigos sobreviven pérdida conductor/motor,Voitures ennemies survivent perte conducteur/moteur
+Get all,Get all,Получить всё,Alle erhalten,Obtener todo,Obtenir tout

@@ -23,7 +23,7 @@ MonoBehaviour:
     MapEventFirstCount: 0
     MapEventSecondCount: 0
   - MapEventType: 3
-    MapEventFirstCount: 0
+    MapEventFirstCount: 1
     MapEventSecondCount: 0
   <ScrapForRound>k__BackingField: 7
   <ScrapForMapComplete>k__BackingField: 120
