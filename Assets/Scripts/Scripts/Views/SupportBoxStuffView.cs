@@ -10,4 +10,6 @@ public class SupportBoxStuffView : MonoBehaviour
     public Sprite defaultBoxSprite { get; private set; }
     [field:SerializeField]
     public Sprite rareBoxSprite { get; private set; }
+    [field:SerializeField]
+    public Transform supportBoxAirplane { get; private set; }
 }

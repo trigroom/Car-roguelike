@@ -1,6 +1,7 @@
  
  using System.Collections.Generic;
  using DG.Tweening;
+ using UnityEngine;
  using UnityEngine.EventSystems;
  using UnityEngine.UI;
 
@@ -23,7 +24,8 @@
         public float DifficultyHealthMultiplayer;
         public float DifficultyDamageMultiplayer;
 
-        public bool SupportBoxIsSend;
+        public int SupportBoxPhase;
+        public Vector2 SupportBoxTargetPosition;
  }
 
  public enum RoundType {

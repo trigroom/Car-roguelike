@@ -213,21 +213,49 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             curGameCmp.RoundAddedEnemies++;
         }
 
-        if (RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) && !curGameCmp.SupportBoxIsSend && curGameCmp.CurrentRound > 3 &&
-            curGameCmp.CurrentRound % 2 == 0 && curGameCmp.RoundTime > 20)
-            SendSupportBox();
+        if (RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) /*&& curGameCmp.CurrentRound > 3 && curGameCmp.CurrentRound % 2 == 0 &&
+            curGameCmp.RoundTime > 20*/ && curGameCmp.SupportBoxPhase < 2) {
+            if (curGameCmp.SupportBoxTargetPosition.x == 999f)
+                SendSupportAirplane();
+            else if (curGameCmp.SupportBoxPhase == 1)
+                CheckSupportBoxAirPlane();
+        }
+           
         
 
         if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
 
     }
 
+    private void CheckSupportBoxAirPlane() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var supportBoxView = _sceneService.Value._supportBoxStuffView;
+        if (supportBoxView.supportBoxAirplane.position.x > curGameCmp.SupportBoxTargetPosition.x ) 
+            SendSupportBox( );
+    }
+    
+    
+
+    private void SendSupportAirplane() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var supportBoxView = _sceneService.Value._supportBoxStuffView; 
+        curGameCmp.SupportBoxTargetPosition = GetPositionAroundPlayer();
+        curGameCmp.SupportBoxPhase = 1;
+        supportBoxView.supportBoxAirplane.position = new Vector2 (-120,curGameCmp.SupportBoxTargetPosition.y);
+        supportBoxView.supportBoxAirplane.DOMoveX(120, 20).SetEase(Ease.Linear).OnComplete(() => 
+            supportBoxView.supportBoxAirplane.gameObject.SetActive(false)
+        );
+        supportBoxView.supportBoxAirplane.gameObject.SetActive(true);
+        _sceneService.Value.PlayWarningAnimation(GetLocalization("Supply drop")+"!",true);
+        
+    }
     private void SendSupportBox() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        curGameCmp.SupportBoxIsSend = true;
+        curGameCmp.SupportBoxPhase = 2;
         var supportBoxView = _sceneService.Value._supportBoxStuffView;
         var supportBox = supportBoxView._supportBoxcarPartStuffView;
-        //warning text
+        supportBox._carPartCollider.enabled = false;
+        curGameCmp.SupportBoxTargetPosition = Vector2.one * 999;
         supportBox.gameObject.SetActive(true);
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(supportBox._mainEntity);
         float randomValue = Random.value;
@@ -239,9 +267,22 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             supportBoxView._supportBoxSprite.sprite = supportBoxView.rareBoxSprite;
         }
         _carPartInfoComponentsPool.Value.Get(supportBox._mainEntity).CurrentHealth = carPartCmp.MaxHealth;
-       //set need box sprite
-       supportBox.transform.position = GetPositionAroundPlayer();
-       _sceneService.Value.PlayWarningAnimation(GetLocalization("Supply drop")+"!",true);
+       
+        supportBox.transform.localScale = Vector3.one * 0.5f;
+        supportBoxView._supportBoxSprite.color =  new Color(0,0,0,0.3f);
+
+        supportBox.transform.DOScale(1, 2f).OnComplete(() => {
+            supportBox.transform.localScale = Vector3.one * 3;
+            supportBoxView._supportBoxSprite.color = Color.white;
+            supportBox.transform.DOScale(1, 2f).OnComplete(() => {
+                _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).SupportBoxPhase = 3;
+                supportBox._carPartCollider.enabled = true;
+            });
+        });
+        
+        
+       supportBox.transform.position = supportBoxView.supportBoxAirplane.position;
+       
     }
 
     private void SetupSupportBox() {
@@ -434,9 +475,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return _taskComponentsFilter.Value.GetEntitiesCount();
     }
 
-    private void SetupStartRound() {
-        
-    }
     private void SetMoneyText() {
         _sceneService.Value._shopUIView._moneyCountText.text =
             _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount + "$";
@@ -445,9 +483,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void EndRound() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.None;
-        curGameCmp.SupportBoxIsSend = false;
-        _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
-          
+        curGameCmp.SupportBoxPhase = 0;
+        var supportBoxStuffView = _sceneService.Value._supportBoxStuffView;
+        supportBoxStuffView._supportBoxcarPartStuffView.transform.DOKill();
+        supportBoxStuffView.supportBoxAirplane.DOKill(true);
+        supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
+        curGameCmp.SupportBoxTargetPosition = Vector2.one * 999f;
+        
         ChangePlayerUIState(false);
         if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount)return;
         int currentRound = curGameCmp.CurrentRound - 1;

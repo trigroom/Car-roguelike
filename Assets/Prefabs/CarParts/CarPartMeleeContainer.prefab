@@ -90,7 +90,7 @@ BoxCollider2D:
     m_Bits: 4294967295
   m_CallbackLayers:
     serializedVersion: 2
-    m_Bits: 6583
+    m_Bits: 31159
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
@@ -120,6 +120,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <_carPartCollider>k__BackingField: {fileID: 2691728331417854324}
-  _layerMask:
-    serializedVersion: 2
-    m_Bits: 0
+  <_mainEntity>k__BackingField: 0
