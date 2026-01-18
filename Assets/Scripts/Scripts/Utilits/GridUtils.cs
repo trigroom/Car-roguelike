@@ -634,6 +634,160 @@ public class GridUtils : MonoBehaviour {
 
         return (upSprite, cellSize, needPosition);
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    static private int gridSize = 20;
+    static private int minBuildings = 10;
+    static private int maxBuildings = 15;
+
+    static public void GenerateRandomBuildings(ref int[,] mapGrid) {
+        int buildingCount = Random.Range(minBuildings, maxBuildings + 1);
+        List<Building> placedBuildings = new List<Building>();
+        for (int i = 0; i < buildingCount; i++) {
+            Building building = CreateRandomBuilding();
+
+            if (TryPlaceBuilding(building, placedBuildings)) {
+             //   minPoints.Add(new Vector2(building.X*10-102.5f, building.Y*10-102.5f));
+               // maxPoints.Add(new Vector2((building.X+building.Width-1)*10-97.5f, (building.Y+building.Height-1)*10-97.5f));
+                placedBuildings.Add(building);
+                PlaceBuildingOnGrid(building, ref mapGrid);
+            }
+        }
+    }
+
+    static private Building CreateRandomBuilding() {
+        // Случайные размеры здания (минимальный размер 2x2)
+        int width = Random.Range(3, 8);
+        int height = Random.Range(3, 8);
+
+        var needAxis = Random.value > 0.5f;
+        // Случайная позиция с отступом от границ
+        int x=0;
+        int y=0;
+        if (needAxis) {
+            x = Random.value > 0.5f
+                ? Random.Range(2, (gridSize - width - 1) / 2 - 2-width/2)
+                : Random.Range((gridSize - width - 1) / 2 + 2+width/2, gridSize - width - 1);
+            y = Random.Range(2, gridSize - height - 1);
+        } else {
+            x = Random.Range(2, gridSize - width - 1);
+            y = Random.value > 0.5f
+                ? Random.Range(2, (gridSize - height - 1) / 2 - 2-height/2)
+                : Random.Range((gridSize - height - 1) / 2 + 2+height/2, gridSize - height - 1);
+        }
+     
+
+
+        // Случайная форма (прямоугольник, Г-образная, П-образная)
+        return new Building(x, y, width, height, GetRandomShape(width, height));
+    }
+
+    static private bool[,] GetRandomShape(int width, int height) {
+        bool[,] shape = new bool[width, height];
+        /* int shapeType = Random.Range(0, 4);
+         shapeType = 3;
+         switch (shapeType) {
+             case 0: // Полный прямоугольник
+                 for (int i = 0; i < width; i++)
+                 for (int j = 0; j < height; j++)
+                     shape[i, j] = true;
+                 break;
+
+             case 1: // Здание с внутренним двором
+                 int buildingOffset = Random.Range(0, Mathf.CeilToInt(Mathf.Min(width, height) / 2f));
+                 for (int i = 0; i < width; i++)
+                 for (int j = 0; j < height; j++)
+                     shape[i, j] =
+                         ((i < buildingOffset || i > width - 1 - buildingOffset) || (j < buildingOffset ||
+                          j > height - 1 - buildingOffset)) /*? Random.value > 0.7f : true;
+
+                 break;
+
+             case 2: // Г-образное здание
+                 bool isRight = Random.value > 0.5f;
+                 bool isUp = Random.value > 0.5f;
+                 int ySize = Random.Range(1, height - 1);
+                 int xSize = Random.Range(1, width - 1);
+                 for (int i = 0; i < width; i++)
+                 for (int j = 0; j < height; j++)
+                     shape[i, j] = ((isUp && i >= xSize) ||(!isUp && i <= xSize)  ||(isRight && j >= ySize) ||(!isRight && j <= ySize) );
+                 break;
+
+             case 3:*/ // Здание с выступами
+        bool isVerticalCentre = Random.value > 0.5f;
+        bool isHorizontalCentre = Random.value > 0.5f;
+        int xStartPosition = Random.Range(isHorizontalCentre ? 1 : 0, isHorizontalCentre ? width - 1 : width);
+        int xEndPosition = Random.Range(xStartPosition + 1, isHorizontalCentre ? width : width + 1);
+        int yStartPosition = Random.Range(isVerticalCentre ? 1 : 0, isVerticalCentre ? height - 1 : height);
+        int yEndPosition = Random.Range(yStartPosition + 1, isVerticalCentre ? height : height + 1);
+        for (int i = 0; i < width; i++)
+        for (int j = 0; j < height; j++)
+            shape[i, j] = ((isHorizontalCentre && i >= xStartPosition && i <= xEndPosition) ||
+                           (!isHorizontalCentre && (i < xStartPosition || i > xEndPosition))) ||
+                          ((isVerticalCentre && j >= yStartPosition && j <= yEndPosition) ||
+                           (!isVerticalCentre && (j < yStartPosition || j > yEndPosition)));
+        /*  break;
+  }
+*/
+        return shape;
+    }
+
+    static private bool TryPlaceBuilding(Building building, List<Building> existingBuildings) {
+        // Проверяем границы
+        if (building.X < 1 || building.Y < 1 || building.X + building.Width >= gridSize - 1 || building.Y + building.Height >= gridSize - 1)
+            return false;
+
+        // Проверяем пересечения с существующими зданиями
+        foreach (var existing in existingBuildings) {
+            if (BuildingsIntersect(building, existing))
+                return false;
+        }
+
+        return true;
+    }
+
+    static private bool BuildingsIntersect(Building a, Building b) {
+        // Проверяем пересечение с зазором в 1 клетку
+        return a.X - 1 < b.X + b.Width && a.X + a.Width + 1 > b.X && a.Y - 1 < b.Y + b.Height && a.Y + a.Height + 1 > b.Y;
+    }
+
+    static private void PlaceBuildingOnGrid(Building building, ref int[,] mapGrid) {
+        for (int i = 0; i < building.Width; i++) {
+            for (int j = 0; j < building.Height; j++) {
+                if (building.Shape[i, j]) {
+                    int x = building.X + i;
+                    int y = building.Y + j;
+
+                    if (x >= 0 && x < gridSize && y >= 0 && y < gridSize)
+                        mapGrid[x, y] = 1;
+                }
+            }
+        }
+    }
+
+    private class Building {
+        public int X { get; }
+        public int Y { get; }
+        public int Width { get; }
+        public int Height { get; }
+        public bool[,] Shape { get; }
+
+        public Building(int x, int y, int width, int height, bool[,] shape) {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+            Shape = shape;
+        }
+    }
 }
 
 

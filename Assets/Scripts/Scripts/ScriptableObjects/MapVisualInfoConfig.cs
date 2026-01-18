@@ -6,4 +6,5 @@ public class MapVisualInfoConfig : ScriptableObject {
     public Material GroundMaterial;
     public Material BehindMapGroundMaterial;
     public float[] NoiseObstaclesCountChances;
+    public Color WheelParticlesColor;
 }

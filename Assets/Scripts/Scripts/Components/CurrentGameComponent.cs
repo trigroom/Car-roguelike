@@ -24,6 +24,8 @@
         public float DifficultyHealthMultiplayer;
         public float DifficultyDamageMultiplayer;
 
+        public int[,] MapGrid;
+        
         public int SupportBoxPhase;
         public Vector2 SupportBoxTargetPosition;
  }

@@ -1524,32 +1524,110 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         return true;
     }
-
+    public static bool AreAllNeighborsNonZero(int[,] grid, int row, int col)
+    {
+        int rows = grid.GetLength(0);
+        int cols = grid.GetLength(1);
+    
+        // Проверяем все 8 соседних клеток
+        for (int i = -1; i <= 1; i++)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                // Пропускаем саму клетку
+                if (i == 0 && j == 0)
+                    continue;
+                
+                int newRow = row + i;
+                int newCol = col + j;
+            
+                // Проверяем границы массива
+                if (newRow >= 0 && newRow < rows && 
+                    newCol >= 0 && newCol < cols)
+                {
+                    if (grid[newRow, newCol] != 0)
+                        return false;
+                }
+            }
+        }
+    
+        return true; // Все соседи не равны 0
+    }
     private void GenerateMap() {
+        ref var currentGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        currentGameCmp.MapGrid = new int[40, 40];
+       
+        
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
         var mapVisualConfig = mapConfig.MapVisualInfoConfigs[0];
         _sceneService.Value._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         _sceneService.Value._behindMapBorderSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         _sceneService.Value._mapGroundSpriteRenderer.material = mapVisualConfig.GroundMaterial;
         Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
-        
+
         if (mapConfig.MapId == 1) {
+            var buildigsMap = new int[20, 20];
+
+            GridUtils.GenerateRandomBuildings(ref buildigsMap);
+           
+            for (int i = 0; i < buildigsMap.GetLength(0); i++) {
+                for (int j = 0; j < buildigsMap.GetLength(1); j++) {
+                    if (buildigsMap[i, j] == 0) continue;
+                    currentGameCmp.MapGrid[i * 2, j * 2] = 1;
+                    currentGameCmp.MapGrid[i * 2 + 1, j * 2 + 1] = 1;
+                    currentGameCmp.MapGrid[i * 2 + 1, j * 2] = 1;
+                    currentGameCmp.MapGrid[i * 2, j * 2 + 1] = 1;
+                }
+            }
+
             var buildingVisualConfig = mapConfig.MapVisualInfoConfigs[1];
-            List<Vector2> maxPoints = new List<Vector2>();
-            List<Vector2> minPoints = new List<Vector2>();
-            for (int i = 0; i < 4; i++) {
-                Vector2 buildingSize = new Vector2(Random.Range(2, 4), Random.Range(2, 4)) * 20;
+
+            for (int i = 0; i < currentGameCmp.MapGrid.GetLength(0); i++) {
+                for (int j = 0; j < currentGameCmp.MapGrid.GetLength(1); j++) {
+                    if (currentGameCmp.MapGrid[i, j] == 0) continue;
+                    Vector2 buildingSize = new(5, 5);
+
+                    var building = GenerateBuilding();
+                    var buildingSprite = building.GetComponent<SpriteRenderer>();
+                    buildingSprite.material = buildingVisualConfig.GroundMaterial;
+                    building.transform.localScale = buildingSize;
+                    building.localPosition = new Vector3(i * 5 - 97.5f, j * 5 - 97.5f, 0f);
+
+                    if (i % 2 == 1 || j % 2 == 1) continue;
+                    Vector2 obstaclePosition = new (i* 5f -100, j* 5f -90);
+                    SpawnPillar(obstaclePosition, buildingVisualConfig);
+                    if (j == 40 || i == 0 || (currentGameCmp.MapGrid[i, j + 2] == 0 && currentGameCmp.MapGrid[i+2, j] == 0)) {
+                        Vector2 downObstaclePosition = new(obstaclePosition.x+10,obstaclePosition.y);
+                        SpawnPillar(downObstaclePosition, buildingVisualConfig);
+                    }
+
+                    if (i == 0 || currentGameCmp.MapGrid[i, j - 1] == 0) {
+                        Vector2 downObstaclePosition = new(obstaclePosition.x,obstaclePosition.y-10);
+                        SpawnPillar(downObstaclePosition, buildingVisualConfig);
+                    }
+
+                    if (i == 40 || currentGameCmp.MapGrid[i + 2, j] == 0) {
+                        Vector2 downObstaclePosition = new(obstaclePosition.x+10,obstaclePosition.y-10);
+                        SpawnPillar(downObstaclePosition, buildingVisualConfig);
+                    } /**/
+                }
+            }
+            
+            //place pillars
+            
+         /*   for (int i = 0; i < 4; i++) {
+                Vector2 buildingSize = new (5, 5);
                 var building = GenerateBuilding();
                 var buildingSprite = building.GetComponent<SpriteRenderer>();
                 buildingSprite.material = buildingVisualConfig.GroundMaterial;
                 building.transform.localScale = buildingSize;
 
-                var needPosition = GetCornerPositionForBuilding(buildingSize, i);
+              //  var needPosition = GetCornerPositionForBuilding(buildingSize, i);
 
-                building.localPosition = new Vector3(needPosition.x, needPosition.y, 0f);
+              //  building.localPosition = new Vector3(needPosition.x, needPosition.y, 0f);
 
-                maxPoints.Add(new Vector2(building.localPosition.x + buildingSize.x / 2, building.localPosition.y + buildingSize.y / 2));
-                minPoints.Add(new Vector2(building.localPosition.x - buildingSize.x / 2, building.localPosition.y - buildingSize.y / 2));
+            //    maxPoints.Add(new Vector2(building.localPosition.x + buildingSize.x / 2, building.localPosition.y + buildingSize.y / 2));
+            //    minPoints.Add(new Vector2(building.localPosition.x - buildingSize.x / 2, building.localPosition.y - buildingSize.y / 2));
 
                 for (int k = 0; k < buildingSize.x / 20 + 1; k++) {
                     for (int j = 0; j < buildingSize.y / 20 + 1; j++) {
@@ -1574,12 +1652,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                         }
                     }
                 }
-            }
+            }*/
 
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
                     if (i == 4 && j == 5) continue;
-                    GenerateObstaclesInCell(i, j, randomOffset, minPoints, maxPoints);
+                    GenerateObstaclesInCell(i, j, randomOffset);
                 }
             }
 
@@ -1604,6 +1682,27 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         }
     }
+
+    private void SpawnPillar(Vector2 obstaclePosition, MapVisualInfoConfig buildingVisualConfig) {
+        SpawnObstacle(obstaclePosition,
+            buildingVisualConfig.MapObstacles[Random.Range(0, buildingVisualConfig.MapObstacles.Length - 2)]);
+        if (Random.value > 0.8f) {
+            int randomBarrel = Random.Range(0, 2);
+            var needObstacle = SpawnObstacle(obstaclePosition + (Random.insideUnitCircle * 5f).normalized * 2.5f,
+                buildingVisualConfig.MapObstacles[buildingVisualConfig.MapObstacles.Length - 2 + randomBarrel]);
+            if (!needObstacle) return;
+            int barrelEntity = _world.Value.NewEntity();
+            _carPartInfoComponentsPool.Value.Add(barrelEntity).CurrentHealth = 150;
+            ref var carPartCmp = ref _carPartComponentsPool.Value.Add(barrelEntity);
+            carPartCmp.MainEntity = -11 - randomBarrel;
+            carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
+
+            carPartCmp.CellCarPartsStuffViews.Add(needObstacle.gameObject.GetComponent<CarPartStuffView>());
+
+            carPartCmp.CellCarPartsStuffViews[0].SetupCarPart(Vector2Int.one * (-11 - randomBarrel), "Obstacle", barrelEntity);
+        }
+    }
+
     
     private void EnterInQuicksand(Vector2Int gridPosition, int mainEntity, int quicksandEntity) {
         var carPartComponent = _carComponentsPool.Value.Get(mainEntity).CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
@@ -1657,27 +1756,29 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     
-    private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise,List<Vector2> minPoint=null,List<Vector2> maxPoint=null)
+    private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise)
     {
         float noiseValue = PerlinNoiseUtil.GetFractalNoise(
             cellX * 20 + 20 / 2f+randomOffsetForNoise.x,
             cellY * 20 + 20 / 2f+randomOffsetForNoise.y 
         );
-        
+        var mapGrid = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MapGrid;
         var mapVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[0];
         int obstacleCount = GetObstacleCountFromNoise(noiseValue, mapVisualConfig.NoiseObstaclesCountChances);
 
         for (int k = 0; k < obstacleCount; k++) {
             Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);
-            bool canPlaceObstacle = true;
-            if (minPoint != null)
+            bool canPlaceObstacle = AreAllNeighborsNonZero(mapGrid,Mathf.FloorToInt((randomPosition.x+100)/5),Mathf.FloorToInt((randomPosition.y+100)/5));
+            
+          /*  if (minPoint != null)
                 for (int i = 0; i < minPoint.Count; i++) {
+                    Debug.Log(maxPoint[i] +" "+ minPoint[i]+ " i:"+i);
                     if ((randomPosition.x > minPoint[i].x-5 && randomPosition.x < maxPoint[i].x+5) && (randomPosition.y > minPoint[i].y-5 &&
                             randomPosition.y < maxPoint[i].y+5)) {
                         canPlaceObstacle = false;
                         break;
                     }
-                }
+                }*/
 
             if (canPlaceObstacle)
                 SpawnObstacle(randomPosition, mapVisualConfig.MapObstacles[Random.Range(0, mapVisualConfig.MapObstacles.Length)]);
