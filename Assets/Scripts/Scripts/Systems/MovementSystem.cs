@@ -232,7 +232,7 @@ public class MovementSystem : IEcsRunSystem {
                     RotateWheels(angleToTarget, movementCmp.CurrentRotateSpeed, movementEntity);
                     SetWheelParticleSystemState(movementEntity, true);
 
-                    var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+                 //   var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
                     float maxSpeed = fuelCmp.UseSpeedBoost
                         ? movementCmp.MaxMoveSpeed + movementCmp.MaxBoostMoveSpeed
                         : movementCmp.MaxMoveSpeed;
@@ -396,6 +396,25 @@ public class MovementSystem : IEcsRunSystem {
             rotateSpeed *= -1;
         ref var carCmp = ref _carComponentsPool.Value.Get(debug);
         var wheels = carCmp.ForwardWheels;
+        var gridMap = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MapGrid;
+        foreach (var wheelParticle in  carCmp.ForwardWheelsParticles) {
+            bool showParticles;
+            Vector2 wheelPosition = wheelParticle.transform.position;
+            if(wheelPosition.x > 100 || wheelPosition.x < -100 || wheelPosition.y > 100 || wheelPosition.y < -100 )
+                showParticles = true;
+            else {
+                Vector2Int gridPosition = new Vector2Int(Mathf.CeilToInt((wheelPosition.x+95)/5f),Mathf.CeilToInt((wheelPosition.y+95)/5f)) ;
+                showParticles = gridMap[gridPosition.x, gridPosition.y] == 0;
+
+            }
+
+            if (wheelParticle.isPlaying && !showParticles) 
+                wheelParticle.Stop();
+            else if (!wheelParticle.isPlaying && showParticles) 
+                wheelParticle.Play();
+        }
+
+       
         if (wheels == null || wheels.Count > 0 && wheels[0] == null) return;
         var currentWheelAngle = wheels[0].transform.localRotation;
 

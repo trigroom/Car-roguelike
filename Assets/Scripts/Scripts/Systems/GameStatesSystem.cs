@@ -213,8 +213,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             curGameCmp.RoundAddedEnemies++;
         }
 
-        if (RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) /*&& curGameCmp.CurrentRound > 3 && curGameCmp.CurrentRound % 2 == 0 &&
-            curGameCmp.RoundTime > 20*/ && curGameCmp.SupportBoxPhase < 2) {
+        if (RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) && curGameCmp.CurrentRound > 3 && curGameCmp.CurrentRound % 2 == 0 &&
+            curGameCmp.RoundTime > 20 && curGameCmp.SupportBoxPhase < 2) {
             if (curGameCmp.SupportBoxTargetPosition.x == 999f)
                 SendSupportAirplane();
             else if (curGameCmp.SupportBoxPhase == 1)
@@ -1494,7 +1494,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     wheelCmp.Wheels.Add(wheel);
                     if (maxYposWheels == carPartContainer.Value[0].y)
                         carCmp.ForwardWheels.Add(wheel);
-                    carCmp.ForwardWheelsParticles.Add(wheel.GetComponentInChildren<ParticleSystem>());
+                    var particleSystem = wheel.GetComponentInChildren<ParticleSystem>();
+                    carCmp.ForwardWheelsParticles.Add(particleSystem);
+                    var mainParticle = particleSystem.main;
+                        mainParticle.startColor = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[0].WheelParticlesColor;
                 }
             }
         }
