@@ -129,6 +129,33 @@ public class GridUtils : MonoBehaviour {
         return new List<int>(uniqueNeighbors);
     }
     
+    public static List<Vector2Int> GetNonZeroNeighbors8Dir(int[,] grid, List<Vector2Int> needCells) {
+        List<Vector2Int> result = new List<Vector2Int>();
+        HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+
+        int rows = grid.GetLength(0);
+        int cols = grid.GetLength(1);
+
+        foreach (var cell in needCells) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    if (dx == 0 && dy == 0) continue;
+
+                    Vector2Int neighbor = new Vector2Int(cell.x + dx, cell.y + dy);
+
+                    if (neighbor.x >= 0 && neighbor.x < rows && neighbor.y >= 0 && neighbor.y < cols) {
+                        if (grid[neighbor.x, neighbor.y] != 0 && !visited.Contains(neighbor) && !needCells.Contains(neighbor)) {
+                            result.Add(neighbor);
+                            visited.Add(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+    
     private static Vector2Int GetNeighborPosition(Vector2Int currentPos, Direction direction)
     {
         switch (direction)

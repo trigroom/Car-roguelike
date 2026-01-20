@@ -290,6 +290,18 @@ public class CarPartInfoUIView : MonoBehaviour
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountAmmo}</color>" : needCountAmmo;
                 _descriptionText.text += "%";
                 break;
+            case SupportModuleType.FireExtinguisher:
+                _descriptionText.text +=
+                    $"\n{GetLocalization("Extinguishes fire")} (";
+                var needCountFireExtinguisher = supportConfig.FirstCount * firstMultiplayer;
+                var needSecondCountFireExtinguisher = supportConfig.FirstCount * firstMultiplayer;
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needSecondCountFireExtinguisher}</color>" : needSecondCountFireExtinguisher;
+                _descriptionText.text +=
+                    $") {GetLocalization("on adjacent cells every")} ";
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountFireExtinguisher}</color>" : needCountFireExtinguisher;
+                _descriptionText.text +=
+                    $" {GetLocalization("s")}";
+                break;
         }
     }
 

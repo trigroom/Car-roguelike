@@ -52,6 +52,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
     private EcsPoolInject<BomberPlaneControllerComponent> _bomberPlaneControllerComponentsPool;
     private EcsPoolInject<BossComponent> _bossComponentsPool;
+    private EcsPoolInject<FireExtinguisherComponent> _fireExtinguisherComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -1396,6 +1397,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption += supportCarPartConfig.FirstCount*firstMultiplayer;
                     _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed += supportCarPartConfig.SecondCount*secondMultiplayer;
                     break;
+                case SupportModuleType.FireExtinguisher:
+                  ref var fireExtinguisher = ref  _fireExtinguisherComponentsPool.Value.Add(cellEntity);
+                  fireExtinguisher.CurrentCheckTime = supportCarPartConfig.FirstCount*firstMultiplayer;
+                  fireExtinguisher.CurrentFireRemove = supportCarPartConfig.SecondCount*secondMultiplayer;
+                  fireExtinguisher.CountdownTime = fireExtinguisher.CurrentCheckTime;
+                  fireExtinguisher.CheckedCells =
+                      GridUtils.GetNonZeroNeighbors8Dir(carCmp.CarPartContainerGroupsGrid, carCmp.CarPartGroupsList[cellEntity]);
+                  break;
             }
         } else if (carPartConfig.PartType == CarPartType.WheelsContainer) {
             var wheelsConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);

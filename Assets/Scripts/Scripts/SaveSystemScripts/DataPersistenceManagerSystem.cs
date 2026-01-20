@@ -55,16 +55,16 @@ public class DataPersistenceManagerSystem : MonoBehaviour
     public void LoadGame() {
         _gameData = _dataHandler.Load();
         
-     //   _gameData = null;
+      //  _gameData = null;
         
         if (_gameData == null) {
             NewGame();
         }
 
-      //  _gameData.TutorialIsCompleted = true;
+       // _gameData.TutorialIsCompleted = true;
        // _gameData.LevelRounds[0] = 5;
-        
-    //   SaveGame();
+     //   _gameData.LevelRounds[1] = 5;
+     //  SaveGame();
     }
 
     public enum SavePriority {
