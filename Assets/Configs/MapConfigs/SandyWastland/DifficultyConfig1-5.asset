@@ -17,7 +17,7 @@ MonoBehaviour:
   <DamageMultiplayer>k__BackingField: 1.6
   <MapEvents>k__BackingField:
   - MapEventType: 1
-    MapEventFirstCount: 255
+    MapEventFirstCount: 180
     MapEventSecondCount: 2
   - MapEventType: 3
     MapEventFirstCount: 0
@@ -30,3 +30,5 @@ MonoBehaviour:
   <StartMoney>k__BackingField: 40
   <RoundsCount>k__BackingField: 20
   <DestroyEnemyCarsAfterDeath>k__BackingField: 0
+  <BossCars>k__BackingField:
+  - {fileID: 11400000, guid: 1944121b7825d014f96a06ec442ca80f, type: 2}

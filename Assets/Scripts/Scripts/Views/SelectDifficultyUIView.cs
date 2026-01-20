@@ -63,10 +63,10 @@ public class SelectDifficultyUIView : MonoBehaviour
       switch (mapEventInfo.MapEventType) {
          case MapEventsType.Wind:
             switch (mapEventInfo.MapEventFirstCount) {
-               case <= 100 :
+               case <= 80 :
                   needString = GetLocalization("Weak wind from");
                   break;
-               case <= 250 :
+               case <= 175 :
                   needString = GetLocalization("Medium wind from");
                   break;
                default :

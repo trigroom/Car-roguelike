@@ -51,6 +51,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<TornadoSpawnControllerComponent> _tornadoSpawnControllerComponentsPool;
     private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
     private EcsPoolInject<BomberPlaneControllerComponent> _bomberPlaneControllerComponentsPool;
+    private EcsPoolInject<BossComponent> _bossComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -58,6 +59,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsFilterInject<Inc<FilledZoneComponent>> _filledZoneComponentsFilter;
     private EcsFilterInject<Inc<TaskComponent>> _taskComponentsFilter;
     private EcsFilterInject<Inc<CarPartInGameUIComponent>> _carPartInGameUIComponentsFilter;
+    private EcsFilterInject<Inc<BossComponent>> _bossComponentsFilter;
 
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
@@ -180,9 +182,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 break;
             
             case RoundType.BossBattle:
-                curGameCmp.RoundTime += Time.deltaTime;
-                _sceneService.Value._playerUIView._gameTimerText.text = ((int)(30+curGameCmp.CurrentRound*3 - curGameCmp.RoundTime)).ToString();
-                if (curGameCmp.RoundTime > 30+curGameCmp.CurrentRound*3) {
+                if (_bossComponentsFilter.Value.GetEntitiesCount() == 0) {
                     _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
                     EndRound();
                     WinGame();
@@ -676,8 +676,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 break;
             case RoundType.BossBattle:
                 SetPlayerCarPrefab();
-                 SetEnemiesCars(1);
-                SetGameTimer();
+                 SpawnBossCars();
                 break;
             case RoundType.FromAToB:   
                 SetPlayerCarPrefab();
@@ -903,6 +902,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
     }
 
+    private void SpawnBossCars() {
+        var bossCars = _betweenScenesService.Value.GetMapDifficultyConfig().BossCars;
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        foreach (var enemyCarPartsMap in bossCars) 
+              _bossComponentsPool.Value.Add(SpawnNpcCar(curGameCmp, enemyCarPartsMap, true));
+        
+    }
+
      private void SpawnTeammateCar(int entity) {
 
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
@@ -941,7 +948,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView,ref enemyAiCmp);
         BuildBorder(entity);
     }
-    private void SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy) {
+    private int SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy) {
         int enemyEntity = _world.Value.NewEntity();
 
         _movementComponentsPool.Value.Add(enemyEntity);
@@ -1026,6 +1033,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView,ref enemyAiCmp);
         BuildBorder(enemyEntity);
         SetReloadBoostSupportTypes(enemyEntity);
+
+        return enemyEntity;
     }
 
     private void SetReloadBoostSupportTypes(int carEntity) {

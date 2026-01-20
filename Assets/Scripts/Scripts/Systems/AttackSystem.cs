@@ -50,6 +50,7 @@ public enum AttackType {
         private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
         private EcsPoolInject<BomberPlaneControllerComponent> _bomberPlaneControllerComponentsPool;
         private EcsPoolInject<BomberProjectile> _bomberProjectilesPool;
+        private EcsPoolInject<BossComponent> _bossComponentsPool;
         
         private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
         private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -65,6 +66,7 @@ public enum AttackType {
         private EcsFilterInject<Inc<ConstructMeleeCellEvent>> _constructMeleeCellEventsFilter;
         private EcsFilterInject<Inc<ThunderstormComponent>> _thunderstormComponentsFilter;
         private EcsFilterInject<Inc<BomberProjectile>> _bomberProjectilesFilter;
+        private EcsFilterInject<Inc<BossComponent>> _bossComponentsFilter;
         
         public void Run(IEcsSystems systems) {
             foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
@@ -1490,15 +1492,12 @@ public enum AttackType {
            foreach (Transform obj in allObjects) {
                if (obj.TryGetComponent(out SpriteRenderer spriteRenderer)) {
                    _sceneService.Value.ReleaseSpriteRenderer(spriteRenderer);
-                   Debug.Log("Rls sr");
                } 
-               else if (obj.GetComponents<Component>().Length > 1 ) {
+               else if (obj.GetComponents<Component>().Length > 1 ) 
                    _sceneService.Value.DestroyGameobject(obj);
-                   Debug.Log("Des obj");
-               } else {
+                else 
                    _sceneService.Value.ReleaseGunContainer(obj);
-                   Debug.Log("Rls obj");
-               }
+               
                    
            }
        }
@@ -1571,6 +1570,10 @@ public enum AttackType {
             else if (dontDestroyEnemyCar && carCmp.ShockedMainPartsCount < 5) {
                 carCmp.ShockedMainPartsCount = 10;
                 DataPersistenceManagerSystem._gameData.BrokenCars++;
+                if (_bossComponentsPool.Value.Has(carEntity)) {
+                    _bossComponentsPool.Value.Del(carEntity);
+                }
+                    
                 CheckTasks(TaskType.Kills);
             }
         }

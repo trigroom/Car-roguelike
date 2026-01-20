@@ -30,3 +30,5 @@ MonoBehaviour:
   <StartMoney>k__BackingField: 50
   <RoundsCount>k__BackingField: 15
   <DestroyEnemyCarsAfterDeath>k__BackingField: 1
+  <BossCars>k__BackingField:
+  - {fileID: 11400000, guid: e42a3d5f219c58f47a804994e13aa517, type: 2}

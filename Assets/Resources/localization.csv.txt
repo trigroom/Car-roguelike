@@ -239,3 +239,4 @@ Fire tornado,Fire Tornado,Огненный торнадо,Feuertornado,Tornado d
 Frost tornado,Frost Tornado,Ледяной торнадо,Eistornado,Tornado de escarcha,Tornade de givre
 Enemy cars don't destroy,Enemy cars survive driver/engine loss,Вражеские машины не уничтожаются после потери водителя/двигателя,Gegnerautos überleben Fahrer/Motor Verlust,Coches enemigos sobreviven pérdida conductor/motor,Voitures ennemies survivent perte conducteur/moteur
 Get all,Get all,Получить всё,Alle erhalten,Obtener todo,Obtenir tout
+Circular saw,Circular Saw,Циркулярная пила,Kreissäge,Sierra circular,Scie circulaire

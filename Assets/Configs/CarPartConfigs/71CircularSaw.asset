@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a71a6438dae87d4596acaf623a004ff, type: 3}
+  m_Name: 71CircularSaw
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 71
+  <MaxHealth>k__BackingField: 250
+  <Weight>k__BackingField: 55
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: a13038eb8329c92429a24c428d6b23c7, type: 3}
+  <PartType>k__BackingField: 7
+  <RartRare>k__BackingField: 2
+  <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 12
+  <PartName>k__BackingField: Circular saw
+  <ModuleTypes>k__BackingField: 0100000002000000
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  <MoneyCost>k__BackingField: 45
+  Damage: 12
+  AttackCountdown: 0.15
+  DamageAddedFromOneSpeed: 0
+  UpSprite: {fileID: 21300000, guid: 3eb5e52bd83673f458fbe18b7136c88e, type: 3}
+  UpSpritePosition: {x: 0, y: 1}
+  IsAttackAfterCountdown: 1
+  FuelConsumption: 0.5

@@ -44,7 +44,9 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._carPartsContainer.position.x,
             _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x);
         _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Place car parts to car redactor field (drag and drop them to center)"));
-        //remove listeners from play again button
+      
+        _sceneData.Value._inventoryUIView._selectCarButtons[1].sellCarText.transform.parent.gameObject.SetActive(false);
+        
     }
 
     private int _tutorialStep;

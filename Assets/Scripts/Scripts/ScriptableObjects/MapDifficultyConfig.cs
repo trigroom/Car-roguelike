@@ -28,6 +28,8 @@ public class MapDifficultyConfig : ScriptableObject
     public int RoundsCount { get; private set; }
     [field: SerializeField]
     public bool DestroyEnemyCarsAfterDeath { get; private set; }
+    [field: SerializeField]
+    public EnemyCarPartsMaps[] BossCars { get; private set; }
 }
 
 public enum MapEventsType {
