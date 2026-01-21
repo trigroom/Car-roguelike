@@ -14,5 +14,6 @@ public enum SupportModuleType {
  Recovery,
  Ammo,
  Money,
- FireExtinguisher
+ FireExtinguisher,
+ Heater
 }

@@ -92,7 +92,7 @@ public enum AttackType {
                 fireExtinguisherCmp.CountdownTime -= deltaTime;
 
                 if (fireExtinguisherCmp.CountdownTime <= 0) {
-                    fireExtinguisherCmp.CountdownTime = fireExtinguisherCmp.CurrentCheckTime;
+                    fireExtinguisherCmp.CountdownTime ++;
                     var carCmp = _carComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(fireExtinguisherEntity).MainEntity);
                     foreach (Vector2Int checkedCell in fireExtinguisherCmp.CheckedCells) {
                         var needCarPartEntity = -1;
@@ -101,8 +101,10 @@ public enum AttackType {
                         else if (carCmp.CarPartContainerGroupsGrid[checkedCell.x, checkedCell.y] != 0)
                             needCarPartEntity = carCmp.CarPartContainerGroupsGrid[checkedCell.x, checkedCell.y];
 
-                        if (needCarPartEntity != -1 && _fireComponentsPool.Value.Has(needCarPartEntity))
-                            SetEffectComponent(needCarPartEntity, EffectType.froze, fireExtinguisherCmp.CurrentFireRemove);
+                        if (needCarPartEntity != -1 &&
+                            ((fireExtinguisherCmp.EffectType == EffectType.froze && _fireComponentsPool.Value.Has(needCarPartEntity)) ||
+                             (fireExtinguisherCmp.EffectType == EffectType.fire && _frozenComponentsPool.Value.Has(needCarPartEntity))))
+                            SetEffectComponent(needCarPartEntity, fireExtinguisherCmp.EffectType, fireExtinguisherCmp.CurrentFireRemove);
                     }
                 }
             }
@@ -1328,8 +1330,12 @@ public enum AttackType {
                     switch (supportCarPartConfig.ModuleType) {
                         case SupportModuleType.Fuel:
                             float firstCount = supportCarPartConfig.FirstCount * firstMultiplayer;
-                          CalculateExplodeDamage(EffectType.none,firstCount/2.5f,firstCount/30f,carPartCmp.CarPartCellRenderer.transform.position);
-                            CreateExplosionEffect(firstCount / 30f, carPartCmp.CarPartCellRenderer.transform.position, EffectType.none);
+                            if (firstCount > 35f) {
+                                CalculateExplodeDamage(EffectType.none, firstCount / 2.5f, firstCount / 30f,
+                                    carPartCmp.CarPartCellRenderer.transform.position);
+                                CreateExplosionEffect(firstCount / 30f, carPartCmp.CarPartCellRenderer.transform.position, EffectType.none);
+                            }
+                        
                             fuelCmp.MaxFuel -= firstCount;
                             fuelCmp.CurrentFuel = Mathf.Min(fuelCmp.MaxFuel, fuelCmp.CurrentFuel);
                             break;

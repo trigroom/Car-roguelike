@@ -273,7 +273,7 @@ public class CarPartInfoUIView : MonoBehaviour
                 _descriptionText.text +=
                     $"\n{GetLocalization("Added fuel consumption")}: ";
                 var needCountTurbine = supportConfig.FirstCount * firstMultiplayer;
-                var needSecondCountTurbine = supportConfig.FirstCount * firstMultiplayer;
+                var needSecondCountTurbine = supportConfig.SecondCount * secondMultiplayer;
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountTurbine}</color>" : needCountTurbine;
                 _descriptionText.text +=
                     $"\n {GetLocalization("Added max move speed")}: ";
@@ -290,17 +290,15 @@ public class CarPartInfoUIView : MonoBehaviour
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountAmmo}</color>" : needCountAmmo;
                 _descriptionText.text += "%";
                 break;
-            case SupportModuleType.FireExtinguisher:
-                _descriptionText.text +=
-                    $"\n{GetLocalization("Extinguishes fire")} (";
+            case SupportModuleType.FireExtinguisher or SupportModuleType.Heater:
+                if (supportConfig.ModuleType == SupportModuleType.FireExtinguisher)
+                    _descriptionText.text += $"\n{GetLocalization("Extinguishes fire per second")}: ";
+                else
+                    _descriptionText.text += $"\n{GetLocalization("Heat ice per second")}: ";
                 var needCountFireExtinguisher = supportConfig.FirstCount * firstMultiplayer;
-                var needSecondCountFireExtinguisher = supportConfig.FirstCount * firstMultiplayer;
-                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needSecondCountFireExtinguisher}</color>" : needSecondCountFireExtinguisher;
-                _descriptionText.text +=
-                    $") {GetLocalization("on adjacent cells every")} ";
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountFireExtinguisher}</color>" : needCountFireExtinguisher;
                 _descriptionText.text +=
-                    $" {GetLocalization("s")}";
+                    $"\n{GetLocalization("Radius")}: {supportConfig.SecondCount}";
                 break;
         }
     }

@@ -26,5 +26,5 @@ MonoBehaviour:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 15
   ModuleType: 6
-  FirstCount: 2
-  SecondCount: 2.5
+  FirstCount: 2.5
+  SecondCount: 2

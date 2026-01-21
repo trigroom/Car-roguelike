@@ -129,7 +129,7 @@ public class GridUtils : MonoBehaviour {
         return new List<int>(uniqueNeighbors);
     }
     
-    public static List<Vector2Int> GetNonZeroNeighbors8Dir(int[,] grid, List<Vector2Int> needCells) {
+    public static List<Vector2Int> GetNonZeroNeighbors8Dir(int[,] grid, List<Vector2Int> needCells, int radius) {
         List<Vector2Int> result = new List<Vector2Int>();
         HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
 
@@ -137,8 +137,8 @@ public class GridUtils : MonoBehaviour {
         int cols = grid.GetLength(1);
 
         foreach (var cell in needCells) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dy = -radius; dy <= radius; dy++) {
                     if (dx == 0 && dy == 0) continue;
 
                     Vector2Int neighbor = new Vector2Int(cell.x + dx, cell.y + dy);
