@@ -28,6 +28,8 @@
         
         public int SupportBoxPhase;
         public Vector2 SupportBoxTargetPosition;
+
+        public float LocalTimeScale;
  }
 
  public enum RoundType {
@@ -41,5 +43,6 @@
      ZoneDefence,
      FromAToB,
      BossBattle,
-     ModulesShop
+     ModulesShop,
+     VersusBattle
  }

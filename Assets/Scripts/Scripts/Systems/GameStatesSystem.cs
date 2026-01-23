@@ -52,6 +52,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
     private EcsPoolInject<BomberPlaneControllerComponent> _bomberPlaneControllerComponentsPool;
     private EcsPoolInject<BossComponent> _bossComponentsPool;
+    private EcsPoolInject<VersusBattleComponent> _versusBattleComponentsPool;
     private EcsPoolInject<FireExtinguisherComponent> _fireExtinguisherComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
@@ -70,7 +71,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
       //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
-
+        
+        _versusBattleComponentsPool.Value.Add(playerEntity);
+        SetupVersusBattleUI();
+        
         if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted)
             _betweenScenesService.Value.CurrentSelectedMap = _betweenScenesService.Value._carStuffListsConfig.MapConfigs.Length-1;
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
@@ -717,6 +721,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 CreateNewTask(curGameCmp);
                 ChangeInventoryState(true);
                 break;
+            case RoundType.VersusBattle:
+                
+                SetVersusBattleUI();
+                break;
         }
    
         curGameCmp.RoundButtons = null;
@@ -730,6 +738,78 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentRound++;
         _startRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
+
+    private void SetVersusBattleUI() {
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        versusBattleView.gameObject.SetActive(true);
+        versusBattleView._versusMapContainer.gameObject.SetActive(true);
+        versusBattleView._betContainer.gameObject.SetActive(true);
+        versusBattleView._speedGameSpeedBoostText.text = ">";
+
+        SetCarsToVersusBattle();
+        Time.timeScale = 0;
+
+        _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentBet = 0;
+        ChangeBet(5);
+    }
+
+    private void StartVersusBattle() {
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        versusBattleView._betContainer.gameObject.SetActive(false);
+        Time.timeScale = 0;
+    }
+
+    private void SetCarsToVersusBattle() {
+        
+    }
+
+    private void ChangeBet(int count) {
+        ref var versusBattleComponent = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var playerCurrencyCmp = _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+      
+        versusBattleComponent.CurrentBet += count;
+
+        versusBattleComponent.CurrentBet = Mathf.Clamp(versusBattleComponent.CurrentBet, 5, (int)playerCurrencyCmp.MoneyCount);
+        _sceneService.Value._versusBattleView._betText.text = $"Current money: {playerCurrencyCmp.MoneyCount}$ \n" +
+                                                              $"Bet: {versusBattleComponent.CurrentBet}$";       
+    }
+
+    private void SetupVersusBattleUI() {
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        
+        versusBattleView._bet1Button.onClick.AddListener(()=>ChangeBet(1));
+        versusBattleView._bet10Button.onClick.AddListener(()=>ChangeBet(10));
+        versusBattleView._bet100Button.onClick.AddListener(()=>ChangeBet(100));
+        
+        versusBattleView._betRemove1Button.onClick.AddListener(()=>ChangeBet(-1));
+        versusBattleView._betRemove10Button.onClick.AddListener(()=>ChangeBet(-10));
+        versusBattleView._betRemove100Button.onClick.AddListener(()=>ChangeBet(-100));
+        
+        versusBattleView._leftVersusBattleParticipantInfo.BetButton.onClick.AddListener(StartVersusBattle);
+        versusBattleView._rightVersusBattleParticipantInfo.BetButton.onClick.AddListener(StartVersusBattle);
+        
+        versusBattleView._speedGameSpeedBoostButton.onClick.AddListener(ChangeGameSpeedVersusBattles);
+    }
+
+    private void ChangeGameSpeedVersusBattles() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (curGameCmp.LocalTimeScale != 0) {
+            var versusBattleView = _sceneService.Value._versusBattleView;
+            if (curGameCmp.LocalTimeScale == 1) {
+                curGameCmp.LocalTimeScale = 2;
+                versusBattleView._speedGameSpeedBoostText.text = ">>";
+            } else if (curGameCmp.LocalTimeScale == 2) {
+                curGameCmp.LocalTimeScale = 3;
+                versusBattleView._speedGameSpeedBoostText.text = ">>>";
+            } else {
+                curGameCmp.LocalTimeScale = 1;
+                versusBattleView._speedGameSpeedBoostText.text = ">";
+            }
+
+            Time.timeScale = curGameCmp.LocalTimeScale;
+        }
+    }
+    
 
     private void CreateNewTask(CurrentGameComponent curGameCmp) {
         ref var taskCmp = ref _taskComponentsPool.Value.Add(_world.Value.NewEntity());

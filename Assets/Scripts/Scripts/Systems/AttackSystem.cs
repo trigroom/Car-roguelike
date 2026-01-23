@@ -426,7 +426,7 @@ public enum AttackType {
                 damagedObject.TryGetComponent(out CarPartStuffView damagedCarPartView);
                 if (!damagedCarPartView || !_carComponentsPool.Value.Has(damagedCarPartView._mainEntity)) continue;
 
-                var carCmp = _carComponentsPool.Value.Get(damagedCarPartView._mainEntity);
+                ref var carCmp = ref _carComponentsPool.Value.Get(damagedCarPartView._mainEntity);
                 if(!carCmp.CarView)continue;
                 int carPartEntity = carCmp.CarPartGroupsGrid[damagedCarPartView._gridPosition.x, damagedCarPartView._gridPosition.y];
                 if (carPartEntity == 0)

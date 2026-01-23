@@ -11,6 +11,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public VersusBattleView _versusBattleView{ get; private set; }
     [field: SerializeField] public Material _defaultMaterial{ get; private set; }
     [field: SerializeField] public Sprite[] _bomberProjectiles{ get; private set; }
     [field: SerializeField] public Sprite[] _bomberProjectilesShadows{ get; private set; }
