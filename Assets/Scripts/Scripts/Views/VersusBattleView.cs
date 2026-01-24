@@ -25,6 +25,8 @@ public class VersusBattleView : MonoBehaviour {
     [field: SerializeField]
     public Button _speedGameSpeedBoostButton { get; private set; }
     [field: SerializeField]
+    public TMP_Text _timerText { get; private set; }
+    [field: SerializeField]
     public TMP_Text _speedGameSpeedBoostText { get; private set; }
     [field: SerializeField]
     public TMP_Text _betText { get; private set; }
@@ -34,6 +36,9 @@ public class VersusBattleView : MonoBehaviour {
     
     [field: SerializeField] public Transform _betContainer { get; private set; }
     [field: SerializeField] public Transform _versusMapContainer { get; private set; }
+    
+    [field: SerializeField] public MapMeleeWeapon _circularSawLeft { get; private set; }
+    [field: SerializeField] public MapMeleeWeapon _circularSawRight { get; private set; }
 }
 
 [System.Serializable]

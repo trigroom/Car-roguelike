@@ -62,6 +62,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsFilterInject<Inc<TaskComponent>> _taskComponentsFilter;
     private EcsFilterInject<Inc<CarPartInGameUIComponent>> _carPartInGameUIComponentsFilter;
     private EcsFilterInject<Inc<BossComponent>> _bossComponentsFilter;
+    private EcsFilterInject<Inc<DestroyEntityEvent>> _destroyEntityEventsFilter;
 
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
@@ -83,6 +84,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             .MapDifficltyConfigs[_betweenScenesService.Value.CurrentSelectedMapDifficlty];
         curGameCmp.DifficultyDamageMultiplayer = difficultyConfig.DamageMultiplayer;
         curGameCmp.DifficultyHealthMultiplayer = difficultyConfig.HealthMultiplayer;
+        curGameCmp.LocalTimeScale = 1;
 
         if (difficultyConfig.MapEvents != null)
             foreach (var mapEvent in difficultyConfig.MapEvents) {
@@ -209,27 +211,48 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.ZoneDefence:
                 curGameCmp.RoundTime += Time.deltaTime;
                 break;
+            
+            case RoundType.VersusBattle:
+                ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                foreach (var needEntity in  _destroyEntityEventsFilter.Value) {
+                    
+                    versusBattleCmp.LeftOpponentEntity = versusBattleCmp.LeftOpponentEntity == needEntity?0:versusBattleCmp.LeftOpponentEntity;
+                    versusBattleCmp.RightOpponentEntity = versusBattleCmp.RightOpponentEntity == needEntity?0:versusBattleCmp.RightOpponentEntity;
+                }
+               
+               if(versusBattleCmp.LeftOpponentEntity == 0 ||versusBattleCmp.RightOpponentEntity == 0) 
+                   EndVersusBattle();
+                
+                curGameCmp.RoundTime += Time.deltaTime;  
+                var versusBattleView = _sceneService.Value._versusBattleView;
+                versusBattleView._timerText.text = ((int)curGameCmp.RoundTime).ToString();
+                if (curGameCmp.RoundTime > 25 && !versusBattleCmp.isCircularSawsSended) {
+                    //damage to all enemies car parts
+                 
+                    versusBattleView._circularSawLeft.transform.DOMoveX(-5,10);
+                    versusBattleView._circularSawRight.transform.DOMoveX(5,10);
+                    versusBattleCmp.isCircularSawsSended = true;
+                }
+                break;
         }
 
+        if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
+
+        if (!RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType)) return;
         float timeBetweenEnemiesSpawn = _betweenScenesService.Value.GetMapDifficultyConfig().TimeBetweenInRoundEnemySpawn;
         if (curGameCmp.RoundTime / timeBetweenEnemiesSpawn > curGameCmp.RoundAddedEnemies) {
-            if (curGameCmp.CurrentRoundType != RoundType.BattleDefault || curGameCmp.RoundTime < ((timeBetweenEnemiesSpawn-5) + curGameCmp.CurrentRound * 3))
+            if (curGameCmp.CurrentRoundType != RoundType.BattleDefault ||
+                curGameCmp.RoundTime < ((timeBetweenEnemiesSpawn - 5) + curGameCmp.CurrentRound * 3))
                 SetEnemiesCars(1, false);
             curGameCmp.RoundAddedEnemies++;
         }
 
-        if (RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType) && curGameCmp.CurrentRound > 3 && curGameCmp.CurrentRound % 2 == 0 &&
-            curGameCmp.RoundTime > 20 && curGameCmp.SupportBoxPhase < 2) {
+        if (curGameCmp.CurrentRound > 3 && curGameCmp.CurrentRound % 2 == 0 && curGameCmp.RoundTime > 20 && curGameCmp.SupportBoxPhase < 2) {
             if (curGameCmp.SupportBoxTargetPosition.x == 999f)
                 SendSupportAirplane();
             else if (curGameCmp.SupportBoxPhase == 1)
                 CheckSupportBoxAirPlane();
         }
-           
-        
-
-        if (Input.GetKeyDown(KeyCode.Escape)) SetSettingsState();
-
     }
 
     private void CheckSupportBoxAirPlane() {
@@ -558,9 +581,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var currentSupportRoundTypes = RoundUtilits.SupportRoundsTypes.Distinct().ToList();
         if (TaskCount() == 5)
             currentSupportRoundTypes.Remove(RoundType.Task);
-       /* if (_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Count >= 5)
-            currentSupportRoundTypes.Remove(RoundType.TeammateForSupport);*/
+        if (_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount < 5) 
+            currentSupportRoundTypes.Remove(RoundType.VersusBattle);
         
+        
+        
+        currentSupportRoundTypes = new List<RoundType>{RoundType.VersusBattle};
+      
         
         (var randomRounds, int moneyMultiplayerRound) =
             curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount - 1
@@ -722,7 +749,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 ChangeInventoryState(true);
                 break;
             case RoundType.VersusBattle:
-                
                 SetVersusBattleUI();
                 break;
         }
@@ -743,24 +769,152 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView.gameObject.SetActive(true);
         versusBattleView._versusMapContainer.gameObject.SetActive(true);
+        _sceneService.Value._mapContainer.gameObject.SetActive(false);
         versusBattleView._betContainer.gameObject.SetActive(true);
         versusBattleView._speedGameSpeedBoostText.text = ">";
-
+        
+        versusBattleView._circularSawLeft.transform.position = new Vector3(-50, 0, 0);
+        versusBattleView._circularSawRight.transform.position = new Vector3(50, 0, 0);
+        versusBattleView._timerText.text = "0";
         SetCarsToVersusBattle();
+        SetCarToVersusGrid();
+        _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 0;
         Time.timeScale = 0;
-
-        _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentBet = 0;
+        _sceneService.Value.mainCamera.transform.position = new Vector3(0,0,-10);
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        versusBattleCmp.isCircularSawsSended = false;
+        versusBattleCmp.CurrentBet = 0;
         ChangeBet(5);
     }
 
-    private void StartVersusBattle() {
+    private void StartVersusBattle(bool isLeft) {
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView._betContainer.gameObject.SetActive(false);
-        Time.timeScale = 0;
+       
+        _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 1;
+       // _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundTime = 0;
+        Time.timeScale = 1;
+        _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).BetOnLeft = isLeft;
+    }
+
+    private void EndVersusBattle() {
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+
+        bool leftIsDead = versusBattleCmp.LeftOpponentEntity == 0;
+        bool rightIsDead = versusBattleCmp.RightOpponentEntity == 0;
+
+        _sceneService.Value._versusBattleView._circularSawLeft.DOKill();
+        _sceneService.Value._versusBattleView._circularSawRight.DOKill();
+
+        ClearHealthUI(versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid, versusBattleCmp.LeftCarPartInfoUIViewsGrid);
+        ClearHealthUI(versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid, versusBattleCmp.RightCarPartInfoUIViewsGrid);
+
+        _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
+        if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
+            _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextTornado = 0;
+
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        curGameCmp.LocalTimeScale = 1;
+        Time.timeScale = curGameCmp.LocalTimeScale;
+        curGameCmp.CurrentRoundType = RoundType.None;
+        _sceneService.Value._versusBattleView.gameObject.SetActive(false);
+        ChangeInventoryState(true);
+        _sceneService.Value._versusBattleView._versusMapContainer.gameObject.SetActive(false);
+        _sceneService.Value._mapContainer.gameObject.SetActive(true);
+        
+        if (leftIsDead && rightIsDead)
+            return;
+
+        if ((versusBattleCmp.BetOnLeft && leftIsDead) || (!versusBattleCmp.BetOnLeft && rightIsDead))
+            versusBattleCmp.CurrentBet *= -1;
+        else
+            DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += versusBattleCmp.CurrentBet;
+        
+        playerCurrencyCmp.MoneyCount += versusBattleCmp.CurrentBet;
+
+        SetMoneyText();
+    }
+    
+    private void ClearHealthUI(CarPartInGameUIView[,] upHealthUI,  CarPartInGameUIView[,] downHealthUI) {
+        
+        for (int i = 0; i < downHealthUI.GetLength(0); i++) {
+            for (int j = 0; j < downHealthUI.GetLength(1); j++) {
+                if (downHealthUI[i, j]) {
+                    _sceneService.Value.ReleaseCarPartInGameUIView(downHealthUI[i, j]);
+                    downHealthUI[i, j] = null;
+                }
+            }
+        }
+          
+        for (int i = 0; i < upHealthUI.GetLength(0); i++) {
+            for (int j = 0; j < upHealthUI.GetLength(1); j++) {
+                if (upHealthUI[i, j]) {
+                    _sceneService.Value.ReleaseCarPartInGameUIView(upHealthUI[i, j]);
+                    upHealthUI[i, j] = null;
+                }
+            }
+        }
     }
 
     private void SetCarsToVersusBattle() {
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int roundNumber = curGameCmp.CurrentRound;
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+
+        versusBattleCmp.RightOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true, new Vector2(20, 0));
+        versusBattleCmp.LeftOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), false, new Vector2(-20, 0));
+    }
+
+    private void SetCarToVersusGrid() {
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
+        ref var leftCarCmp = ref _carComponentsPool.Value.Get(versusBattleCmp.LeftOpponentEntity);
+        ref var rightCarCmp = ref _carComponentsPool.Value.Get(versusBattleCmp.RightOpponentEntity);
+        
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        RectTransform parentRect = versusBattleView._leftVersusBattleParticipantInfo.CarPratsDownLevelHealthContainer;
+        float parentWidth = parentRect.rect.width;
+        float parentHeight = parentRect.rect.height;
+        
+        int columnsLeft = leftCarCmp.CarPartContainerGroupsGrid.GetLength(1);
+        int rowsLeft = leftCarCmp.CarPartContainerGroupsGrid.GetLength(0);
+        int columnsRight = rightCarCmp.CarPartContainerGroupsGrid.GetLength(1);
+        int rowsRight = rightCarCmp.CarPartContainerGroupsGrid.GetLength(0);
+        
+        versusBattleCmp.LeftCarPartInfoUIViewsGrid = new CarPartInGameUIView[rowsLeft, columnsLeft];
+        versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid = new CarPartInGameUIView[rowsLeft, columnsLeft];
+        versusBattleCmp.RightCarPartInfoUIViewsGrid = new CarPartInGameUIView[rowsRight, columnsRight];
+        versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid = new CarPartInGameUIView[rowsRight, columnsRight];
+        // Вычисляем размер каждого квадрата
+        float cellSizeLeft = Mathf.Min(parentHeight / columnsLeft,  parentWidth/ rowsLeft);
+        float cellSizeRight = Mathf.Min(parentHeight / columnsRight,  parentWidth/ rowsRight);
+
+        float gridWidthLeft = rowsLeft * cellSizeLeft;
+        float gridHeightLeft = columnsLeft * cellSizeLeft;
+        float gridWidthRight = rowsRight * cellSizeRight;
+        float gridHeightRight = columnsRight * cellSizeRight;
+
+        // Начальная позиция (левый верхний угол)
+        float startXLeft = (cellSizeLeft/2 - gridWidthLeft/ 2) ;
+        float startYLeft = (cellSizeLeft/2 -gridHeightLeft/ 2) ;
+        float startXRight = (cellSizeRight/2 - gridWidthRight/ 2) ;
+        float startYRight = (cellSizeRight/2 -gridHeightRight/ 2) ;
+        
+        SetCarPartGroupHealthUI(leftCarCmp.CarPartContainerGroupsList, leftCarCmp.CarPartContainerGroupsGrid, startXLeft, cellSizeLeft, startYLeft, parentRect,
+            ref versusBattleCmp.LeftCarPartInfoUIViewsGrid);
+
+        SetCarPartGroupHealthUI(leftCarCmp.CarPartGroupsList, leftCarCmp.CarPartGroupsGrid, startXLeft, cellSizeLeft, startYLeft,
+            versusBattleView._leftVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer,
+            ref versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid);
+
+        SetCarPartGroupHealthUI(rightCarCmp.CarPartContainerGroupsList, rightCarCmp.CarPartContainerGroupsGrid, startXRight, cellSizeLeft, startYRight,
+            versusBattleView._rightVersusBattleParticipantInfo.CarPratsDownLevelHealthContainer,
+            ref versusBattleCmp.RightCarPartInfoUIViewsGrid);
+
+        SetCarPartGroupHealthUI(rightCarCmp.CarPartGroupsList, rightCarCmp.CarPartGroupsGrid, startXRight, cellSizeLeft, startYRight,
+            versusBattleView._rightVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer,
+            ref versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid);
     }
 
     private void ChangeBet(int count) {
@@ -785,8 +939,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         versusBattleView._betRemove10Button.onClick.AddListener(()=>ChangeBet(-10));
         versusBattleView._betRemove100Button.onClick.AddListener(()=>ChangeBet(-100));
         
-        versusBattleView._leftVersusBattleParticipantInfo.BetButton.onClick.AddListener(StartVersusBattle);
-        versusBattleView._rightVersusBattleParticipantInfo.BetButton.onClick.AddListener(StartVersusBattle);
+        versusBattleView._leftVersusBattleParticipantInfo.BetButton.onClick.AddListener(()=>StartVersusBattle(true));
+        versusBattleView._rightVersusBattleParticipantInfo.BetButton.onClick.AddListener(()=>StartVersusBattle(false));
         
         versusBattleView._speedGameSpeedBoostButton.onClick.AddListener(ChangeGameSpeedVersusBattles);
     }
@@ -910,14 +1064,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
             // Проверяем коллайды в целевой точке
             if (!HasObstacleAtPoint(targetPoint))
-            {
                 return targetPoint;
-            }
         
             attempts++;
         }
     
-        Debug.LogWarning("Не удалось найти валидную точку после " + maxAttempts + " попыток");
         return startPoint;
     }
 
@@ -960,7 +1111,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void SpawnTeammateCar() {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
-        SpawnNpcCar(curGameCmp, GetRandomCarMap(), false);
+        SpawnNpcCar(curGameCmp, GetRandomCarMap(), false,GetPositionAroundPlayer());
     }
 
     private EnemyCarPartsMaps GetRandomCarMap(int needRoundNumber = -1) {
@@ -979,7 +1130,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             roundNumber--;
         
         for (int i = 0; i < enemiesCount; i++) 
-            SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true);
+            SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true,GetPositionAroundPlayer());
         
     }
 
@@ -987,36 +1138,37 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var bossCars = _betweenScenesService.Value.GetMapDifficultyConfig().BossCars;
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var enemyCarPartsMap in bossCars) 
-              _bossComponentsPool.Value.Add(SpawnNpcCar(curGameCmp, enemyCarPartsMap, true));
+              _bossComponentsPool.Value.Add(SpawnNpcCar(curGameCmp, enemyCarPartsMap, true,GetPositionAroundPlayer()));
         
     }
 
-     private void SpawnTeammateCar(int entity) {
-
+    private void SpawnTeammateCar(int entity) {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
-           
+
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         var carView = CarViewSetup(entity);
-            
+
         carView.transform.position = GetPositionAroundPlayer();
-            
-        carCmp.CarPartViewsGrid = new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
-            
+
+        carCmp.CarPartViewsGrid =
+            new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
+
         foreach (var carContainer in carCmp.CarPartContainerGroupsList) {
             int carPartCellEntity = carContainer.Key;
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartCellEntity);
-           
+
             SpawnCarPartCellView(carPartCellEntity, carView, true, carPartCmp.RotateDegrees);
         }
-            
+
         foreach (var carContainer in carCmp.CarPartGroupsList) {
             int carPartCellEntity = carContainer.Key;
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartCellEntity);
-             
+
             SpawnCarPartCellView(carPartCellEntity, carView, true, carPartCmp.RotateDegrees);
-        } 
-        fuelCmp.MaxFuel+= _sceneService.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
-           
+        }
+
+        fuelCmp.MaxFuel += _sceneService.Value.GetCarConfig(carCmp.CarId).DefaultMaxFuel;
+
         SetupEnemyMovementComponent(entity, _sceneService.Value.GetCarConfig(carCmp.CarId));
         SetupWheels(entity, carView);
         SetupCarStatsFromLevelBoost(entity);
@@ -1025,11 +1177,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         enemyAiCmp.CheckedEnemyRightPoints = new List<Transform>();
         enemyAiCmp.LastCheckedTime = 1f;
         enemyAiCmp.IsEnemy = false;
-        
-        SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView,ref enemyAiCmp);
+
+        SetEnemyCollisionCheckers(carCmp.CarPartContainerGroupsGrid, carView, ref enemyAiCmp);
         BuildBorder(entity);
     }
-    private int SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy) {
+    private int SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy, Vector2 spawnPosition) {
         int enemyEntity = _world.Value.NewEntity();
 
         _movementComponentsPool.Value.Add(enemyEntity);
@@ -1039,7 +1191,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         carCmp.CarId = carMap.CarId;
         var carView = CarViewSetup(enemyEntity);
             
-        carView.transform.position = GetPositionAroundPlayer();
+        carView.transform.position = spawnPosition;
             
         carCmp.CarPartGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
         carCmp.CarPartContainerGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
@@ -1071,8 +1223,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
             SpawnCarPartCellView(carPartCellEntity, carView, !isEnemy, carContainer.rotate);
 
-            carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
-            carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
+            if (curGameCmp.CurrentRoundType != RoundType.VersusBattle && isEnemy) {
+                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
+                            carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
+            }
+            
         }
             
         foreach (var carContainer in carMap.CarPartUpLevelGrid) {
@@ -1095,7 +1250,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Add(carPartCellEntity);
             carPartCmp.MainEntity = enemyEntity;
             carPartInfoCmp.CarPartId = carContainer.partId;
-
+            
+            if (curGameCmp.CurrentRoundType != RoundType.VersusBattle && isEnemy) {
+                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
+                carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
+            }
+            
             SpawnCarPartCellView(carPartCellEntity, carView, !isEnemy, carContainer.rotate);
         } 
         fuelCmp.MaxFuel+= _sceneService.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
@@ -1144,7 +1304,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             for (int k = 0; k < grid.GetLength(1); k++) {
                 if (grid[j, k] != 0) {
                     var obstacleCheckerTransform = _sceneService.Value.GetGunContainer(carView.CarPartsContainer);
+                    obstacleCheckerTransform.localRotation = new Quaternion();
                     obstacleCheckerTransform.localPosition = new Vector3(j - grid.GetLength(0) / 2f,
+                        
                         k + grid.GetLength(1) / 2f, 0);
                     if (j > grid.GetLength(0) / 2)
                         enemyAiCmp.CheckedEnemyLeftPoints.Add(obstacleCheckerTransform);
@@ -1667,6 +1829,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         _sceneService.Value._behindMapBorderSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         _sceneService.Value._mapGroundSpriteRenderer.material = mapVisualConfig.GroundMaterial;
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        versusBattleView._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
+        versusBattleView._behindMapBorderSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
+        versusBattleView._mapGroundSpriteRenderer.material = mapVisualConfig.GroundMaterial;
         Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
 
         if (mapConfig.MapId == 1) {
@@ -1896,6 +2062,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4)*90);
         
         Transform obstacle = _sceneService.Value.InstantiateObject(obstaclePrefab, new Vector3(position.x, position.y, 0f));
+        obstacle.parent = _sceneService.Value._mapContainer;
        obstacle.localRotation = randomRotation;
        return obstacle;
     }

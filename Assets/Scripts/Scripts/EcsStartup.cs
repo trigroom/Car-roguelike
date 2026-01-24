@@ -31,13 +31,13 @@ public class EcsStartUp : MonoBehaviour
 #endif
 
             .Add(new GameStatesSystem()).Add(new InventorySystem()).Add(new MovementSystem()).Add(new PlayerInputSystem())
-            .Add(new EnemyInputSystem()).Add(new AttackSystem()).Add(new DestroyDontUsedEntitesSystem());
+            .DelHere<DestroyEntityEvent>().Add(new EnemyInputSystem()).Add(new AttackSystem()).Add(new DestroyDontUsedEntitesSystem());
 
         if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
             _systemsUpdate.Add(new TutorialSystem());
         }
 
-        _systemsUpdate.DelHere<DestroyEntityEvent>().DelHere<ConstructMeleeCellEvent>().DelHere<StartRoundEvent>().DelHere<EndRoundEvent>()
+        _systemsUpdate.DelHere<ConstructMeleeCellEvent>().DelHere<StartRoundEvent>().DelHere<EndRoundEvent>()
             .Inject(_sceneService).Inject(_betweenSceneService).Init();
         _systemsLateUpdate.Add(new ForwardWheelsRotateSystem()).Inject(_sceneService).Inject(_betweenSceneService).Init();
     }
