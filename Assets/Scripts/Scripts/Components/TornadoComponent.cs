@@ -1,4 +1,5 @@
 
+   using DG.Tweening;
    using UnityEngine;
 
    public struct TornadoComponent {
@@ -9,6 +10,6 @@
        public float TornadoSpeed;
        public bool TargetSpeedIsChanged;
        public float TornadoTargetSpeed;
-       public float ChangeToTargetSpeedTime;
+       public Tween CounterTween;
        public EffectType EffectType;
    }

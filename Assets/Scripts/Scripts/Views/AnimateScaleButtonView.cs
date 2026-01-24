@@ -33,14 +33,14 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
         _currentTween?.Kill();
         
         _currentTween = _rectTransform.DOScale(normalScale*hoverScale, duration)
-            .SetEase(easeType);
+            .SetEase(easeType).SetUpdate(UpdateType.Normal, true);
     }
 
     public void OnPointerDown(PointerEventData eventData) {
         if (targetButton && !targetButton.enabled) return;
         _currentTween?.Kill();
 
-        _currentTween = _rectTransform.DOScale(normalScale * clickScale, duration * 0.5f).SetEase(Ease.OutQuad);
+        _currentTween = _rectTransform.DOScale(normalScale * clickScale, duration * 0.5f).SetEase(Ease.OutQuad).SetUpdate(UpdateType.Normal, true);
     }
     
     public void OnPointerExit(PointerEventData eventData)
@@ -48,7 +48,7 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
         _currentTween?.Kill();
         
         _currentTween = _rectTransform.DOScale(normalScale, duration)
-            .SetEase(easeType);
+            .SetEase(easeType).SetUpdate(UpdateType.Normal, true);
     }
     
     public void ResetScale()

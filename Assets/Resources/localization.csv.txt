@@ -240,3 +240,111 @@ Frost tornado,Frost Tornado,Ледяной торнадо,Eistornado,Tornado de 
 Enemy cars don't destroy,Enemy cars survive driver/engine loss,Вражеские машины не уничтожаются после потери водителя/двигателя,Gegnerautos überleben Fahrer/Motor Verlust,Coches enemigos sobreviven pérdida conductor/motor,Voitures ennemies survivent perte conducteur/moteur
 Get all,Get all,Получить всё,Alle erhalten,Obtener todo,Obtenir tout
 Circular saw,Circular Saw,Циркулярная пила,Kreissäge,Sierra circular,Scie circulaire
+Buck,Buck,Бак,Buck,Buck,Buck
+Kyle,Kyle,Кайл,Kyle,Kyle,Kyle
+Jack,Jack,Джек,Jack,Jack,Jack
+Travis,Travis,Тревис,Travis,Travis,Travis
+Duke,Duke,Дюк,Duke,Duke,Duke
+Billy,Billy,Билли,Billy,Billy,Billy
+Jake,Jake,Джейк,Jake,Jake,Jake
+Clint,Clint,Клинт,Clint,Clint,Clint
+Jedd,Jedd,Джедд,Jedd,Jedd,Jedd
+Darryl,Darryl,Дэррил,Darryl,Darryl,Darryl
+Cody,Cody,Коди,Cody,Cody,Cody
+Shane,Shane,Шейн,Shane,Shane,Shane
+Boyd,Boyd,Бойд,Boyd,Boyd,Boyd
+Floyd,Floyd,Флойд,Floyd,Floyd,Floyd
+Garrett,Garrett,Гарретт,Garrett,Garrett,Garrett
+Lou,Lou,Лу,Lou,Lou,Lou
+Milo,Milo,Майло,Milo,Milo,Milo
+Otis,Otis,Отис,Otis,Otis,Otis
+Roscoe,Roscoe,Роско,Roscoe,Roscoe,Roscoe
+Jed,Jed,Джед,Jed,Jed,Jed
+Lyle,Lyle,Лайл,Lyle,Lyle,Lyle
+Wade,Wade,Уэйд,Wade,Wade,Wade
+Curtis,Curtis,Кертис,Curtis,Curtis,Curtis
+Russ,Russ,Расс,Russ,Russ,Russ
+Dallas,Dallas,Даллас,Dallas,Dallas,Dallas
+Elvis,Elvis,Элвис,Elvis,Elvis,Elvis
+Merle,Merle,Мерл,Merle,Merle,Merle
+Coyote,Coyote,Койот,Coyote,Coyote,Coyote
+Jared,Jared,Джаред,Jared,Jared,Jared
+Lance,Lance,Лэнс,Lance,Lance,Lance
+Cletus,Cletus,Клетус,Cletus,Cletus,Cletus
+Bo,Bo,Бо,Bo,Bo,Bo
+Waylon,Waylon,Уэйлон,Waylon,Waylon,Waylon
+Hank,Hank,Хэнк,Hank,Hank,Hank
+Jethro,Jethro,Джетро,Jethro,Jethro,Jethro
+Beau,Beau,Бо,Beau,Beau,Beau
+Viper,Viper,Гадюка,Viper,Víbora,Vipère
+Coyote,Coyote,Койот,Kojote,Coyote,Coyote
+Buzzard,Buzzard,Стервятник,Bussard,Buitre,Busard
+Mole,Mole,Крот,Maulwurf,Topo,Taupe
+Hound,Hound,Гончая,Jagdhund,Sabueso,Chien de chasse
+Scorpion,Scorpion,Скорпион,Skorpion,Escorpión,Scorpion
+Jackal,Jackal,Шакал,Schakal,Chacal,Chacal
+Badger,Badger,Барсук,Dachs,Tejón,Blaireau
+Vulture,Vulture,Гриф,Geier,Buitre,Vautour
+Roach,Roach,Таракан,Schabe,Cucaracha,Cafard
+Red,Red,Рыжий,Rot,Rojo,Rouge
+Baldy,Baldy,Лысый,Glatzkopf,Calvo,Chauve
+Scar,Scar,Шрам,Narbe,Cicatriz,Balafre
+Beardo,Beardo,Бородач,Bartträger,Barbudo,Barbu
+Chick,Chick,Цыплёнок,Küken,Pollito,Poussin
+Slick,Slick,Ловкач,Schlitzohr,Listo,Rusé
+Deadeye,Deadeye,Меткий,Scharfschütze,Ojo Certero,Tireur d'élite
+Tooth,Tooth,Зуб,Zahn,Diente,Dent
+Fang,Fang,Клык,Fang,Colmillo,Croc
+Crutch,Crutch,Костыль,Krücke,Muleta,Béquille
+Stitches,Stitches,Швы,Stiche,Puntos,Ponts de suture
+Sledge,Sledge,Кувалда,Vorschlaghammer,Almádena,Masse
+Dynamite,Dynamite,Динамит,Dynamit,Dinamita,Dynamite
+Gas-Wrench,Gas-Wrench,Газовый ключ,Gasschlüssel,Llave gas,Clé à gaz
+Poker,Poker,Кочегар,Poker,Atizador,Tisonnier
+Chainsaw,Chainsaw,Бензопила,Kettensäge,Motosierra,Tronçonneuse
+Solder,Solder,Паяльник,Lötkolben,Soldador,Soudure
+Hammer,Hammer,Молот,Hammer,Martillo,Marteau
+Wrench,Wrench,Гаечный ключ,Schraubenschlüssel,Llave inglese,Clé anglaise
+Torch,Torch,Горелка,Schweißbrenner,Soplete,Torche
+Greaser,Greaser,Смазчик,Schmierer,Engrasador,Graisseur
+Preacher,Preacher,Проповедник,Prediker,Predicador,Prédicateur
+Doc,Doc,Док,Doktor,Doc,Doc
+Liar,Liar,Лжец,Lügner,Mentiroso,Menteur
+Quiet,Quiet,Тихий,Leise,Quieto,Silencieux
+Grouch,Grouch,Ворчун,Mürrisch,Gruñón,Grincheux
+Sneak,Sneak,Подкрадывающийся,Schleicher,Furtivo,Furtif
+Hustler,Hustler,Аферист,Schwindler,Estafador,Arnaqueur
+Joker,Joker,Шутник,Joker,Bromista,Blagueur
+Lucky,Lucky,Везунчик,Glückspilz,Afortunado,Chanceux
+Boomer,Boomer,Бум,Boomer,Boomer,Boomer
+Stranger,Stranger,Незнакомец,Fremder,Extraño,Étranger
+Rook,Rook,Новичок,Neuling,Novato,Débutant
+Rusty,Rusty,Ржавый,Rostig,Oxidado,Rouillé
+Diesel,Diesel,Дизель,Diesel,Diesel,Diesel
+Exhaust,Exhaust,Выхлоп,Auspuff,Exhaust,Echappement
+Propane,Propane,Пропан,Propan,Propano,Propane
+Spark,Spark,Искра,Funke,Chispa,Étincelle
+Tar,Tar,Дёготь,Teer,Alquitrán,Goudron
+Dust,Dust,Пыль,Staub,Polvo,Poussière
+Fume,Fume,Дым,Dampf,Humos,Fumée
+Scale,Scale,Накипь,Kesselstein,Incrustación,Tartre
+Radiator,Radiator,Радиатор,Kühler,Radiador,Radiateur
+Crusher,Crusher,Дробильщик,Quetscher,Triturador,Concasseur
+Claw,Claw,Коготь,Klaue,Garra,Griffe
+Grip,Grip,Хватка,Griff,Agarre,Prise
+Nightmare,Nightmare,Кошмар,Alptraum,Pesadilla,Cauchemar
+Ghost,Ghost,Привидение,Gespenst,Fantasma,Fantôme
+Raven,Raven,Ворон,Rabe,Cuervo,Corbeau
+Spider,Spider,Паук,Spinne,Araignée,Araignée
+Hawk,Hawk,Ястреб,Falke,Halcón,Faucon
+Thunder,Thunder,Гром,Donner,Trueno,Tonnerre
+Reaper,Reaper,Жнец,Schnitter,Segador,Faucheur
+Bet on left,BET ON LEFT,СТАВКА НА ЛЕВОГО,WETTE AUF LINKS,APOSTAR IZQUIERDA,PARIER GAUCHE
+Bet on right,BET ON RIGHT,СТАВКА НА ПРАВОГО,WETTE AUF RECHTS,APOSTAR DERECHA,PARIER DROITE
+Current money,Money,Деньги,Geld,Dinero,Argent
+Bet,Bet,Ставка,Wette,Apuesta,Pari
+Click to continue,Click to continue,Кликните чтобы продолжить,Klicken zum Fortsetzen,Haz clic para continuar,Cliquer pour continuer
+Draw,Draw,Ничья,Unentschieden,Empate,Match nul
+win,Won,Победил,Gewonnen,Ganó,A gagné
+lose,Lost,Проиграл,Verloren,Perdió,A perdu
+RoundVersusBattle,Bet on your favorite and get a chance to win,Сделай ставку на своего фаворита и получи шанс заработать,Wette auf deinen Favoriten und gewinne mit etwas Glück,Apuesta por tu favorito y ten la oportunidad de ganar,Parie sur ton favori et a une chance de gagner

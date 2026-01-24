@@ -32,9 +32,11 @@ public class MovementSystem : IEcsRunSystem {
             
             foreach (var tornadoEntity in _tornadoComponentsFilter.Value) {
                 ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
+                tornadoCmp.CounterTween.Kill();
                _sceneData.Value.DestroyGameobject(tornadoCmp.TornadoAnimator.transform);
                _tornadoComponentsPool.Value.Del(tornadoEntity);
             }
+            return;
         }
 
         var deltaTime = Time.deltaTime;
@@ -52,21 +54,25 @@ public class MovementSystem : IEcsRunSystem {
             
                 tornadoCmp.TornadoAnimator.SetBool("isEnd", true);
                 tornadoCmp.TornadoTargetSpeed = 0;
-                DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
+                tornadoCmp.CounterTween.Kill();
+                tornadoCmp.CounterTween = DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
                         x => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed = x, tornadoCmp.TornadoTargetSpeed, 0.5f)
                     .SetEase(Ease.InOutQuad);
             }
             var tornadoPos = tornadoCmp.TornadoAnimator.transform.position;
             if (tornadoCmp.TimeToChangeDirection <= 0 || tornadoPos.x > 110 || tornadoPos.x < -110 || tornadoPos.y > 110 ||
                 tornadoPos.y < -110) {
-                var movementArray = _movementComponentsFilter.Value.GetRawEntities();
-                var randomMovementEntity = movementArray[Random.Range(0, movementArray.Length)];
+                var movementArray = _movementComponentsFilter.Value;
+                var randomMovementEntity = movementArray.GetRawEntities()[Random.Range(1, movementArray.GetEntitiesCount()+1)];
+                
+              //  Debug.Log(" move target tornado "+ randomMovementEntity);
                 var moveCmp = _movementComponentsPool.Value.Get(randomMovementEntity);
                 tornadoCmp.TornadoDirection = (moveCmp.PreviousPosition - (Vector2)tornadoPos).normalized;
                 tornadoCmp.TimeToChangeDirection = Random.Range(3f, 9f);
 
                 tornadoCmp.TornadoTargetSpeed = Random.Range(3f, 6f);
-                DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
+                tornadoCmp.CounterTween.Kill();
+                tornadoCmp.CounterTween= DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
                         x => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed = x, tornadoCmp.TornadoTargetSpeed, 1)
                     .SetEase(Ease.InOutQuad);
                 tornadoCmp.TargetSpeedIsChanged = false;
@@ -74,7 +80,8 @@ public class MovementSystem : IEcsRunSystem {
             else if (tornadoCmp.TimeToChangeDirection <= 1 && !tornadoCmp.TargetSpeedIsChanged) {
                 tornadoCmp.TargetSpeedIsChanged = true;
                 tornadoCmp.TornadoTargetSpeed = 0;
-                DOTween.To(
+                tornadoCmp.CounterTween.Kill();
+                tornadoCmp.CounterTween= DOTween.To(
                     () => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,          
                     x => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed = x,   
                     tornadoCmp.TornadoTargetSpeed,               

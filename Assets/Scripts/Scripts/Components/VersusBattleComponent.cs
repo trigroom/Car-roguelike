@@ -6,7 +6,8 @@
        public int RightOpponentEntity;
 
        public bool BetOnLeft;
-       public bool isCircularSawsSended;
+       public bool IsCircularSawsSended;
+       public bool IsBattleEnded;
        public CarPartInGameUIView[,] LeftCarPartInfoUIViewsGrid;
        public CarPartInGameUIView[,] LeftCarPartInfoUIViewsUpLevelGrid;
        

@@ -523,7 +523,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._gridMaskRect.gameObject.SetActive(true);
         _sceneData.Value._subGridTransform.SetSubGridSize(Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
             carCmp.CarPartContainerGroupsGrid.GetLength(1)) * 8/ _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x);
-        inventoryCmp.CurrentTween = DOTween.Sequence();
+        
+            inventoryCmp.CurrentTween = DOTween.Sequence();
 
         inventoryCmp.CurrentTween.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(cellSize, 0.3f)
             .SetEase(Ease.OutBack));
@@ -1789,32 +1790,39 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         bool isInventoryCell = _inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentDraggedCellEntity);
         if (isInventoryCell) {
             int curDraggedInventoryCell = _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).CellId;
-            Sequence returnSequence = DOTween.Sequence();
-            returnSequence.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(new Vector2(80, 80), 0.3f)
-                .SetEase(Ease.InBack));
-            returnSequence.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform
+         
+                inventoryCmp.CurrentTween = DOTween.Sequence();
+            // Sequence returnSequence = DOTween.Sequence();
+            inventoryCmp.CurrentTween.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform
+                .DOSizeDelta(new Vector2(80, 80), 0.3f).SetEase(Ease.InBack));
+            inventoryCmp.CurrentTween.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform
                 .DOMove(_sceneData.Value._inventoryUIView._inventoryCellViews[curDraggedInventoryCell].gameObject.transform.position, 0.3f)
                 .SetEase(Ease.InOutQuad));
-            returnSequence.OnComplete(() => {
+            inventoryCmp.CurrentTween.OnComplete(() => {
                 _sceneData.Value._inventoryUIView._draggedInventoryCell.gameObject.SetActive(false);
                 _sceneData.Value._gridMaskRect.gameObject.SetActive(false);
                 _sceneData.Value._inventoryUIView._inventoryCellViews[curDraggedInventoryCell].gameObject.SetActive(true);
+                _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentDraggedCellEntity = -1;
             });
         } else {
             int curDraggedShopCell = _shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).ShopButtonIndex;
-            Sequence returnSequence = DOTween.Sequence();
-            returnSequence.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(new Vector2(80, 80), 0.3f)
-                .SetEase(Ease.InBack));
-            returnSequence.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform
+           
+                inventoryCmp.CurrentTween = DOTween.Sequence();
+            //   Sequence returnSequence = DOTween.Sequence();
+            inventoryCmp.CurrentTween.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform
+                .DOSizeDelta(new Vector2(80, 80), 0.3f).SetEase(Ease.InBack));
+            inventoryCmp.CurrentTween.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform
                 .DOMove(_sceneData.Value._shopUIView._buttonsShop[curDraggedShopCell].gameObject.transform.position, 0.3f)
                 .SetEase(Ease.InOutQuad));
-            returnSequence.OnComplete(() => {
+            inventoryCmp.CurrentTween.OnComplete(() => {
                 _sceneData.Value._inventoryUIView._draggedInventoryCell.gameObject.SetActive(false);
                 _sceneData.Value._gridMaskRect.gameObject.SetActive(false);
+                _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentDraggedCellEntity = -1;
             });
         }
+
         _sceneData.Value._subGridTransform.gameObject.SetActive(false);
-        inventoryCmp.CurrentDraggedCellEntity = -1;
+   //     inventoryCmp.CurrentDraggedCellEntity = -1;
         inventoryCmp.CurrentCellCarPart = null;
     }
 
@@ -2481,8 +2489,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void TakeItemFromInventory(int cellEntity) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        if(_moduleInventoryItemsPool.Value.Has(cellEntity))return;
-        Debug.Log("drag entity "+cellEntity);
+        if(_moduleInventoryItemsPool.Value.Has(cellEntity) || inventoryCmp.CurrentDraggedCellEntity != -1)return;
+       
         inventoryCmp.IsTryDraggedCell = true;
         inventoryCmp.CurrentCellCarPart = null;
         inventoryCmp.CurrentDraggedCellEntity = cellEntity;

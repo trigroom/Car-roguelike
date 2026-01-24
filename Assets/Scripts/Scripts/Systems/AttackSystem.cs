@@ -130,8 +130,16 @@ public enum AttackType {
                        thunderstormCmp.TimeToNextThunder = Random.Range(5, 15);
                     } else { 
                         thunderstormCmp.ExplosionIsSpawned = false;
-                        var needPosition = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MovableObjectRigidbody.transform
-                            .position;
+                        Vector3 needPosition;
+                        if (curGameCmp.CurrentRoundType == RoundType.VersusBattle) {
+                            int needEntity = Random.value > 0.5f
+                                ? _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LeftOpponentEntity
+                                : _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RightOpponentEntity;
+                            needPosition = _movementComponentsPool.Value.Get(needEntity).MovableObjectRigidbody.transform.position;
+                        } else
+                            needPosition = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MovableObjectRigidbody.transform
+                                .position;
+
                         Vector2 randomCircle = Random.insideUnitCircle * 15f;
 
                         if (randomCircle.magnitude < 2f)
@@ -1161,7 +1169,37 @@ public enum AttackType {
             }
 
             var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-            if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity) {
+            if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.VersusBattle) {
+                ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                var versusBattleView = _sceneService.Value._versusBattleView;
+
+                var downGrid = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
+                    ? versusBattleCmp.LeftCarPartInfoUIViewsGrid
+                    : versusBattleCmp.RightCarPartInfoUIViewsGrid;
+
+                var upGrid = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
+                    ? versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid
+                    : versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid;
+
+                foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
+                    if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.CarStuffContainer)
+                        downGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
+                            .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
+                    else {
+                        if (carPartConfig.PartType == CarPartType.Main) {
+                            var lampImage = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
+                                ? versusBattleView._leftVersusBattleParticipantInfo.LampLightImage
+                                : versusBattleView._rightVersusBattleParticipantInfo.LampLightImage;
+                            lampImage.DOKill();
+                            lampImage.DOColor(new Color(1, 0, 0, 0.6f), 0.45f)
+                                .OnComplete(() => lampImage?.DOColor(new Color(1, 0, 0, 0), 0.45f));
+                        }
+
+                        upGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
+                            .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
+                    }
+                }
+            } else if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity) {
                 foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
                     if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.CarStuffContainer)
                         inventoryCmp.CarPartInfoUIViewsGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
@@ -1177,38 +1215,7 @@ public enum AttackType {
                             .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
                     }
                 }
-            } else if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.VersusBattle) {
-                ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-                var versusBattleView = _sceneService.Value._versusBattleView;
-                
-                var downGrid = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
-                    ? versusBattleCmp.LeftCarPartInfoUIViewsGrid
-                    : versusBattleCmp.RightCarPartInfoUIViewsGrid;
-                
-                var upGrid = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
-                    ? versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid
-                    : versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid;
-
-          
-                foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
-                    if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.CarStuffContainer)
-                        downGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
-                            .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
-                    else {
-                        if (carPartConfig.PartType == CarPartType.Main) {
-                            var lampImage = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
-                                ? versusBattleView._leftVersusBattleParticipantInfo.LampLightImage
-                                : versusBattleView._rightVersusBattleParticipantInfo.LampLightImage;
-                            lampImage.DOKill();
-                            lampImage.DOColor(new Color(1, 0, 0, 0.6f), 0.45f).OnComplete(() =>
-                                lampImage?.DOColor(new Color(1, 0, 0, 0), 0.45f));
-                        }
-
-                        upGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
-                            .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
-                    }
-                }
-            }
+            } 
 
             if (carPartInfoCmp.CurrentHealth <= 0 && carPartCmp.CellCarPartsStuffViews != null) {
                 carPartInfoCmp.CurrentHealth = 0;
@@ -1604,7 +1611,7 @@ public enum AttackType {
             bool isEnemy = !_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Contains(carEntity);
             var containersList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
             var currentRoundType = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType;
-            var dontDestroyEnemyCar = currentRoundType != RoundType.None &&
+            var dontDestroyEnemyCar = currentRoundType != RoundType.None &&currentRoundType != RoundType.VersusBattle&&
                                       !_betweenScenesService.Value.GetMapDifficultyConfig().DestroyEnemyCarsAfterDeath && isEnemy;
             if (carCmp.CarPartContainerGroupsList.Count == 0 || !dontDestroyEnemyCar) {
                 foreach (var carPartEntity in containersList) {

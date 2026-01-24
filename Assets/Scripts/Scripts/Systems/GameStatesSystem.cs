@@ -214,25 +214,34 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             
             case RoundType.VersusBattle:
                 ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-                foreach (var needEntity in  _destroyEntityEventsFilter.Value) {
-                    
-                    versusBattleCmp.LeftOpponentEntity = versusBattleCmp.LeftOpponentEntity == needEntity?0:versusBattleCmp.LeftOpponentEntity;
-                    versusBattleCmp.RightOpponentEntity = versusBattleCmp.RightOpponentEntity == needEntity?0:versusBattleCmp.RightOpponentEntity;
+
+                if (versusBattleCmp.IsBattleEnded) {
+                    if (Input.GetMouseButtonDown(0)) 
+                        CompleteVersusBattle();
+                    break;
                 }
-               
-               if(versusBattleCmp.LeftOpponentEntity == 0 ||versusBattleCmp.RightOpponentEntity == 0) 
-                   EndVersusBattle();
-                
-                curGameCmp.RoundTime += Time.deltaTime;  
+                foreach (var needEntity in _destroyEntityEventsFilter.Value) {
+                    versusBattleCmp.LeftOpponentEntity =
+                        versusBattleCmp.LeftOpponentEntity == needEntity ? 0 : versusBattleCmp.LeftOpponentEntity;
+                    versusBattleCmp.RightOpponentEntity =
+                        versusBattleCmp.RightOpponentEntity == needEntity ? 0 : versusBattleCmp.RightOpponentEntity;
+                }
+
+                if (versusBattleCmp.LeftOpponentEntity == 0 || versusBattleCmp.RightOpponentEntity == 0) {
+                    EndVersusBattle();
+                    break;
+                }
+                    
+
+                curGameCmp.RoundTime += Time.deltaTime;
                 var versusBattleView = _sceneService.Value._versusBattleView;
                 versusBattleView._timerText.text = ((int)curGameCmp.RoundTime).ToString();
-                if (curGameCmp.RoundTime > 25 && !versusBattleCmp.isCircularSawsSended) {
-                    //damage to all enemies car parts
-                 
-                    versusBattleView._circularSawLeft.transform.DOMoveX(-5,10);
-                    versusBattleView._circularSawRight.transform.DOMoveX(5,10);
-                    versusBattleCmp.isCircularSawsSended = true;
+                if (curGameCmp.RoundTime > 15 && !versusBattleCmp.IsCircularSawsSended) {
+                    versusBattleView._circularSawLeft.transform.DOMoveX(-5, 20);
+                    versusBattleView._circularSawRight.transform.DOMoveX(5, 20);
+                    versusBattleCmp.IsCircularSawsSended = true;
                 }
+
                 break;
         }
 
@@ -575,6 +584,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void ChangeRoundInfo() {
         if (!CanStartRound()) return;
+        _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentDraggedCellEntity = -1;
         _sceneService.Value._mapUIView.gameObject.SetActive(true);
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
@@ -583,11 +593,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             currentSupportRoundTypes.Remove(RoundType.Task);
         if (_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount < 5) 
             currentSupportRoundTypes.Remove(RoundType.VersusBattle);
-        
-        
-        
-        currentSupportRoundTypes = new List<RoundType>{RoundType.VersusBattle};
-      
         
         (var randomRounds, int moneyMultiplayerRound) =
             curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount - 1
@@ -682,6 +687,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             case RoundType.TeammateForSupport:
                 descriptionText.text = GetLocalization("RoundTeammateForSupport");
                 break;
+            case RoundType.VersusBattle:
+                descriptionText.text = GetLocalization("RoundVersusBattle");
+                break;
         }
     }
     
@@ -772,6 +780,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._mapContainer.gameObject.SetActive(false);
         versusBattleView._betContainer.gameObject.SetActive(true);
         versusBattleView._speedGameSpeedBoostText.text = ">";
+
+        versusBattleView._rightVersusBattleParticipantInfo.NameText.text =
+            $"{GetLocalization(VersusBattlesNames[Random.Range(0, VersusBattlesNames.Length)])} {GetLocalization(VersusBattlesSurnames[Random.Range(0, VersusBattlesSurnames.Length)])}";
+        versusBattleView._leftVersusBattleParticipantInfo.NameText.text =
+            $"{GetLocalization(VersusBattlesNames[Random.Range(0, VersusBattlesNames.Length)])} {GetLocalization(VersusBattlesSurnames[Random.Range(0, VersusBattlesSurnames.Length)])}";
         
         versusBattleView._circularSawLeft.transform.position = new Vector3(-50, 0, 0);
         versusBattleView._circularSawRight.transform.position = new Vector3(50, 0, 0);
@@ -782,7 +795,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         Time.timeScale = 0;
         _sceneService.Value.mainCamera.transform.position = new Vector3(0,0,-10);
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        versusBattleCmp.isCircularSawsSended = false;
+        versusBattleCmp.IsCircularSawsSended = false;
         versusBattleCmp.CurrentBet = 0;
         ChangeBet(5);
     }
@@ -800,40 +813,87 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void EndVersusBattle() {
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-
+       
         bool leftIsDead = versusBattleCmp.LeftOpponentEntity == 0;
         bool rightIsDead = versusBattleCmp.RightOpponentEntity == 0;
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        versusBattleView._circularSawLeft.DOKill();
+        versusBattleView._circularSawRight.DOKill();
+       
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
-        _sceneService.Value._versusBattleView._circularSawLeft.DOKill();
-        _sceneService.Value._versusBattleView._circularSawRight.DOKill();
+        versusBattleCmp.IsBattleEnded = true;
 
-        ClearHealthUI(versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid, versusBattleCmp.LeftCarPartInfoUIViewsGrid);
-        ClearHealthUI(versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid, versusBattleCmp.RightCarPartInfoUIViewsGrid);
+        curGameCmp.LocalTimeScale = 0;
+       Time.timeScale = curGameCmp.LocalTimeScale;
 
+        if (leftIsDead && rightIsDead) {
+            versusBattleView._timerText.text =  GetLocalization("Draw");
+            return;
+        }
+
+        string needBetText;
+        needBetText = versusBattleCmp.BetOnLeft
+            ? versusBattleView._leftVersusBattleParticipantInfo.NameText.text
+            : versusBattleView._rightVersusBattleParticipantInfo.NameText.text;
+
+        if ((versusBattleCmp.BetOnLeft && leftIsDead) || (!versusBattleCmp.BetOnLeft && rightIsDead)) {
+            versusBattleCmp.CurrentBet *= -1;
+
+            needBetText += $" {GetLocalization("lose")}!\n";
+        } else {
+            DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += versusBattleCmp.CurrentBet;
+            needBetText += $" {GetLocalization("win")}!\n";
+        }
+
+        needBetText += versusBattleCmp.CurrentBet > 0 ? "+" : "";
+        needBetText += $"{versusBattleCmp.CurrentBet}$\n {GetLocalization("Click to continue")}";
+
+        playerCurrencyCmp.MoneyCount += versusBattleCmp.CurrentBet;
+        versusBattleView._timerText.text = needBetText;
+        SetMoneyText();
+    }
+
+    private string[] VersusBattlesNames = new[] {
+        "Buck", "Kyle", "Jack", "Travis", "Duke", "Billy", "Jake", "Clint", "Jedd", "Darryl", "Cody", "Shane", "Boyd", "Floyd", "Garrett",
+        "Lou", "Milo", "Otis", "Roscoe", "Jed", "Lyle", "Wade", "Curtis", "Russ", "Dallas", "Elvis", "Merle", "Coyote", "Jared", "Lance",
+        "Cletus", "Bo", "Waylon", "Hank", "Jethro", "Beau"
+    };
+
+    private string[] VersusBattlesSurnames = new[] {
+        "Viper", "Coyote", "Buzzard", "Mole", "Hound", "Scorpion", "Jackal", "Badger", "Vulture", "Roach",
+       
+        "Red", "Baldy", "Scar", "Beardo", "Chick", "Slick", "Deadeye", "Tooth", "Fang", "Crutch", "Stitches",
+       
+        "Sledge", "Dynamite", "Gas-Wrench", "Poker", "Chainsaw", "Solder", "Hammer", "Wrench", "Torch", "Greaser",
+       
+        "Preacher", "Doc", "Liar", "Quiet", "Grouch", "Sneak", "Hustler", "Joker", "Lucky", "Boomer", "Stranger", "Rook",
+        
+        "Rusty", "Diesel", "Exhaust", "Propane", "Spark", "Tar", "Dust", "Fume", "Scale", "Radiator",
+       
+        "Crusher", "Claw", "Grip", "Nightmare", "Ghost", "Raven", "Spider", "Hawk", "Thunder", "Reaper"
+    };
+    private void CompleteVersusBattle() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+
+        var versusBattleView = _sceneService.Value._versusBattleView;
+
+        versusBattleView.gameObject.SetActive(false);
+        ChangeInventoryState(true);
+        versusBattleView._versusMapContainer.gameObject.SetActive(false);
+        _sceneService.Value._mapContainer.gameObject.SetActive(true);
+
+        curGameCmp.CurrentRoundType = RoundType.None;
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
             _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextTornado = 0;
 
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        ClearHealthUI(versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid, versusBattleCmp.LeftCarPartInfoUIViewsGrid);
+        ClearHealthUI(versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid, versusBattleCmp.RightCarPartInfoUIViewsGrid);
+        versusBattleCmp.IsBattleEnded = false;
         curGameCmp.LocalTimeScale = 1;
         Time.timeScale = curGameCmp.LocalTimeScale;
-        curGameCmp.CurrentRoundType = RoundType.None;
-        _sceneService.Value._versusBattleView.gameObject.SetActive(false);
-        ChangeInventoryState(true);
-        _sceneService.Value._versusBattleView._versusMapContainer.gameObject.SetActive(false);
-        _sceneService.Value._mapContainer.gameObject.SetActive(true);
-        
-        if (leftIsDead && rightIsDead)
-            return;
-
-        if ((versusBattleCmp.BetOnLeft && leftIsDead) || (!versusBattleCmp.BetOnLeft && rightIsDead))
-            versusBattleCmp.CurrentBet *= -1;
-        else
-            DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += versusBattleCmp.CurrentBet;
-        
-        playerCurrencyCmp.MoneyCount += versusBattleCmp.CurrentBet;
-
-        SetMoneyText();
     }
     
     private void ClearHealthUI(CarPartInGameUIView[,] upHealthUI,  CarPartInGameUIView[,] downHealthUI) {
@@ -924,8 +984,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         versusBattleComponent.CurrentBet += count;
 
         versusBattleComponent.CurrentBet = Mathf.Clamp(versusBattleComponent.CurrentBet, 5, (int)playerCurrencyCmp.MoneyCount);
-        _sceneService.Value._versusBattleView._betText.text = $"Current money: {playerCurrencyCmp.MoneyCount}$ \n" +
-                                                              $"Bet: {versusBattleComponent.CurrentBet}$";       
+        _sceneService.Value._versusBattleView._betText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
+                                                              $"{GetLocalization("Bet")}: {versusBattleComponent.CurrentBet}$";       
     }
 
     private void SetupVersusBattleUI() {
