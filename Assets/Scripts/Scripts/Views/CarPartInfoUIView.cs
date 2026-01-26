@@ -256,6 +256,7 @@ public class CarPartInfoUIView : MonoBehaviour
                 var maxWeight = wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(needLevel)*maxWeightMultiplier;
                 _descriptionText.text += $"\n{GetLocalization("Car max weight")}: ";
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{maxWeight}</color>" : maxWeight;
+                _descriptionText.text +=$"\n{GetLocalization("Stability radius")}:{wheelConfig.StabilityRadius} {GetLocalization("m")}";
             }
         }
     }

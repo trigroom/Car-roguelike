@@ -37,3 +37,5 @@ MonoBehaviour:
   - {x: 2, y: 0}
   - {x: -2, y: 0}
   MaxWeight: 400
+  CanBeMonoWheel: 0
+  StabilityRadius: 3

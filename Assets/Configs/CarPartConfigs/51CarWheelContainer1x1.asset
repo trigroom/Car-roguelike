@@ -29,3 +29,5 @@ MonoBehaviour:
   WheelsPositions:
   - {x: 0, y: 0}
   MaxWeight: 140
+  CanBeMonoWheel: 0
+  StabilityRadius: 2

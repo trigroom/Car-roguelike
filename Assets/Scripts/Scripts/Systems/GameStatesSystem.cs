@@ -584,7 +584,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void ChangeRoundInfo() {
         if (!CanStartRound()) return;
-        _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentDraggedCellEntity = -1;
+       // _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentDraggedCellEntity = -1;
         _sceneService.Value._mapUIView.gameObject.SetActive(true);
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
@@ -1527,12 +1527,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         bool mainPartIsPlaced = MainPartIsPlaced();
         bool canUseThisCarPartContainers = CanUseThisCarPartContainers();
-        if (!canUseThisCarPartContainers)
+        bool carIsStable = CheckAllCarContainersForStability();
+        if (!canUseThisCarPartContainers || !carIsStable)
             _sceneService.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!",false);
         else if (!mainPartIsPlaced)
             _sceneService.Value.PlayWarningAnimation(GetLocalization("Place the engine and driver's cabin on the car") + "!",false);
 
-        if (mainPartIsPlaced && canUseThisCarPartContainers) return true;
+        if (mainPartIsPlaced && canUseThisCarPartContainers && carIsStable) return true;
         return false;
     }
     
@@ -1545,12 +1546,55 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartCmp.CarPartId);
             if (carPartConfig.PartType == CarPartType.WheelsContainer) {
                 wheelsCount++;
+                
                 Vector2Int edgePoint = GridUtils.GetEdgePointFromCarPart(carPartContainer.Value);
                 Vector2Int partSize = GridUtils.GetCarPartSize(carPartConfig);
+                if(_sceneService.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).CanBeMonoWheel)
+                    return true;
                 if (wheelsCount == 1) {
                     lastWheelMinMaxY = new Vector2Int(edgePoint.y, edgePoint.y + partSize.y - 1);
                 } else if( lastWheelMinMaxY.x > (edgePoint.y + partSize.y - 1) || lastWheelMinMaxY.y < edgePoint.y) {
                     return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    
+     private bool CheckAllCarContainersForStability() {
+        List<Vector2Int> needCells = new List<Vector2Int>();
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRedactedCarEntity);
+        foreach (var carPart in carCmp.CarPartContainerGroupsList) {
+            var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
+            if (_sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.CarStuffContainer) 
+                needCells.AddRange(carPart.Value);
+            
+        }
+        
+        return CheckCellsForStability(needCells);
+    }
+
+    private bool CheckCellsForStability(List<Vector2Int> needCells) {
+        List<Vector2Int> cellsToCheck = needCells.ToList();
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRedactedCarEntity);
+        foreach (var carPart in carCmp.CarPartContainerGroupsList) {
+            var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
+            if (_sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.WheelsContainer) {
+                int checkRadius = _sceneService.Value.GetWheelContainerFromCarPart(carPartInfoCmp.CarPartId).StabilityRadius;
+                foreach (var wheelCell in carPart.Value) {
+                    for (int i = 0; i < cellsToCheck.Count; i++) {
+                        if (Mathf.Abs(wheelCell.x - cellsToCheck[i].x) <= checkRadius &&
+                            Mathf.Abs(wheelCell.y - cellsToCheck[i].y) <= checkRadius) {
+                            
+                            cellsToCheck.RemoveAt(i);
+                            if (cellsToCheck.Count == 0) 
+                                return true;
+                            
+
+                            i--;
+                        }
+                    }
                 }
             }
         }

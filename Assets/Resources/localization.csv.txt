@@ -348,3 +348,4 @@ Draw,Draw,Ничья,Unentschieden,Empate,Match nul
 win,Won,Победил,Gewonnen,Ganó,A gagné
 lose,Lost,Проиграл,Verloren,Perdió,A perdu
 RoundVersusBattle,Bet on your favorite and get a chance to win,Сделай ставку на своего фаворита и получи шанс заработать,Wette auf deinen Favoriten und gewinne mit etwas Glück,Apuesta por tu favorito y ten la oportunidad de ganar,Parie sur ton favori et a une chance de gagner
+Stability radius,Wheel Support Radius,Радиус поддержки колёс,Radstützradius,Radio soporte ruedas,Rayon support roues
