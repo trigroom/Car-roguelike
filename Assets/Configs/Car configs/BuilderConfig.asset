@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 265eabbea3a2efd40817b800970ff56b, type: 3}
+  m_Name: BuilderConfig
+  m_EditorClassIdentifier: 
+  <CarId>k__BackingField: 5
+  <CarName>k__BackingField: Builder
+  <StartCarParts>k__BackingField: 4d000000560000005700000052000000
+  "<Fuel\u0421onsumption>k__BackingField": 0.55
+  "<AccelerationFuel\u0421onsumption>k__BackingField": 0.75
+  <RotateSpeed>k__BackingField: 75
+  <BoostSpeedMultiplayer>k__BackingField: 20
+  <DefaultMaxSpeed>k__BackingField: 40
+  <Acceleration>k__BackingField: 17
+  <Deceleration>k__BackingField: 25
+  <DefaultMaxFuel>k__BackingField: 275
+  CarPartForLevel:
+    _serializedList:
+    - Key: 2
+      Value: 4f000000
+    - Key: 3
+      Value: 4e000000
+    - Key: 4
+      Value: 4e000000
+    - Key: 5
+      Value: 53000000
+    - Key: 6
+      Value: 540000004d000000
+    - Key: 8
+      Value: 55000000
+    - Key: 10
+      Value: 50000000
+    - Key: 12
+      Value: 51000000
+  <CarUpgradeCost>k__BackingField: 23

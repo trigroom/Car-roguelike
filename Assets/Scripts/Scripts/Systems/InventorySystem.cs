@@ -233,6 +233,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (_inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentDraggedCellEntity))
                     StartDragInventoryCell(ref inventoryCmp);
                 else {
+                    if(_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop)
+                        return;
                     StartDragShopCell(ref inventoryCmp);
                 }
 
@@ -443,11 +445,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         int inventoryPartIndex = carPartId;
         //  inventoryView._inventoryCellViews[inventoryCmp.CurrentDraggedCellEntity].gameObject.SetActive(false);
         var partInfo = _sceneData.Value._carStuffListsConfig.CarPartConfigs[inventoryPartIndex];
-        if ((partInfo.PartType == CarPartType.CarStuffContainer || partInfo.PartType == CarPartType.WheelsContainer) ==
+       /* if ((partInfo.PartType == CarPartType.CarStuffContainer || partInfo.PartType == CarPartType.WheelsContainer) ==
             inventoryCmp.IsCarPartsRedactorMode) {
             AnimateChangeModeButton();
             return;
-        }
+        }*/
 
         inventoryCmp.StartOffsetFromCell = GridUtils.GetNormalizedMouseOffset(_sceneData.Value._shopUIView
             ._buttonsShop[_shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).ShopButtonIndex].ItemSprite.rectTransform);

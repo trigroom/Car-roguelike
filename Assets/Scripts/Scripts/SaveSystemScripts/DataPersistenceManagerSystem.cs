@@ -39,6 +39,7 @@ public class DataPersistenceManagerSystem : MonoBehaviour
                 _gameData.CarPartsUnlocked[achievement.rewardCount] = false;
             else if (achievement.rewardType == AchievementRewardType.Module)
                 _gameData.ModulesUnlocked[achievement.rewardCount] = false;
+            Debug.Log(achievement.rewardCount);
         }
 
         foreach (var shopItem in BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs) {
@@ -53,18 +54,26 @@ public class DataPersistenceManagerSystem : MonoBehaviour
     }
 
     public void LoadGame() {
+        bool isTestProgressReload = false;
+
         _gameData = _dataHandler.Load();
-        
-      //  _gameData = null;
-        
+        if (isTestProgressReload)
+            _gameData = null;
+
         if (_gameData == null) {
             NewGame();
         }
 
-       // _gameData.TutorialIsCompleted = true;
-       // _gameData.LevelRounds[0] = 5;
-     //   _gameData.LevelRounds[1] = 5;
-     //  SaveGame();
+        if (isTestProgressReload) {
+            _gameData.TutorialIsCompleted = true;
+            _gameData.LevelRounds[0] = 5;
+            _gameData.LevelRounds[1] = 5;
+            _gameData.CarsUnlocked[5] = true;
+            _gameData.CarsUnlocked[4] = true;
+            _gameData.CarsUnlocked[3] = true;
+            _gameData.CarsUnlocked[2] = true;
+            SaveGame();
+        }
     }
 
     public enum SavePriority {

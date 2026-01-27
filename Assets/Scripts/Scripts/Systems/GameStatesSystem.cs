@@ -696,10 +696,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void StartCurrentRoundType(RoundType roundType,PointerEventData data) {
         
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        if (shopCmp.isModulesShop) {
-            _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
+        if (shopCmp.isModulesShop)
             _sceneService.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
-        }
+        _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
         shopCmp.isModulesShop = false;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var button in curGameCmp.RoundButtons) {
