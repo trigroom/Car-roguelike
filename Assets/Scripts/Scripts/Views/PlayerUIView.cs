@@ -23,4 +23,6 @@ public class PlayerUIView : MonoBehaviour
     public Image _lampLightImage { get; private set; }
     [field: SerializeField]
         public Image _fuelLampLightImage { get; private set; }
+    [field: SerializeField]
+    public Image _batteryImage { get; private set; }
 }

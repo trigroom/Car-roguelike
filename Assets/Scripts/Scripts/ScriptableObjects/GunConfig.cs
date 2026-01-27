@@ -29,6 +29,7 @@ public class GunConfig : CarPartConfig
     public float BreakingThroughDamageFalloff;
     public float CarRecoil;
        public float ProjectileLifeTime;
+       public float ElectricityConsumption;
 }
 
 public enum MissleType {

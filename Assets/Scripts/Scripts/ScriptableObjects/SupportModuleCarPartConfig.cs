@@ -15,5 +15,7 @@ public enum SupportModuleType {
  Ammo,
  Money,
  FireExtinguisher,
- Heater
+ Heater,
+ Battery,
+ ElectricGenerator
 }

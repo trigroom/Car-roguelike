@@ -288,7 +288,7 @@ public class GridUtils : MonoBehaviour {
         float firstCountMultiplayer=1;
         float secondCountMultiplayer=1;
         switch (supportModuleType) {
-            case SupportModuleType.Fuel :
+            case SupportModuleType.Fuel or SupportModuleType.Battery:
                 firstCountMultiplayer+=level*0.13f;
                 break;
             case SupportModuleType.Money :
@@ -300,6 +300,14 @@ public class GridUtils : MonoBehaviour {
             case SupportModuleType.Turbine :
                 firstCountMultiplayer+=level*0.05f;
                 secondCountMultiplayer+=level*0.15f;
+                break;
+            case SupportModuleType.Heater :
+                firstCountMultiplayer+=level*0.1f;
+                secondCountMultiplayer-=level*0.05f;
+                break;
+            
+            case SupportModuleType.FireExtinguisher :
+                firstCountMultiplayer+=level*0.1f;
                 break;
         }
         

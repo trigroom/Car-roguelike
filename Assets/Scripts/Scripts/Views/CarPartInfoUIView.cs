@@ -300,6 +300,14 @@ public class CarPartInfoUIView : MonoBehaviour
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountFireExtinguisher}</color>" : needCountFireExtinguisher;
                 _descriptionText.text +=
                     $"\n{GetLocalization("Radius")}: {supportConfig.SecondCount}";
+                if (supportConfig.SecondCount != 0) {
+                    var needCountConsumption = supportConfig.SecondCount * secondMultiplayer;
+                     _descriptionText.text += $"\n{GetLocalization("Electricity consumption")}: ";
+                     _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountConsumption}</color>" : needCountConsumption;
+                }
+               
+                
+                
                 break;
         }
     }
@@ -332,6 +340,9 @@ public class CarPartInfoUIView : MonoBehaviour
                     $"\n{GetLocalization("Damage")}: {damage}/s \n{GetLocalization("Laser range")}: {gunConfig.BulletSpeed}" +
                     $"\nReload: {reloadSpeed:F2}s\n" +
                     $"{GetLocalization("Laser time")}: {gunConfig.AttackCouldown / attackCountdownMultiplayer / attackSpeedMultiplayer:F2}s";
+            
+            if (gunConfig.ElectricityConsumption != 0)
+                _descriptionText.text += $"\n{GetLocalization("Electricity consumption")}: {gunConfig.ElectricityConsumption} w/s";
         } else {
             if (isUpdate) {
                 if (gunConfig.BulletsCountInMagazine != 1)
@@ -364,11 +375,19 @@ public class CarPartInfoUIView : MonoBehaviour
 
             if (gunConfig.CarRecoil > 0)
                 _descriptionText.text += $"\n{GetLocalization("Car recoil")}: {gunConfig.CarRecoil}";
+            
+            if (gunConfig.ElectricityConsumption != 0)
+                _descriptionText.text += $"\n{GetLocalization("Electricity consumption")}: {gunConfig.ElectricityConsumption} w";
         }
 
         if (gunConfig.MaxRotateAngle != 0) {
             _descriptionText.text += $"\n{GetLocalization("Max rotate angle")}: {gunConfig.MaxRotateAngle}°" +
-                                     $"\n{GetLocalization("Rotate speed")}: {gunConfig.RotateSpeed}";
+                                     $"\n{GetLocalization("Rotate speed")}: {gunConfig.RotateSpeed}" +
+                                     $"\n{GetLocalization("Rotate electricity consumption")}: {gunConfig.RotateSpeed / 20f} w/s";
         }
+           
+
+       
+
     }
 }

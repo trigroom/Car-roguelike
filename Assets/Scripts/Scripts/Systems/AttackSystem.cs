@@ -190,28 +190,34 @@ public enum AttackType {
                 gunCmp.CurrentCountdown -= deltaTime;
 
                 if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0) {
-                    gunCmp.GunOnTargetTime -= deltaTime;
-                    if (gunCmp.GunOnTargetTime <= 0) {
-                        var needLayer =
-                            carPartCmp.MainEntity == _sceneService.Value.PlayerEntity ||
-                            !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
-                                ? LayerMask.GetMask("UpCarPartEnemy","PlayerDamageable")
-                                : LayerMask.GetMask("UpCarPart");
-                        RaycastHit2D hit = Physics2D.Raycast(gunCmp.FirePointTransform.position, gunCmp.FirePointTransform.up, 7, needLayer);
+                    ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
+                    if (fuelCmp.CurrentElectricity > 0) {
+                        fuelCmp.CurrentElectricity -= gunConfig.MaxRotateAngle * gunConfig.RotateSpeed / 100f * deltaTime;
 
-                        gunCmp.GunOnTarget = hit.collider != null;
+                        gunCmp.GunOnTargetTime -= deltaTime;
+                        if (gunCmp.GunOnTargetTime <= 0) {
+                            var needLayer =
+                                carPartCmp.MainEntity == _sceneService.Value.PlayerEntity ||
+                                !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy
+                                    ? LayerMask.GetMask("UpCarPartEnemy", "PlayerDamageable")
+                                    : LayerMask.GetMask("UpCarPart");
+                            RaycastHit2D hit = Physics2D.Raycast(gunCmp.FirePointTransform.position, gunCmp.FirePointTransform.up, 7,
+                                needLayer);
 
-                        gunCmp.GunOnTargetTime += 0.2f;
-                    }
+                            gunCmp.GunOnTarget = hit.collider != null;
 
-                    if (!gunCmp.GunOnTarget) {
-                        gunCmp.CurrentRotateDegrees += deltaTime * gunConfig.RotateSpeed;
+                            gunCmp.GunOnTargetTime += 0.2f;
+                        }
 
-                        float pingPongValue = Mathf.PingPong(gunCmp.CurrentRotateDegrees, 1f);
+                        if (!gunCmp.GunOnTarget) {
+                            gunCmp.CurrentRotateDegrees += deltaTime * gunConfig.RotateSpeed;
 
-                        float targetAngle = Mathf.Lerp(-gunConfig.MaxRotateAngle, gunConfig.MaxRotateAngle, pingPongValue);
+                            float pingPongValue = Mathf.PingPong(gunCmp.CurrentRotateDegrees, 1f);
 
-                        gunCmp.UpPartContainer.localEulerAngles = new Vector3(0, 0, targetAngle);
+                            float targetAngle = Mathf.Lerp(-gunConfig.MaxRotateAngle, gunConfig.MaxRotateAngle, pingPongValue);
+
+                            gunCmp.UpPartContainer.localEulerAngles = new Vector3(0, 0, targetAngle);
+                        }
                     }
                 }
 
@@ -219,6 +225,8 @@ public enum AttackType {
                     if (gunConfig.MissleType != MissleType.laser) {
                         SpawnProjectile(gunEntity);
                     } else {
+                        if (_fuelComponentsPool.Value.Get(carPartCmp.MainEntity).CurrentElectricity < 0) continue;
+
                         TrySpawnLaser(gunEntity);
                         if (gunCmp.CurrentCountdown < -gunCmp.CurrentMaxAttackCountdown) {
                             gunCmp.CurrentCountdown = gunCmp.CurrentReloadSpeed;
@@ -494,7 +502,7 @@ public enum AttackType {
             float laserRange = gunConfig.BulletSpeed;
             var firePoint = gunCmp.FirePointTransform;
             Vector2 worldFirePoint = firePoint.position;
-
+            _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).CurrentElectricity -= gunConfig.ElectricityConsumption * Time.deltaTime;
             Vector2 direction = firePoint.transform.up;
 
             LayerMask layerMask =
@@ -752,7 +760,18 @@ public enum AttackType {
             ref var gunCmp = ref _gunComponentsPool.Value.Get(gunEntity);
             var gunConfig = _sceneService.Value.GetGunFromCarPart(carPartInfoCmp.CarPartId);
            
-            if (carPartCmp.CellCarPartsStuffViews == null || gunCmp.FirePointTransform == null || !gunCmp.FirePointTransform.gameObject.activeInHierarchy) return;  
+            if (carPartCmp.CellCarPartsStuffViews == null || gunCmp.FirePointTransform == null || !gunCmp.FirePointTransform.gameObject.activeInHierarchy) return;
+
+            if (gunConfig.ElectricityConsumption != 0) {
+                ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
+                if (fuelCmp.CurrentElectricity < gunConfig.ElectricityConsumption) {
+                    gunCmp.CurrentCountdown += gunCmp.CurrentMaxAttackCountdown;
+                    return;
+                }
+
+                fuelCmp.CurrentElectricity -= gunConfig.ElectricityConsumption;
+            }
+           
             for (int i = 0; i < gunConfig.BulletsCount; i++) {
             
                 Vector2 worldFirePoint = gunCmp.FirePointTransform.position;

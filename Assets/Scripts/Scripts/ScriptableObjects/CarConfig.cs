@@ -28,7 +28,8 @@ public class CarConfig : ScriptableObject {
     public float Deceleration { get; private set; }
     [field: SerializeField]
     public float DefaultMaxFuel { get; private set; }
-    
+    [field: SerializeField]
+    public float DefaultMaxElectricity { get; private set; }
     [SerializedDictionary]
     public SerializedDictionary<int, List<int>> CarPartForLevel = new SerializedDictionary<int, List<int>>();
     [field: SerializeField]

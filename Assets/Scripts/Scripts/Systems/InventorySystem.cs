@@ -1656,7 +1656,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         
         float maxFuel = carConfig.DefaultMaxFuel * baseMaxFuelMultiplier;
         moveCmp.MaxBoostMoveSpeed = carConfig.BoostSpeedMultiplayer * baseAccelerationMultiplier;
-        float defaultFuelConsumption = carConfig.FuelСonsumption;
+        float defaultFuelConsumption = carConfig.FuelСonsumption; 
+        ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
+        fuelCmp.MaxElectricity = carConfig.DefaultMaxElectricity;
+        fuelCmp.ElectricityConsumption = 0;
         // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var carPart in carCmp.CarPartGroupsList.Keys) {
             var carPartCellCmp = _carPartInfoComponentsPool.Value.Get(carPart);
@@ -1672,9 +1675,38 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     defaultMaxCarSpeed += supportPartConfig.SecondCount*secondMultiplayer;
                     defaultFuelConsumption += supportPartConfig.FirstCount*firstMultiplayer;
                 }
+                else if(supportPartConfig.ModuleType == SupportModuleType.Battery)
+                    fuelCmp.MaxElectricity += supportPartConfig.FirstCount*firstMultiplayer;
+                else if(supportPartConfig.ModuleType == SupportModuleType.Heater)
+                    fuelCmp.ElectricityConsumption += supportPartConfig.SecondCount*secondMultiplayer;
+            }
+            else if (carPartConfig.PartType == CarPartType.Gun) {
+                var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartId);
+                (float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount,
+                        float reloadSpeedMultiplayer, float maxWeightMultiplier, float wheelRotateSpeedMultiplier, float magSizeMultiplier) =
+                    GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds);
+                (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) =
+                    GridUtils.GetGunLevelMultipliers(gunConfig, carPartCellCmp.PartLevel);
+
+                if (gunConfig.ElectricityConsumption != 0) {
+                    if (gunConfig.MissleType != MissleType.laser)
+                        fuelCmp.ElectricityConsumption += (gunConfig.ElectricityConsumption * gunConfig.BulletsCountInMagazine) /
+                                                          ((gunConfig.ReloadDuration / reloadMultiplier * reloadSpeedMultiplayer) +
+                                                           ((gunConfig.BulletsCountInMagazine - 1) * gunConfig.AttackCouldown *
+                                                            attackCountdownMultiplayer * attackSpeedMultiplayer));
+                    else {
+                        var useTime = gunConfig.AttackCouldown * attackCountdownMultiplayer * attackSpeedMultiplayer;
+                        fuelCmp.ElectricityConsumption += (gunConfig.ElectricityConsumption * useTime) /
+                                                          (useTime + (gunConfig.ReloadDuration / reloadMultiplier * reloadSpeedMultiplayer));
+                    }
+                }
+
+                if (gunConfig.RotateSpeed != 0) {
+                    fuelCmp.ElectricityConsumption += gunConfig.RotateSpeed / 20f;
+                }
             }
         }
-        ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
+     
         fuelCmp.MaxFuel = maxFuel;
         fuelCmp.FuelConsumption = defaultFuelConsumption;
         float rotateSpeedMultiplier = 1;
@@ -1714,7 +1746,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             $"\n {GetLocalization("Added boosted speed")}: {moveCmp.MaxBoostMoveSpeed:F1} " +
             $"{GetLocalization("m/s")} (+ {fuelCmp.FuelConsumption - carConfig.FuelСonsumption + carConfig.AccelerationFuelСonsumption} {GetLocalization("fuel consumption")})" +
             $" \n {GetLocalization("Default fuel consumption")} {fuelCmp.FuelConsumption} \n {GetLocalization("Rotate speed")}: {moveCmp.RotateSpeed} {GetLocalization("m/s")} " +
-            $"\n {GetLocalization("Weight")}: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} {GetLocalization("kg")} \n {GetLocalization("Fuel")}: {fuelCmp.MaxFuel}";
+            $"\n {GetLocalization("Weight")}: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} {GetLocalization("kg")} \n {GetLocalization("Fuel")}: {fuelCmp.MaxFuel}" +
+            $"\n {GetLocalization("Electricity consumption")}: {fuelCmp.ElectricityConsumption:F1}w/{GetLocalization("s")}\n {GetLocalization("Max electricity")}: {fuelCmp.MaxElectricity:F1}w";
     }
 
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
