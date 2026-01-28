@@ -185,6 +185,19 @@ public class MovementSystem : IEcsRunSystem {
                 }
             }
 
+            ref var fuelCmp = ref _fuelComponentsPool.Value.Get(movementEntity);
+            if (fuelCmp.CurrentFuel > 0)
+                fuelCmp.CurrentFuel -= fuelCmp.ConstantFuelConsumption * deltaTime;
+            var electricityConsumption = fuelCmp.ConstantElectricityReplenishment - fuelCmp.ConstantElectricityConsumption;
+
+            if ((electricityConsumption > 0 && fuelCmp.CurrentElectricity < fuelCmp.MaxElectricity) ||
+                (fuelCmp.CurrentElectricity > 0 && electricityConsumption < 0)) {
+                fuelCmp.CurrentElectricity += electricityConsumption * deltaTime;
+                _sceneData.Value._playerUIView._batteryImage.color =
+                    _sceneData.Value._healthGradient.Evaluate(fuelCmp.CurrentElectricity / fuelCmp.MaxElectricity);
+                _sceneData.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity}/{fuelCmp.MaxElectricity}";
+            }
+                
             var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
             movementCmp.Velocity = ((Vector2)moveObjectTransform.position - movementCmp.PreviousPosition) / deltaTime;
             if (isPlayer)
@@ -196,7 +209,7 @@ public class MovementSystem : IEcsRunSystem {
                 float distanceToTarget = Vector3.Distance(movementCmp.MovableObjectRigidbody.position, movementCmp.TargetPosition);
                 bool isReversing = false;
                 float needAngle = 0;
-                ref var fuelCmp = ref _fuelComponentsPool.Value.Get(movementEntity);
+               
                 if ((distanceToTarget > 3f || !isPlayer) && fuelCmp.CurrentFuel > 0) {
                     var needTargetRotation = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg - 90f;
 

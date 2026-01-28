@@ -349,3 +349,16 @@ win,Won,Победил,Gewonnen,Ganó,A gagné
 lose,Lost,Проиграл,Verloren,Perdió,A perdu
 RoundVersusBattle,Bet on your favorite and get a chance to win,Сделай ставку на своего фаворита и получи шанс заработать,Wette auf deinen Favoriten und gewinne mit etwas Glück,Apuesta por tu favorito y ten la oportunidad de ganar,Parie sur ton favori et a une chance de gagner
 Stability radius,Wheel Support Radius,Радиус поддержки колёс,Radstützradius,Radio soporte ruedas,Rayon support roues
+Builder,Builder,Строитель,Bauer,Constructor,Constructeur
+Rotate electricity consumption,Rotation Power Use,Потребление энергии на вращение,Rotationsstromverbrauch,Consumo energía rotación,Consommation électricité rotation
+Electricity consumption,Power Consumption,Потребление энергии,Stromverbrauch,Consumo energía,Consommation électricité
+Electricity generation,Power Generation,Генерация энергии,Stromerzeugung,Generación energía,Génération électricité
+Added electricity,+Power,+Энергия,+Strom,+Energía,+Électricité
+Max electricity,Max Power,Макс. энергия,Maximalstrom,Energía máxima,Électricité max
+Electricity replenishment,Power Recharge,Восполнение энергии,Stromaufladung,Recarga energía,Recharge électricité
+Acceleration,Acceleration,Ускорение,Beschleunigung,Aceleración,Accélération
+Deceleration,Deceleration,Торможение,Verzögerung,Desaceleración,Décélération
+Constant fuel consumption,Continuous Consumption,Постоянный расход,Dauerhafter Verbrauch,Consumo continuo,Consommation continue
+Heat ice per second,Thermal Output,Тепловая мощность,Wärmeleistung,Salida térmica,Puissance thermique
+Radius,Radius,Радиус,Radius,Radio,Rayon
+Heater,Heater,Нагреватель,Heizung,Calentador,Chauffage

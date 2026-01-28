@@ -1203,10 +1203,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SpawnTeammateCar(int entity) {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
-
+        fuelCmp.MaxFuel = 0;
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         var carView = CarViewSetup(entity);
-
         carView.transform.position = GetPositionAroundPlayer();
 
         carCmp.CarPartViewsGrid =
@@ -1379,7 +1378,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SetPlayerCarPrefab() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-
+        _fuelComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MaxElectricity = 0;
         _fuelComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).UseSpeedBoost = false;
         var carView = CarViewSetup(_sceneService.Value.PlayerEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -1438,6 +1437,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetupCarStatsFromLevelBoost(int enity) {
+        Debug.Log(enity + " setup car");
         ref var carCmp = ref _carComponentsPool.Value.Get(enity);
         (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier) =
             GridUtils.GetCarLevelMultipliers(carCmp.CarLevel);
@@ -1455,6 +1455,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(enity);
         fuelCmp.MaxFuel += carConfig.DefaultMaxFuel * (baseMaxFuelMultiplier - 1);
         fuelCmp.CurrentFuel = fuelCmp.MaxFuel;
+        fuelCmp.CurrentElectricity = fuelCmp.MaxElectricity;
     }
     
 
@@ -1654,7 +1655,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                                                                      (carPartSize.y - containersSize.y) / 2f);
         carCmp.CurrentWeight += carPartConfig.Weight;
         carPartCmp.CarPartCellRenderer.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
-
+ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
         if (carPartConfig.PartType == CarPartType.Gun) {
             //  carPart.SetColliderEnableState(false);
 
@@ -1709,12 +1710,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             if (meleeWeaponConfig.UpSprite != null) {
                 meleeWeaponCmp.MeleeWeaponRenderer = _sceneService.Value.GetSpriteRenderer(carPartCmp.CarPartCellRenderer.transform);
                 meleeWeaponCmp.MeleeWeaponRenderer.sprite = meleeWeaponConfig.UpSprite;
-              
+               
                 meleeWeaponCmp.MeleeWeaponRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 meleeWeaponCmp.MeleeWeaponRenderer.sortingOrder = 3;
                 meleeWeaponCmp.MeleeWeaponRenderer.transform.localPosition = meleeWeaponConfig.UpSpritePosition;
             }
 
+            fuelCmp.ConstantFuelConsumption += meleeWeaponConfig.FuelConsumption;
             var meleeStuff = _sceneService.Value.GetMeleeCarPartCell(meleeWeaponCmp.MeleeWeaponRenderer.transform);
             meleeWeaponCmp.MeleeStuff = meleeStuff;
             meleeWeaponCmp.CurrentMaxCountdown = meleeWeaponConfig.AttackCountdown;
@@ -1722,6 +1724,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             meleeStuff.transform.localPosition = Vector3.zero;
             meleeStuff.MakeTriggerCollider();
             meleeStuff.SetColliderEnableState(true);
+            
             (float damageMultiplier, float damageBySpeedMultiplier) =
                 GridUtils.GetMeleeLevelMultipliers(meleeWeaponConfig, carPartInfoCmp.PartLevel);
             meleeWeaponCmp.CurrentDamage = meleeWeaponConfig.Damage * damageMultiplier;
@@ -1733,26 +1736,36 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             (float firstMultiplayer,float secondMultiplayer)= GridUtils.GetSupportLevelMultipliers(carPartInfoCmp.PartLevel, supportCarPartConfig.ModuleType);
             switch (supportCarPartConfig.ModuleType) {
                 case SupportModuleType.Fuel:
-                    ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
+                    
                     fuelCmp.CurrentFuel += supportCarPartConfig.FirstCount*firstMultiplayer;
                     fuelCmp.MaxFuel += supportCarPartConfig.FirstCount*firstMultiplayer;
-                    Debug.Log(fuelCmp.MaxFuel); //id breack delete current fuel
                     break;
                 case SupportModuleType.Turbine:
-                    _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption += supportCarPartConfig.FirstCount*firstMultiplayer;
+                   fuelCmp.FuelConsumption += supportCarPartConfig.FirstCount*firstMultiplayer;
                     _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed += supportCarPartConfig.SecondCount*secondMultiplayer;
                     break;
                 case SupportModuleType.FireExtinguisher or SupportModuleType.Heater:
                   ref var fireExtinguisher = ref  _fireExtinguisherComponentsPool.Value.Add(cellEntity);
                   fireExtinguisher.CurrentFireRemove = supportCarPartConfig.FirstCount*firstMultiplayer;
                   fireExtinguisher.CountdownTime = 1;
-                  if (supportCarPartConfig.ModuleType == SupportModuleType.Heater)
+                  if (supportCarPartConfig.ModuleType == SupportModuleType.Heater) {
                       fireExtinguisher.EffectType = EffectType.fire;
+                      var consumption = supportCarPartConfig.SecondCount*supportCarPartConfig.FirstCount*firstMultiplayer/25f;
+                      fuelCmp.ConstantElectricityConsumption += consumption;
+                  }
+                      
                   else
                       fireExtinguisher.EffectType = EffectType.froze;
                   fireExtinguisher.CheckedCells =
                       GridUtils.GetNonZeroNeighbors8Dir(carCmp.CarPartContainerGroupsGrid, carCmp.CarPartGroupsList[cellEntity],(int)supportCarPartConfig.SecondCount);
                   break;
+                case SupportModuleType.Battery:
+                    fuelCmp.MaxElectricity += supportCarPartConfig.FirstCount*firstMultiplayer;
+                    break;
+                case SupportModuleType.ElectricGenerator:
+                    fuelCmp.ConstantElectricityReplenishment += supportCarPartConfig.FirstCount * firstMultiplayer;
+                    fuelCmp.ConstantFuelConsumption += supportCarPartConfig.SecondCount*secondMultiplayer;
+                    break;
             }
         } else if (carPartConfig.PartType == CarPartType.WheelsContainer) {
             var wheelsConfig = _sceneService.Value.GetWheelContainerFromCarPart(carPartConfig.Id);
@@ -1829,7 +1842,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         carCmp.ForwardWheels = new List<Animator>();
         carCmp.ForwardWheelsParticles = new List<ParticleSystem>();
         carCmp.CurrentWeight = 0;
-      
         return carView;
     }
 

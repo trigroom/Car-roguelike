@@ -301,13 +301,12 @@ public class GridUtils : MonoBehaviour {
                 firstCountMultiplayer+=level*0.05f;
                 secondCountMultiplayer+=level*0.15f;
                 break;
-            case SupportModuleType.Heater :
+            case SupportModuleType.Heater or SupportModuleType.FireExtinguisher:
+                firstCountMultiplayer+=level*0.1f;
+                break;
+            case SupportModuleType.ElectricGenerator :
                 firstCountMultiplayer+=level*0.1f;
                 secondCountMultiplayer-=level*0.05f;
-                break;
-            
-            case SupportModuleType.FireExtinguisher :
-                firstCountMultiplayer+=level*0.1f;
                 break;
         }
         

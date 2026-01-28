@@ -82,7 +82,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         SortCarParts(CarPartType.None, false);
         SortCarParts(CarPartType.CarStuffContainer, false);
         SortCarParts(CarPartType.WheelsContainer, false);
-
+        
+        foreach (var statIcon in _sceneData.Value._inventoryUIView._carStatIcons) 
+            statIcon.Construction(SetCarStatInfo,HideCarStatInfo  );
+        
         SetCarGrid();
 
         SetSortButtons();
@@ -445,11 +448,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         int inventoryPartIndex = carPartId;
         //  inventoryView._inventoryCellViews[inventoryCmp.CurrentDraggedCellEntity].gameObject.SetActive(false);
         var partInfo = _sceneData.Value._carStuffListsConfig.CarPartConfigs[inventoryPartIndex];
-       /* if ((partInfo.PartType == CarPartType.CarStuffContainer || partInfo.PartType == CarPartType.WheelsContainer) ==
-            inventoryCmp.IsCarPartsRedactorMode) {
+        
+        if (!inventoryCmp.IsCarPartsRedactorMode) {
             AnimateChangeModeButton();
             return;
-        }*/
+        }
 
         inventoryCmp.StartOffsetFromCell = GridUtils.GetNormalizedMouseOffset(_sceneData.Value._shopUIView
             ._buttonsShop[_shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).ShopButtonIndex].ItemSprite.rectTransform);
@@ -1660,6 +1663,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
         fuelCmp.MaxElectricity = carConfig.DefaultMaxElectricity;
         fuelCmp.ElectricityConsumption = 0;
+        fuelCmp.ConstantElectricityConsumption = 0;
+        fuelCmp.ConstantElectricityReplenishment = 0;
+        fuelCmp.ConstantFuelConsumption = 0;
         // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var carPart in carCmp.CarPartGroupsList.Keys) {
             var carPartCellCmp = _carPartInfoComponentsPool.Value.Get(carPart);
@@ -1677,8 +1683,18 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 }
                 else if(supportPartConfig.ModuleType == SupportModuleType.Battery)
                     fuelCmp.MaxElectricity += supportPartConfig.FirstCount*firstMultiplayer;
-                else if(supportPartConfig.ModuleType == SupportModuleType.Heater)
-                    fuelCmp.ElectricityConsumption += supportPartConfig.SecondCount*secondMultiplayer;
+                else if (supportPartConfig.ModuleType == SupportModuleType.Heater) {
+                    var consumption = supportPartConfig.SecondCount*supportPartConfig.FirstCount*firstMultiplayer/25f;
+                    fuelCmp.ElectricityConsumption += consumption;
+                    fuelCmp.ConstantElectricityConsumption+= consumption;
+                }
+                    
+                else if (supportPartConfig.ModuleType == SupportModuleType.ElectricGenerator) {
+                     fuelCmp.ConstantElectricityReplenishment += supportPartConfig.FirstCount*firstMultiplayer;
+                     fuelCmp.ConstantFuelConsumption += supportPartConfig.SecondCount*secondMultiplayer;
+                }
+                
+                   
             }
             else if (carPartConfig.PartType == CarPartType.Gun) {
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartId);
@@ -1689,12 +1705,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     GridUtils.GetGunLevelMultipliers(gunConfig, carPartCellCmp.PartLevel);
 
                 if (gunConfig.ElectricityConsumption != 0) {
-                    if (gunConfig.MissleType != MissleType.laser)
+                    if (gunConfig.MissleType != MissleType.laser) {
                         fuelCmp.ElectricityConsumption += (gunConfig.ElectricityConsumption * gunConfig.BulletsCountInMagazine) /
                                                           ((gunConfig.ReloadDuration / reloadMultiplier * reloadSpeedMultiplayer) +
                                                            ((gunConfig.BulletsCountInMagazine - 1) * gunConfig.AttackCouldown *
                                                             attackCountdownMultiplayer * attackSpeedMultiplayer));
-                    else {
+                    } else {
                         var useTime = gunConfig.AttackCouldown * attackCountdownMultiplayer * attackSpeedMultiplayer;
                         fuelCmp.ElectricityConsumption += (gunConfig.ElectricityConsumption * useTime) /
                                                           (useTime + (gunConfig.ReloadDuration / reloadMultiplier * reloadSpeedMultiplayer));
@@ -1703,7 +1719,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
                 if (gunConfig.RotateSpeed != 0) {
                     fuelCmp.ElectricityConsumption += gunConfig.RotateSpeed / 20f;
+                    fuelCmp.ConstantElectricityConsumption += gunConfig.RotateSpeed / 20f;
                 }
+            }
+            else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
+                var meleeConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(carPartId);
+                fuelCmp.ConstantFuelConsumption += meleeConfig.FuelConsumption;
             }
         }
      
@@ -1741,14 +1762,45 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         var carCmp = _carComponentsPool.Value.Get(entity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
         var fuelCmp = _fuelComponentsPool.Value.Get(entity);
-        _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
-            $"{GetLocalization(carConfig.CarName)}\n {GetLocalization("Max move speed")}: {moveCmp.MaxMoveSpeed:F1} {GetLocalization("m/s")} " +
+        var carStatTexts = _sceneData.Value._inventoryUIView._carStatTexts;
+        carStatTexts[0].text = $"{fuelCmp.MaxFuel} {GetLocalization("L")}";
+        carStatTexts[1].text = $"{fuelCmp.ConstantFuelConsumption} {GetLocalization("L/s")}";
+        carStatTexts[2].text = $"{carCmp.CurrentWeight:F1}/\n{carCmp.CurrentMaxWeight} {GetLocalization("kg")}";
+        carStatTexts[3].text = $" {moveCmp.MaxMoveSpeed:F1} {GetLocalization("m/s")} ";
+        carStatTexts[4].text = $" {moveCmp.MaxBoostMoveSpeed:F1} {GetLocalization("m/s")} ";
+        carStatTexts[5].text = $" {moveCmp.Acceleration:F1}";
+        carStatTexts[6].text = $" {moveCmp.RotateSpeed:F1}";
+        carStatTexts[7].text = $" {moveCmp.Deceleration:F1}";
+        carStatTexts[8].text =
+            $" {fuelCmp.FuelConsumption:F1}\n(+{carConfig.AccelerationFuelСonsumption})\n{GetLocalization("L/s")}";
+        carStatTexts[9].text = $" {fuelCmp.MaxElectricity:F1} {GetLocalization("w")} ";
+        carStatTexts[10].text = $" {fuelCmp.ConstantElectricityReplenishment:F1} {GetLocalization("w/s")} ";
+        carStatTexts[11].text = $" {fuelCmp.ElectricityConsumption:F1} {GetLocalization("w/s")} ";
+       
+      //  _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =$"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel} {GetLocalization("lvl")}"  ;
+           /* {GetLocalization("Max move speed")}:
             $"\n {GetLocalization("Added boosted speed")}: {moveCmp.MaxBoostMoveSpeed:F1} " +
             $"{GetLocalization("m/s")} (+ {fuelCmp.FuelConsumption - carConfig.FuelСonsumption + carConfig.AccelerationFuelСonsumption} {GetLocalization("fuel consumption")})" +
-            $" \n {GetLocalization("Default fuel consumption")} {fuelCmp.FuelConsumption} \n {GetLocalization("Rotate speed")}: {moveCmp.RotateSpeed} {GetLocalization("m/s")} " +
+            $" \n {GetLocalization("Default fuel consumption")} {fuelCmp.FuelConsumption} \n {GetLocalization("Constant fuel consumption")} {fuelCmp.ConstantFuelConsumption}" +
+            $" \n {GetLocalization("Rotate speed")}: {moveCmp.RotateSpeed} {GetLocalization("m/s")} " +
             $"\n {GetLocalization("Weight")}: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} {GetLocalization("kg")} \n {GetLocalization("Fuel")}: {fuelCmp.MaxFuel}" +
-            $"\n {GetLocalization("Electricity consumption")}: {fuelCmp.ElectricityConsumption:F1}w/{GetLocalization("s")}\n {GetLocalization("Max electricity")}: {fuelCmp.MaxElectricity:F1}w";
+            $"\n {GetLocalization("Electricity consumption")}: {fuelCmp.ElectricityConsumption:F1}w/{GetLocalization("s")}\n {GetLocalization("Max electricity")}: {fuelCmp.MaxElectricity:F1}w";*/
     }
+
+    private void HideCarStatInfo() {
+        _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.DOKill();
+        _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.DOScale(0, 0.3f).OnComplete(() =>
+            _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.gameObject.SetActive(false));
+    }
+    private void SetCarStatInfo(string needText, Vector2 needPosition) {
+        _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.position = needPosition;
+        _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.localScale = Vector3.zero;
+        _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.DOKill();
+        _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.DOScale(1, 0.3f);
+        _sceneData.Value._inventoryUIView._carStatsWindowText.text = GetLocalization(needText);
+        _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.gameObject.SetActive(true);
+    }
+    
 
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
         int needCarPartId = 0;
@@ -2493,6 +2545,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
     private bool CanPlaceCarPartsContainerOnField(Vector2Int position) {
         var partInfo = GetCurrentDraggedCellCarPart();
+        if (!GridUtils.IsContainerType(partInfo)) return false;
         var needCells = GridUtils.GetCellsFromField(position, partInfo,0);
         var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
         foreach (var cell in needCells) {
@@ -3010,48 +3063,52 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private bool ChangeGiveCarPartWindowInfo() {
-        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);     
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (inventoryCmp.CurrentGivenItems.Count == 0) return false;
-        
+
         var giveCarPartsUiView = _sceneData.Value._givingCarPartsUIView;
-   
-       var carPartConfig = _sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]);
 
-       giveCarPartsUiView._carPartImageDown.sprite = carPartConfig.PartSprite;
-       
-       giveCarPartsUiView._carPartImageDown.transform.localScale = Vector3.zero; 
-       giveCarPartsUiView._carPartImageDown.transform.DOScale(1f, 0.3f);
-       giveCarPartsUiView._destroyCarPartButton.gameObject.SetActive(!GridUtils.IsContainerType(carPartConfig));
-       if (carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun) {
-           (Sprite upSprite, Vector2 size, Vector2 position) =
-               GetUpperPartSizesForUI(giveCarPartsUiView._carPartImageDown.rectTransform.sizeDelta, carPartConfig);
+        var carPartConfig = _sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]);
 
-           giveCarPartsUiView._carPartImageUp.sprite = upSprite;
-           giveCarPartsUiView._carPartImageUp.rectTransform.sizeDelta = size;
-           giveCarPartsUiView._carPartImageUp.transform.localPosition = position;
-       } else {
-           giveCarPartsUiView._carPartImageUp.sprite = _sceneData.Value._transparentPixel;
-       }
+        giveCarPartsUiView._carPartImageDown.sprite = carPartConfig.PartSprite;
 
-       giveCarPartsUiView._sellCarPartText.text =
-           $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(_sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]), 0, null)}$";
-       giveCarPartsUiView._remainingCarPartsText.text = inventoryCmp.CurrentGivenItems.Count > 1
-           ? $"{GetLocalization("Remaining car parts")}: \n{inventoryCmp.CurrentGivenItems.Count}"
-           : "";
-       
-       return true;
+        giveCarPartsUiView._carPartImageDown.transform.localScale = Vector3.zero;
+        giveCarPartsUiView._carPartImageDown.transform.DOScale(1f, 0.3f);
+        giveCarPartsUiView._destroyCarPartButton.gameObject.SetActive(!GridUtils.IsContainerType(carPartConfig));
+        if (carPartConfig.PartType == CarPartType.MeleeWeapon || carPartConfig.PartType == CarPartType.Gun) {
+            (Sprite upSprite, Vector2 size, Vector2 position) =
+                GetUpperPartSizesForUI(giveCarPartsUiView._carPartImageDown.rectTransform.sizeDelta, carPartConfig);
+
+            giveCarPartsUiView._carPartImageUp.sprite = upSprite;
+            giveCarPartsUiView._carPartImageUp.rectTransform.sizeDelta = size;
+            giveCarPartsUiView._carPartImageUp.transform.localPosition = position;
+        } else {
+            giveCarPartsUiView._carPartImageUp.sprite = _sceneData.Value._transparentPixel;
+        }
+
+        giveCarPartsUiView._sellCarPartText.text =
+            $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(_sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]), 0, null)}$";
+        giveCarPartsUiView._remainingCarPartsText.text = inventoryCmp.CurrentGivenItems.Count > 1
+            ? $"{GetLocalization("Remaining car parts")}: \n{inventoryCmp.CurrentGivenItems.Count}"
+            : "";
+
+        return true;
     }
 
     private void SetCarUpgradeButtonInfo() {
-        ref var carCmp = ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
+        ref var carCmp =
+            ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
+            $"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel} {GetLocalization("lvl")}";
+        
         if (carCmp.CarLevel > 15) {
             _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = false;
             _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Max level")}";
         } else {
             _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = true;
             var upgradeCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * (1 + carCmp.CarLevel * 0.3f));
-            _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Upgrade car")} {upgradeCost}$";
+            _sceneData.Value._inventoryUIView._upgradeCarButtonText.text =/*{GetLocalization("Upgrade car")}*/ $"{upgradeCost}$";
         }
       
     }

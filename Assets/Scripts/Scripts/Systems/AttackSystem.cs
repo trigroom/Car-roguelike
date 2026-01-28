@@ -91,10 +91,14 @@ public enum AttackType {
 
             foreach (var fireExtinguisherEntity in _fireExtinguisherComponentsFilter.Value) {
                 ref var fireExtinguisherCmp = ref _fireExtinguisherComponentsPool.Value.Get(fireExtinguisherEntity);
+                int mainEntity = _carPartComponentsPool.Value.Get(fireExtinguisherEntity).MainEntity;
+                if (fireExtinguisherCmp.EffectType == EffectType.fire &&
+                    _fuelComponentsPool.Value.Get(mainEntity).CurrentElectricity <= 0) continue;
+
                 fireExtinguisherCmp.CountdownTime -= deltaTime;
 
                 if (fireExtinguisherCmp.CountdownTime <= 0) {
-                    fireExtinguisherCmp.CountdownTime ++;
+                    fireExtinguisherCmp.CountdownTime++;
                     var carCmp = _carComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(fireExtinguisherEntity).MainEntity);
                     foreach (Vector2Int checkedCell in fireExtinguisherCmp.CheckedCells) {
                         var needCarPartEntity = -1;
@@ -192,8 +196,6 @@ public enum AttackType {
                 if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0) {
                     ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
                     if (fuelCmp.CurrentElectricity > 0) {
-                        fuelCmp.CurrentElectricity -= gunConfig.MaxRotateAngle * gunConfig.RotateSpeed / 100f * deltaTime;
-
                         gunCmp.GunOnTargetTime -= deltaTime;
                         if (gunCmp.GunOnTargetTime <= 0) {
                             var needLayer =
@@ -260,11 +262,7 @@ public enum AttackType {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(cellEntity);
                 var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(cellEntity);
                 var meleeConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(carPartInfoCmp.CarPartId);
-                if (meleeConfig.FuelConsumption != 0) {
-                    ref var fuelCmp = ref _fuelComponentsPool.Value.Get(_carPartComponentsPool.Value.Get(cellEntity).MainEntity);
-                    if (fuelCmp.CurrentFuel <= 0) return;
-                    fuelCmp.CurrentFuel -= meleeConfig.FuelConsumption * Time.deltaTime;
-                }
+                
 
                 if (meleeCmp.Countdown > 0)
                     meleeCmp.Countdown -= deltaTime;
@@ -1307,12 +1305,17 @@ public enum AttackType {
                     laserCmp.LaserLineRenderer = null;
                     _laserComponentsPool.Value.Del(cellEntity);
                 }
+
+                var gunConfig = _sceneService.Value.GetGunFromCarPart(carPartInfoCmp.CarPartId);
+                if (gunConfig.RotateSpeed != 0) 
+                    fuelCmp.ConstantElectricityConsumption -= gunConfig.RotateSpeed / 20f;
+                
             }
 
             if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(cellEntity);
                 _sceneService.Value.ReleaseMeleeCarPartCell(meleeCmp.MeleeStuff);
-
+                fuelCmp.ConstantFuelConsumption -= _sceneService.Value.GetMeleeWeaponFromCarPart(carPartInfoCmp.CarPartId).FuelConsumption;
                 meleeCmp.MeleeWeaponRenderer.sortingOrder -= 5;
                 meleeCmp.MeleeWeaponRenderer.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
             }
@@ -1325,8 +1328,10 @@ public enum AttackType {
             bool destroyCarAfterCarPart = false;
             bool dontDestroyCarAfterMainPart = !_betweenScenesService.Value.GetMapDifficultyConfig().DestroyEnemyCarsAfterDeath && isEnemy;
             ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
+            
             if (_shockEffectComponentsPool.Value.Has(cellEntity))
                 _shockEffectComponentsPool.Value.Del(cellEntity);
+            
             if ( GridUtils.IsContainerType(carPartConfig)) {
                 for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                     var carPart = carPartCmp.CellCarPartsStuffViews[i];
@@ -1343,12 +1348,6 @@ public enum AttackType {
                     }
 
                     _sceneService.Value.ReleaseCarPartCell(carPart);
-                 /*   if (isPlayer && inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]) {
-                        _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y]);
-                        inventoryCmp.CarPartInfoUIViewsGrid[gridPos.x, gridPos.y] = null;
-                    }*/
-                    
-                        
                 }
 
                 if (carPartConfig.PartType == CarPartType.WheelsContainer) {
@@ -1378,11 +1377,6 @@ public enum AttackType {
                     carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] = 0;
                     string needLayer = !isEnemy ? "CarBase" : "CarBaseEnemy";
                     carPart.SetupCarPart(gridPos, needLayer, carPartCmp.MainEntity);
-                   /* if (isPlayer && inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]) {
-                         _sceneService.Value.ReleaseCarPartInGameUIView(inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y]);
-                         inventoryCmp.CarPartInfoUIViewsUpLevelGrid[gridPos.x, gridPos.y] = null;
-                    }*/
-                       
                 }
 
                 if (carPartConfig.PartType == CarPartType.Support) {
@@ -1400,9 +1394,28 @@ public enum AttackType {
                             fuelCmp.MaxFuel -= firstCount;
                             fuelCmp.CurrentFuel = Mathf.Min(fuelCmp.MaxFuel, fuelCmp.CurrentFuel);
                             break;
+                        case SupportModuleType.Battery:
+                            float firstCountBattery = supportCarPartConfig.FirstCount * firstMultiplayer;
+                            if (firstCountBattery > 25f) {
+                                CalculateExplodeDamage(EffectType.shock, firstCountBattery / 5f, firstCountBattery / 20f,
+                                    carPartCmp.CarPartCellRenderer.transform.position);
+                                CreateExplosionEffect(firstCountBattery / 30f, carPartCmp.CarPartCellRenderer.transform.position, EffectType.shock);
+                            }
+                        
+                            fuelCmp.MaxElectricity -= firstCountBattery;
+                            fuelCmp.CurrentElectricity = Mathf.Min(fuelCmp.MaxElectricity, fuelCmp.CurrentElectricity);
+                            break;
                         case SupportModuleType.Turbine:
-                            _fuelComponentsPool.Value.Get(carPartCmp.MainEntity).FuelConsumption -= supportCarPartConfig.FirstCount*firstMultiplayer;
+                            fuelCmp.FuelConsumption -= supportCarPartConfig.FirstCount*firstMultiplayer;
                             _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed -= supportCarPartConfig.SecondCount*secondMultiplayer;
+                            break;
+                        case SupportModuleType.Heater:
+                            var consumption = supportCarPartConfig.SecondCount*supportCarPartConfig.FirstCount*firstMultiplayer/25f;
+                            fuelCmp.ConstantElectricityConsumption -= consumption;
+                            break;
+                        case SupportModuleType.ElectricGenerator:
+                            fuelCmp.ConstantElectricityReplenishment += supportCarPartConfig.FirstCount*firstMultiplayer;
+                            fuelCmp.ConstantFuelConsumption += supportCarPartConfig.SecondCount*secondMultiplayer;
                             break;
                     }
                 }

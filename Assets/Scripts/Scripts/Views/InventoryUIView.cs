@@ -5,6 +5,12 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour
 { 
     [field: SerializeField]
+    public TMP_Text _carStatsWindowText { get;private set; }
+    [field: SerializeField]
+    public CarStatIconView[] _carStatIcons { get;private set; }
+    [field: SerializeField]
+    public TMP_Text[] _carStatTexts { get;private set; }
+    [field: SerializeField]
     public Transform _placeFirstCarPartText { get;private set; }
     [field: SerializeField]
     public Transform _cancelModuleTextPanelInfo { get;private set; }

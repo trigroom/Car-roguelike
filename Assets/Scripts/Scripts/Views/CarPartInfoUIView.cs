@@ -226,7 +226,7 @@ public class CarPartInfoUIView : MonoBehaviour
 
                 _descriptionText.text += $"{GetLocalization("Attack countdown")}: {attackCountdown:F2}s\n";
                 if (meleeConfig.FuelConsumption != 0)
-                    _descriptionText.text += $"{GetLocalization("Added fuel consumption")}: {meleeConfig.FuelConsumption:F2}";
+                    _descriptionText.text += $"{GetLocalization("Constant fuel consumption")}: {meleeConfig.FuelConsumption:F2}";
             }
         } else if (_currentCarPartConfig.PartType == CarPartType.Armor) {
             if (_currentCarPartConfig is ArmorConfig armorConfig) {
@@ -300,14 +300,28 @@ public class CarPartInfoUIView : MonoBehaviour
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountFireExtinguisher}</color>" : needCountFireExtinguisher;
                 _descriptionText.text +=
                     $"\n{GetLocalization("Radius")}: {supportConfig.SecondCount}";
-                if (supportConfig.SecondCount != 0) {
-                    var needCountConsumption = supportConfig.SecondCount * secondMultiplayer;
+                if (supportConfig.ModuleType ==SupportModuleType.Heater) {
+                    var consumption = supportConfig.SecondCount*supportConfig.FirstCount*firstMultiplayer/25f;
                      _descriptionText.text += $"\n{GetLocalization("Electricity consumption")}: ";
-                     _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountConsumption}</color>" : needCountConsumption;
+                     _descriptionText.text += isUpdate ? $"<color=#5bca4a>{consumption}</color>" : consumption;
                 }
-               
-                
-                
+                break;
+            case SupportModuleType.Battery:
+                _descriptionText.text += $"\n{GetLocalization("Added electricity")}: ";
+                var needCountElectricity = supportConfig.FirstCount * firstMultiplayer;
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountElectricity}</color>" : needCountElectricity;
+                break;
+            case SupportModuleType.ElectricGenerator:
+                _descriptionText.text += $"\n{GetLocalization("Electricity generation")}: ";
+                var needCountElectricGenerator = supportConfig.FirstCount * firstMultiplayer;
+              
+                _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountElectricGenerator}</color>" : needCountElectricGenerator;
+                _descriptionText.text += $"{GetLocalization("w/s")}: ";
+                if (supportConfig.SecondCount != 0) {
+                      var electricGeneratorFuelConsumption = supportConfig.SecondCount * secondMultiplayer;
+                      _descriptionText.text += $"\n{GetLocalization("Constant fuel consumption")}: ";
+                      _descriptionText.text += isUpdate ? $"<color=#5bca4a>{electricGeneratorFuelConsumption}</color>" : electricGeneratorFuelConsumption;
+                }
                 break;
         }
     }

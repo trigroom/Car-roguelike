@@ -23,6 +23,7 @@ MonoBehaviour:
   <Acceleration>k__BackingField: 40
   <Deceleration>k__BackingField: 60
   <DefaultMaxFuel>k__BackingField: 100
+  <DefaultMaxElectricity>k__BackingField: 0
   CarPartForLevel:
     _serializedList:
     - Key: 2
@@ -35,4 +36,4 @@ MonoBehaviour:
       Value: 30000000
     - Key: 10
       Value: 0d000000
-  <CarUpgradeCost>k__BackingField: 0
+  <CarUpgradeCost>k__BackingField: 25
