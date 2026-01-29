@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: BuilderConfig
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 5
+  <CarIcon>k__BackingField: {fileID: 21300000, guid: c3e332f9e1757cc4e97f62af4259ae01, type: 3}
   <CarName>k__BackingField: Builder
   <StartCarParts>k__BackingField: 4d000000560000005700000052000000
   "<Fuel\u0421onsumption>k__BackingField": 0.55
@@ -23,6 +24,7 @@ MonoBehaviour:
   <Acceleration>k__BackingField: 17
   <Deceleration>k__BackingField: 25
   <DefaultMaxFuel>k__BackingField: 275
+  <DefaultMaxElectricity>k__BackingField: 0
   CarPartForLevel:
     _serializedList:
     - Key: 2

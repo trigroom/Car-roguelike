@@ -25,7 +25,7 @@ sealed class MetaUiSystem : IEcsInitSystem {
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 if (DataPersistenceManagerSystem._gameData.CarsUnlocked[i]) {
                     var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
-                    _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName, i);
+                    _metaSceneService.Value._selectCarButtonViews[i].SelectCarSetup(SelectCar, carConfig.CarName, i,carConfig.CarIcon);
                 } else
                     _metaSceneService.Value._selectCarButtonViews[i].gameObject.SetActive(false);
                

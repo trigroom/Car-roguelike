@@ -65,6 +65,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carCmp.CarId = _sceneData.Value._defaultCarConfigId;
         
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+        _sceneData.Value._inventoryUIView._carIconImage.sprite = carConfig.CarIcon;
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Add(playerEntity);
         inventoryCmp.CurrentInventoryPage = 0;
         inventoryCmp.CurrentDraggedCellEntity = -1;
@@ -2335,7 +2336,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
         UpdateHealAllCarPartButton();
         SetCarUpgradeButtonInfo();
-        
+        _sceneData.Value._inventoryUIView._carIconImage.sprite = _sceneData.Value.GetCarConfig(carCmp.CarId).CarIcon;
         inventoryCmp.SelectCarButtonsNotInteractable = false;
     }
     private bool MainPartIsPlaced() {

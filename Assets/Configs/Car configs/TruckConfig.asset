@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: TruckConfig
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 3
+  <CarIcon>k__BackingField: {fileID: 21300000, guid: 9839c99fa0ec5f2458f42cbd3b23000c, type: 3}
   <CarName>k__BackingField: Truck
   <StartCarParts>k__BackingField: 03000000290000002b0000002a0000002a000000
   "<Fuel\u0421onsumption>k__BackingField": 0.4
@@ -23,6 +24,7 @@ MonoBehaviour:
   <Acceleration>k__BackingField: 25
   <Deceleration>k__BackingField: 60
   <DefaultMaxFuel>k__BackingField: 350
+  <DefaultMaxElectricity>k__BackingField: 0
   CarPartForLevel:
     _serializedList:
     - Key: 2

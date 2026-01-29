@@ -7,6 +7,8 @@ public class CarConfig : ScriptableObject {
     [field: SerializeField]
     public int CarId { get; private set; }
     [field: SerializeField]
+    public Sprite CarIcon { get; private set; }
+    [field: SerializeField]
     public string CarName { get; private set; }
     
     [field: SerializeField]
