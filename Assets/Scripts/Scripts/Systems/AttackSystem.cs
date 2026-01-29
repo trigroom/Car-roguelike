@@ -261,12 +261,14 @@ public enum AttackType {
             foreach (var cellEntity in _meleeWeaponComponentsFilter.Value) {
                 ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(cellEntity);
                 var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(cellEntity);
+                var carPartCmp = _carPartComponentsPool.Value.Get(cellEntity);
                 var meleeConfig = _sceneService.Value.GetMeleeWeaponFromCarPart(carPartInfoCmp.CarPartId);
-                
 
                 if (meleeCmp.Countdown > 0)
                     meleeCmp.Countdown -= deltaTime;
-                else if (meleeConfig.IsAttackAfterCountdown && meleeCmp.isTriggered) {
+                else if (meleeConfig.IsAttackAfterCountdown && meleeCmp.isTriggered && (meleeConfig.FuelConsumption == 0 ||
+                                                                                        _fuelComponentsPool.Value.Get(carPartCmp.MainEntity)
+                                                                                            .CurrentFuel > 0)) {
                     CastMeleeWeapon(cellEntity);
                 }
             }
@@ -1404,6 +1406,10 @@ public enum AttackType {
                         
                             fuelCmp.MaxElectricity -= firstCountBattery;
                             fuelCmp.CurrentElectricity = Mathf.Min(fuelCmp.MaxElectricity, fuelCmp.CurrentElectricity);
+                            
+                            _sceneService.Value._playerUIView._batteryImage.color =fuelCmp.MaxElectricity <= 0 ?new Color(0.15f,0.15f,0.15f,1)
+                                :_sceneService.Value._healthGradient.Evaluate(fuelCmp.CurrentElectricity / fuelCmp.MaxElectricity);
+                            _sceneService.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity}/{fuelCmp.MaxElectricity}";
                             break;
                         case SupportModuleType.Turbine:
                             fuelCmp.FuelConsumption -= supportCarPartConfig.FirstCount*firstMultiplayer;
@@ -1414,8 +1420,11 @@ public enum AttackType {
                             fuelCmp.ConstantElectricityConsumption -= consumption;
                             break;
                         case SupportModuleType.ElectricGenerator:
-                            fuelCmp.ConstantElectricityReplenishment += supportCarPartConfig.FirstCount*firstMultiplayer;
-                            fuelCmp.ConstantFuelConsumption += supportCarPartConfig.SecondCount*secondMultiplayer;
+                            if (supportCarPartConfig.SecondCount != 0)
+                                fuelCmp.ConstantFuelElectricityReplenishment -= supportCarPartConfig.FirstCount * firstMultiplayer;
+                            else
+                                fuelCmp.ConstantElectricityReplenishment -= supportCarPartConfig.FirstCount * firstMultiplayer;
+                            fuelCmp.ConstantFuelToElectricityConsumption -= supportCarPartConfig.SecondCount * secondMultiplayer;
                             break;
                     }
                 }

@@ -1763,8 +1763,12 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
                     fuelCmp.MaxElectricity += supportCarPartConfig.FirstCount*firstMultiplayer;
                     break;
                 case SupportModuleType.ElectricGenerator:
-                    fuelCmp.ConstantElectricityReplenishment += supportCarPartConfig.FirstCount * firstMultiplayer;
-                    fuelCmp.ConstantFuelConsumption += supportCarPartConfig.SecondCount*secondMultiplayer;
+                    if (supportCarPartConfig.SecondCount != 0) {
+                        fuelCmp.ConstantFuelElectricityReplenishment += supportCarPartConfig.FirstCount * firstMultiplayer;
+                        fuelCmp.ConstantFuelToElectricityConsumption += supportCarPartConfig.SecondCount * secondMultiplayer;
+                    } else
+                        fuelCmp.ConstantElectricityReplenishment += supportCarPartConfig.FirstCount * firstMultiplayer;
+
                     break;
             }
         } else if (carPartConfig.PartType == CarPartType.WheelsContainer) {

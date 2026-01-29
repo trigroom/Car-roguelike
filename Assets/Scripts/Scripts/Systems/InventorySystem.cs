@@ -1665,6 +1665,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         fuelCmp.ElectricityConsumption = 0;
         fuelCmp.ConstantElectricityConsumption = 0;
         fuelCmp.ConstantElectricityReplenishment = 0;
+        fuelCmp.ConstantFuelElectricityReplenishment = 0;
+        fuelCmp.ConstantFuelToElectricityConsumption = 0;
         fuelCmp.ConstantFuelConsumption = 0;
         // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var carPart in carCmp.CarPartGroupsList.Keys) {
@@ -1690,8 +1692,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 }
                     
                 else if (supportPartConfig.ModuleType == SupportModuleType.ElectricGenerator) {
-                     fuelCmp.ConstantElectricityReplenishment += supportPartConfig.FirstCount*firstMultiplayer;
-                     fuelCmp.ConstantFuelConsumption += supportPartConfig.SecondCount*secondMultiplayer;
+                    if (supportPartConfig.SecondCount != 0) {
+                        fuelCmp.ConstantFuelElectricityReplenishment += supportPartConfig.FirstCount * firstMultiplayer;
+                        fuelCmp.ConstantFuelToElectricityConsumption += supportPartConfig.SecondCount * secondMultiplayer;
+                    } else
+                        fuelCmp.ConstantElectricityReplenishment += supportPartConfig.FirstCount * firstMultiplayer;
                 }
                 
                    
@@ -1764,7 +1769,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         var fuelCmp = _fuelComponentsPool.Value.Get(entity);
         var carStatTexts = _sceneData.Value._inventoryUIView._carStatTexts;
         carStatTexts[0].text = $"{fuelCmp.MaxFuel} {GetLocalization("L")}";
-        carStatTexts[1].text = $"{fuelCmp.ConstantFuelConsumption} {GetLocalization("L/s")}";
+        carStatTexts[1].text = $"{fuelCmp.ConstantFuelConsumption+fuelCmp.ConstantFuelToElectricityConsumption} {GetLocalization("L/s")}";
         carStatTexts[2].text = $"{carCmp.CurrentWeight:F1}/\n{carCmp.CurrentMaxWeight} {GetLocalization("kg")}";
         carStatTexts[3].text = $" {moveCmp.MaxMoveSpeed:F1} {GetLocalization("m/s")} ";
         carStatTexts[4].text = $" {moveCmp.MaxBoostMoveSpeed:F1} {GetLocalization("m/s")} ";
@@ -1774,7 +1779,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carStatTexts[8].text =
             $" {fuelCmp.FuelConsumption:F1}\n(+{carConfig.AccelerationFuelСonsumption})\n{GetLocalization("L/s")}";
         carStatTexts[9].text = $" {fuelCmp.MaxElectricity:F1} {GetLocalization("w")} ";
-        carStatTexts[10].text = $" {fuelCmp.ConstantElectricityReplenishment:F1} {GetLocalization("w/s")} ";
+        carStatTexts[10].text = $" {fuelCmp.ConstantElectricityReplenishment+fuelCmp.ConstantFuelElectricityReplenishment:F1} {GetLocalization("w/s")} ";
         carStatTexts[11].text = $" {fuelCmp.ElectricityConsumption:F1} {GetLocalization("w/s")} ";
        
       //  _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =$"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel} {GetLocalization("lvl")}"  ;

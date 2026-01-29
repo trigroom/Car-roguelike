@@ -185,10 +185,19 @@ public class MovementSystem : IEcsRunSystem {
                 }
             }
 
-            ref var fuelCmp = ref _fuelComponentsPool.Value.Get(movementEntity);
-            if (fuelCmp.CurrentFuel > 0)
-                fuelCmp.CurrentFuel -= fuelCmp.ConstantFuelConsumption * deltaTime;
+            ref var fuelCmp = ref _fuelComponentsPool.Value.Get(movementEntity); 
             var electricityConsumption = fuelCmp.ConstantElectricityReplenishment - fuelCmp.ConstantElectricityConsumption;
+            var fuelConsumption = fuelCmp.ConstantFuelConsumption;
+            if (fuelCmp.CurrentFuel > 0) {
+                if (fuelCmp.CurrentElectricity < fuelCmp.MaxElectricity) {
+                    fuelConsumption += fuelCmp.ConstantFuelToElectricityConsumption;
+                    electricityConsumption += fuelCmp.ConstantFuelElectricityReplenishment;
+                }
+
+                fuelCmp.CurrentFuel -= fuelConsumption * deltaTime;
+            }
+               
+           
 
             if ((electricityConsumption > 0 && fuelCmp.CurrentElectricity < fuelCmp.MaxElectricity) ||
                 (fuelCmp.CurrentElectricity > 0 && electricityConsumption < 0)) {
