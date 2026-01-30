@@ -17,6 +17,7 @@ public class EvemiesCarBuilderView : MonoBehaviour {
     public Button GetMediumButton;
     public Button GetHighButton;
     public Button GetVeryHighButton;
+    public Button UnlockAllLevelButton;
     private string _filePath = "Assets/Configs/EnemyCarsConfigs";
     private void Start() {
         AdminPanelSwitch.onClick.AddListener(SwitchAdminPanelMode);

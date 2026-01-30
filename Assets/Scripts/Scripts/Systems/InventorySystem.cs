@@ -3106,7 +3106,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
         _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
-            $"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel} {GetLocalization("lvl")}";
+            $"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel+1} {GetLocalization("lvl")}";
         
         if (carCmp.CarLevel > 15) {
             _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = false;
@@ -3315,6 +3315,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetUpAdminButtons() {
         _sceneData.Value._enemiesCarBuilderView.GetCarPartIdButton.onClick.AddListener(GetCarPartForAdmin);
         _sceneData.Value._enemiesCarBuilderView.GetMoneyButton.onClick.AddListener(GetMoneyForAdmin);
+        _sceneData.Value._enemiesCarBuilderView.UnlockAllLevelButton.onClick.AddListener(UnlockAllLevels);
         _sceneData.Value._enemiesCarBuilderView.GetMediumButton.onClick.AddListener((() => SetShopChancesToNeeded(new List<float>(){0,1,0,0})));
         _sceneData.Value._enemiesCarBuilderView.GetHighButton.onClick.AddListener((() => SetShopChancesToNeeded(new List<float>(){0,0,1,0})));
         _sceneData.Value._enemiesCarBuilderView.GetVeryHighButton.onClick.AddListener((() => SetShopChancesToNeeded(new List<float>(){0,0,0,1})));
@@ -3322,6 +3323,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void GetMoneyForAdmin() {
         int.TryParse(_sceneData.Value._enemiesCarBuilderView.MoneyInputField.text, out int money);
         SetMoneyCount(money);
+    }
+
+    private void UnlockAllLevels() {
+        DataPersistenceManagerSystem._gameData.LevelRounds[0] = 5;
+        DataPersistenceManagerSystem._gameData.LevelRounds[1] = 5;
     }
 
     private void GetCarPartForAdmin() {

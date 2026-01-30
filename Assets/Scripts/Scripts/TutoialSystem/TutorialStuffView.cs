@@ -1,14 +1,16 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TutorialStuffView : MonoBehaviour
 {
-   [field:SerializeField] public TMP_Text _tutorialTextPrefab { get; private set; }
+   [field:SerializeField] public Transform _tutorialTextPrefab { get; private set; }
    [field:SerializeField] public Transform _shopContainer { get; private set; }
    [field:SerializeField] public Transform _shopText { get; private set; }
    [field:SerializeField] public Transform _sortButtonsContainer { get; private set; }
    public TMP_Text TutorialText;
+   public Image TutorialTextContainer;
    public Sequence _tutorialSequence;
    public TMP_Text TutorialInGoundText;
    [field:SerializeField] public int _tutorialMapIndex { get; private set; }
@@ -54,10 +56,10 @@ public class TutorialStuffView : MonoBehaviour
        _tutorialSequence.Kill();
        _tutorialSequence = DOTween.Sequence();
        AnimateTMPTextWithHideShow(TutorialText, newText, duration);
-       _tutorialSequence.Join(DOTween.To(() => TutorialText.fontSize, x => TutorialText.fontSize = x, fontSize, duration)
-           .SetEase(Ease.OutBack));
-
-       _tutorialSequence.Join(TutorialText.rectTransform.DOMove(targetPosition, duration).SetEase(Ease.OutCubic));
+      /* _tutorialSequence.Join(DOTween.To(() => TutorialText.fontSize, x => TutorialText.fontSize = x, fontSize, duration)
+           .SetEase(Ease.OutBack));*/
+       _tutorialSequence.Join(TutorialTextContainer.transform.DOScale(1, duration).SetEase(Ease.OutCubic));
+       _tutorialSequence.Join(TutorialTextContainer.transform.DOMove(targetPosition, duration).SetEase(Ease.OutCubic));
 
        //  sequence.Join(TutorialText.DOFade(1, duration / 2).From(0).SetEase(Ease.InQuad));
 
@@ -66,15 +68,16 @@ public class TutorialStuffView : MonoBehaviour
    
    public void HideText(bool hideText, Vector2 startPosition = default,string neededText = "", float duration = 1f) {
        if (startPosition != Vector2.zero) {
-           TutorialText.transform.position = startPosition;
+           TutorialTextContainer.transform.position = startPosition;
            TutorialText.maxVisibleCharacters = neededText.Length;
            TutorialText.text = neededText;
        }
            
        _tutorialSequence.Kill();
        _tutorialSequence = DOTween.Sequence();
-       _tutorialSequence.Join(TutorialText.DOFade(hideText ? 0 : 1, duration).SetEase(Ease.InQuad));
-
+       _tutorialSequence.Append(TutorialText.DOFade(hideText ? 0 : 1, duration).SetEase(Ease.InQuad));
+       _tutorialSequence.Join(TutorialTextContainer.DOFade(hideText ? 0 : 1, duration).SetEase(Ease.InQuad));
+       _tutorialSequence.Join(TutorialTextContainer.transform.DOScale(hideText ? 0 : 1, duration).SetEase(Ease.OutCubic));
        _tutorialSequence.Play();
    }
 }

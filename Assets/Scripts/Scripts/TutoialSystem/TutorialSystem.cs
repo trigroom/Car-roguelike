@@ -2,6 +2,7 @@ using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsWorldInject _world;
@@ -31,15 +32,16 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._settingsView._mainMenuButton.gameObject.SetActive(false);
         _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentBattleRounds = 3;
         RoundUtilits.SupportRoundsTypes.Remove(RoundType.ModulesShop);
-        _sceneData.Value._tutorialStuffView.TutorialText = _sceneData.Value
+        _sceneData.Value._tutorialStuffView.TutorialTextContainer = _sceneData.Value
             .InstantiateObject(_sceneData.Value._tutorialStuffView._tutorialTextPrefab.transform, _sceneData.Value._inventoryUIView.transform)
-            .GetComponent<TMP_Text>();
+            .GetComponent<Image>();
+        _sceneData.Value._tutorialStuffView.TutorialText =  _sceneData.Value._tutorialStuffView.TutorialTextContainer.transform.GetChild(0).GetComponent<TMP_Text>();
         _sceneData.Value._tutorialStuffView.TutorialInGoundText = _sceneData.Value
-            .InstantiateObject(_sceneData.Value._tutorialStuffView._tutorialTextPrefab.transform, _sceneData.Value._playerUIView.transform)
+            .InstantiateObject(_sceneData.Value._tutorialStuffView._tutorialTextPrefab.transform, _sceneData.Value._playerUIView.transform).GetChild(0)
             .GetComponent<TMP_Text>();
         _sceneData.Value._tutorialStuffView.TutorialInGoundText.text = GetLocalization("Car move to cursor and press LMB to speed boost");
         _sceneData.Value._tutorialStuffView.TutorialInGoundText.color = Color.white;
-        _sceneData.Value._tutorialStuffView.TutorialInGoundText.transform.localPosition = new Vector3(0, 200*_sceneData.Value.mainCanvas.localScale.x, 0);
+        _sceneData.Value._tutorialStuffView.TutorialInGoundText.transform.parent.localPosition = new Vector3(0, 200*_sceneData.Value.mainCanvas.localScale.x, 0);
         var textPos = new Vector2(
             _sceneData.Value._inventoryUIView._carPartsContainer.position.x,
             _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x);
@@ -157,7 +159,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Upgrade car to increase stats and get new car parts"));
             //upgrade car text
         } else if (currentRound == 1) {
-            _sceneData.Value._tutorialStuffView.TutorialInGoundText.gameObject.SetActive(false);
+            _sceneData.Value._tutorialStuffView.TutorialInGoundText.transform.parent.gameObject.SetActive(false);
             _sceneData.Value._inventoryUIView._upgradeCarButton.interactable = false;
             _sceneData.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(false);
