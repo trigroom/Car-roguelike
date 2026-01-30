@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EnemyMotocycle
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 4
-  <CarIcon>k__BackingField: {fileID: 21300000, guid: 2a2f752393d6d334ea46a75a4d1f88a1, type: 3}
+  <CarIcon>k__BackingField: {fileID: 21300000, guid: 500b885a76245d14691e28abdf6df901, type: 3}
   <CarName>k__BackingField: Enemy moto
   <StartCarParts>k__BackingField: 0300000026000000340000003300000033000000
   "<Fuel\u0421onsumption>k__BackingField": 0.2

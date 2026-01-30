@@ -19,6 +19,6 @@ MonoBehaviour:
   <needCount>k__BackingField: 4
   <needSecondCount>k__BackingField: 0
   <needAchievementToVisible>k__BackingField: 28
-  <rewardType>k__BackingField: 2
+  <rewardType>k__BackingField: 0
   <achievementType>k__BackingField: 2
-  <rewardCount>k__BackingField: 10
+  <rewardCount>k__BackingField: 5

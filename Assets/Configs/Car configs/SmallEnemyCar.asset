@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SmallEnemyCar
   m_EditorClassIdentifier: 
   <CarId>k__BackingField: 2
-  <CarIcon>k__BackingField: {fileID: 21300000, guid: d805c527aee35db498bdc7dc50d57fe7, type: 3}
+  <CarIcon>k__BackingField: {fileID: 21300000, guid: a7bdf21e734e51843ab24eb6eb2d6e34, type: 3}
   <CarName>k__BackingField: Enemy small car
   <StartCarParts>k__BackingField: 030000000400000030000000300000000b000000
   "<Fuel\u0421onsumption>k__BackingField": 0.2

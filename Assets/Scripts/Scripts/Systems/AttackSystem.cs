@@ -68,7 +68,6 @@ public enum AttackType {
         private EcsFilterInject<Inc<ConstructMeleeCellEvent>> _constructMeleeCellEventsFilter;
         private EcsFilterInject<Inc<ThunderstormComponent>> _thunderstormComponentsFilter;
         private EcsFilterInject<Inc<BomberProjectile>> _bomberProjectilesFilter;
-        private EcsFilterInject<Inc<BossComponent>> _bossComponentsFilter;
         private EcsFilterInject<Inc<FireExtinguisherComponent>> _fireExtinguisherComponentsFilter;
         
         
@@ -1682,6 +1681,8 @@ public enum AttackType {
                 carCmp.CarView = null;
                 if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carEntity)) {
                     DataPersistenceManagerSystem._gameData.BrokenCars++;
+                    if (_bossComponentsPool.Value.Has(carEntity)) 
+                        _bossComponentsPool.Value.Del(carEntity);
                     CheckTasks(TaskType.Kills);
                     _destroyEntityEventsPool.Value.Add(carEntity);
                 }
@@ -1689,9 +1690,9 @@ public enum AttackType {
             else if (dontDestroyEnemyCar && carCmp.ShockedMainPartsCount < 5) {
                 carCmp.ShockedMainPartsCount = 10;
                 DataPersistenceManagerSystem._gameData.BrokenCars++;
-                if (_bossComponentsPool.Value.Has(carEntity)) {
+                if (_bossComponentsPool.Value.Has(carEntity)) 
                     _bossComponentsPool.Value.Del(carEntity);
-                }
+                
                     
                 CheckTasks(TaskType.Kills);
             }

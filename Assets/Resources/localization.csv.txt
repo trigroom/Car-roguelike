@@ -362,3 +362,11 @@ Constant fuel consumption,Continuous Consumption,Постоянный расхо
 Heat ice per second,Thermal Output,Тепловая мощность,Wärmeleistung,Salida térmica,Puissance thermique
 Radius,Radius,Радиус,Radius,Radio,Rayon
 Heater,Heater,Нагреватель,Heizung,Calentador,Chauffage
+Gas generator,Gas Generator,Бензогенератор,Gasgenerator,Generador gas,Générateur gaz
+Small solar panel,Small Solar Panel,Маленькая солнечная панель,Kleine Solarpanel,Pequeño panel solar,Petit panneau solaire
+Small gas generator,Small Gas Generator,Маленький бензогенератор,Kleiner Gasgenerator,Pequeño generador gas,Petit générateur gaz
+Big battery,Large Battery,Большой аккумулятор,Großbatterie,Batería grande,Grosse batterie
+Small battery,Small Battery,Маленький аккумулятор,Kleinbatterie,Batería pequeña,Petite batterie
+AI farm,AI Farm,ИИ-ферма,KI-Farm,Granja IA,Ferme IA
+Builder driver cabine,Builder Cabin,Кабина "Строителя",Builder-Kabine,Cabina Constructor,Cabine Constructeur
+Builder engine,Builder Engine,Двигатель "Строителя",Builder-Motor,Motor Constructor,Moteur Constructeur
