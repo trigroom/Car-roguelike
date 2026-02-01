@@ -103,13 +103,18 @@ public class InventoryUIView : MonoBehaviour {
 
     private float _lastRotateAngle;
 
-    public void FadeAnimation(Image needImage) {
+    public void EndAnimation() {
+        fadeSequence.Kill();
+    }
+    public void FadeAnimation(Image needImage, bool isLoop) {
         fadeSequence.Kill();
         fadeSequence = DOTween.Sequence();
         fadeSequence.Append(needImage.DOFade(0.3f, 0.4f));
         fadeSequence.AppendInterval(0.35f);
         fadeSequence.Append(needImage.DOFade(0f, 0.4f));
         fadeSequence.SetEase(Ease.InOutSine);
+        if(isLoop)
+            fadeSequence.SetLoops(-1, LoopType.Restart);
     }
     public void SetToBottomRight(RectTransform target, RectTransform reference) {
         Vector3[] refCorners = new Vector3[4];

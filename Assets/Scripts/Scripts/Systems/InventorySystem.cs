@@ -391,7 +391,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetCarPartRedactorMode() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (!inventoryCmp.IsCarPartsRedactorMode && !CanUseThisCarPartContainers()) {
-            _sceneData.Value._inventoryUIView.FadeAnimation(_sceneData.Value._inventoryUIView._highlightFrameImage);
+            _sceneData.Value._inventoryUIView.FadeAnimation(_sceneData.Value._inventoryUIView._highlightFrameImage, false);
             if (!inventoryCmp.SortedCarPartType.Contains(CarPartType.WheelsContainer))
                 SortCarParts(CarPartType.WheelsContainer);
 
@@ -2573,9 +2573,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (GridUtils.IsPositionInGrid(checkedCell, carCmp.CarPartContainerGroupsGrid) &&
                     carCmp.CarPartContainerGroupsGrid[checkedCell.x, checkedCell.y] != 0) {
                     hasCarPartContainersAround = true;
-                    if (partInfo.PartType == CarPartType.WheelsContainer &&
-                        _sceneData.Value.GetWheelContainerFromCarPart(partInfo.Id).WheelsPositions.Length > 1) {
-                        if (cell.y == checkedCell.y) return false;
+                    if (partInfo.PartType == CarPartType.WheelsContainer) {
+                        if (_sceneData.Value.GetWheelContainerFromCarPart(partInfo.Id).WheelsPositions.Length > 1) {
+                            if (cell.y == checkedCell.y) return false;
+                        }
+
+                        var wheelConfig = _sceneData.Value.GetWheelContainerFromCarPart(_carPartInfoComponentsPool.Value
+                            .Get(carCmp.CarPartContainerGroupsGrid[checkedCell.x, checkedCell.y]).CarPartId);
+                        if (wheelConfig) return false;
                     } else {
                         var wheelConfig = _sceneData.Value.GetWheelContainerFromCarPart(_carPartInfoComponentsPool.Value
                             .Get(carCmp.CarPartContainerGroupsGrid[checkedCell.x, checkedCell.y]).CarPartId);

@@ -23,13 +23,13 @@ public class EndGameScreenView : MonoBehaviour
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     public void SetEndScreenInfo(int moneyCount, int roundNumber) {
         _moneyCountText.text = $"{GetLocalization("You earned")} {moneyCount.ToString()} $";
-        _mainEndSreenTitle.text = $"{GetLocalization("Round")} {roundNumber} {GetLocalization("is completed")}";
+        _mainEndSreenTitle.text = $"{GetLocalization("Round")} {roundNumber+1} {GetLocalization("is completed")}";
         gameObject.SetActive(true);
     }
     public void SetLoseScreenInfo(int roundNumber, int scrapCount) {
         _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount} {GetLocalization("Scrap")}" +
                                $"\n{GetLocalization("Click to restart")}";
-        _mainEndSreenTitle.text = $"{GetLocalization("You lose on round")} {roundNumber}";
+        _mainEndSreenTitle.text = $"{GetLocalization("You lose on round")} {roundNumber+1}";
         foreach (var endGameButton in closeEndGameMenuButtons) {
             endGameButton.onClick.RemoveAllListeners();
             endGameButton.onClick.AddListener(GoToMetaScene);

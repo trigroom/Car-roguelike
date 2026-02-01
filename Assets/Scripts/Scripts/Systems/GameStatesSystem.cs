@@ -570,7 +570,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             Mathf.FloorToInt(_sceneService.Value.GetCarConfig(checkedCarCmp.CarId).CarUpgradeCost * (1 + checkedCarCmp.CarLevel * 0.3f));
         if (upgradeCost <= _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount &&
             checkedCarCmp.CarLevel < currentRound / 2)
-            _sceneService.Value._inventoryUIView.FadeAnimation(_sceneService.Value._inventoryUIView._highlightUpgradeImage); 
+            _sceneService.Value._inventoryUIView.FadeAnimation(_sceneService.Value._inventoryUIView._highlightUpgradeImage, false); 
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
             _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextTornado = 0;

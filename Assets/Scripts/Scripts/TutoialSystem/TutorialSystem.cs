@@ -40,7 +40,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._tutorialStuffView.TutorialInGoundText = _sceneData.Value
             .InstantiateObject(_sceneData.Value._tutorialStuffView._tutorialTextPrefab.transform, _sceneData.Value._playerUIView.transform).GetChild(0)
             .GetComponent<TMP_Text>();
-        _sceneData.Value._tutorialStuffView.TutorialInGoundText.text = GetLocalization("Car move to cursor and press LMB to speed boost");
+        _sceneData.Value._tutorialStuffView.TutorialInGoundText.text = GetLocalization("CarDriveTutorial");
         _sceneData.Value._tutorialStuffView.TutorialInGoundText.color = Color.white;
         _sceneData.Value._tutorialStuffView.TutorialInGoundText.transform.parent.localPosition = new Vector3(0, 200*_sceneData.Value.mainCanvas.localScale.x, 0);
         var textPos = new Vector2(
@@ -117,12 +117,12 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
                     _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 30);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
         } else if (_tutorialStep == 5 && curGameCmp.CurrentRoundType == RoundType.None && currentRound == 1) {
-            _tutorialStep = 6;Debug.Log("is upgrade animation");
+            _tutorialStep = 6;
             var textPos = new Vector2(
                 _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.x + 250*_sceneData.Value.mainCanvas.localScale.x,
                 _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.y);
             _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Upgrade car to increase stats and get new car parts"));
-            _sceneData.Value._inventoryUIView.FadeAnimation(_sceneData.Value._inventoryUIView._highlightUpgradeImage);
+            _sceneData.Value._inventoryUIView.FadeAnimation(_sceneData.Value._inventoryUIView._highlightUpgradeImage, true);
   
         } else if (_tutorialStep == 6 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0) {
             foreach (var inventoryCellEntity in _inventoryCellComponentsFilter.Value) {
@@ -133,6 +133,8 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
                     _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Change redacted car level"),
                         new Vector2(carPartRedactModeButtonPosition.x,
                             carPartRedactModeButtonPosition.y + 100 * _sceneData.Value.mainCanvas.localScale.x), 30);
+                    _sceneData.Value._inventoryUIView.EndAnimation();
+                    _sceneData.Value._inventoryUIView._highlightUpgradeImage.color = Color.clear;
                 }
             }
 
@@ -166,8 +168,8 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         if (_tutorialStep is <= 3 or 6 or 10) {
-            if (_tutorialStep > 3)
-                _sceneData.Value._carPartInfoUIView._moveToInventoryButton.gameObject.SetActive(false);
+            // if (_tutorialStep > 3)
+            _sceneData.Value._carPartInfoUIView._moveToInventoryButton.gameObject.SetActive(false);
             _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
             _sceneData.Value._carPartInfoUIView._destroyButton.gameObject.SetActive(false);
         }
@@ -207,7 +209,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             }
             var textPos = new Vector2(
                 _sceneData.Value._shopUIView._shopModeButton.transform.position.x,
-                _sceneData.Value._shopUIView._shopModeButton.transform.position.y - 50*_sceneData.Value.mainCanvas.localScale.x);
+                _sceneData.Value._shopUIView._shopModeButton.transform.position.y - 110*_sceneData.Value.mainCanvas.localScale.x);
             _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Change shop mode"));
             //buy friend car text
         }
