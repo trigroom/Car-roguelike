@@ -67,6 +67,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
     public void Init(IEcsSystems systems) {
+       // Application.targetFrameRate = 144;
+        
         int playerEntity = _world.Value.NewEntity();
         _sceneService.Value.PlayerEntity = playerEntity;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
@@ -526,7 +528,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         supportBoxStuffView.supportBoxAirplane.DOKill(true);
         supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
         curGameCmp.SupportBoxTargetPosition = Vector2.one * 999f;
-        
+        _sceneService.Value._playerUIView._mainTaskText.text = "";
         ChangePlayerUIState(false);
         if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount)return;
         int currentRound = curGameCmp.CurrentRound - 1;
@@ -562,7 +564,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SetMoneyText();
         _sceneService.Value._endGameScreenView.SetEndScreenInfo(moneyCount, currentRound);
         ChangeInventoryState(true);
-
+        var checkedCarCmp =
+            _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRedactedCarEntity);
+        var upgradeCost =
+            Mathf.FloorToInt(_sceneService.Value.GetCarConfig(checkedCarCmp.CarId).CarUpgradeCost * (1 + checkedCarCmp.CarLevel * 0.3f));
+        if (upgradeCost <= _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount &&
+            checkedCarCmp.CarLevel < currentRound / 2)
+            _sceneService.Value._inventoryUIView.FadeAnimation(_sceneService.Value._inventoryUIView._highlightUpgradeImage); 
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
             _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextTornado = 0;
@@ -652,45 +660,38 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     private void ChangeRoundDescription(RoundType roundType, PointerEventData data = null) {
-        var descriptionText = _sceneService.Value._mapUIView.RoundDescriptionText;
+        _sceneService.Value._mapUIView.RoundDescriptionText.text = GetRoundDescription(roundType);
+    }
+
+    private string GetRoundDescription(RoundType roundType) {
         switch (roundType) {
             case RoundType.None:
-                descriptionText.text = "";
-                break;
+                return "";
             case RoundType.Task:
-                descriptionText.text =  GetLocalization("RoundTask");
-                break;
+                return GetLocalization("RoundTask");
             case RoundType.BattleDefault:
-                descriptionText.text = GetLocalization("RoundBattleDefault");
-                break;
+                return GetLocalization("RoundBattleDefault");
             case RoundType.Chest:
-                descriptionText.text = GetLocalization("RoundChest");
-                break;
+                return GetLocalization("RoundChest");
             case RoundType.FromAToB:
-                descriptionText.text = GetLocalization("RoundFromAToB");
-                break;
+                return GetLocalization("RoundFromAToB");
             case RoundType.Shop:
-                descriptionText.text = GetLocalization("RoundShop");
-                break;
+                return GetLocalization("RoundShop");
             case RoundType.ModulesShop:
-                descriptionText.text = GetLocalization("RoundModulesShop");
-                break;
+                return GetLocalization("RoundModulesShop");
             case RoundType.Transfer:
-                descriptionText.text = GetLocalization("RoundTransfer");
-                break;
+                return GetLocalization("RoundTransfer");
             case RoundType.ZoneDefence:
-                descriptionText.text = GetLocalization("RoundZoneDefence");
-                break;
+                return GetLocalization("RoundZoneDefence");
             case RoundType.BossBattle:
-                descriptionText.text = GetLocalization("RoundBossBattle");
-                break;
+                return GetLocalization("RoundBossBattle");
             case RoundType.TeammateForSupport:
-                descriptionText.text = GetLocalization("RoundTeammateForSupport");
-                break;
+                return GetLocalization("RoundTeammateForSupport");
             case RoundType.VersusBattle:
-                descriptionText.text = GetLocalization("RoundVersusBattle");
-                break;
+                return GetLocalization("RoundVersusBattle");
         }
+
+        return "";
     }
     
     private void StartCurrentRoundType(RoundType roundType,PointerEventData data) {
@@ -761,9 +762,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
    
         curGameCmp.RoundButtons = null;
-        curGameCmp.CurrentBattleRounds += RoundUtilits.IsBattleRound(roundType) ? -1 : 1;
+        bool isBattleRound = RoundUtilits.IsBattleRound(roundType);
+        curGameCmp.CurrentBattleRounds +=  isBattleRound? -1 : 1;
         if (curGameCmp.CurrentBattleRounds < 1)
             curGameCmp.CurrentBattleRounds = 1;
+        if (isBattleRound)
+            _sceneService.Value._playerUIView._mainTaskText.text = GetRoundDescription(roundType);
         curGameCmp.CurrentRoundType = roundType;
         //curGameCmp.RoundWithMoneyMultiplayer = -1;
         _sceneService.Value._mapUIView.gameObject.SetActive(false);

@@ -5,12 +5,15 @@ using UnityEngine.UI;
 
 public class TutorialStuffView : MonoBehaviour
 {
+    [field:SerializeField] public Transform _cursorPrefab { get; private set; }
    [field:SerializeField] public Transform _tutorialTextPrefab { get; private set; }
    [field:SerializeField] public Transform _shopContainer { get; private set; }
    [field:SerializeField] public Transform _shopText { get; private set; }
    [field:SerializeField] public Transform _sortButtonsContainer { get; private set; }
    public TMP_Text TutorialText;
    public Image TutorialTextContainer;
+   public Image CursorContainer;
+   public Sequence _cursorSequence;
    public Sequence _tutorialSequence;
    public TMP_Text TutorialInGoundText;
    [field:SerializeField] public int _tutorialMapIndex { get; private set; }

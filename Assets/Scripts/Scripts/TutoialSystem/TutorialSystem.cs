@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using TMPro;
@@ -45,53 +46,89 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         var textPos = new Vector2(
             _sceneData.Value._inventoryUIView._carPartsContainer.position.x,
             _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x);
-        _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Place car parts to car redactor field (drag and drop them to center)"));
+        _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("FirstTutorialStep"));
       
         _sceneData.Value._inventoryUIView._selectCarButtons[1].sellCarText.transform.parent.gameObject.SetActive(false);
-        
+        //cursor move car parts animation
+         var cellPosition = _sceneData.Value._inventoryUIView._inventoryCellViews[0].transform.position;
+        _sceneData.Value._tutorialStuffView.CursorContainer = _sceneData.Value
+            .InstantiateObject(_sceneData.Value._tutorialStuffView._cursorPrefab.transform, _sceneData.Value._inventoryUIView.transform,
+                cellPosition)
+            .GetComponent<Image>();
+        var containerPosition = _sceneData.Value._inventoryUIView._carPartsContainer.position;
+        var cursorTransform = _sceneData.Value._tutorialStuffView.CursorContainer;
+        var cursorSequense = _sceneData.Value._tutorialStuffView._cursorSequence;
+        cursorSequense = DOTween.Sequence();
+        cursorSequense.Append(cursorTransform.transform.DOScale(0.8f, 0.35f));
+        cursorSequense.AppendInterval(0.25f);
+        cursorSequense.Append(cursorTransform.transform.DOMove(containerPosition, 1f));
+        cursorSequense.AppendInterval(0.25f);
+        cursorSequense.Append(cursorTransform.transform.DOScale(1f, 0.35f));
+        cursorSequense.AppendInterval(0.25f);
+        cursorSequense.Append(cursorTransform.transform.DOMove(cellPosition, 1f));
+        cursorSequense.AppendInterval(0.25f);
+        cursorSequense.SetEase(Ease.InOutSine);
+        cursorSequense.SetLoops(-1, LoopType.Restart);
     }
 
     private int _tutorialStep;
 
     public void Run(IEcsSystems systems) {
-        int currentRound = _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
-
-        if (_tutorialStep == 0 && currentRound == 0 && !_sceneData.Value._tutorialStuffView._shopContainer.gameObject.activeInHierarchy &&
-            _inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0) {
+        var curGameCmp = _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        int currentRound = curGameCmp.CurrentRound;
+        if (_tutorialStep == 0 && _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsCarPartsRedactorMode) {
+            _tutorialStep = 1;
+            var textPos = new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
+                _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200 * _sceneData.Value.mainCanvas.localScale.x);
+            _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("SecondTutorialStep"), textPos, 30);
+        } else if (_tutorialStep == 1 && currentRound == 0 &&
+                   !_sceneData.Value._tutorialStuffView._shopContainer.gameObject.activeInHierarchy &&
+                   _inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0) {
+            _sceneData.Value._tutorialStuffView._cursorSequence.Kill();
+           _sceneData.Value.DestroyGameobject(_sceneData.Value._tutorialStuffView.CursorContainer.transform); 
             _sceneData.Value._inventoryUIView._changeToRedactModeButton.gameObject.SetActive(true);
             _sceneData.Value._tutorialStuffView._shopContainer.gameObject.SetActive(true);
             _sceneData.Value._tutorialStuffView._sortButtonsContainer.gameObject.SetActive(true);
-            _tutorialStep = 1;
+            _tutorialStep = 2;
             _sceneData.Value._tutorialStuffView.HideText(false);
             var shopTextPosition = _sceneData.Value._tutorialStuffView._shopText.position;
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Buy car part in shop"),
-                new Vector2(shopTextPosition.x, shopTextPosition.y - 100*_sceneData.Value.mainCanvas.localScale.x), 30);
+                new Vector2(shopTextPosition.x, shopTextPosition.y - 100 * _sceneData.Value.mainCanvas.localScale.x), 30);
             //show buy item text
-        } else if (_tutorialStep == 1) {
+        } else if (_tutorialStep == 2) {
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
                 if (!buttonShop.BuyButton.enabled) {
-                    _tutorialStep = 2;
-                    _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Place car parts to car"),
-                        new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
-                            _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 30);
+                    _tutorialStep = 3;
+                    if (_inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0) {
+                        _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Place car parts to car"),
+                            new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
+                                _sceneData.Value._inventoryUIView._carPartsContainer.position.y +
+                                200 * _sceneData.Value.mainCanvas.localScale.x), 30);
+                    }
+
                     //place car part to car text
                     return;
                 }
             }
-        } else if ((_tutorialStep == 1 || _tutorialStep == 2) && _inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0) {
-            _tutorialStep = 3;
+        } else if (_inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0 && _tutorialStep == 3) {
+            _tutorialStep = 4;
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Go play and select round type"),
                 new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
                     _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 30);
-        } else if ((_tutorialStep == 3 || _tutorialStep == 2) && _inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0) {
-            _tutorialStep = 4;
-            _sceneData.Value._tutorialStuffView.HideText(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
-        } else if (_tutorialStep == 5 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0 ) {
+        } else if (_tutorialStep == 5 && curGameCmp.CurrentRoundType == RoundType.None && currentRound == 1) {
+            _tutorialStep = 6;Debug.Log("is upgrade animation");
+            var textPos = new Vector2(
+                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.x + 250*_sceneData.Value.mainCanvas.localScale.x,
+                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.y);
+            _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Upgrade car to increase stats and get new car parts"));
+            _sceneData.Value._inventoryUIView.FadeAnimation(_sceneData.Value._inventoryUIView._highlightUpgradeImage);
+  
+        } else if (_tutorialStep == 6 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0) {
             foreach (var inventoryCellEntity in _inventoryCellComponentsFilter.Value) {
                 if (_sceneData.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(inventoryCellEntity).CarPartId).PartType ==
                     CarPartType.CarStuffContainer) {
-                    _tutorialStep = 6;
+                    _tutorialStep = 7;
                     var carPartRedactModeButtonPosition = _sceneData.Value._inventoryUIView._changeToRedactModeButton.transform.position;
                     _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Change redacted car level"),
                         new Vector2(carPartRedactModeButtonPosition.x,
@@ -100,20 +137,20 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             }
 
             //place car parts and click change mode button
-        } else if (_tutorialStep == 6 && !_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsCarPartsRedactorMode) {
-            _tutorialStep = 7;
+        } else if (_tutorialStep == 7 && !_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsCarPartsRedactorMode) {
+            _tutorialStep = 8;
             _sceneData.Value._inventoryUIView._changeToRedactModeButton.interactable = false;
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Place new car parts"),
                 new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
                     _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 20);
-        } else if (_tutorialStep == 7 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0) {
+        } else if (_tutorialStep == 8 && _inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0) {
             _sceneData.Value._tutorialStuffView._shopContainer.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
-            _tutorialStep = 8;
+            _tutorialStep = 9;
             _sceneData.Value._inventoryUIView._changeToRedactModeButton.interactable = true;
             _sceneData.Value._tutorialStuffView.HideText(true);
-        } else if (_tutorialStep == 9 && _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > 1) {
-            _tutorialStep = 10;
+        } else if (_tutorialStep == 10 && _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > 1) {
+            _tutorialStep = 11;
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
                 buttonShop.BuyButton.interactable = true;
                 buttonShop.enabled = true;
@@ -128,8 +165,8 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
                 new Vector2(shopTextPosition.x, shopTextPosition.y - 50 * _sceneData.Value.mainCanvas.localScale.x), 20);
         }
 
-        if (_tutorialStep is <= 2 or 5 or 9) {
-            if (_tutorialStep > 2)
+        if (_tutorialStep is <= 3 or 6 or 10) {
+            if (_tutorialStep > 3)
                 _sceneData.Value._carPartInfoUIView._moveToInventoryButton.gameObject.SetActive(false);
             _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
             _sceneData.Value._carPartInfoUIView._destroyButton.gameObject.SetActive(false);
@@ -153,17 +190,14 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             playerCurrencyCmp.MoneyCount += 30;
             _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "$";
-            var textPos = new Vector2(
-                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.x + 250*_sceneData.Value.mainCanvas.localScale.x,
-                _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.y);
-            _sceneData.Value._tutorialStuffView.HideText(false,textPos,GetLocalization("Upgrade car to increase stats and get new car parts"));
+        
             //upgrade car text
         } else if (currentRound == 1) {
             _sceneData.Value._tutorialStuffView.TutorialInGoundText.transform.parent.gameObject.SetActive(false);
             _sceneData.Value._inventoryUIView._upgradeCarButton.interactable = false;
             _sceneData.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(false);
-            _tutorialStep = 9;
+            _tutorialStep = 10;
             ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             playerCurrencyCmp.MoneyCount += 70;
             _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "$";

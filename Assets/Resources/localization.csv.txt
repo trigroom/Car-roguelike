@@ -188,7 +188,8 @@ Place new car parts,Place new parts,Размести новые детали,Pla
 Change redacted car level,Change edit level,Измени уровень редактирования,Ändere Edit-Stufe,Cambia nivel edición,Change niveau édition
 Go play and select round type,Go play and select mode,Играй и выбери режим,Geh spielen und wähle Modus,Ve a jugar y selecciona modo,Vas jouer et choisis mode
 Place car parts to car,Attach parts to car,Прикрепи детали к машине,Befestige Teile am Auto,Une piezas al coche,Fixe pièces à voiture
-Place car parts to car redactor field (drag and drop them to center),Drag parts to center,Перетащи детали в центр,Ziehe Teile ins Zentrum,Arrastra piezas al centro,Dépose pièces au centre
+SecondTutorialStep,Place remaining parts on car,Размести оставшиеся детали на машине,Platziere verbleibende Teile am Auto,Coloca piezas restantes en coche,Place pièces restantes sur voiture
+FirstTutorialStep,Place car base by moving wheel and part mounts into the center,Размести базу машины перенеся крепления для колёс и запчастей в центр,Platziere die Autobasis indem du Rad- und Teilehalterungen ins Zentrum bewegst,Coloca base coche moviendo monturas ruedas y piezas al centro,Place base voiture en déplaçant supports roues et pièces au centre
 Buy car part in shop,Buy part in shop,Купи деталь в магазине,Kaufe Teil im Shop,Compra pieza en tienda,Achète pièce en boutique
 Upgrade car to increase stats and get new car parts,Upgrade car to boost stats and unlock new parts,Улучшай машину чтобы повысить характеристики и получить новые детали,Verbessere Auto um Werte zu steigern und neue Teile freizuschalten,Mejora coche para aumentar estadísticas y conseguir piezas nuevas,Améliore voiture pour augmenter stats et obtenir pièces nouvelles
 Achievements,Achievements,Достижения,Errungenschaften,Logros,Succès
@@ -370,3 +371,6 @@ Small battery,Small Battery,Маленький аккумулятор,Kleinbatte
 AI farm,AI Farm,ИИ-ферма,KI-Farm,Granja IA,Ferme IA
 Builder driver cabine,Builder Cabin,Кабина "Строителя",Builder-Kabine,Cabina Constructor,Cabine Constructeur
 Builder engine,Builder Engine,Двигатель "Строителя",Builder-Motor,Motor Constructor,Moteur Constructeur
+brokenCarPartsTask,Destroy enemy parts. Reward,Уничтожь вражеские детали. Награда,Zerstöre Gegnerteile. Belohnung,Destruye piezas enemigas. Recompensa,Détruis pièces ennemies. Récompense
+brokenCarsTask,Destroy enemy vehicles. Reward,Уничтожь вражеские машины. Награда,Zerstöre Gegnerfahrzeuge. Belohnung,Destruye vehículos enemigos. Recompensa,Détruis véhicules ennemis. Récompense
+endRoundsWithTask,Finish with >90% intact parts. Reward,Заканчивай раунды с >90% целых деталей. Награда,Beende mit >90% intakten Teilen. Belohnung,Termina con >90% piezas intactas. Recompensa,Termine avec >90% pièces intactes. Récompense

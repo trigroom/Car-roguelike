@@ -13,7 +13,7 @@ public class EcsStartUp : MonoBehaviour
 
     EcsWorld _world;
     IEcsSystems _systemsUpdate;
-    IEcsSystems _systemsLateUpdate;
+    IEcsSystems _systemsFixedUpdate;
 
     private void Awake() {
         Time.timeScale = 1;
@@ -23,7 +23,7 @@ public class EcsStartUp : MonoBehaviour
         _betweenSceneService = BetweenScenesService.Instance;
         _world = new EcsWorld();
         _systemsUpdate = new EcsSystems(_world);
-        _systemsLateUpdate = new EcsSystems(_world);
+        _systemsFixedUpdate = new EcsSystems(_world);
 
         _systemsUpdate
 #if UNITY_EDITOR
@@ -39,15 +39,15 @@ public class EcsStartUp : MonoBehaviour
 
         _systemsUpdate.DelHere<ConstructMeleeCellEvent>().DelHere<StartRoundEvent>().DelHere<EndRoundEvent>()
             .Inject(_sceneService).Inject(_betweenSceneService).Init();
-        _systemsLateUpdate.Add(new ForwardWheelsRotateSystem()).Inject(_sceneService).Inject(_betweenSceneService).Init();
+        _systemsFixedUpdate.Add(new ForwardWheelsRotateSystem()).Inject(_sceneService).Inject(_betweenSceneService).Init();
     }
     void Update()
     {
         _systemsUpdate?.Run();
     }
-    void LateUpdate()
+    void FixedUpdate()
     {
-        _systemsLateUpdate?.Run();
+        _systemsFixedUpdate?.Run();
     }
     void OnDestroy()
     {
@@ -56,10 +56,10 @@ public class EcsStartUp : MonoBehaviour
             _systemsUpdate.Destroy();
             _systemsUpdate = null;
         }
-        if (_systemsLateUpdate != null)
+        if (_systemsFixedUpdate != null)
         {
-            _systemsLateUpdate.Destroy();
-            _systemsLateUpdate = null;
+            _systemsFixedUpdate.Destroy();
+            _systemsFixedUpdate = null;
         }
         if (_world != null)
         {

@@ -1,9 +1,14 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class InventoryUIView : MonoBehaviour
-{ 
+public class InventoryUIView : MonoBehaviour {
+    private Sequence fadeSequence;
+    [field: SerializeField]
+    public Image _highlightUpgradeImage { get; private set; }
+    [field: SerializeField]
+    public Image _highlightFrameImage { get; private set; }
     [field: SerializeField]
     public Image _carIconImage { get;private set; }
     [field: SerializeField]
@@ -98,6 +103,14 @@ public class InventoryUIView : MonoBehaviour
 
     private float _lastRotateAngle;
 
+    public void FadeAnimation(Image needImage) {
+        fadeSequence.Kill();
+        fadeSequence = DOTween.Sequence();
+        fadeSequence.Append(needImage.DOFade(0.3f, 0.4f));
+        fadeSequence.AppendInterval(0.35f);
+        fadeSequence.Append(needImage.DOFade(0f, 0.4f));
+        fadeSequence.SetEase(Ease.InOutSine);
+    }
     public void SetToBottomRight(RectTransform target, RectTransform reference) {
         Vector3[] refCorners = new Vector3[4];
         Vector3[] targetCorners = new Vector3[4];

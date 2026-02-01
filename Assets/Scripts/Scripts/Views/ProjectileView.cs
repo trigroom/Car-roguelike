@@ -28,11 +28,13 @@ public class ProjectileView : MonoBehaviour {
         this.gunId = gunId;
         spriteRenderer.sprite = sprite;
         spriteRenderer.material = projectileMaterial;
+        spriteRenderer.color = tag == "Enemy" ? Color.white : projectileMaterial.GetColor("_OffsetColor");
         needTag = tag;
         collider.enabled = true;
         Bounds spriteBounds = spriteRenderer.bounds;
 
-        collider.size = spriteBounds.size-new Vector3(2f/GridUtils.InWorldCellSize,2f/GridUtils.InWorldCellSize,0);
+        collider.size = spriteBounds.size -
+                        new Vector3(2f / GridUtils.InWorldCellSize, 2f / GridUtils.InWorldCellSize, 2f / GridUtils.InWorldCellSize);
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
@@ -55,7 +57,6 @@ public class ProjectileView : MonoBehaviour {
 
     public void AnimateProjectile() {
         if(lastCollider == null)return;
-        spriteRenderer.material = _defaultMaterial;
         var other = lastCollider;
         Vector2 direction = other.bounds.center - transform.position;
 
@@ -97,6 +98,8 @@ public class ProjectileView : MonoBehaviour {
     }
 
     public void PlayHitAnimation(Sprite[] animationSprites, float radius, Action<ProjectileView> hideAction) {
+        spriteRenderer.color = Color.white;
+        spriteRenderer.material = _defaultMaterial;
         AnimateProjectile();
         lastCollider = null;
         collider.enabled = false;

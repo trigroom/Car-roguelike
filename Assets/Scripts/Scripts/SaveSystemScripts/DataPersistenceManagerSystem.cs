@@ -57,7 +57,7 @@ public class DataPersistenceManagerSystem : MonoBehaviour
         bool isTestProgressReload = false;
 
         _gameData = _dataHandler.Load();
-        if (isTestProgressReload)
+       if (isTestProgressReload)
             _gameData = null;
 
         if (_gameData == null) {

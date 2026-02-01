@@ -16,6 +16,8 @@ public class PlayerUIView : MonoBehaviour
     [field: SerializeField]
     public TMP_Text _gameTimerText { get; private set; }
     [field: SerializeField]
+    public TMP_Text _mainTaskText { get; private set; }
+    [field: SerializeField]
     public TMP_Text[] _taskTexts { get; private set; }
     [field: SerializeField]
     public Transform _arrowImageTransform { get; private set; }

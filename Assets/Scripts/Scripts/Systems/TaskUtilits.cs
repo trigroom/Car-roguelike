@@ -10,13 +10,12 @@ public class TaskUtilits{
         return TaskTypes[Random.Range(0, TaskTypes.Count)];
     }
 
-
     public static void UpdateTaskText(TaskComponent taskCmp) {
         if (taskCmp.TaskType == TaskType.BrokenParts)
-            taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} broken enemy car parts. Reward {taskCmp.MoneyReward} $";
+            taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} {BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue("brokenCarPartsTask")} {taskCmp.MoneyReward} $";
         else if (taskCmp.TaskType == TaskType.Kills)
-            taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} broken enemy cars. Reward {taskCmp.MoneyReward} $";
+            taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} {BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue("brokenCarsTask")} {taskCmp.MoneyReward} $";
         else if (taskCmp.TaskType == TaskType.CarIntegrity)
-            taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} end rounds with >90% not broken car parts. Reward {taskCmp.MoneyReward} $";
+            taskCmp.TaskText.text = $"{taskCmp.CurrentCount}/{taskCmp.NeedCount} {BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue("endRoundsWithTask")} {taskCmp.MoneyReward} $";
     }
 }

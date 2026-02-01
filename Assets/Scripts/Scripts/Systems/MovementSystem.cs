@@ -286,7 +286,7 @@ public class MovementSystem : IEcsRunSystem {
 
                 movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
                // if (movementCmp.MovableObjectRigidbody.linearVelocity.magnitude > movementCmp.Acceleration && movementCmp.MovableObjectRigidbody.linearVelocity.magnitude < movementCmp.Deceleration)
-                    movementCmp.MovableObjectRigidbody.AddForce(moveObjectTransform.up * movementCmp.CurrentMoveSpeed*carCmp.CurrentWeight/10, ForceMode2D.Force);
+                //    movementCmp.MovableObjectRigidbody.AddForce(moveObjectTransform.up * movementCmp.CurrentMoveSpeed*carCmp.CurrentWeight/10, ForceMode2D.Force);
                 
             } else {
                   movementCmp.CantMoveTime -= deltaTime;
@@ -294,10 +294,10 @@ public class MovementSystem : IEcsRunSystem {
             }
               
 
-            if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
+          /*  if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
                 var windCmp = _windComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
                 movementCmp.MovableObjectRigidbody.AddForce(windCmp.WindDirection * windCmp.WindSpeed, ForceMode2D.Force);
-            }
+            }*/
                 
             
             carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
@@ -461,14 +461,14 @@ public class MovementSystem : IEcsRunSystem {
     private void SetWheelParticleSystemState(int entity, bool needParticles) {
         var moveCmp = _movementComponentsPool.Value.Get(entity);
         if (needParticles)
-            needParticles = moveCmp.CurrentMoveSpeed > 20;
+            needParticles = moveCmp.CurrentMoveSpeed > 50;
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         var wheelsParticles = carCmp.ForwardWheelsParticles;
         foreach (var particles in wheelsParticles) {
             var main = particles.main;
-            main.startSpeed = moveCmp.CurrentMoveSpeed/5;
+            main.startSpeed = moveCmp.CurrentMoveSpeed/15;
             var emission = particles.emission;
-            emission.rateOverTime = ((int)moveCmp.CurrentMoveSpeed-3)/5;
+            emission.rateOverTime = ((int)moveCmp.CurrentMoveSpeed-10)/15;
         }
 
         if (carCmp.isWheelParticle != needParticles) {

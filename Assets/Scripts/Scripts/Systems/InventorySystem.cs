@@ -391,6 +391,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetCarPartRedactorMode() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (!inventoryCmp.IsCarPartsRedactorMode && !CanUseThisCarPartContainers()) {
+            _sceneData.Value._inventoryUIView.FadeAnimation(_sceneData.Value._inventoryUIView._highlightFrameImage);
             if (!inventoryCmp.SortedCarPartType.Contains(CarPartType.WheelsContainer))
                 SortCarParts(CarPartType.WheelsContainer);
 
@@ -449,15 +450,17 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         int inventoryPartIndex = carPartId;
         //  inventoryView._inventoryCellViews[inventoryCmp.CurrentDraggedCellEntity].gameObject.SetActive(false);
         var partInfo = _sceneData.Value._carStuffListsConfig.CarPartConfigs[inventoryPartIndex];
-        
+
         if (!inventoryCmp.IsCarPartsRedactorMode) {
             AnimateChangeModeButton();
             return;
         }
 
+      
         inventoryCmp.StartOffsetFromCell = GridUtils.GetNormalizedMouseOffset(_sceneData.Value._shopUIView
             ._buttonsShop[_shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).ShopButtonIndex].ItemSprite.rectTransform);
-        SetDraggedCell(ref inventoryCmp, inventoryPartIndex, inventoryView);
+        SetDraggedCell(ref inventoryCmp, inventoryPartIndex, inventoryView);  
+        SetCarPartInfoPanel(inventoryCmp.CurrentDraggedCellEntity, false);
         _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(!GridUtils.IsContainerType(partInfo));
     }
 
@@ -477,12 +480,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             AnimateChangeModeButton();
             return;
         }
+      
         inventoryCmp.StartOffsetFromCell =
             GridUtils.GetNormalizedMouseOffset(inventoryView._inventoryCellViews[inventoryCellIndex]._inventoryCellImage.rectTransform);
         SetDraggedCell(ref inventoryCmp, inventoryCellInfoCmp.CarPartId, inventoryView);
         _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(!GridUtils.IsContainerType(partInfo));
  
-        inventoryView._inventoryCellViews[inventoryCellIndex].gameObject.SetActive(false);
+        inventoryView._inventoryCellViews[inventoryCellIndex].gameObject.SetActive(false);  
+        SetCarPartInfoPanel(inventoryCmp.CurrentDraggedCellEntity, false);
     }
 
     private void AnimateChangeModeButton() {
@@ -2110,8 +2115,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         if (!isBuyCell) {
             ref var invCellCmp = ref _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity);
             int cellId = invCellCmp.CellId;
-            if (inventoryCmp.CurrentMarkedCellForPanelInfo == _sceneData.Value._inventoryUIView._inventoryCellViews[cellId]._entity)
-                CloseShowInfoPanel();
+           // if (inventoryCmp.CurrentMarkedCellForPanelInfo == _sceneData.Value._inventoryUIView._inventoryCellViews[cellId]._entity)
+               
 
             int partsInInventoryIndex = inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length +
                                         cellId;
@@ -2143,6 +2148,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             partIndex = shopCellCmp.CurrentBuyItemId;
         }
 
+        CloseShowInfoPanel();
         int carPartEntity = _world.Value.NewEntity();
         ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartEntity);
         ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Add(carPartEntity);
@@ -2920,11 +2926,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void ChangeInventoryMode() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         inventoryCmp.IsModuleInventoryMode = !inventoryCmp.IsModuleInventoryMode;
-        if (inventoryCmp.IsModuleInventoryMode) {
+        if (inventoryCmp.IsModuleInventoryMode)
             _sceneData.Value._inventoryUIView._inventoryModeText.text = GetLocalization("Modules");
-        } else {
+        else
             _sceneData.Value._inventoryUIView._inventoryModeText.text = GetLocalization("Car");
-        }
 
         inventoryCmp.CurrentInventoryPage = 0;
         
@@ -2940,7 +2945,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         
     }
     private void SelectModuleCell(int cellId) {
-      
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if(_carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo).ModuleIds[cellId] != -1)return;
         if (inventoryCmp.CurrentSelectedModuleCellId == cellId) {
@@ -3021,9 +3025,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         carPartInfoCmp.ModuleIds[inventoryCmp.CurrentSelectedModuleCellId] = moduleCmp.ModuleId;
 
-       // var moduleView = _sceneData.Value._carPartInfoUIView._moduleViews[inventoryCmp.CurrentSelectedModuleCellId];
-   //     moduleView.ModuleIcon.sprite = moduleConfig.ModuleIcon;
-       // moduleView.ModuleIcon.color = Color.white;
        CancelModuleSelect();
        SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
        if (GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.WheelsContainer)
