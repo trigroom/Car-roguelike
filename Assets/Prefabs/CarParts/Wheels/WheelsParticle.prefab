@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3977649485295094375}
   - component: {fileID: 6172490581939937440}
   - component: {fileID: 1152839613932585647}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: WheelsParticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}

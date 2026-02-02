@@ -148,7 +148,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
         _sceneService.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
         _sceneService.Value._mapFilledZoneView.SetupFilledZone(SetFeelingZoneState);
-        
+        _sceneService.Value._mapFilledZoneView.FilledZoneGround.color = mapConfig.MapVisualInfoConfigs[0].WheelParticlesColor;
         var settingsView = _sceneService.Value._settingsView;
         settingsView._settingsChangeStateButton.onClick.AddListener(SetSettingsState);
         settingsView._saveSettingsButton.onClick.AddListener(SaveSettings);
@@ -1046,7 +1046,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var filledZoneCmp =ref _filledZoneComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if(!filledZoneCmp.ZoneIsFeeling)return;
         filledZoneCmp.CurrentZoneTime += Time.deltaTime;
-        _sceneService.Value._mapFilledZoneView.FilledZoneUI.fillAmount = filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime;
+        var fillAmount = filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime;
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.fillAmount = fillAmount;
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.color = _sceneService.Value._healthGradient.Evaluate(fillAmount);
         if (filledZoneCmp.CurrentZoneTime >= filledZoneCmp.NeedZoneTime) {
             EndFilledZoneRound();
             _filledZoneComponentsPool.Value.Del(_sceneService.Value.PlayerEntity);

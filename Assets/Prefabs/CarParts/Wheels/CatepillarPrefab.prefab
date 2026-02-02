@@ -323,6 +323,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: WheelsParticle
       objectReference: {fileID: 0}
+    - target: {fileID: 7632209945718154149, guid: cefe8272d2d62f044bb9ddcbc064dd25, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
