@@ -56,5 +56,4 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 1944121b7825d014f96a06ec442ca80f, type: 2}
   MapVisualInfoConfigs:
   - {fileID: 11400000, guid: bae9e8c54c71e0a44aaffaad8983e34d, type: 2}
-  - {fileID: 11400000, guid: 411c8238cee82f94bba183aa44e8a937, type: 2}
   LightColor: {r: 0.972549, g: 0.9098039, b: 0.81960785, a: 1}

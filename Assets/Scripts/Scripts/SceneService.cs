@@ -11,15 +11,10 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public MapEventsContentView _mapEventsContentView{ get; private set; }
     [field: SerializeField] public VersusBattleView _versusBattleView{ get; private set; }
     [field: SerializeField] public Material _defaultMaterial{ get; private set; }
-    [field: SerializeField] public Sprite[] _bomberProjectiles{ get; private set; }
-    [field: SerializeField] public Sprite[] _bomberProjectilesShadows{ get; private set; }
     [field: SerializeField] public Sprite _whiteCircle{ get; private set; }
-    [field: SerializeField] public Sprite _bomberSprite{ get; private set; }
-    [field: SerializeField] public Transform[] _tornadoPrefabs { get; private set; }
-    [field: SerializeField] public Sprite _thunderCloudsSprite{ get; private set; }
-    [field: SerializeField] public Transform _thunderPrefab{ get; private set; }
     [field: SerializeField] public SpriteRenderer _cloudsSpriteRenderer { get; private set; }
     [field: SerializeField] public SpriteRenderer _behindMapBorderSpriteRenderer { get; private set; }
     [field: SerializeField] public SpriteRenderer _mapGroundSpriteRenderer { get; private set; }

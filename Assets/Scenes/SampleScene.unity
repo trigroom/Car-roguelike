@@ -14909,6 +14909,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 690820216}
+  - component: {fileID: 690820217}
   m_Layer: 0
   m_Name: MapContainer
   m_TagString: Untagged
@@ -14934,6 +14935,35 @@ Transform:
   - {fileID: 319312762}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &690820217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 690820215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ba188f32e4b60445879d2d1f8fc8f59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <_bomberProjectiles>k__BackingField:
+  - {fileID: 21300000, guid: 20431d417d46b374da55d2613eb07b8a, type: 3}
+  - {fileID: 21300000, guid: 2bfa2dc91da311f46b28e988c10f11a2, type: 3}
+  <_bomberProjectilesShadows>k__BackingField:
+  - {fileID: 21300000, guid: 85fa051166aa33f4b8c3c3ca218a6816, type: 3}
+  - {fileID: 21300000, guid: f1f9e15dc56307f4694053079851909b, type: 3}
+  <_trainPrefab>k__BackingField: {fileID: 1527261547942611069, guid: fda9668ca56cf084085e56f75782b764, type: 3}
+  <_trainTunnelsPrefab>k__BackingField: {fileID: 7571926195059410627, guid: a850a8a0407ad4340b084cdaf46c9104, type: 3}
+  <_bomberSprite>k__BackingField: {fileID: 21300000, guid: e1880bed0a7dabe46928e7ef8790c843, type: 3}
+  <_tornadoPrefabs>k__BackingField:
+  - {fileID: 5901465273616574507, guid: 0fb8cf42bc4bc9544a08df6976a6ed55, type: 3}
+  - {fileID: 5901465273616574507, guid: de1a03ec3a0b5ca4f9492bfc5ef69c13, type: 3}
+  <_quicksandPrefabs>k__BackingField:
+  - {fileID: 5901465273616574507, guid: 6dc365d95ed5de544b9c3f96a86b62d0, type: 3}
+  - {fileID: 5901465273616574507, guid: 11831ed722cd0ac49b9755b62b88e471, type: 3}
+  <_thunderCloudsSprite>k__BackingField: {fileID: 21300000, guid: 37620ea51ecdc784e90a17d93809910a, type: 3}
+  <_thunderPrefab>k__BackingField: {fileID: 8074046972565327555, guid: 8d2f60d982144194282c1470a619439f, type: 3}
 --- !u!1 &697998212
 GameObject:
   m_ObjectHideFlags: 0
@@ -16918,21 +16948,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47a5551cc11d45d46b1963fc225b00d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_mapEventsContentView>k__BackingField: {fileID: 690820217}
   <_versusBattleView>k__BackingField: {fileID: 435164006}
   <_defaultMaterial>k__BackingField: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
-  <_bomberProjectiles>k__BackingField:
-  - {fileID: 21300000, guid: 20431d417d46b374da55d2613eb07b8a, type: 3}
-  - {fileID: 21300000, guid: 2bfa2dc91da311f46b28e988c10f11a2, type: 3}
-  <_bomberProjectilesShadows>k__BackingField:
-  - {fileID: 21300000, guid: 85fa051166aa33f4b8c3c3ca218a6816, type: 3}
-  - {fileID: 21300000, guid: f1f9e15dc56307f4694053079851909b, type: 3}
   <_whiteCircle>k__BackingField: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
-  <_bomberSprite>k__BackingField: {fileID: 21300000, guid: e1880bed0a7dabe46928e7ef8790c843, type: 3}
-  <_tornadoPrefabs>k__BackingField:
-  - {fileID: 5901465273616574507, guid: 0fb8cf42bc4bc9544a08df6976a6ed55, type: 3}
-  - {fileID: 5901465273616574507, guid: de1a03ec3a0b5ca4f9492bfc5ef69c13, type: 3}
-  <_thunderCloudsSprite>k__BackingField: {fileID: 21300000, guid: 37620ea51ecdc784e90a17d93809910a, type: 3}
-  <_thunderPrefab>k__BackingField: {fileID: 8074046972565327555, guid: 8d2f60d982144194282c1470a619439f, type: 3}
   <_cloudsSpriteRenderer>k__BackingField: {fileID: 176192520}
   <_behindMapBorderSpriteRenderer>k__BackingField: {fileID: 319312761}
   <_mapGroundSpriteRenderer>k__BackingField: {fileID: 1675750767}

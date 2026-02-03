@@ -6,6 +6,7 @@ using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
+using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -54,6 +55,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<BossComponent> _bossComponentsPool;
     private EcsPoolInject<VersusBattleComponent> _versusBattleComponentsPool;
     private EcsPoolInject<FireExtinguisherComponent> _fireExtinguisherComponentsPool;
+    private EcsPoolInject<TrainControllerComponent> _trainControllerComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -107,7 +109,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     _thunderstormComponentsPool.Value.Add(playerEntity).TimeToNextThunder = 5;
 
                     _sceneService.Value._cloudsSpriteRenderer.material.SetTexture("_CloudTex",
-                        _sceneService.Value._thunderCloudsSprite.texture);
+                        _sceneService.Value._mapEventsContentView._thunderCloudsSprite.texture);
                     _sceneService.Value.globalLight.color = Color.gray;
                     _sceneService.Value.globalLight.intensity = 0.92f;
                 } else if (mapEvent.MapEventType == MapEventsType.Tornado) {
@@ -122,7 +124,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     bomberController.BombIndex = (int)mapEvent.MapEventFirstCount;
                     var bomberSpriteRenderer = _sceneService.Value.GetSpriteRenderer();
                     bomberController.BomberShadowTransform = bomberSpriteRenderer.transform;
-                    bomberSpriteRenderer.sprite = _sceneService.Value._bomberSprite;
+                    bomberSpriteRenderer.sprite = _sceneService.Value._mapEventsContentView._bomberSprite;
                     bomberSpriteRenderer.color = new Color(0, 0, 0, 0.3f);
                     bomberSpriteRenderer.transform.localScale = Vector3.one*4.5f;
                     bomberSpriteRenderer.gameObject.SetActive(false);
@@ -264,8 +266,44 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             else if (curGameCmp.SupportBoxPhase == 1)
                 CheckSupportBoxAirPlane();
         }
+
+        if (_trainControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
+            ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            trainControllerCmp.TimeToNextTrain -= Time.deltaTime;
+            if (trainControllerCmp.TimeToNextTrain <= 0)
+                SpawnTrain();
+        }
     }
 
+    private void SpawnTrain() {
+        ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var needTrail = trainControllerCmp.TrainRails[Random.Range(0, trainControllerCmp.TrainRails.Count)];
+        bool isFirstSide = Random.value > 0.5f;
+        if (needTrail.localEulerAngles.z != 0) {
+            if (isFirstSide) {
+                 trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 270 );
+                 trainControllerCmp.TrainTransform.position = new Vector3(needTrail.position.x, 110, 0);
+                 trainControllerCmp.TrainTransform.DOMoveY(-130, 12);
+            } else {
+                trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0,90);
+                trainControllerCmp.TrainTransform.position = new Vector3(needTrail.position.x, -110, 0);
+                trainControllerCmp.TrainTransform.DOMoveY(130, 12);
+            }
+           
+        } else {
+            if (isFirstSide) {
+                trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 180);
+                trainControllerCmp.TrainTransform.position = new Vector3(110, needTrail.position.y, 0);
+                trainControllerCmp.TrainTransform.DOMoveX(-130, 12);
+            } else {
+                trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 0);
+                trainControllerCmp.TrainTransform.position = new Vector3(-110, needTrail.position.y, 0);
+                trainControllerCmp.TrainTransform.DOMoveX(130, 12);
+            }
+        }
+        trainControllerCmp.TrainTransform.gameObject.SetActive(true);
+        trainControllerCmp.TimeToNextTrain += 15;
+    }
     private void CheckSupportBoxAirPlane() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var supportBoxView = _sceneService.Value._supportBoxStuffView;
@@ -575,6 +613,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
             _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextTornado = 0;
         }
+
+        if (_trainControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
+            ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            trainControllerCmp.TimeToNextTrain = 10;   
+            trainControllerCmp.TrainTransform.DOKill();
+            trainControllerCmp.TrainTransform.gameObject.SetActive(false);
+        }
+        
     }
 
     private void ReleaseAllCarPartUI() {
@@ -2007,48 +2053,6 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
                     } /**/
                 }
             }
-            
-            //place pillars
-            
-         /*   for (int i = 0; i < 4; i++) {
-                Vector2 buildingSize = new (5, 5);
-                var building = GenerateBuilding();
-                var buildingSprite = building.GetComponent<SpriteRenderer>();
-                buildingSprite.material = buildingVisualConfig.GroundMaterial;
-                building.transform.localScale = buildingSize;
-
-              //  var needPosition = GetCornerPositionForBuilding(buildingSize, i);
-
-              //  building.localPosition = new Vector3(needPosition.x, needPosition.y, 0f);
-
-            //    maxPoints.Add(new Vector2(building.localPosition.x + buildingSize.x / 2, building.localPosition.y + buildingSize.y / 2));
-            //    minPoints.Add(new Vector2(building.localPosition.x - buildingSize.x / 2, building.localPosition.y - buildingSize.y / 2));
-
-                for (int k = 0; k < buildingSize.x / 20 + 1; k++) {
-                    for (int j = 0; j < buildingSize.y / 20 + 1; j++) {
-                        Vector2 obstaclePosition = new Vector2(k, j) * 20 - buildingSize / 2 + (Vector2)building.localPosition;
-                        SpawnObstacle(obstaclePosition,
-                            buildingVisualConfig.MapObstacles[Random.Range(0, buildingVisualConfig.MapObstacles.Length-2)]);
-                        if (Random.value > 0.8f) {
-                            int randomBarrel = Random.Range(0, 2);
-                            Debug.Log(buildingVisualConfig.MapObstacles[buildingVisualConfig.MapObstacles.Length - 2 + randomBarrel] + " barindex");
-                            var needObstacle = SpawnObstacle(obstaclePosition + (Random.insideUnitCircle * 5f).normalized * 3.5f,
-                                    buildingVisualConfig.MapObstacles[buildingVisualConfig.MapObstacles.Length - 2 + randomBarrel]);
-                            if(!needObstacle)continue;
-                            int barrelEntity = _world.Value.NewEntity();
-                            _carPartInfoComponentsPool.Value.Add(barrelEntity).CurrentHealth = 150;
-                            ref var carPartCmp = ref _carPartComponentsPool.Value.Add(barrelEntity);
-                            carPartCmp.MainEntity = -11 - randomBarrel;
-                            carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
-
-                            carPartCmp.CellCarPartsStuffViews.Add(needObstacle.gameObject.GetComponent<CarPartStuffView>());
-
-                            carPartCmp.CellCarPartsStuffViews[0].SetupCarPart(Vector2Int.one * (-11 - randomBarrel), "Obstacle", barrelEntity);
-                        }
-                    }
-                }
-            }*/
-
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
                     if (i == 4 && j == 5) continue;
@@ -2058,23 +2062,53 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
 
             return;
         } else if (mapConfig.MapId == 0 && _betweenScenesService.Value.CurrentSelectedMapDifficlty > 0) {
-            var quicksandVisualConfig = mapConfig.MapVisualInfoConfigs[1];
-            for (int i = 0; i < 5; i++) {
-                for (int j = 0; j < 5; j++) {
-                    if (i == 2 && j == 2) continue;
-                    Vector2 obstaclePosition = new Vector2(Random.Range(0, 40) + (i - 1) * 40 - 100, Random.Range(0, 40) + (j - 1) * 40 - 100);
-                    var quickSand = SpawnObstacle(obstaclePosition,
-                        quicksandVisualConfig.MapObstacles[Random.Range(0, quicksandVisualConfig.MapObstacles.Length)]);
-                    if(quickSand)
-                        quickSand.GetComponent<QuicksandView>().Construct(EnterInQuicksand,ExitFromQuicksand,0);
+            if (_betweenScenesService.Value.CurrentSelectedMapDifficlty > 2) {
+                ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
+                trainControllerCmp.TrainTransform =
+                    _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._trainPrefab);
+                trainControllerCmp.TrainTransform.gameObject.SetActive(false);
+                trainControllerCmp.TimeToNextTrain = 7f;
+                trainControllerCmp.TrainRails = new List<Transform>();
+                List<int> needPositions = Enumerable.Range(0, 61).ToList();
+                for (int i = 0; i < 5; i++) {
+                    var trainTrail = _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._trainTunnelsPrefab);
+                    int needIndex = Random.Range(0, needPositions.Count);
+
+                    if (needPositions[needIndex] < 30) {
+                        int needGridLine = 5 + needPositions[needIndex];
+                        trainTrail.localEulerAngles = new Vector3(0, 0, 90);
+                        trainTrail.position = new Vector3((needGridLine) * 5 - 97.5f,1.3f , 0f);
+                        for (int j = 0; j < currentGameCmp.MapGrid.GetLength(0); j++)
+                            currentGameCmp.MapGrid[needGridLine, j] = 1;
+
+                        //1 line to grid
+                    } else {
+                        int needGridLine = needPositions[needIndex] - 25;
+                        trainTrail.position = new Vector3(-7.5f, (needGridLine) * 5 - 97.5f, 0f);
+                        for (int j = 0; j < currentGameCmp.MapGrid.GetLength(0); j++)
+                            currentGameCmp.MapGrid[j, needGridLine] = 1;
+                    }
+
+                    needPositions.Remove(needPositions[needIndex] + 1);
+                    needPositions.Remove(needPositions[needIndex] - 1);
+                    needPositions.RemoveAt(needIndex);
+                    trainControllerCmp.TrainRails.Add(trainTrail);
                 }
+                
+            }
+
+            var quicksandVisualConfig = _sceneService.Value._mapEventsContentView._quicksandPrefabs;
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) 
+                    GenerateQuicksandInCell(i, j, randomOffset, quicksandVisualConfig);
+                
             }
         }
 
         for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
+            for (int j = 0; j < 10; j++) 
                 GenerateObstaclesInCell(i, j, randomOffset);
-            }
+            
         }
     }
 
@@ -2149,8 +2183,19 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
       return  _sceneService.Value.InstantiateObject(_sceneService.Value._mapGroundSpriteRenderer.transform, _sceneService.Value._mapContainer, Vector2.zero);
         
     }
-    
-    
+
+    private void GenerateQuicksandInCell(int cellX, int cellY, Vector2 randomOffsetForNoise, Transform[] obstacles) {
+        float noiseValue = PerlinNoiseUtil.GetFractalNoise(
+            cellX * 20 + 20 / 2f + randomOffsetForNoise.x, cellY * 20 + 20 / 2f + randomOffsetForNoise.y);
+        if (noiseValue > 0.4f) return;
+        Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);
+        bool canPlaceObstacle = AreAllNeighborsNonZero(_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MapGrid,
+            Mathf.FloorToInt((randomPosition.x + 100) / 5), Mathf.FloorToInt((randomPosition.y + 100) / 5));
+
+        if (canPlaceObstacle)
+            SpawnObstacle(randomPosition, obstacles[Random.Range(0, obstacles.Length)])?.GetComponent<QuicksandView>()
+                .Construct(EnterInQuicksand, ExitFromQuicksand, 0);
+    }
     private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise)
     {
         float noiseValue = PerlinNoiseUtil.GetFractalNoise(
@@ -2165,16 +2210,6 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
             Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);
             bool canPlaceObstacle = AreAllNeighborsNonZero(mapGrid,Mathf.FloorToInt((randomPosition.x+100)/5),Mathf.FloorToInt((randomPosition.y+100)/5));
             
-          /*  if (minPoint != null)
-                for (int i = 0; i < minPoint.Count; i++) {
-                    Debug.Log(maxPoint[i] +" "+ minPoint[i]+ " i:"+i);
-                    if ((randomPosition.x > minPoint[i].x-5 && randomPosition.x < maxPoint[i].x+5) && (randomPosition.y > minPoint[i].y-5 &&
-                            randomPosition.y < maxPoint[i].y+5)) {
-                        canPlaceObstacle = false;
-                        break;
-                    }
-                }*/
-
             if (canPlaceObstacle)
                 SpawnObstacle(randomPosition, mapVisualConfig.MapObstacles[Random.Range(0, mapVisualConfig.MapObstacles.Length)]);
         }

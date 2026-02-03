@@ -37,7 +37,7 @@ MonoBehaviour:
   BulletSpeed: 20
   ReloadDuration: 1.5
   MissleType: 0
-  MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
+  MissleSprite: {fileID: 21300000, guid: decf9f8f9a61ae84091faabc536f5b0f, type: 3}
   FirePointPosition: {x: 0, y: 0.7}
   GunContainerPosition: {x: 0, y: 0}
   SpreadAngle: 25
@@ -50,3 +50,4 @@ MonoBehaviour:
   BreakingThroughDamageFalloff: 0
   CarRecoil: 500
   ProjectileLifeTime: 1
+  ElectricityConsumption: 0

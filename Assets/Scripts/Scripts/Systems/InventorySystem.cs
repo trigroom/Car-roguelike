@@ -1919,12 +1919,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void SetModuleInfoPanel(int entity) {
-        var moduleCmp = _moduleInventoryItemsPool.Value.Get(entity);
+        var moduleId = _moduleInventoryItemsPool.Value.Has(entity)
+            ? _moduleInventoryItemsPool.Value.Get(entity).ModuleId
+            : _shopCellComponentsPool.Value.Get(entity).CurrentBuyItemId;
+        
         _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo = entity;
         _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
         _sceneData.Value._carPartInfoUIView.gameObject.SetActive(true);
         _sceneData.Value._carPartInfoUIView.SetPanelForModuleInfo(
-            _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleCmp.ModuleId]);
+            _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleId]);
     }
 
     private void CloseShowInfoPanel() {
@@ -2677,7 +2680,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void TakeItemFromInventory(int cellEntity) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Debug.Log("Try take item"+inventoryCmp.CurrentDraggedCellEntity + " but need "+cellEntity);
-        if(_moduleInventoryItemsPool.Value.Has(cellEntity) || inventoryCmp.CurrentDraggedCellEntity != -1)return;
+        if ((_shopCellComponentsPool.Value.Has(cellEntity) && _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop) ||
+            _moduleInventoryItemsPool.Value.Has(cellEntity) || inventoryCmp.CurrentDraggedCellEntity != -1) return;
        
         inventoryCmp.IsTryDraggedCell = true;
         inventoryCmp.CurrentCellCarPart = null;
