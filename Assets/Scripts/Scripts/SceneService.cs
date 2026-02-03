@@ -11,6 +11,8 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public SpriteRenderer _parachuteSpriteRenderer { get; private set; }
+    [field: SerializeField] public Transform _enemyAirplane{ get; private set; }
     [field: SerializeField] public MapEventsContentView _mapEventsContentView{ get; private set; }
     [field: SerializeField] public VersusBattleView _versusBattleView{ get; private set; }
     [field: SerializeField] public Material _defaultMaterial{ get; private set; }

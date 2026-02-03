@@ -26,6 +26,9 @@
 
         public int[,] MapGrid;
         
+        public int EnemySendPhase;
+        public Vector2 EnemyTargetPosition;
+        
         public int SupportBoxPhase;
         public Vector2 SupportBoxTargetPosition;
 

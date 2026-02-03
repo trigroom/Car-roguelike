@@ -142,7 +142,6 @@ public class InventoryUIView : MonoBehaviour {
                 break;
             default:
                 return;
-                break;
         }
 
         Vector3 refBottomRightWorld = refCorners[cornerIndex];

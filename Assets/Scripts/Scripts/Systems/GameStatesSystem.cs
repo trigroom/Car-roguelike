@@ -261,10 +261,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         float timeBetweenEnemiesSpawn = _betweenScenesService.Value.GetMapDifficultyConfig().TimeBetweenInRoundEnemySpawn;
         if (curGameCmp.RoundTime / timeBetweenEnemiesSpawn > curGameCmp.RoundAddedEnemies) {
             if (curGameCmp.CurrentRoundType != RoundType.BattleDefault ||
-                curGameCmp.RoundTime < ((timeBetweenEnemiesSpawn - 5) + curGameCmp.CurrentRound * 3))
-                SetEnemiesCars(1, false);
+                curGameCmp.RoundTime < (timeBetweenEnemiesSpawn - 5 + curGameCmp.CurrentRound * 3))
+                SendEnemyAirplane();
+
             curGameCmp.RoundAddedEnemies++;
-        }
+        } else if (curGameCmp.EnemySendPhase == 1)
+            CheckEnemyAirplane();
+                     
 
         if (curGameCmp.CurrentRound > 3 && curGameCmp.CurrentRound % 2 == 0 && curGameCmp.RoundTime > 20 && curGameCmp.SupportBoxPhase < 2) {
             if (curGameCmp.SupportBoxTargetPosition.x == 999f)
@@ -281,6 +284,43 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
 
+    private void SendEnemyAirplane() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        curGameCmp.EnemyTargetPosition = GetPositionAroundPlayer();
+        curGameCmp.EnemySendPhase = 1;
+        _sceneService.Value._enemyAirplane.position = new Vector2 (curGameCmp.EnemyTargetPosition.x,-120);
+        _sceneService.Value._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() => 
+            _sceneService.Value._enemyAirplane.gameObject.SetActive(false)
+        );
+        _sceneService.Value._enemyAirplane.gameObject.SetActive(true);
+
+    }
+    private void CheckEnemyAirplane() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (_sceneService.Value._enemyAirplane.position.y > curGameCmp.EnemyTargetPosition.y)
+            SendEnemyCar();
+    }
+
+    private void SendEnemyCar() {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        curGameCmp.EnemySendPhase = 2;
+        var parachute = _sceneService.Value._parachuteSpriteRenderer;
+        parachute.transform.localScale = Vector3.one * 2f;
+        parachute.color = new Color(0, 0, 0, 0.3f);
+        parachute.transform.position = curGameCmp.EnemyTargetPosition;
+        parachute.gameObject.SetActive(true);
+        parachute.transform.DOScale(4, 2f).OnComplete(() => {
+            parachute.transform.localScale = Vector3.one * 12;
+            parachute.color = Color.white;
+            parachute.transform.DOScale(4, 2f).OnComplete(() => {
+                ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                curGameCmp.SupportBoxPhase = 3;
+                parachute.gameObject.SetActive(false);
+                SetEnemiesCars(1, false);
+                curGameCmp.EnemyTargetPosition = Vector2.one * 999;
+            });
+        });
+    }
     private void SpawnTrain() {
         ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var needTrail = trainControllerCmp.TrainRails[Random.Range(0, trainControllerCmp.TrainRails.Count)];
@@ -627,7 +667,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             trainControllerCmp.TrainTransform.DOKill();
             trainControllerCmp.TrainTransform.gameObject.SetActive(false);
         }
-        
+
+        curGameCmp.EnemyTargetPosition = Vector2.one * 999; 
+        _sceneService.Value._parachuteSpriteRenderer.DOKill();
+        _sceneService.Value._enemyAirplane.DOKill();
     }
 
     private void ReleaseAllCarPartUI() {
@@ -1242,15 +1285,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs[needIndex].CarMapsList;
         return carsList[Random.Range(0, carsList.Count)];
     }
+
     private void SetEnemiesCars(int enemiesCount, bool onStartRoundSpawn = true) {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         int roundNumber = curGameCmp.CurrentRound;
         if (!onStartRoundSpawn)
             roundNumber--;
-        
-        for (int i = 0; i < enemiesCount; i++) 
-            SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true,GetPositionAroundPlayer());
-        
+
+        for (int i = 0; i < enemiesCount; i++)
+            SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true,
+                onStartRoundSpawn ? GetPositionAroundPlayer() : curGameCmp.EnemyTargetPosition);
     }
 
     private void SpawnBossCars() {
