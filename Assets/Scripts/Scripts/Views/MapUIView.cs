@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class MapUIView : MonoBehaviour {
+    public Image[] PathElementsImage;
     public Image MapImage;
     public EventTrigger RoundButton;
     public TMP_Text RoundDifficltyContainerText;

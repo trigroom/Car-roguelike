@@ -1008,15 +1008,23 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 if (_movementComponentsPool.Value.Has(damagedMainEntity)) {
                     var moveCmpDamaged = _movementComponentsPool.Value.Get(damagedMainEntity);
                     damagedObjectMass = moveCmpDamaged.MovableObjectRigidbody.mass;
-                    damagedObjectSpeed = moveCmpDamaged.CurrentMoveSpeed;
+                    damagedObjectSpeed = moveCmpDamaged.MovableObjectRigidbody.linearVelocity.magnitude;
                 }
+                float relativeSpeed = Mathf.Abs(moveCmp.MovableObjectRigidbody.linearVelocity.magnitude - damagedObjectSpeed);
+                float speedFactor = relativeSpeed * 0.3f; // Настраиваемый коэффициент
+                float massFactor = damagedObjectMass / 100f; // Нормализуем массу
 
-                float damageByCollision = meleeCmp.DamageBySpeed *
-                    ((damagedObjectMass * moveCmp.MovableObjectRigidbody.mass) / (moveCmp.MovableObjectRigidbody.mass + damagedObjectMass)) *
-                    Mathf.Pow(Mathf.Abs(moveCmp.CurrentMoveSpeed - damagedObjectSpeed), 2) / 5;
+                float damageByCollision = meleeCmp.DamageBySpeed * speedFactor * massFactor;
+              /*  float reducedMass = (damagedObjectMass * moveCmp.MovableObjectRigidbody.mass) /
+                                    (moveCmp.MovableObjectRigidbody.mass + damagedObjectMass);
+
+                float relativeSpeed = Mathf.Abs(moveCmp.MovableObjectRigidbody.linearVelocity.magnitude - damagedObjectSpeed);
+
+                float damageByCollision = meleeCmp.DamageBySpeed * reducedMass * Mathf.Pow(relativeSpeed, 2) / 5f;*/
+                
                 damagePoints = meleeCmp.CurrentDamage + damageByCollision;
             } else {
-                damagePoints = 9999;
+                damagePoints = weaponId;
             }
         } else /*laser*/ {
             float distanceBetween = Vector2.Distance(_carPartComponentsPool.Value.Get(weaponCellEntity).CarPartCellRenderer.transform.position,

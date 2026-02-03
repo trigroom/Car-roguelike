@@ -90,6 +90,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.DifficultyHealthMultiplayer = difficultyConfig.HealthMultiplayer;
         curGameCmp.LocalTimeScale = 1;
 
+        //map path
+        for (int i = 0; i < 20-difficultyConfig.RoundsCount; i++) 
+              _sceneService.Value._mapUIView.PathElementsImage[^(i+1)].gameObject.SetActive(false);
+        
+
+      
         if (difficultyConfig.MapEvents != null)
             foreach (var mapEvent in difficultyConfig.MapEvents) {
                 if (mapEvent.MapEventType == MapEventsType.Wind) {
@@ -452,8 +458,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return maxModules;
     }
     private void SetSettingsState() {
-        _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(!_sceneService.Value._settingsView._settingsContainer
-            .gameObject.activeInHierarchy);
+        bool isPause = !_sceneService.Value._settingsView._settingsContainer.gameObject.activeInHierarchy;
+        _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(isPause);
+        Time.timeScale = isPause ? 0 : _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale;
     }
 
     private void GoToDesktop() {
@@ -743,6 +750,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void StartCurrentRoundType(RoundType roundType,PointerEventData data) {
         
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        
         if (shopCmp.isModulesShop)
             _sceneService.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
         _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
@@ -817,7 +825,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentRoundType = roundType;
         //curGameCmp.RoundWithMoneyMultiplayer = -1;
         _sceneService.Value._mapUIView.gameObject.SetActive(false);
-        
+        _sceneService.Value._mapUIView.PathElementsImage[curGameCmp.CurrentRound].sprite = _sceneService.Value._mapUIView.RoundSprites[roundType];
         curGameCmp.CurrentRound++;
         _startRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
@@ -2073,9 +2081,9 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
                 for (int i = 0; i < 5; i++) {
                     var trainTrail = _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._trainTunnelsPrefab);
                     int needIndex = Random.Range(0, needPositions.Count);
-
-                    if (needPositions[needIndex] < 30) {
-                        int needGridLine = 5 + needPositions[needIndex];
+                    var needValue = needPositions[needIndex];
+                    if (needValue < 30) {
+                        int needGridLine = 5 + needValue;
                         trainTrail.localEulerAngles = new Vector3(0, 0, 90);
                         trainTrail.position = new Vector3((needGridLine) * 5 - 97.5f,1.3f , 0f);
                         for (int j = 0; j < currentGameCmp.MapGrid.GetLength(0); j++)
@@ -2083,15 +2091,15 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
 
                         //1 line to grid
                     } else {
-                        int needGridLine = needPositions[needIndex] - 25;
+                        int needGridLine = needValue - 25;
                         trainTrail.position = new Vector3(-7.5f, (needGridLine) * 5 - 97.5f, 0f);
                         for (int j = 0; j < currentGameCmp.MapGrid.GetLength(0); j++)
                             currentGameCmp.MapGrid[j, needGridLine] = 1;
                     }
 
-                    needPositions.Remove(needPositions[needIndex] + 1);
-                    needPositions.Remove(needPositions[needIndex] - 1);
-                    needPositions.RemoveAt(needIndex);
+                    needPositions.Remove(needValue + 1);
+                    needPositions.Remove(needValue - 1);
+                    needPositions.Remove(needValue);
                     trainControllerCmp.TrainRails.Add(trainTrail);
                 }
                 
