@@ -27,4 +27,4 @@ MonoBehaviour:
   <MoneyCost>k__BackingField: 15
   ModuleType: 1
   FirstCount: 0.8
-  SecondCount: 0.5
+  SecondCount: 15

@@ -1674,6 +1674,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         fuelCmp.ConstantFuelElectricityReplenishment = 0;
         fuelCmp.ConstantFuelToElectricityConsumption = 0;
         fuelCmp.ConstantFuelConsumption = 0;
+        fuelCmp.AddedFuelConsumption = carConfig.AccelerationFuelСonsumption;
         // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var carPart in carCmp.CarPartGroupsList.Keys) {
             var carPartCellCmp = _carPartInfoComponentsPool.Value.Get(carPart);
@@ -1686,8 +1687,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (supportPartConfig.ModuleType == SupportModuleType.Fuel)
                     maxFuel += supportPartConfig.FirstCount*firstMultiplayer;
                 else if (supportPartConfig.ModuleType == SupportModuleType.Turbine) {
-                    defaultMaxCarSpeed += supportPartConfig.SecondCount*secondMultiplayer;
-                    defaultFuelConsumption += supportPartConfig.FirstCount*firstMultiplayer;
+                    moveCmp.MaxBoostMoveSpeed += supportPartConfig.SecondCount*secondMultiplayer;
+                    fuelCmp.AddedFuelConsumption += supportPartConfig.FirstCount*firstMultiplayer;
                 }
                 else if(supportPartConfig.ModuleType == SupportModuleType.Battery)
                     fuelCmp.MaxElectricity += supportPartConfig.FirstCount*firstMultiplayer;
@@ -1783,7 +1784,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carStatTexts[6].text = $" {moveCmp.RotateSpeed:F1}";
         carStatTexts[7].text = $" {moveCmp.Deceleration:F1}";
         carStatTexts[8].text =
-            $" {fuelCmp.FuelConsumption:F1}\n(+{carConfig.AccelerationFuelСonsumption})\n{GetLocalization("L/s")}";
+            $" {fuelCmp.FuelConsumption:F1}\n(+{fuelCmp.AddedFuelConsumption})\n{GetLocalization("L/s")}";
         carStatTexts[9].text = $" {fuelCmp.MaxElectricity:F1} {GetLocalization("w")} ";
         carStatTexts[10].text = $" {fuelCmp.ConstantElectricityReplenishment+fuelCmp.ConstantFuelElectricityReplenishment:F1} {GetLocalization("w/s")} ";
         carStatTexts[11].text = $" {fuelCmp.ElectricityConsumption:F1} {GetLocalization("w/s")} ";

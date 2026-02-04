@@ -1393,8 +1393,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                         _sceneService.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity}/{fuelCmp.MaxElectricity}";
                         break;
                     case SupportModuleType.Turbine:
-                        fuelCmp.FuelConsumption -= supportCarPartConfig.FirstCount * firstMultiplayer;
-                        _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed -=
+                        fuelCmp.AddedFuelConsumption -= supportCarPartConfig.FirstCount * firstMultiplayer;
+                        _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxBoostMoveSpeed -=
                             supportCarPartConfig.SecondCount * secondMultiplayer;
                         break;
                     case SupportModuleType.Heater:

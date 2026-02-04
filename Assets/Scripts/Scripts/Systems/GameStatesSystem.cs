@@ -1310,11 +1310,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         fuelCmp.MaxFuel = 0;
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         var carView = CarViewSetup(entity);
+        var carConfig = _sceneService.Value.GetCarConfig(carCmp.CarId);
         carView.transform.position = GetPositionAroundPlayer();
-
+        fuelCmp.AddedFuelConsumption = carConfig.AccelerationFuelСonsumption;
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
-
+        SetupEnemyMovementComponent(entity, _sceneService.Value.GetCarConfig(carCmp.CarId));
         foreach (var carContainer in carCmp.CarPartContainerGroupsList) {
             int carPartCellEntity = carContainer.Key;
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartCellEntity);
@@ -1331,7 +1332,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         fuelCmp.MaxFuel += _sceneService.Value.GetCarConfig(carCmp.CarId).DefaultMaxFuel;
 
-        SetupEnemyMovementComponent(entity, _sceneService.Value.GetCarConfig(carCmp.CarId));
         SetupWheels(entity, carView);
         SetupCarStatsFromLevelBoost(entity);
         ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
@@ -1759,7 +1759,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                                                                      (carPartSize.y - containersSize.y) / 2f);
         carCmp.CurrentWeight += carPartConfig.Weight;
         carPartCmp.CarPartCellRenderer.transform.localRotation = Quaternion.Euler(0, 0, needRotate);
-ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
+        ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
         if (carPartConfig.PartType == CarPartType.Gun) {
             //  carPart.SetColliderEnableState(false);
 
@@ -1844,9 +1844,9 @@ ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
                     fuelCmp.CurrentFuel += supportCarPartConfig.FirstCount*firstMultiplayer;
                     fuelCmp.MaxFuel += supportCarPartConfig.FirstCount*firstMultiplayer;
                     break;
-                case SupportModuleType.Turbine:
-                   fuelCmp.FuelConsumption += supportCarPartConfig.FirstCount*firstMultiplayer;
-                    _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed += supportCarPartConfig.SecondCount*secondMultiplayer;
+                case SupportModuleType.Money:
+                   fuelCmp.AddedFuelConsumption += supportCarPartConfig.FirstCount*firstMultiplayer;
+                    _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxBoostMoveSpeed += supportCarPartConfig.SecondCount*secondMultiplayer;
                     break;
                 case SupportModuleType.FireExtinguisher or SupportModuleType.Heater:
                   ref var fireExtinguisher = ref  _fireExtinguisherComponentsPool.Value.Add(cellEntity);

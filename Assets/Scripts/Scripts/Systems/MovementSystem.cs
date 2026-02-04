@@ -396,7 +396,7 @@ public class MovementSystem : IEcsRunSystem {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
         bool isPlayer = entity == _sceneData.Value.PlayerEntity;
         var carConfig = _sceneData.Value.GetCarConfig (_carComponentsPool.Value.Get(entity).CarId);
-        float curFuelConsumption = fuelCmp.UseSpeedBoost ? fuelCmp.FuelConsumption+carConfig.AccelerationFuelСonsumption : fuelCmp.FuelConsumption;
+        float curFuelConsumption = fuelCmp.UseSpeedBoost ? fuelCmp.FuelConsumption+fuelCmp.AddedFuelConsumption : fuelCmp.FuelConsumption;
         
         fuelCmp.CurrentFuel -= curFuelConsumption * Time.deltaTime;
 

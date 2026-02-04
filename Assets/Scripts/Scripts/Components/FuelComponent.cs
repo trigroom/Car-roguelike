@@ -10,6 +10,7 @@ public struct FuelComponent {
 
     public float MaxFuel;
     public float FuelConsumption;
+    public float AddedFuelConsumption;
     public float ConstantFuelConsumption;
     public float ConstantFuelToElectricityConsumption;
     public float CurrentFuel;
