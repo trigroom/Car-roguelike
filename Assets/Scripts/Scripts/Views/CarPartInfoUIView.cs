@@ -272,12 +272,12 @@ public class CarPartInfoUIView : MonoBehaviour
                 break;
             case SupportModuleType.Turbine:
                 _descriptionText.text +=
-                    $"\n{GetLocalization("Added fuel consumption")}: ";
+                    $"\n{GetLocalization("Boost fuel consumption")}: +";
                 var needCountTurbine = supportConfig.FirstCount * firstMultiplayer;
                 var needSecondCountTurbine = supportConfig.SecondCount * secondMultiplayer;
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needCountTurbine}</color>" : needCountTurbine;
                 _descriptionText.text +=
-                    $"\n {GetLocalization("Added max move speed")}: ";
+                    $"\n {GetLocalization("Boost max move speed")}: +";
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{needSecondCountTurbine}</color>" : needSecondCountTurbine;
                 break;
             case SupportModuleType.Money:

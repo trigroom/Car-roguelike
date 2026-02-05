@@ -58,9 +58,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         
         int playerEntity =_sceneData.Value.PlayerEntity;
 
-        _playerCurrencyComponentsPool.Value.Add(playerEntity).MoneyCount = 0;
-       
-
         ref var carCmp = ref _carComponentsPool.Value.Add(playerEntity);
         carCmp.CarId = _sceneData.Value._defaultCarConfigId;
         
@@ -131,7 +128,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryCmp.PlayerTeammateCarsEntity.Add(playerEntity);
         inventoryCmp.CurrentRedactedCarEntity = playerEntity;
         inventoryCmp.CurrentSelectedModuleCellId = -1;
-        AddRareToShopItems();
         _sceneData.Value._staticTextsView.SetTextLanguage();
         SetupLocalizationButtons();
 
@@ -171,7 +167,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var startRound in _startRoundEventsFilter.Value) {
             SetShopCells(false);
             SetCarShopCells();
-            AddRareToShopItems();
             UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
             foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
                 if (inventoryCmp.CurrentRedactedCarEntity != carEntity)
@@ -196,20 +191,19 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             SetHealthToMinimumLevel();
             UpdateHealAllCarPartButton();
             _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
-            Debug.Log("End round Inv System");
             CloseShowInfoPanel();
             //_endRoundEventsPool.Value.Del(endRound);
         }
 
         foreach (var updateSaleShop in _updateShopToSaleRoundEventsFilter.Value) {
             var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            if (shopCmp.isModulesShop) {
+            if (shopCmp.IsModulesShop) {
                 if (shopCmp.IsCarShopMode)
                     ChangeShopMode();
                 _sceneData.Value._shopUIView._shopModeButton.gameObject.SetActive(false);
             }
 
-            SetShopCells(!shopCmp.isModulesShop);
+            SetShopCells(!shopCmp.IsModulesShop);
             //
             _updateShopToSaleRoundEventsPool.Value.Del(updateSaleShop);
         }
@@ -237,7 +231,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (_inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentDraggedCellEntity))
                     StartDragInventoryCell(ref inventoryCmp);
                 else {
-                    if(_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop)
+                    if(_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsModulesShop)
                         return;
                     StartDragShopCell(ref inventoryCmp);
                 }
@@ -616,15 +610,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryComponent.LastCheckedGridCellPosition = -Vector2Int.one;
     }
 
-    private void AddRareToShopItems() {
-        ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        shopCmp.CurrentShopItemsChances = _sceneData.Value._carStuffListsConfig.RoundShopChances
-            [_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound].Chances;
-    }
     private void SetupShopCells() {
         _sceneData.Value._shopUIView._shopModeText.text = GetLocalization("Car parts shop");
         
-        ref var shopCmp = ref _shopComponentsPool.Value.Add(_sceneData.Value.PlayerEntity);
+        ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         shopCmp.ListShopItemsForRares = new List<List<int>>(){new List<int>(),new List<int>(),new List<int>(),new List<int>()};
         shopCmp.CurrentShopItemsChances = new List<float>(4);
         shopCmp.ShopModulesIds = new List<int>();
@@ -1076,7 +1065,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void SetShopCells(bool isShopSaleRound) {
         var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        bool isModulesMode = shopCmp.isModulesShop;
+        bool isModulesMode = shopCmp.IsModulesShop;
         List<int> shopItems = new();
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
             int randomItem;
@@ -1103,6 +1092,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             shopItems.Add(randomItem);
         }
 
+        float inflationMultiplayer = 1 + _betweenScenesService.Value.GetMapDifficultyConfig().ShopInflationPerRound *
+            _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
         int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsShop.Length);
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsShop.Length; i++) {
             var shopButton = _sceneData.Value._shopUIView._buttonsShop[i];
@@ -1115,8 +1106,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var carPartConfig = isModulesMode ? null : GetCarPartConfig(randomItem);
             var moduleConfig = isModulesMode ? _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[randomItem] : null;
             int price = isModulesMode ? (int)moduleConfig.Cost : (int)carPartConfig.MoneyCost; //maybe mult cost for smth round pow 
+            price =Mathf.CeilToInt(price *inflationMultiplayer);
             if (i == saleIndex || isShopSaleRound) {
                 float saleSize = isShopSaleRound ? Random.Range(2, 15) * 5 : Random.Range(1, 7) * 5;
+                
                 price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - saleSize / 100f)));
                 shopButton.SetShopSaleInfo((int)saleSize);
             } else
@@ -1137,7 +1130,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     
      private void SetCarShopCells() {
          var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-
+         float inflationMultiplayer = 1 + _betweenScenesService.Value.GetMapDifficultyConfig().ShopInflationPerRound *
+             _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
          var currentMapConfig = _betweenScenesService.Value.GetMapConfig().GameProcessConfig;
          var roundEnemyStuff =
              currentMapConfig.GameRounds[Mathf.Max(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound - 2, 0)];
@@ -1157,7 +1151,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 _sceneData.Value.ReleaseCarPartUIImage(carPartImage);
             
             shopCellCmp.CarPartsImages.Clear();
-            int price = GetCarCost(carMap); 
+            int price =  Mathf.CeilToInt(GetCarCost(carMap)*inflationMultiplayer); 
             if (i == saleIndex) {
                 float saleSize = Random.Range(1, 7) * 5;
                 price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - saleSize / 100f)));
@@ -1304,7 +1298,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         if (RemoveMoneyForBuy(shopCellCmp))
             return;
 
-        if (_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop) {
+        if (_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsModulesShop) {
             AddModuleInventoryItem(shopCellCmp.CurrentBuyItemId);
         } else {
             var carPartConfig = GetCarPartConfig(shopCellCmp.CurrentBuyItemId);
@@ -1901,7 +1895,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 return;
             }
 
-            if (_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop) {
+            if (_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsModulesShop) {
                 SetModuleInfoPanel(entity);
                 return;
             }
@@ -2681,7 +2675,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void TakeItemFromInventory(int cellEntity) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Debug.Log("Try take item"+inventoryCmp.CurrentDraggedCellEntity + " but need "+cellEntity);
-        if ((_shopCellComponentsPool.Value.Has(cellEntity) && _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).isModulesShop) ||
+        if ((_shopCellComponentsPool.Value.Has(cellEntity) && _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsModulesShop) ||
             _moduleInventoryItemsPool.Value.Has(cellEntity) || inventoryCmp.CurrentDraggedCellEntity != -1) return;
        
         inventoryCmp.IsTryDraggedCell = true;

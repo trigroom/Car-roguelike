@@ -30,6 +30,10 @@ public class MapDifficultyConfig : ScriptableObject
     public bool DestroyEnemyCarsAfterDeath { get; private set; }
     [field: SerializeField]
     public EnemyCarPartsMaps[] BossCars { get; private set; }
+    [field: SerializeField]
+    public float ShopInflationPerRound { get; private set; }
+    [field: SerializeField]
+    public bool AutoUpgradeShopToRoundLevel { get; private set; }
 }
 
 public enum MapEventsType {

@@ -374,3 +374,5 @@ Builder engine,Builder Engine,Двигатель "Строителя",Builder-Mo
 brokenCarPartsTask,Destroy enemy parts. Reward,Уничтожь вражеские детали. Награда,Zerstöre Gegnerteile. Belohnung,Destruye piezas enemigas. Recompensa,Détruis pièces ennemies. Récompense
 brokenCarsTask,Destroy enemy vehicles. Reward,Уничтожь вражеские машины. Награда,Zerstöre Gegnerfahrzeuge. Belohnung,Destruye vehículos enemigos. Recompensa,Détruis véhicules ennemis. Récompense
 endRoundsWithTask,Finish with >90% intact parts. Reward,Заканчивай раунды с >90% целых деталей. Награда,Beende mit >90% intakten Teilen. Belohnung,Termina con >90% piezas intactas. Recompensa,Termine avec >90% pièces intactes. Récompense
+Upgrade shop,Upgrade Shop,Улучшить магазин,Shop verbessern,Mejorar tienda,Améliorer boutique
+Price rise per round,Price increase per round,Повышение цены каждый раунд,Preisanstieg pro Runde,Aumento precio por ronda,Augmentation prix par round

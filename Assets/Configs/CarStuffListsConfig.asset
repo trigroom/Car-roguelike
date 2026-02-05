@@ -158,17 +158,17 @@ MonoBehaviour:
     - 0
   - Chances:
     - 10
-    - 0
-    - 0
-    - 0
-  - Chances:
-    - 10
     - 2
     - 0
     - 0
   - Chances:
     - 10
-    - 4
+    - 3
+    - 0
+    - 0
+  - Chances:
+    - 10
+    - 5
     - 0
     - 0
   - Chances:
@@ -184,73 +184,73 @@ MonoBehaviour:
   - Chances:
     - 10
     - 10
-    - 0
+    - 1
     - 0
   - Chances:
     - 10
     - 10
-    - 2
+    - 3
     - 0
   - Chances:
-    - 8
+    - 10
     - 10
     - 4
     - 0
   - Chances:
-    - 8
+    - 10
     - 10
     - 6
     - 0
   - Chances:
-    - 8
+    - 10
     - 10
     - 8
     - 0
   - Chances:
-    - 8
     - 10
     - 10
-    - 0
-  - Chances:
-    - 8
-    - 8
     - 10
     - 0
   - Chances:
-    - 8
-    - 8
+    - 10
+    - 10
+    - 10
+    - 1
+  - Chances:
+    - 10
+    - 10
     - 10
     - 2
   - Chances:
-    - 8
-    - 8
+    - 10
+    - 10
     - 10
     - 3
   - Chances:
-    - 8
-    - 8
+    - 10
+    - 10
     - 10
     - 4
   - Chances:
-    - 8
-    - 8
+    - 10
+    - 10
     - 10
     - 5
   - Chances:
-    - 8
-    - 8
     - 10
-    - 5
+    - 10
+    - 10
+    - 6
   - Chances:
-    - 8
-    - 8
     - 10
-    - 5
+    - 10
+    - 10
+    - 8
   - Chances:
-    - 8
-    - 8
     - 10
-    - 5
+    - 10
+    - 10
+    - 10
   <AchievementConfigs>k__BackingField:
   - {fileID: 11400000, guid: c2067576ee208054a9b807fafeeabb43, type: 2}
   - {fileID: 11400000, guid: 848bfbda67923884eb4b265d15ec39b0, type: 2}

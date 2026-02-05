@@ -6,6 +6,12 @@ using UnityEngine.UI;
 public class ShopUIView : MonoBehaviour
 {
     [field:SerializeField]
+    public Button _upgradeShopButton { get; private set; }
+    [field:SerializeField]
+    public TMP_Text _upgradeShopButtonText { get; private set; }
+    [field:SerializeField]
+    public TMP_Text _shopChancesText { get; private set; }
+    [field:SerializeField]
     public ShopButtonView[] _buttonsCarShop { get; private set; }
     [field:SerializeField]
     public Transform _shopCarContainer { get; private set; }
@@ -27,6 +33,8 @@ public class ShopUIView : MonoBehaviour
         public Sprite _lockSprite { get; private set; }
         [field:SerializeField]
         public Sprite _unlockSprite { get; private set; }
+        [field:SerializeField]
+        public TMP_Text _inflationText { get; private set; }
 
     public void AddMoneyAnimation() {
         _moneyCountText.transform.DOKill();

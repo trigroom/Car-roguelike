@@ -7,5 +7,6 @@
         public List<int> ShopModulesIds;
         public int CurrentUpdateCountInRound;
         public bool IsCarShopMode;
-        public bool isModulesShop;
+        public bool IsModulesShop;
+        public int ShopLevel;
     }

@@ -55,6 +55,8 @@ public class SelectDifficultyUIView : MonoBehaviour
             _difficultyDescription.text += "\n" + GetMapEventDescription(mapEvent);
          }
 
+      if (difficultyConfig.ShopInflationPerRound != 0)
+         _difficultyDescription.text += $"\n {GetLocalization("Price rise per round")}: {(difficultyConfig.ShopInflationPerRound * 100f)}%";
       _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
    }
 

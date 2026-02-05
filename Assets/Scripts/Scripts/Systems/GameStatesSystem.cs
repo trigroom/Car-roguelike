@@ -72,6 +72,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        // Application.targetFrameRate = 144;
         
         int playerEntity = _world.Value.NewEntity();
+        _playerCurrencyComponentsPool.Value.Add(playerEntity);
         _sceneService.Value.PlayerEntity = playerEntity;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
       //  curGameCmp.RoundTypes = new List<RoundType[]>();
@@ -89,13 +90,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.DifficultyDamageMultiplayer = difficultyConfig.DamageMultiplayer;
         curGameCmp.DifficultyHealthMultiplayer = difficultyConfig.HealthMultiplayer;
         curGameCmp.LocalTimeScale = 1;
-
+        _sceneService.Value._shopUIView._inflationText.transform.parent.gameObject.SetActive(difficultyConfig.ShopInflationPerRound != 0);
         //map path
+        
         for (int i = 0; i < 20-difficultyConfig.RoundsCount; i++) 
               _sceneService.Value._mapUIView.PathElementsImage[^(i+1)].gameObject.SetActive(false);
         
-
-      
         if (difficultyConfig.MapEvents != null)
             foreach (var mapEvent in difficultyConfig.MapEvents) {
                 if (mapEvent.MapEventType == MapEventsType.Wind) {
@@ -170,6 +170,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         settingsView._restartButton.onClick.AddListener(RestartGame);
         
         settingsView._closeSettingsButton.onClick.AddListener(SetSettingsState);
+        
+        _shopComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).ShopLevel = -1;
+     UpgradeShop();
+        _sceneService.Value._shopUIView._upgradeShopButton.onClick.AddListener(UpgradeShop);
+      
         SetColorSliderEnemyProjectilesValues();
         GenerateMap();
         SetupSupportBox();
@@ -615,7 +620,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.SupportBoxTargetPosition = Vector2.one * 999f;
         _sceneService.Value._playerUIView._mainTaskText.text = "";
         ChangePlayerUIState(false);
-        if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount)return;
+        var difficultyConfig = _betweenScenesService.Value.GetMapDifficultyConfig();
+        if(curGameCmp.CurrentRound >= difficultyConfig.RoundsCount)return;
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
@@ -671,6 +677,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.EnemyTargetPosition = Vector2.one * 999; 
         _sceneService.Value._parachuteSpriteRenderer.DOKill();
         _sceneService.Value._enemyAirplane.DOKill();
+        
     }
 
     private void ReleaseAllCarPartUI() {
@@ -794,11 +801,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
-        if (shopCmp.isModulesShop)
+        if (shopCmp.IsModulesShop)
             _sceneService.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
         _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
-        shopCmp.isModulesShop = false;
+        shopCmp.IsModulesShop = false;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var difficultyConfig = _betweenScenesService.Value.GetMapDifficultyConfig();
+        if (difficultyConfig.ShopInflationPerRound != 0)
+            _sceneService.Value._shopUIView._inflationText.text =
+                (difficultyConfig.ShopInflationPerRound * (curGameCmp.CurrentRound + 1) * 100) + "%";
+        
+            
         foreach (var button in curGameCmp.RoundButtons) {
             button.enabled = false;
         }
@@ -838,7 +851,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 ChangeInventoryState(true);
                 break;
             case RoundType.ModulesShop:
-                shopCmp.isModulesShop = true;
+                shopCmp.IsModulesShop = true;
                 SetSaleShopRound();
                 ChangeInventoryState(true);
                 break;
@@ -870,6 +883,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._mapUIView.gameObject.SetActive(false);
         _sceneService.Value._mapUIView.PathElementsImage[curGameCmp.CurrentRound].sprite = _sceneService.Value._mapUIView.RoundSprites[roundType];
         curGameCmp.CurrentRound++;
+        
+        if(difficultyConfig.AutoUpgradeShopToRoundLevel && shopCmp.ShopLevel < curGameCmp.CurrentRound)
+            UpgradeShop();
+        
         _startRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
 
@@ -900,6 +917,52 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ChangeBet(5);
     }
 
+    private void UpgradeShop() {
+        ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+
+        var shopView = _sceneService.Value._shopUIView;
+        var shopUpgradeCost = 5 + shopCmp.ShopLevel * 5;
+
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (shopUpgradeCost > playerCurrencyCmp.MoneyCount) return;
+        SetMoneyCount(-shopUpgradeCost);
+        shopCmp.ShopLevel++;
+        if (shopCmp.ShopLevel == 19) {
+            shopView._upgradeShopButton.enabled = false;
+            shopView._upgradeShopButtonText.text = GetLocalization("Max level");
+        } else
+            shopView._upgradeShopButtonText.text = $"{GetLocalization("Upgrade shop")} {5 + shopUpgradeCost}$";
+
+        shopCmp.CurrentShopItemsChances = _sceneService.Value._carStuffListsConfig.RoundShopChances[shopCmp.ShopLevel].Chances;
+        float sumChances = shopCmp.CurrentShopItemsChances.Sum();
+        shopView._shopChancesText.text =
+            $"<color=white>{shopCmp.CurrentShopItemsChances[0] / sumChances * 100}% {GetLocalization("Low")}</color>" +
+            $"\n<color=#00BFFF>{shopCmp.CurrentShopItemsChances[1] / sumChances * 100}% {GetLocalization("Medium")}</color>" +
+            $"\n<color=#802880>{shopCmp.CurrentShopItemsChances[2] / sumChances * 100}% {GetLocalization("High")}</color>" +
+            $"\n<color=#FFA500>{shopCmp.CurrentShopItemsChances[3] / sumChances * 100}% {GetLocalization("VeryHigh")}</color>";
+    }
+    private void SetVisibleMoneyCount(float needCount) {
+        _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).VisibleMoneyCount = needCount;
+    }
+
+    private void SetMoneyCount(float count) {
+        if(count == 0)return;
+        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        ref var playerCurrency = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        playerCurrency.VisibleMoneyCount = playerCurrency.MoneyCount;
+        playerCurrency.MoneyCount += count;
+
+        inventoryCmp.CurrentMoneyTween?.Kill();
+
+        float visibleMoney = playerCurrency.VisibleMoneyCount;
+        inventoryCmp.CurrentMoneyTween = DOTween.To(() => visibleMoney, x => visibleMoney = x, playerCurrency.MoneyCount, 1f)
+            .SetEase(Ease.OutCubic).OnUpdate(() => {
+                _sceneService.Value._shopUIView._moneyCountText.text = visibleMoney.ToString("N0") + "$";
+                SetVisibleMoneyCount(visibleMoney);
+            });
+
+        _sceneService.Value._shopUIView.AddMoneyAnimation();
+    }
     private void StartVersusBattle(bool isLeft) {
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView._betContainer.gameObject.SetActive(false);
