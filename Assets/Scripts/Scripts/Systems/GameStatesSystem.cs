@@ -1370,7 +1370,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SpawnTeammateCar(int entity) {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
-        fuelCmp.MaxFuel = 0;
+        SetComponentsValuesToDefault(entity);
         ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         var carView = CarViewSetup(entity);
         var carConfig = _sceneService.Value.GetCarConfig(carCmp.CarId);
@@ -1378,7 +1378,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         fuelCmp.AddedFuelConsumption = carConfig.AccelerationFuelСonsumption;
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
-        SetupEnemyMovementComponent(entity, _sceneService.Value.GetCarConfig(carCmp.CarId));
+
         foreach (var carContainer in carCmp.CarPartContainerGroupsList) {
             int carPartCellEntity = carContainer.Key;
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartCellEntity);
@@ -1393,7 +1393,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             SpawnCarPartCellView(carPartCellEntity, carView, true, carPartCmp.RotateDegrees);
         }
 
-        fuelCmp.MaxFuel += _sceneService.Value.GetCarConfig(carCmp.CarId).DefaultMaxFuel;
+        SetupEnemyMovementComponent(entity, _sceneService.Value.GetCarConfig(carCmp.CarId));
 
         SetupWheels(entity, carView);
         SetupCarStatsFromLevelBoost(entity);
@@ -1483,7 +1483,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             
             SpawnCarPartCellView(carPartCellEntity, carView, !isEnemy, carContainer.rotate);
         } 
-        fuelCmp.MaxFuel+= _sceneService.Value.GetCarConfig(carCmp.CarId ).DefaultMaxFuel;
            
         SetupEnemyMovementComponent(enemyEntity, _sceneService.Value.GetCarConfig(carCmp.CarId));
         SetupWheels(enemyEntity, carView);
@@ -1545,14 +1544,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SetPlayerCarPrefab() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        _fuelComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MaxElectricity = 0;
-        _fuelComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).UseSpeedBoost = false;
+        SetComponentsValuesToDefault(_sceneService.Value.PlayerEntity);
         var carView = CarViewSetup(_sceneService.Value.PlayerEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
-        carCmp.CurrentMaxWeight = 0;
+        
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
             SpawnCarPartCellView(carPartInfo.Key, carView, true,
                 _carPartComponentsPool.Value.Get(carPartInfo.Key).RotateDegrees);
@@ -1620,7 +1618,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         moveCmp.RotateSpeed *= baseRotateSpeedMultiplier;
 
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(enity);
-        fuelCmp.MaxFuel += carConfig.DefaultMaxFuel * (baseMaxFuelMultiplier - 1);
+        fuelCmp.MaxFuel += carConfig.DefaultMaxFuel * baseMaxFuelMultiplier;
         fuelCmp.CurrentFuel = fuelCmp.MaxFuel;
         fuelCmp.CurrentElectricity = fuelCmp.MaxElectricity;
     }
@@ -1948,10 +1946,26 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             SetModuleBuffs(cellEntity);
     }
 
+    private void SetComponentsValuesToDefault(int enemyEntity) {
+        ref var movementComponent = ref _movementComponentsPool.Value.Get(enemyEntity);
+        movementComponent.MaxMoveSpeed = 0;
+        movementComponent.Acceleration = 0;
+        movementComponent.Deceleration = 0;
+        movementComponent.MaxBoostMoveSpeed = 0;
+        movementComponent.CurrentRotateSpeed = 0;
+        ref var fuelComponent = ref _fuelComponentsPool.Value.Get(enemyEntity);
+        fuelComponent.MaxElectricity = 0;
+        fuelComponent.CurrentElectricity = 0;
+        fuelComponent.MaxFuel = 0;
+        fuelComponent.UseSpeedBoost = false;
+        ref var carCmp = ref _carComponentsPool.Value.Get(enemyEntity);
+        carCmp.CurrentWeight = 0;
+        carCmp.CurrentMaxWeight = 0;
+    }
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {
         ref var movementComponent = ref _movementComponentsPool.Value.Get(enemyEntity);
         var carCmp = _carComponentsPool.Value.Get(enemyEntity);
-
+      
         float rotateSpeedMultiplier = 1;
         foreach (var carPart in carCmp.CarPartContainerGroupsList.Keys) {
             var carPartCellCmp = _carPartInfoComponentsPool.Value.Get(carPart);
@@ -1962,7 +1976,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
               
         }
-        
+
         movementComponent.RotateSpeed = carConfig.RotateSpeed *
                                         _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer *
                                         (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight)*rotateSpeedMultiplier;
@@ -1970,8 +1984,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         movementComponent.Deceleration = carConfig.Deceleration;
 
         movementComponent.MovableObjectRigidbody.mass = carCmp.CurrentWeight;
-
-        movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed * (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
+        movementComponent.MaxMoveSpeed += carConfig.DefaultMaxSpeed * (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {
         ref var firstMovementCmp = ref _movementComponentsPool.Value.Get(entityOne);

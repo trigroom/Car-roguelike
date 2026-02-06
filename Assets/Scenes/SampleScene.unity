@@ -22664,12 +22664,12 @@ RectTransform:
   m_Children:
   - {fileID: 605334036}
   - {fileID: 1834432030}
-  - {fileID: 272113720}
-  - {fileID: 1800005708}
   - {fileID: 732146545}
   - {fileID: 1931316981}
   - {fileID: 197968570}
   - {fileID: 623607351}
+  - {fileID: 272113720}
+  - {fileID: 1800005708}
   - {fileID: 478704622}
   m_Father: {fileID: 912522063}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -38098,7 +38098,7 @@ MonoBehaviour:
   normalScale: {x: 0, y: 0, z: 0}
   duration: 0.2
   easeType: 27
-  targetButton: {fileID: 0}
+  targetButton: {fileID: 1800005710}
   _rectTransform: {fileID: 0}
 --- !u!114 &1800005710
 MonoBehaviour:

@@ -31,6 +31,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._inventoryUIView._inventoryModeButton.gameObject.SetActive(false);
         _sceneData.Value._shopUIView._shopModeButton.onClick.AddListener(ShopModeCheck);
         _sceneData.Value._settingsView._mainMenuButton.gameObject.SetActive(false);
+        _sceneData.Value._shopUIView._upgradeShopButton.gameObject.SetActive(false);
         _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentBattleRounds = 3;
         RoundUtilits.SupportRoundsTypes.Remove(RoundType.ModulesShop);
         _sceneData.Value._tutorialStuffView.TutorialTextContainer = _sceneData.Value
@@ -112,6 +113,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             }
         } else if (_inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0 && _tutorialStep == 3) {
             _tutorialStep = 4;
+            _sceneData.Value._shopUIView._upgradeShopButton.gameObject.SetActive(true);
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Go play and select round type"),
                 new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
                     _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200*_sceneData.Value.mainCanvas.localScale.x), 30);
@@ -157,7 +159,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
                 buttonShop.BuyButton.interactable = true;
                 buttonShop.enabled = true;
             }
-                
+            _sceneData.Value._shopUIView._upgradeShopButton.enabled = true;
             _sceneData.Value._shopUIView._shopModeButton.interactable = true;
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._upgradeCarButton.interactable = true;
@@ -207,6 +209,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
                 buttonShop.BuyButton.interactable = false;
                 buttonShop.enabled = false;
             }
+            _sceneData.Value._shopUIView._upgradeShopButton.enabled = false;
             var textPos = new Vector2(
                 _sceneData.Value._shopUIView._shopModeButton.transform.position.x,
                 _sceneData.Value._shopUIView._shopModeButton.transform.position.y - 110*_sceneData.Value.mainCanvas.localScale.x);

@@ -57,7 +57,7 @@ public class DataPersistenceManagerSystem : MonoBehaviour
         bool isTestProgressReload = false;
 
         _gameData = _dataHandler.Load();
-       if (isTestProgressReload)
+      if (isTestProgressReload)
             _gameData = null;
 
         if (_gameData == null) {
@@ -72,8 +72,8 @@ public class DataPersistenceManagerSystem : MonoBehaviour
             _gameData.CarsUnlocked[4] = true;
             _gameData.CarsUnlocked[3] = true;
             _gameData.CarsUnlocked[2] = true;
-            SaveGame();
-        }
+          SaveGame();
+        }  
     }
 
     public enum SavePriority {

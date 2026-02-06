@@ -24,7 +24,7 @@ MonoBehaviour:
   <Acceleration>k__BackingField: 17
   <Deceleration>k__BackingField: 25
   <DefaultMaxFuel>k__BackingField: 275
-  <DefaultMaxElectricity>k__BackingField: 0
+  <DefaultMaxElectricity>k__BackingField: 50
   CarPartForLevel:
     _serializedList:
     - Key: 2

@@ -1757,7 +1757,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carRotateSpeed *= 1 - weightFactor;
         defaultMaxCarSpeed = Mathf.Max(defaultMaxCarSpeed, 0);
         moveCmp.MaxBoostMoveSpeed += defaultMaxCarSpeed;
-       
+        moveCmp.Acceleration = carConfig.Acceleration*baseAccelerationMultiplier;
+        moveCmp.Deceleration = carConfig.Deceleration*baseAccelerationMultiplier;
         moveCmp.MaxMoveSpeed = defaultMaxCarSpeed;
         moveCmp.RotateSpeed = carRotateSpeed*rotateSpeedMultiplier;
     }
@@ -2259,7 +2260,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void ClearAndSetNewCarUI(int newCarIndex) { 
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         
-        if(inventoryCmp.PlayerTeammateCarsEntity[newCarIndex] == inventoryCmp.CurrentRedactedCarEntity || inventoryCmp.SelectCarButtonsNotInteractable)return;
+        if(inventoryCmp.SelectCarButtonsNotInteractable ||inventoryCmp.PlayerTeammateCarsEntity[newCarIndex] == inventoryCmp.CurrentRedactedCarEntity  )return;
         if (!CanUseThisCarPartContainers()) {
             _sceneData.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!", false);
             return;
@@ -3165,9 +3166,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void SetHealthToMinimumLevel() {
-        
-        ClearCarUI();
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        Sequence sequence = DOTween.Sequence();
+        
+        sequence.AppendCallback(ClearCarUI);
+        inventoryCmp.SelectCarButtonsNotInteractable = true;
+        sequence.AppendInterval(0.5f);
+       
+      
         float minHealthLevel = _betweenScenesService.Value.GetMapDifficultyConfig().HealedHealthPartAfterEndRound;
         List<int> destroyerCars = new List<int>();
         foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
@@ -3217,8 +3223,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._selectCarButtons[inventoryCmp.PlayerTeammateCarsEntity.Count].gameObject.SetActive(false);
         }
 
+        var needCarIndex = inventoryCmp.PlayerTeammateCarsEntity.IndexOf(inventoryCmp.CurrentRedactedCarEntity) ;
+  sequence.AppendCallback(()=> SetNewCarUI(needCarIndex));
+        
+        sequence.Play();
         //update grid
-        SetNewCarUI(inventoryCmp.CurrentRedactedCarEntity);
+ 
     }
 
     private bool DestroyPlayerCarPart(int cellEntity) {
