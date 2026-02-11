@@ -1368,27 +1368,34 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         int roundNumber = curGameCmp.CurrentRound;
 
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
-        // var currentRoundCarStuff = mapConfig.GameProcessConfig.GameRounds[roundNumber];
-        // int needIndex = GridUtils.GetRandomIndexFromChancesList(currentRoundCarStuff.EnemyCarChances);
         var carId = mapConfig.GameProcessConfig.EnemyCarIndexes[Random.Range(0, mapConfig.GameProcessConfig.EnemyCarIndexes.Length)];
         EnemyCarPartsMaps carMap = ScriptableObject.CreateInstance<EnemyCarPartsMaps>();
         var carBaseList = _sceneService.Value._carStuffListsConfig.CarBasesForCars[carId].CarPartBasesForLevel;
-        if (carBaseList[roundNumber] == null) {
-            for (int i = roundNumber - 1; i > 0; i--) {
-                if (carBaseList[i] != null) {
-                    roundNumber = i;
+        List<CarBaseMapConfig> carBases;
+        if (!carBaseList.TryGetValue(roundNumber, out carBases)) {
+            for (int i = roundNumber-1; i >= 0; i--) {
+                if (carBaseList.TryGetValue(i, out carBases))
                     break;
-                }
             }
         }
 
-        var carBase = carBaseList[roundNumber][Random.Range(0, carBaseList[roundNumber].Count)];
+        var carBase = carBases[Random.Range(0, carBases.Count)];
+
         carMap.CarPartDownLevelGrid = carBase.CarPartDownLevelGrid;
         carMap.CarId = carId;
         carMap.CarLevel = roundNumber == 0 ? 0 : roundNumber / 2;
         carMap.GridSize = carBase.GridSize;
         carMap.CarPartUpLevelGrid =
             GridUtils.GetPlacedCarPatsOnCarBase(carBase, carId, curGameCmp.CarPartsToEnemyBuilding, 40 + roundNumber * 20).ToArray();
+
+        for (int i = 0; i < carMap.CarPartUpLevelGrid.Length; i++) {
+            var carPart = carMap.CarPartUpLevelGrid[i];
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carPart.partId);
+            if (carPartConfig.PartType != CarPartType.Main)
+                carMap.CarPartUpLevelGrid[i].level = Mathf.Min((roundNumber > 0 ? 0 : roundNumber / 2),
+                    GridUtils._maxLevelsForRare[carPartConfig.RartRare]);
+        }
+
         return carMap;
     }
 

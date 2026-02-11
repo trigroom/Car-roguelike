@@ -121,7 +121,6 @@ public class GridUtils : MonoBehaviour {
             if (needPosition.x - 1 >= 0 && grid[needPosition.x - 1, needPosition.y] != 0) 
                 uniqueNeighbors.Add(grid[needPosition.x - 1, needPosition.y]);
 
-            Debug.Log(needPosition.x + 1 + "x"+rows);
             if (needPosition.x + 1 < rows && grid[needPosition.x + 1, needPosition.y] != 0) 
                 uniqueNeighbors.Add(grid[needPosition.x + 1, needPosition.y]);
         }
@@ -133,16 +132,16 @@ public class GridUtils : MonoBehaviour {
         int rows = grid.GetLength(0);
         int cols = grid.GetLength(1);
 
-        if (needPosition.y + 1 < cols && grid[needPosition.x, needPosition.y + 1] == 0)
+        if (needPosition.y + 1 >= cols || grid[needPosition.x, needPosition.y + 1] == 0)
             return true;
 
-        if (needPosition.y - 1 >= 0 && grid[needPosition.x, needPosition.y - 1] == 0)
+        if (needPosition.y - 1 < 0 || grid[needPosition.x, needPosition.y - 1] == 0)
             return true;
         if (grid.GetLength(0) <= 2) return false;
-        if (needPosition.x - 1 >= 0 && grid[needPosition.x - 1, needPosition.y] == 0)
+        if (needPosition.x - 1 < 0 || grid[needPosition.x - 1, needPosition.y] == 0)
             return true;
 
-        if (needPosition.x + 1 < rows && grid[needPosition.x + 1, needPosition.y] == 0)
+        if (needPosition.x + 1 >= rows || grid[needPosition.x + 1, needPosition.y] == 0)
             return true;
 
         return false;
@@ -816,7 +815,6 @@ public class GridUtils : MonoBehaviour {
             mainParts, ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
         int carType = Random.Range(0, 3);
         switch (carType) {
-            
             //tank
             case 0:
                 PlaceCarPartToCarBase(CarPartType.MeleeWeapon, Mathf.RoundToInt(edgeCellsCount * 0.4f), ref moneyLimit,
@@ -829,27 +827,26 @@ public class GridUtils : MonoBehaviour {
                     carPartsToPlace[CarPartType.Support], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 break;
             //range
-            case 1: 
-                PlaceCarPartToCarBase(CarPartType.Armor, edgeCellsCount, ref moneyLimit,
-                    carPartsToPlace[CarPartType.Armor], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+            case 1:
+                PlaceCarPartToCarBase(CarPartType.Armor, edgeCellsCount, ref moneyLimit, carPartsToPlace[CarPartType.Armor], ref upGrid,
+                    middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 PlaceCarPartToCarBase(CarPartType.Gun, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.65f), ref moneyLimit,
                     carPartsToPlace[CarPartType.Gun], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 PlaceCarPartToCarBase(CarPartType.Support, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.35f), ref moneyLimit,
                     carPartsToPlace[CarPartType.Support], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
-                
+
                 break;
             //damager
             case 2:
+                PlaceCarPartToCarBase(CarPartType.Gun, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.85f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Gun], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 PlaceCarPartToCarBase(CarPartType.MeleeWeapon, Mathf.RoundToInt(edgeCellsCount * 0.8f), ref moneyLimit,
                     carPartsToPlace[CarPartType.MeleeWeapon], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 PlaceCarPartToCarBase(CarPartType.Armor, Mathf.RoundToInt(edgeCellsCount * 0.2f), ref moneyLimit,
                     carPartsToPlace[CarPartType.Armor], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
-                PlaceCarPartToCarBase(CarPartType.Gun, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.85f), ref moneyLimit,
-                    carPartsToPlace[CarPartType.Gun], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 PlaceCarPartToCarBase(CarPartType.Support, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.15f), ref moneyLimit,
                     carPartsToPlace[CarPartType.Support], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 break;
-               
         }
 
         //other car part types + main
@@ -872,7 +869,8 @@ public class GridUtils : MonoBehaviour {
         for (int x = 0; x < grid.GetLength(0); x++) {
             for (int y = 0; y < grid.GetLength(1); y++) {
                 if (grid[x, y] != 0) {
-                    Vector2Int cellPosition = new Vector2Int(x, y);
+                    Vector2Int cellPosition = new (x, y);
+                 
                     if (IsEdgeContainerCell(cellPosition, grid))
                         edgeCells.Add(cellPosition);
                     else
@@ -880,19 +878,26 @@ public class GridUtils : MonoBehaviour {
                 }
             }
         }
-
+Debug.Log(edgeCells.Count + " edge count "+ middleCells.Count + " middle count");
         return (middleCells, edgeCells);
     }
+    public static Dictionary<CarPartRare, int> _maxLevelsForRare = new Dictionary<CarPartRare, int>() {
+        {CarPartRare.Low, 3},
+        {CarPartRare.Medium, 5},
+        {CarPartRare.High, 7},
+        {CarPartRare.VeryHigh, 9}
+    };
 
-    private static void PlaceCarPartToCarBase(CarPartType partType, int needCount, ref int moneyLimit, List<int> carPartsToPlace, ref int[,] upGrid,
-        List<Vector2Int> middleCells, List<Vector2Int> edgeCells,int[,] downGrid,ref List<CarPartTypeRow> carPartUpLevelGrid) {
-        if(carPartsToPlace.Count == 0)return;
-        while (((needCount > 0 && moneyLimit > 0) && partType != CarPartType.Main)||(partType == CarPartType.Main &&carPartsToPlace.Count > 0)) {
+    private static void PlaceCarPartToCarBase(CarPartType partType, int needCount, ref int moneyLimit, List<int> carPartsToPlace,
+        ref int[,] upGrid, List<Vector2Int> middleCells, List<Vector2Int> edgeCells, int[,] downGrid,
+        ref List<CarPartTypeRow> carPartUpLevelGrid) {
+        if (carPartsToPlace.Count == 0) return;
+        while (((needCount > 0 && moneyLimit > 0) && partType != CarPartType.Main) ||
+               (partType == CarPartType.Main && carPartsToPlace.Count > 0)) {
             bool canPlaceOnEdge = partType is CarPartType.Armor or CarPartType.MeleeWeapon;
-Debug.Log(carPartsToPlace.Count + " car parts count");
-            var currentCarPartConfig =partType != CarPartType.Main?
-                BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartsToPlace[Random.Range(0, carPartsToPlace.Count)]]:
-                BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartsToPlace[0]];
+            var currentCarPartConfig = partType != CarPartType.Main
+                ? BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartsToPlace[Random.Range(0, carPartsToPlace.Count)]]
+                : BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartsToPlace[0]];
             var carPartSize = GetCarPartSize(currentCarPartConfig);
             for (int j = 0; j < 3; j++) {
                 Vector2Int randomPosition = Vector2Int.zero;
@@ -904,33 +909,33 @@ Debug.Log(carPartsToPlace.Count + " car parts count");
                     }
 
                     randomPosition = edgeCells[Random.Range(0, edgeCells.Count)];
-                    if (randomPosition.y + 1 > upGrid.GetLength(1) || upGrid[randomPosition.x, randomPosition.y + 1] == 0) {
+                    if (randomPosition.y + 1 >= upGrid.GetLength(1) || upGrid[randomPosition.x, randomPosition.y + 1] == 0) {
                         rotateAngle = 0;
                         if (carPartSize.y > 1)
                             randomPosition = new Vector2Int(randomPosition.x, randomPosition.y - (carPartSize.y - 1));
                     } else if (randomPosition.y - 1 < 0 || upGrid[randomPosition.x, randomPosition.y - 1] == 0)
                         rotateAngle = 180;
 
-                    else if (randomPosition.x + 1 > upGrid.GetLength(0) || upGrid[randomPosition.x + 1, randomPosition.y] == 0) {
+                    else if (randomPosition.x + 1 >= upGrid.GetLength(0) || upGrid[randomPosition.x + 1, randomPosition.y] == 0) {
                         rotateAngle = 90;
                         if (carPartSize.x > 1)
                             randomPosition = new Vector2Int(randomPosition.x - (carPartSize.x - 1), randomPosition.y);
-                    } else if (randomPosition.x - 1 < 0 || upGrid[randomPosition.x, randomPosition.x - 1] == 0)
+                    } else if (randomPosition.x - 1 < 0 || upGrid[randomPosition.x- 1, randomPosition.y ] == 0)
                         rotateAngle = 270;
                 } else {
                     float randomValue = Random.value;
                     randomPosition = middleCells[Random.Range(0, middleCells.Count)];
-                    if (randomValue > 0.85f)
+                    if (randomValue > 0.92f)
                         rotateAngle = 180;
-                    else if (randomValue > 0.73f)
+                    else if (randomValue > 0.85f)
                         rotateAngle = 90;
-                    else if (randomValue > 0.6f)
+                    else if (randomValue > 0.78f)
                         rotateAngle = 270;
                 }
-             
+
                 if (CanPlaceCarPartOnField(currentCarPartConfig, randomPosition, upGrid, downGrid, rotateAngle)) {
                     //place car part on grid
-                    var formCells = GetCellsFromField(randomPosition, currentCarPartConfig,rotateAngle, downGrid);
+                    var formCells = GetCellsFromField(randomPosition, currentCarPartConfig, rotateAngle, downGrid);
                     foreach (var cell in formCells) {
                         upGrid[cell.x, cell.y] = 1;
                         middleCells.Remove(cell);

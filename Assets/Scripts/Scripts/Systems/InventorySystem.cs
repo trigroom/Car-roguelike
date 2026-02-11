@@ -1145,9 +1145,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsCarShop.Length);
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsCarShop.Length; i++) {
             if (_sceneData.Value._shopUIView._buttonsCarShop[i].LockToggle.isOn) continue;
-            var carMapsList = carsList[GridUtils.GetRandomIndexFromChancesList(roundEnemyStuff.EnemyCarChances)].CarMapsList;
-            var carMap = carMapsList[Random.Range(0, carMapsList.Count)];
-
+            //var carMapsList = carsList[GridUtils.GetRandomIndexFromChancesList(roundEnemyStuff.EnemyCarChances)].CarMapsList;
+          //  var carMap = carMapsList[Random.Range(0, carMapsList.Count)];
+          var carMap = GetRandomCarMap();
             var shopButton = _sceneData.Value._shopUIView._buttonsCarShop[i];
 
             ref var shopCellCmp = ref _shopCellCarComponentsPool.Value.Get(shopButton.Entity);
@@ -1812,8 +1812,42 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._inventoryUIView._carStatsWindowText.text = GetLocalization(needText);
         _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.gameObject.SetActive(true);
     }
-    
 
+    private EnemyCarPartsMaps GetRandomCarMap() {
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        int roundNumber = curGameCmp.CurrentRound;
+
+        var mapConfig = _betweenScenesService.Value.GetMapConfig();
+        var carId = mapConfig.GameProcessConfig.EnemyCarIndexes[Random.Range(0, mapConfig.GameProcessConfig.EnemyCarIndexes.Length)];
+        EnemyCarPartsMaps carMap = ScriptableObject.CreateInstance<EnemyCarPartsMaps>();
+        var carBaseList = _sceneData.Value._carStuffListsConfig.CarBasesForCars[carId].CarPartBasesForLevel;
+       
+        List<CarBaseMapConfig> carBases;
+        if (!carBaseList.TryGetValue(roundNumber, out carBases)) {
+            for (int i = roundNumber-1; i >= 0; i--) {
+                if (carBaseList.TryGetValue(i, out carBases))
+                    break;
+            }
+        }
+
+        var carBase = carBases[Random.Range(0, carBases.Count)];
+        carMap.CarPartDownLevelGrid = carBase.CarPartDownLevelGrid;
+        carMap.CarId = carId;
+        carMap.CarLevel = roundNumber == 0 ? 0 : roundNumber / 2;
+        carMap.GridSize = carBase.GridSize;
+        carMap.CarPartUpLevelGrid =
+            GridUtils.GetPlacedCarPatsOnCarBase(carBase, carId, curGameCmp.CarPartsToEnemyBuilding, 40 + roundNumber * 20).ToArray();
+
+        for (int i = 0; i < carMap.CarPartUpLevelGrid.Length; i++) {
+            var carPart = carMap.CarPartUpLevelGrid[i];
+            var carPartConfig = GetCarPartConfig(carPart.partId);
+            if (carPartConfig.PartType != CarPartType.Main)
+                carMap.CarPartUpLevelGrid[i].level = Mathf.Min((roundNumber > 0 ? 0 : roundNumber / 2),
+                    GridUtils._maxLevelsForRare[carPartConfig.RartRare]);
+        }
+
+        return carMap;
+    }
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
         int needCarPartId = 0;
         bool showDestroyButton = false;

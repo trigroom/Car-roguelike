@@ -135,7 +135,7 @@ public class CarPartInfoUIView : MonoBehaviour
         _nameText.text = $"{GetLocalization(carPartConfig.PartName)}";
 
         if (!isShop) {
-            if (_maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
+            if (GridUtils._maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
                 _upgradeButtonText.text =
                     $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig, moduleIds).ToString()}$ {GetLocalization("to upgrade")}";
                 _upgradeButton.enabled = true;
@@ -170,13 +170,6 @@ public class CarPartInfoUIView : MonoBehaviour
 
         _sellCarPartText.text = $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(carPartConfig, carPartLevel, moduleIds)}$";
     }
-
-    private Dictionary<CarPartRare, int> _maxLevelsForRare = new Dictionary<CarPartRare, int>() {
-        {CarPartRare.Low, 3},
-        {CarPartRare.Medium, 5},
-        {CarPartRare.High, 7},
-        {CarPartRare.VeryHigh, 9}
-    };
 
     public void SetDescriptionInfo(bool isUpdate, int[] moduleIds) {
         (float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount,
