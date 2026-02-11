@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "EnemyCarPartsMapConfig", menuName = "Scriptable Objects/EnemyCarPartsMapConfig")]
-public class EnemyCarPartsMaps : ScriptableObject
-{
-    public CarPartTypeRow[] CarPartDownLevelGrid ;
-    public CarPartTypeRow[] CarPartUpLevelGrid ;
+public class EnemyCarPartsMaps : ScriptableObject {
+    public CarPartTypeRow[] CarPartDownLevelGrid;
+    public CarPartTypeRow[] CarPartUpLevelGrid;
     public int CarId;
-     public int CarLevel;
+    public int CarLevel;
     public Vector2Int GridSize;
-    
-    public void CreateGrid(int carId,int carLevel,List<CarPartTypeRow> inputGridDownLevel, List<CarPartTypeRow> inputGridUpLevel, Vector2Int gridSize) {
+
+    public void CreateGrid(int carId, int carLevel, List<CarPartTypeRow> inputGridDownLevel, List<CarPartTypeRow> inputGridUpLevel,
+        Vector2Int gridSize) {
         CarPartDownLevelGrid = inputGridDownLevel.ToArray();
         CarPartUpLevelGrid = inputGridUpLevel.ToArray();
         CarLevel = carLevel;

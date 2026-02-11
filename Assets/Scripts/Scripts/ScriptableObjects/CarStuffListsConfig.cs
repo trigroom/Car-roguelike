@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AYellowpaper.SerializedCollections;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CarStuffListsConfig", menuName = "Scriptable Objects/CarStuffListsConfig")]
@@ -46,10 +47,17 @@ public class CarStuffListsConfig : ScriptableObject
     public ShopItemConfig[] ShopItemConfigs{ get;private set; }
     [field: SerializeField]
     public ModuleConfig[] ModuleConfigs{ get;private set; }
+    [field: SerializeField]
+    public CarBasesForCarDictionary[] CarBasesForCars { get;private set; }
+   
 }
 
 [System.Serializable]
 public class ShopIdList {
     public List<float> Chances;
 }
-
+[System.Serializable]
+public class CarBasesForCarDictionary {
+     [SerializedDictionary]
+        public SerializedDictionary<int, List<CarBaseMapConfig>> CarPartBasesForLevel = new SerializedDictionary<int, List<CarBaseMapConfig>>();
+}

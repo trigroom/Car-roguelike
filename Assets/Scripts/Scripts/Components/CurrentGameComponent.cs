@@ -33,6 +33,8 @@
         public Vector2 SupportBoxTargetPosition;
 
         public float LocalTimeScale;
+
+        public Dictionary<CarPartType, List<int>> CarPartsToEnemyBuilding;
  }
 
  public enum RoundType {

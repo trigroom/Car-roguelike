@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine.UI;
 
 public class EvemiesCarBuilderView : MonoBehaviour {
+    public Button CreateCarBaseConfigButton;
     public Button CreateEnemyConfigButton;
     public TMP_InputField EnemyConfigNameInputField;
     public Button AdminPanelSwitch;
@@ -19,6 +20,7 @@ public class EvemiesCarBuilderView : MonoBehaviour {
     public Button GetVeryHighButton;
     public Button UnlockAllLevelButton;
     private string _filePath = "Assets/Configs/EnemyCarsConfigs";
+    private string _filePathCarBaseConfigs = "Assets/Configs/EnemyCarBaseConfigs";
     private void Start() {
         AdminPanelSwitch.onClick.AddListener(SwitchAdminPanelMode);
     }
@@ -46,5 +48,26 @@ public class EvemiesCarBuilderView : MonoBehaviour {
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         #endif
+    }
+    
+    public void SaveEnemyCarBaseConfig(List<CarPartTypeRow> inputGridDownLevel, Vector2Int gridSize) {
+        if (EnemyConfigNameInputField.text == "") return;
+#if UNITY_EDITOR
+        CarBaseMapConfig config = ScriptableObject.CreateInstance<CarBaseMapConfig>();
+        config.CreateGrid(inputGridDownLevel, gridSize);
+
+        string assetPath = _filePathCarBaseConfigs + "/" + EnemyConfigNameInputField.text + ".asset";
+
+        CarBaseMapConfig existingConfig = AssetDatabase.LoadAssetAtPath<CarBaseMapConfig>(assetPath);
+
+        if (existingConfig != null) {
+            existingConfig.CreateGrid(inputGridDownLevel, gridSize);
+            EditorUtility.SetDirty(existingConfig);
+        } else
+            AssetDatabase.CreateAsset(config, assetPath);
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+#endif
     }
 }

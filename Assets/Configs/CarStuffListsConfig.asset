@@ -302,3 +302,37 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2c39eca813dd887408841b4b678730d9, type: 2}
   - {fileID: 11400000, guid: c2003e7501e8ee74ebdffa94e681a091, type: 2}
   - {fileID: 11400000, guid: 345d7b1272bbde44b90073005dde2ee8, type: 2}
+  <CarBasesForCars>k__BackingField:
+  - CarPartBasesForLevel:
+      _serializedList: []
+  - CarPartBasesForLevel:
+      _serializedList: []
+  - CarPartBasesForLevel:
+      _serializedList: []
+  - CarPartBasesForLevel:
+      _serializedList: []
+  - CarPartBasesForLevel:
+      _serializedList:
+      - Key: 0
+        Value:
+        - {fileID: 11400000, guid: 9b343a200e40fa84083ead9c54f0c865, type: 2}
+      - Key: 2
+        Value:
+        - {fileID: 11400000, guid: eaa6b6bd8e0a9ad49a4d318c8e85a2df, type: 2}
+        - {fileID: 11400000, guid: 5e6c3ab2cc86f354c99a0ce87b29e72e, type: 2}
+      - Key: 4
+        Value:
+        - {fileID: 11400000, guid: 071df7d7f9bacff498739304d512ae5f, type: 2}
+      - Key: 6
+        Value:
+        - {fileID: 11400000, guid: 5aabddbb788713c4eb02be946acb4afa, type: 2}
+        - {fileID: 11400000, guid: a7ed49c770081fa44848482f7d2904b8, type: 2}
+      - Key: 8
+        Value:
+        - {fileID: 11400000, guid: e03d35f4c8f501f40b39bb861cc506ca, type: 2}
+        - {fileID: 11400000, guid: 2294dca5d6591c948a6a4911902f63ba, type: 2}
+      - Key: 10
+        Value:
+        - {fileID: 11400000, guid: 1f0e698396993724da752ac01d55a193, type: 2}
+        - {fileID: 11400000, guid: bc50b7a796ac5324e91ebb85ba9ef4f0, type: 2}
+        - {fileID: 11400000, guid: ac99a840f47d4274689c95a49d42904c, type: 2}

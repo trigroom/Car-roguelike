@@ -16,4 +16,6 @@ MonoBehaviour:
   - 10
   - 0
   - 0
+  AddedCarPartsToEnemyPool: 000000000600000010000000380000003c0000004100000019000000
+  RemovedCarPartsFromEnemyPool: 
   MoneyCount: 15

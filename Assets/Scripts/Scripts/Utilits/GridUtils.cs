@@ -128,6 +128,25 @@ public class GridUtils : MonoBehaviour {
 
         return new List<int>(uniqueNeighbors);
     }
+
+    private static bool IsEdgeContainerCell(Vector2Int needPosition, int[,] grid) {
+        int rows = grid.GetLength(0);
+        int cols = grid.GetLength(1);
+
+        if (needPosition.y + 1 < cols && grid[needPosition.x, needPosition.y + 1] == 0)
+            return true;
+
+        if (needPosition.y - 1 >= 0 && grid[needPosition.x, needPosition.y - 1] == 0)
+            return true;
+        if (grid.GetLength(0) <= 2) return false;
+        if (needPosition.x - 1 >= 0 && grid[needPosition.x - 1, needPosition.y] == 0)
+            return true;
+
+        if (needPosition.x + 1 < rows && grid[needPosition.x + 1, needPosition.y] == 0)
+            return true;
+
+        return false;
+    }
     
     public static List<Vector2Int> GetNonZeroNeighbors8Dir(int[,] grid, List<Vector2Int> needCells, int radius) {
         List<Vector2Int> result = new List<Vector2Int>();
@@ -669,15 +688,6 @@ public class GridUtils : MonoBehaviour {
         return (upSprite, cellSize, needPosition);
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-
     static private int gridSize = 20;
     static private int minBuildings = 10;
     static private int maxBuildings = 15;
@@ -726,36 +736,7 @@ public class GridUtils : MonoBehaviour {
 
     static private bool[,] GetRandomShape(int width, int height) {
         bool[,] shape = new bool[width, height];
-        /* int shapeType = Random.Range(0, 4);
-         shapeType = 3;
-         switch (shapeType) {
-             case 0: // Полный прямоугольник
-                 for (int i = 0; i < width; i++)
-                 for (int j = 0; j < height; j++)
-                     shape[i, j] = true;
-                 break;
-
-             case 1: // Здание с внутренним двором
-                 int buildingOffset = Random.Range(0, Mathf.CeilToInt(Mathf.Min(width, height) / 2f));
-                 for (int i = 0; i < width; i++)
-                 for (int j = 0; j < height; j++)
-                     shape[i, j] =
-                         ((i < buildingOffset || i > width - 1 - buildingOffset) || (j < buildingOffset ||
-                          j > height - 1 - buildingOffset)) /*? Random.value > 0.7f : true;
-
-                 break;
-
-             case 2: // Г-образное здание
-                 bool isRight = Random.value > 0.5f;
-                 bool isUp = Random.value > 0.5f;
-                 int ySize = Random.Range(1, height - 1);
-                 int xSize = Random.Range(1, width - 1);
-                 for (int i = 0; i < width; i++)
-                 for (int j = 0; j < height; j++)
-                     shape[i, j] = ((isUp && i >= xSize) ||(!isUp && i <= xSize)  ||(isRight && j >= ySize) ||(!isRight && j <= ySize) );
-                 break;
-
-             case 3:*/ // Здание с выступами
+     
         bool isVerticalCentre = Random.value > 0.5f;
         bool isHorizontalCentre = Random.value > 0.5f;
         int xStartPosition = Random.Range(isHorizontalCentre ? 1 : 0, isHorizontalCentre ? width - 1 : width);
@@ -768,9 +749,7 @@ public class GridUtils : MonoBehaviour {
                            (!isHorizontalCentre && (i < xStartPosition || i > xEndPosition))) ||
                           ((isVerticalCentre && j >= yStartPosition && j <= yEndPosition) ||
                            (!isVerticalCentre && (j < yStartPosition || j > yEndPosition)));
-        /*  break;
-  }
-*/
+    
         return shape;
     }
 
@@ -805,6 +784,179 @@ public class GridUtils : MonoBehaviour {
                 }
             }
         }
+    }
+    //
+    static public List<CarPartTypeRow> GetPlacedCarPatsOnCarBase(CarBaseMapConfig carBaseConfig, int carId,
+        Dictionary<CarPartType, List<int>> carPartsToPlace, int moneyLimit) {
+        List<int> mainParts = new List<int>();
+        var carConfig = BetweenScenesService.Instance._carStuffListsConfig.CarConfigs[carId];
+        int carCellsSum = 0;
+        foreach (var carPartId in carConfig.StartCarParts) {
+            if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartId].PartType == CarPartType.Main) {
+                mainParts.Add(carPartId);
+              //  carCellsSum -= BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartId].PartForm.Length;
+            }
+        }
+
+        List<CarPartTypeRow> carPartUpLevelGrid = new List<CarPartTypeRow>();
+
+        int[,] downGrid = new int[carBaseConfig.GridSize.x, carBaseConfig.GridSize.y];
+        int[,] upGrid = new int[carBaseConfig.GridSize.x, carBaseConfig.GridSize.y];
+        foreach (var carPartBase in carBaseConfig.CarPartDownLevelGrid) {
+            var cells = GetCellsFromField(carPartBase.gridPosition,
+                BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartBase.partId], carPartBase.rotate, downGrid);
+            carCellsSum += cells.Count;
+            foreach (var cell in cells)
+                downGrid[cell.x, cell.y] = 1;
+        }
+
+        (List<Vector2Int> middleCells, List<Vector2Int> edgeCells) = GetEdgeAndMiddleCells(downGrid);
+        int edgeCellsCount = edgeCells.Count;
+        PlaceCarPartToCarBase(CarPartType.Main, 0, ref moneyLimit,
+            mainParts, ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+        int carType = Random.Range(0, 3);
+        switch (carType) {
+            
+            //tank
+            case 0:
+                PlaceCarPartToCarBase(CarPartType.MeleeWeapon, Mathf.RoundToInt(edgeCellsCount * 0.4f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.MeleeWeapon], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Armor, Mathf.RoundToInt(edgeCellsCount * 0.6f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Armor], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Gun, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.7f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Gun], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Support, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.3f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Support], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                break;
+            //range
+            case 1: 
+                PlaceCarPartToCarBase(CarPartType.Armor, edgeCellsCount, ref moneyLimit,
+                    carPartsToPlace[CarPartType.Armor], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Gun, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.65f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Gun], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Support, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.35f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Support], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                
+                break;
+            //damager
+            case 2:
+                PlaceCarPartToCarBase(CarPartType.MeleeWeapon, Mathf.RoundToInt(edgeCellsCount * 0.8f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.MeleeWeapon], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Armor, Mathf.RoundToInt(edgeCellsCount * 0.2f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Armor], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Gun, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.85f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Gun], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Support, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.15f), ref moneyLimit,
+                    carPartsToPlace[CarPartType.Support], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                break;
+               
+        }
+
+        //other car part types + main
+        return carPartUpLevelGrid;
+    }
+    private static bool CanPlaceCarPartOnField(CarPartConfig form, Vector2Int position, int[,] grid,
+        int[,] gridContainers, int degrees) /*need caar part containers grid*/ {
+        var formCells = GetCellsFromField(position, form,degrees, grid);
+        if (formCells.Count != form.PartForm.Length) return false;
+        foreach (var cell in formCells) 
+            if (grid[cell.x, cell.y] != 0 || gridContainers[cell.x, cell.y] == 0) return false;
+        
+
+        return true;
+    }
+
+    private static (List<Vector2Int> middleCells, List<Vector2Int> edgeCells) GetEdgeAndMiddleCells(int[,] grid) {
+        List<Vector2Int> middleCells = new List<Vector2Int>();
+        List<Vector2Int> edgeCells = new List<Vector2Int>();
+        for (int x = 0; x < grid.GetLength(0); x++) {
+            for (int y = 0; y < grid.GetLength(1); y++) {
+                if (grid[x, y] != 0) {
+                    Vector2Int cellPosition = new Vector2Int(x, y);
+                    if (IsEdgeContainerCell(cellPosition, grid))
+                        edgeCells.Add(cellPosition);
+                    else
+                        middleCells.Add(cellPosition);
+                }
+            }
+        }
+
+        return (middleCells, edgeCells);
+    }
+
+    private static void PlaceCarPartToCarBase(CarPartType partType, int needCount, ref int moneyLimit, List<int> carPartsToPlace, ref int[,] upGrid,
+        List<Vector2Int> middleCells, List<Vector2Int> edgeCells,int[,] downGrid,ref List<CarPartTypeRow> carPartUpLevelGrid) {
+        if(carPartsToPlace.Count == 0)return;
+        while (((needCount > 0 && moneyLimit > 0) && partType != CarPartType.Main)||(partType == CarPartType.Main &&carPartsToPlace.Count > 0)) {
+            bool canPlaceOnEdge = partType is CarPartType.Armor or CarPartType.MeleeWeapon;
+Debug.Log(carPartsToPlace.Count + " car parts count");
+            var currentCarPartConfig =partType != CarPartType.Main?
+                BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartsToPlace[Random.Range(0, carPartsToPlace.Count)]]:
+                BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartsToPlace[0]];
+            var carPartSize = GetCarPartSize(currentCarPartConfig);
+            for (int j = 0; j < 3; j++) {
+                Vector2Int randomPosition = Vector2Int.zero;
+                int rotateAngle = 0;
+                if (canPlaceOnEdge || middleCells.Count == 0) {
+                    if (edgeCells.Count == 0) {
+                        needCount -= currentCarPartConfig.PartForm.Length;
+                        break;
+                    }
+
+                    randomPosition = edgeCells[Random.Range(0, edgeCells.Count)];
+                    if (randomPosition.y + 1 > upGrid.GetLength(1) || upGrid[randomPosition.x, randomPosition.y + 1] == 0) {
+                        rotateAngle = 0;
+                        if (carPartSize.y > 1)
+                            randomPosition = new Vector2Int(randomPosition.x, randomPosition.y - (carPartSize.y - 1));
+                    } else if (randomPosition.y - 1 < 0 || upGrid[randomPosition.x, randomPosition.y - 1] == 0)
+                        rotateAngle = 180;
+
+                    else if (randomPosition.x + 1 > upGrid.GetLength(0) || upGrid[randomPosition.x + 1, randomPosition.y] == 0) {
+                        rotateAngle = 90;
+                        if (carPartSize.x > 1)
+                            randomPosition = new Vector2Int(randomPosition.x - (carPartSize.x - 1), randomPosition.y);
+                    } else if (randomPosition.x - 1 < 0 || upGrid[randomPosition.x, randomPosition.x - 1] == 0)
+                        rotateAngle = 270;
+                } else {
+                    float randomValue = Random.value;
+                    randomPosition = middleCells[Random.Range(0, middleCells.Count)];
+                    if (randomValue > 0.85f)
+                        rotateAngle = 180;
+                    else if (randomValue > 0.73f)
+                        rotateAngle = 90;
+                    else if (randomValue > 0.6f)
+                        rotateAngle = 270;
+                }
+             
+                if (CanPlaceCarPartOnField(currentCarPartConfig, randomPosition, upGrid, downGrid, rotateAngle)) {
+                    //place car part on grid
+                    var formCells = GetCellsFromField(randomPosition, currentCarPartConfig,rotateAngle, downGrid);
+                    foreach (var cell in formCells) {
+                        upGrid[cell.x, cell.y] = 1;
+                        middleCells.Remove(cell);
+                        edgeCells.Remove(cell);
+                    }
+
+                    carPartUpLevelGrid.Add(new CarPartTypeRow(randomPosition, currentCarPartConfig.Id, rotateAngle, 0));
+                    if (partType == CarPartType.Main)
+                        carPartsToPlace.RemoveAt(0);
+                    else
+                        moneyLimit -= (int)currentCarPartConfig.MoneyCost;
+                    needCount -= currentCarPartConfig.PartForm.Length;
+                    break;
+                }
+
+                if (j == 2)
+                    needCount -= currentCarPartConfig.PartForm.Length;
+            }
+        }
+    }
+
+    private static int[,] PlaceCarPartOnGrid(int[,] mapGrid,Vector2Int[] carPart, int carPartId, Vector2Int needEdgePosition) {
+        foreach (var needPosition in carPart) {
+            mapGrid[needEdgePosition.x+needPosition.x, needEdgePosition.y + needPosition.y] = carPartId;
+        }
+        return mapGrid;
     }
 
     private class Building {

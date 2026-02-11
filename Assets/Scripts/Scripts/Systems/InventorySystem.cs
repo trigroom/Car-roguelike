@@ -104,7 +104,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
          _sceneData.Value._givingCarPartsUIView._getAllButton.onClick.AddListener(GetAllCarParts);
          _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
          _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(SellCarPartAndActiveNext);
-        _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(SaveEnemyCarConfig);
+        _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(()=>SaveEnemyCarConfig(false));
+        _sceneData.Value._enemiesCarBuilderView.CreateCarBaseConfigButton.onClick.AddListener(()=>SaveEnemyCarConfig(true));
         _sceneData.Value._inventoryUIView._upgradeCarButton.onClick.AddListener(IncriseCarLevel);
         _sceneData.Value._inventoryUIView._healCarButton.onClick.AddListener(HealAllCarPart);
 
@@ -565,29 +566,34 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._gridMaskRect.sizeDelta = cellSize + currentCellSize * 1.8f;
     }
 
-    private void SaveEnemyCarConfig() {
-       var carCmp  =_carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
-       if(!CanUseThisCarPartContainers())return;
-       
-       List<CarPartTypeRow> upLevelGrid = new List<CarPartTypeRow>();
-       List<CarPartTypeRow> downLevelGrid = new List<CarPartTypeRow>();
+    private void SaveEnemyCarConfig(bool isCarBase) {
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
+        if (!CanUseThisCarPartContainers()) return;
 
-       foreach (var partsContainer in carCmp.CarPartContainerGroupsList) {
-           var edgePosition = GridUtils.GetEdgePointFromCarPart(partsContainer.Value);
-           var carPartCmp = _carPartInfoComponentsPool.Value.Get(partsContainer.Key);
-           downLevelGrid.Add(new CarPartTypeRow(edgePosition, carPartCmp.CarPartId,0,carPartCmp.PartLevel));
-       }
+        List<CarPartTypeRow> upLevelGrid = new List<CarPartTypeRow>();
+        List<CarPartTypeRow> downLevelGrid = new List<CarPartTypeRow>();
 
-       foreach (var part in carCmp.CarPartGroupsList) {
-           var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(part.Key);
-           var carPartCmp = _carPartComponentsPool.Value.Get(part.Key);
-           var edgePosition = GridUtils.GetEdgePointFromCarPart(part.Value);
-           upLevelGrid.Add(new CarPartTypeRow(edgePosition, carPartInfoCmp.CarPartId, (int)carPartCmp.CarPartCellImage.transform.localEulerAngles.z,
-               carPartInfoCmp.PartLevel));
-       }
+        foreach (var partsContainer in carCmp.CarPartContainerGroupsList) {
+            var edgePosition = GridUtils.GetEdgePointFromCarPart(partsContainer.Value);
+            var carPartCmp = _carPartInfoComponentsPool.Value.Get(partsContainer.Key);
+            downLevelGrid.Add(new CarPartTypeRow(edgePosition, carPartCmp.CarPartId, 0, carPartCmp.PartLevel));
+        }
 
-       _sceneData.Value._enemiesCarBuilderView.SaveEnemyCarConfig(carCmp.CarId,carCmp.CarLevel, downLevelGrid, upLevelGrid,
-           new Vector2Int(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)));
+        if (!isCarBase)
+            foreach (var part in carCmp.CarPartGroupsList) {
+                var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(part.Key);
+                var carPartCmp = _carPartComponentsPool.Value.Get(part.Key);
+                var edgePosition = GridUtils.GetEdgePointFromCarPart(part.Value);
+                upLevelGrid.Add(new CarPartTypeRow(edgePosition, carPartInfoCmp.CarPartId,
+                    (int)carPartCmp.CarPartCellImage.transform.localEulerAngles.z, carPartInfoCmp.PartLevel));
+            }
+
+        if (!isCarBase)
+            _sceneData.Value._enemiesCarBuilderView.SaveEnemyCarConfig(carCmp.CarId, carCmp.CarLevel, downLevelGrid, upLevelGrid,
+                new Vector2Int(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)));
+        else
+            _sceneData.Value._enemiesCarBuilderView.SaveEnemyCarBaseConfig(downLevelGrid,
+                new Vector2Int(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)));
     }
 
     private void RotateCarPart() {
@@ -1127,39 +1133,38 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             shopCellCmp.Price = price;
         }
     }
-    
-     private void SetCarShopCells() {
-         var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-         float inflationMultiplayer = 1 + _betweenScenesService.Value.GetMapDifficultyConfig().ShopInflationPerRound *
-             _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
-         var currentMapConfig = _betweenScenesService.Value.GetMapConfig().GameProcessConfig;
-         var roundEnemyStuff =
-             currentMapConfig.GameRounds[Mathf.Max(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound - 2, 0)];
-         var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs;
-         int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsCarShop.Length);
+
+    private void SetCarShopCells() {
+        var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        float inflationMultiplayer = 1 + _betweenScenesService.Value.GetMapDifficultyConfig().ShopInflationPerRound *
+            _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
+        var currentMapConfig = _betweenScenesService.Value.GetMapConfig().GameProcessConfig;
+        var roundEnemyStuff =
+            currentMapConfig.GameRounds[Mathf.Max(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound - 2, 0)];
+        var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs;
+        int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsCarShop.Length);
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsCarShop.Length; i++) {
             if (_sceneData.Value._shopUIView._buttonsCarShop[i].LockToggle.isOn) continue;
             var carMapsList = carsList[GridUtils.GetRandomIndexFromChancesList(roundEnemyStuff.EnemyCarChances)].CarMapsList;
             var carMap = carMapsList[Random.Range(0, carMapsList.Count)];
-            
+
             var shopButton = _sceneData.Value._shopUIView._buttonsCarShop[i];
 
             ref var shopCellCmp = ref _shopCellCarComponentsPool.Value.Get(shopButton.Entity);
             shopCellCmp.CarMap = carMap;
 
-            foreach (var carPartImage in shopCellCmp.CarPartsImages) 
+            foreach (var carPartImage in shopCellCmp.CarPartsImages)
                 _sceneData.Value.ReleaseCarPartUIImage(carPartImage);
-            
+
             shopCellCmp.CarPartsImages.Clear();
-            int price =  Mathf.CeilToInt(GetCarCost(carMap)*inflationMultiplayer); 
+            int price = Mathf.CeilToInt(GetCarCost(carMap) * inflationMultiplayer);
             if (i == saleIndex) {
                 float saleSize = Random.Range(1, 7) * 5;
                 price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - saleSize / 100f)));
                 shopButton.SetShopSaleInfo((int)saleSize);
-            } else 
+            } else
                 shopButton.SetShopSaleInfo(0);
 
-            
             shopButton.SetPriceText(price);
 
             shopCellCmp.Price = price;

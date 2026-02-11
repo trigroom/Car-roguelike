@@ -170,9 +170,20 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         settingsView._restartButton.onClick.AddListener(RestartGame);
         
         settingsView._closeSettingsButton.onClick.AddListener(SetSettingsState);
+        curGameCmp.CarPartsToEnemyBuilding = new Dictionary<CarPartType, List<int>>() {
+            {CarPartType.Gun, new List<int>()} ,
+            {CarPartType.MeleeWeapon, new List<int>()} ,
+            {CarPartType.Armor, new List<int>()} ,
+            {CarPartType.Support, new List<int>()} ,
+        };
+        if (mapConfig.GameProcessConfig.GameRounds[0].AddedCarPartsToEnemyPool != null)
+            foreach (var addedCarPartId in mapConfig.GameProcessConfig.GameRounds[0].AddedCarPartsToEnemyPool) {
+                curGameCmp.CarPartsToEnemyBuilding[_sceneService.Value.GetCarPartConfig(addedCarPartId).PartType].Add(addedCarPartId);
+            }
+
         
         _shopComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).ShopLevel = -1;
-     UpgradeShop();
+        UpgradeShop();
         _sceneService.Value._shopUIView._upgradeShopButton.onClick.AddListener(UpgradeShop);
       
         SetColorSliderEnemyProjectilesValues();
@@ -806,6 +817,20 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._shopUIView._buttonUpdateShop.gameObject.SetActive(true);
         shopCmp.IsModulesShop = false;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+       var mapConfig = _betweenScenesService.Value.GetMapConfig();
+       if (curGameCmp.CurrentRound > 0) {
+           if (mapConfig.GameProcessConfig.GameRounds[curGameCmp.CurrentRound].AddedCarPartsToEnemyPool != null)
+               foreach (var addedCarPartId in mapConfig.GameProcessConfig.GameRounds[curGameCmp.CurrentRound].AddedCarPartsToEnemyPool) {
+                   curGameCmp.CarPartsToEnemyBuilding[_sceneService.Value.GetCarPartConfig(addedCarPartId).PartType].Add(addedCarPartId);
+               }
+
+           if (mapConfig.GameProcessConfig.GameRounds[curGameCmp.CurrentRound].RemovedCarPartsFromEnemyPool != null)
+               foreach (var removedCarPartId in mapConfig.GameProcessConfig.GameRounds[curGameCmp.CurrentRound].RemovedCarPartsFromEnemyPool) {
+                   curGameCmp.CarPartsToEnemyBuilding[_sceneService.Value.GetCarPartConfig(removedCarPartId).PartType].Remove(removedCarPartId);
+               }
+       }
+       
+        
         var difficultyConfig = _betweenScenesService.Value.GetMapDifficultyConfig();
         if (difficultyConfig.ShopInflationPerRound != 0)
             _sceneService.Value._shopUIView._inflationText.text =
@@ -1082,11 +1107,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SetCarsToVersusBattle() {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        int roundNumber = curGameCmp.CurrentRound;
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
-        versusBattleCmp.RightOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true, new Vector2(20, 0));
-        versusBattleCmp.LeftOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), false, new Vector2(-20, 0));
+        versusBattleCmp.RightOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(), true, new Vector2(20, 0));
+        versusBattleCmp.LeftOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(), false, new Vector2(-20, 0));
     }
 
     private void SetCarToVersusGrid() {
@@ -1339,24 +1363,40 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         SpawnNpcCar(curGameCmp, GetRandomCarMap(), false,GetPositionAroundPlayer());
     }
 
-    private EnemyCarPartsMaps GetRandomCarMap(int needRoundNumber = -1) {
+    private EnemyCarPartsMaps GetRandomCarMap() {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        int roundNumber = needRoundNumber == -1 ? curGameCmp.CurrentRound : needRoundNumber;
+        int roundNumber = curGameCmp.CurrentRound;
 
-        var currentRoundCarStuff = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[roundNumber];
-        int needIndex = GridUtils.GetRandomIndexFromChancesList(currentRoundCarStuff.EnemyCarChances);
-        var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs[needIndex].CarMapsList;
-        return carsList[Random.Range(0, carsList.Count)];
+        var mapConfig = _betweenScenesService.Value.GetMapConfig();
+        // var currentRoundCarStuff = mapConfig.GameProcessConfig.GameRounds[roundNumber];
+        // int needIndex = GridUtils.GetRandomIndexFromChancesList(currentRoundCarStuff.EnemyCarChances);
+        var carId = mapConfig.GameProcessConfig.EnemyCarIndexes[Random.Range(0, mapConfig.GameProcessConfig.EnemyCarIndexes.Length)];
+        EnemyCarPartsMaps carMap = ScriptableObject.CreateInstance<EnemyCarPartsMaps>();
+        var carBaseList = _sceneService.Value._carStuffListsConfig.CarBasesForCars[carId].CarPartBasesForLevel;
+        if (carBaseList[roundNumber] == null) {
+            for (int i = roundNumber - 1; i > 0; i--) {
+                if (carBaseList[i] != null) {
+                    roundNumber = i;
+                    break;
+                }
+            }
+        }
+
+        var carBase = carBaseList[roundNumber][Random.Range(0, carBaseList[roundNumber].Count)];
+        carMap.CarPartDownLevelGrid = carBase.CarPartDownLevelGrid;
+        carMap.CarId = carId;
+        carMap.CarLevel = roundNumber == 0 ? 0 : roundNumber / 2;
+        carMap.GridSize = carBase.GridSize;
+        carMap.CarPartUpLevelGrid =
+            GridUtils.GetPlacedCarPatsOnCarBase(carBase, carId, curGameCmp.CarPartsToEnemyBuilding, 40 + roundNumber * 20).ToArray();
+        return carMap;
     }
 
     private void SetEnemiesCars(int enemiesCount, bool onStartRoundSpawn = true) {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        int roundNumber = curGameCmp.CurrentRound;
-        if (!onStartRoundSpawn)
-            roundNumber--;
 
         for (int i = 0; i < enemiesCount; i++)
-            SpawnNpcCar(curGameCmp, GetRandomCarMap(roundNumber), true,
+            SpawnNpcCar(curGameCmp, GetRandomCarMap(), true,
                 onStartRoundSpawn ? GetPositionAroundPlayer() : curGameCmp.EnemyTargetPosition);
     }
 
