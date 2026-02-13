@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 551c32435aa811647afc2343bfc2f659, type: 3}
+  m_Name: EnemyCar9Lvl2
+  m_EditorClassIdentifier: 
+  CarPartDownLevelGrid:
+  - gridPosition: {x: 0, y: 1}
+    partId: 11
+    rotate: 0
+    level: 0
+  - gridPosition: {x: 0, y: 6}
+    partId: 48
+    rotate: 0
+    level: 0
+  - gridPosition: {x: 0, y: 9}
+    partId: 48
+    rotate: 0
+    level: 0
+  - gridPosition: {x: 0, y: 0}
+    partId: 48
+    rotate: 0
+    level: 0
+  - gridPosition: {x: 0, y: 3}
+    partId: 48
+    rotate: 0
+    level: 0
+  - gridPosition: {x: 1, y: 7}
+    partId: 52
+    rotate: 0
+    level: 0
+  - gridPosition: {x: 0, y: 4}
+    partId: 11
+    rotate: 0
+    level: 1
+  - gridPosition: {x: 0, y: 7}
+    partId: 52
+    rotate: 0
+    level: 0
+  GridSize: {x: 2, y: 10}

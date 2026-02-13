@@ -210,7 +210,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         if (_addTeammateEventsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
-            _addTeammateEventsPool.Value.Del(_sceneData.Value.PlayerEntity);
+          /*  _addTeammateEventsPool.Value.Del(_sceneData.Value.PlayerEntity);
             var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             var currentRoundCarStuff = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[gameCmp.CurrentRound];
 
@@ -218,7 +218,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs[i].CarMapsList;
             var enemyCar = carsList[Random.Range(0, carsList.Count)];
 
-            AddNewTeammateCarToPlayer(enemyCar);
+            AddNewTeammateCarToPlayer(enemyCar);*/
         }
 
         if (Input.GetMouseButtonDown(0))

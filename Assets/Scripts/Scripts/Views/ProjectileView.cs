@@ -9,7 +9,7 @@ public class ProjectileView : MonoBehaviour {
     [SerializeField]
     private SpriteRenderer spriteRenderer;
     [SerializeField]
-    private string needTag;
+    public string needTag { get;private set; }
     [SerializeField]
     private BoxCollider2D collider;
     [SerializeField]

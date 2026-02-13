@@ -33,4 +33,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fddc722a0258d0c4c9d56764cc9eed55, type: 2}
   - {fileID: 11400000, guid: 8c9b815afdd798f4d85c3bf43fd35c02, type: 2}
   - {fileID: 11400000, guid: aae7730e19978974a9717ba5b71f0206, type: 2}
-  EnemyCarIndexes: 04000000
+  EnemyCarIndexes: 0400000003000000

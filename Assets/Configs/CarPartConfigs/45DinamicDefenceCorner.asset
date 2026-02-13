@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d569a8de01075864785b5d73317f0a00, type: 3}
   m_Name: 45DinamicDefenceCorner
   m_EditorClassIdentifier: 
-  <Id>k__BackingField: 44
+  <Id>k__BackingField: 45
   <MaxHealth>k__BackingField: 480
   <Weight>k__BackingField: 15
   <PartSprite>k__BackingField: {fileID: 21300000, guid: b1954161db5f5544eadaf7d73ca7947b, type: 3}
@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 2
   <PartName>k__BackingField: Dinamic defence corner
-  <DefaultModuleCount>k__BackingField: 0
+  <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 30

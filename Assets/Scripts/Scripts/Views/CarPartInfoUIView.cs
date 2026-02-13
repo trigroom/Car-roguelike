@@ -371,7 +371,7 @@ public class CarPartInfoUIView : MonoBehaviour
                                      $"{GetLocalization("Bullets in mag")}: {Mathf.FloorToInt(gunConfig.BulletsCountInMagazine * magSizeMultiplier)}";
             if (gunConfig.ExplosionRadius != 0)
                 _descriptionText.text += $"\n{GetLocalization("Explosion radius")}: {gunConfig.ExplosionRadius}\n" +
-                                         $"{GetLocalization("")}Explosion damage: {gunConfig.ExplosionDamage}";
+                                         $"{GetLocalization("Explosion damage")}: {gunConfig.ExplosionDamage}";
 
             if (gunConfig.BreakingThroughCount > 1) {
                 _descriptionText.text += $"\n{GetLocalization("Pierce count")}: {gunConfig.BreakingThroughCount + targetPiercingAddedCount}" +
@@ -391,6 +391,10 @@ public class CarPartInfoUIView : MonoBehaviour
             _descriptionText.text += $"\n{GetLocalization("Max rotate angle")}: {gunConfig.MaxRotateAngle}°" +
                                      $"\n{GetLocalization("Rotate speed")}: {gunConfig.RotateSpeed}" +
                                      $"\n{GetLocalization("Rotate electricity consumption")}: {gunConfig.RotateSpeed / 20f} w/s";
+        }
+        if (gunConfig.ProjectileRotateSpeed != 0) {
+            _descriptionText.text += $"\n{GetLocalization("Homing projectiles")}" +
+                                     $"\n{GetLocalization("Projectile turning speed")}: {gunConfig.ProjectileRotateSpeed}°/s";
         }
            
 

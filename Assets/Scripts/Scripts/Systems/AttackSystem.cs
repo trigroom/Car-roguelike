@@ -246,6 +246,9 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 projectileCmp.IsActive = false;
                 _sceneService.Value.ReleaseGunProjectile(projectileCmp.ProjectileView, projectileCmp.ExplosionRadius);
             }
+
+            if (_sceneService.Value.GetGunFromCarPart(projectileCmp.GunId).ProjectileRotateSpeed  != 0) 
+                FindTargetToRocket(projectileEntity);
         }
 
         foreach (var cellEntity in _constructMeleeCellEventsFilter.Value) {
@@ -320,6 +323,51 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                     _fireComponentsPool.Value.Del(burnedEntity);
                 }
             }
+        }
+    }
+
+    private void FindTargetToRocket(int projectileEntity) {
+        ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectileEntity);
+        var projectile = projectileCmp.ProjectileView;
+        var gunConfig = _sceneService.Value.GetGunFromCarPart(projectileCmp.GunId);
+        if (!projectileCmp.TargetToMove) {
+            string targetLayerName = projectile.needTag == "Enemy" ? "UpCarPartEnemy" : "UpCarPart";
+            int targetLayerIndex = LayerMask.NameToLayer(targetLayerName);
+        
+            LayerMask targetLayerMask = 1 << targetLayerIndex;
+            
+            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(projectile.transform.position, 7,targetLayerMask);
+
+            Transform currentTarget = null;
+            float closestDistance = 10;
+
+            foreach (var hitCollider in hitColliders) {
+                float distance = Vector2.Distance(projectile.gameObject.transform.position, hitCollider.transform.position);
+
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    currentTarget = hitCollider.transform;
+                }
+            }
+Debug.Log(targetLayerMask + " l "+hitColliders.Length);
+            projectileCmp.TargetToMove = currentTarget;
+        } else {
+            Vector2 directionToTarget = (projectileCmp.TargetToMove.position - projectile.gameObject.transform.position).normalized;
+
+            float targetAngle = Mathf.Atan2(directionToTarget.y, directionToTarget.x) * Mathf.Rad2Deg ;
+
+          //  float newRotation = Mathf.MoveTowardsAngle(
+            //    projectile.rigidbody2D.rotation, targetAngle, gunConfig.ProjectileRotateSpeed * Time.deltaTime);
+
+          //  projectile.rigidbody2D.MoveRotation(newRotation);
+            
+          float currentAngle = projectile.rigidbody2D.rotation;
+          float angleDifference = Mathf.DeltaAngle(currentAngle, targetAngle)*5;
+        
+          projectile.rigidbody2D.angularVelocity = Mathf.Clamp(angleDifference, -gunConfig.ProjectileRotateSpeed, gunConfig.ProjectileRotateSpeed);
+          Vector2 forwardDirection = projectile.transform.right;
+          projectile.rigidbody2D.linearVelocity = Vector2.zero;
+          projectile.rigidbody2D.AddForce(forwardDirection * gunConfig.BulletSpeed, ForceMode2D.Impulse);
         }
     }
 
@@ -762,6 +810,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 projectileCmp.IsActive = true;
                 projectileCmp.LifeTime = gunConfig.ProjectileLifeTime;
                 projectileCmp.Damage = gunCmp.CurrentDamage;
+                projectileCmp.GunId = gunConfig.Id;
+                projectileCmp.TargetToMove = null; 
                 projectileCmp.CurrentBreakingThroughCount = gunCmp.MaxPiercingCount;
             } else {
                 int newEntity = _world.Value.NewEntity();
@@ -772,6 +822,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 projectileCmp.ProjectileView = currentProjectile;
                 projectileCmp.LifeTime = gunConfig.ProjectileLifeTime;
                 projectileCmp.Damage = gunCmp.CurrentDamage;
+                projectileCmp.GunId = gunConfig.Id;
+                projectileCmp.TargetToMove = null; 
                 projectileCmp.CurrentBreakingThroughCount = gunCmp.MaxPiercingCount;
             }
 

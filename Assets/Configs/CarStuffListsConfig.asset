@@ -310,7 +310,29 @@ MonoBehaviour:
   - CarPartBasesForLevel:
       _serializedList: []
   - CarPartBasesForLevel:
-      _serializedList: []
+      _serializedList:
+      - Key: 0
+        Value:
+        - {fileID: 11400000, guid: c5d6f2f5ea2da7b4890af8832ddc140c, type: 2}
+      - Key: 2
+        Value:
+        - {fileID: 11400000, guid: b92285806d5b59743b58fcfeae1d929f, type: 2}
+        - {fileID: 11400000, guid: 22c7ee337ec52c640866b7cc59ac7f2d, type: 2}
+      - Key: 4
+        Value:
+        - {fileID: 11400000, guid: 22c7ee337ec52c640866b7cc59ac7f2d, type: 2}
+        - {fileID: 11400000, guid: 049629d5a469410418fc8bfdbfdad110, type: 2}
+      - Key: 6
+        Value:
+        - {fileID: 11400000, guid: 049629d5a469410418fc8bfdbfdad110, type: 2}
+        - {fileID: 11400000, guid: 67033e6db85e24b4585edb03428efe05, type: 2}
+        - {fileID: 11400000, guid: f192f0d1c80ce8440a4d405349f4002f, type: 2}
+        - {fileID: 11400000, guid: 7f45564b475786a4087758c9f3166760, type: 2}
+      - Key: 8
+        Value:
+        - {fileID: 11400000, guid: 638048875c7aab24cbd235372be00e09, type: 2}
+        - {fileID: 11400000, guid: f2ac97784e48dd344acc0654f0060760, type: 2}
+        - {fileID: 11400000, guid: f192f0d1c80ce8440a4d405349f4002f, type: 2}
   - CarPartBasesForLevel:
       _serializedList:
       - Key: 0
@@ -323,14 +345,17 @@ MonoBehaviour:
       - Key: 4
         Value:
         - {fileID: 11400000, guid: 071df7d7f9bacff498739304d512ae5f, type: 2}
+        - {fileID: 11400000, guid: 5e6c3ab2cc86f354c99a0ce87b29e72e, type: 2}
       - Key: 6
         Value:
         - {fileID: 11400000, guid: 5aabddbb788713c4eb02be946acb4afa, type: 2}
         - {fileID: 11400000, guid: a7ed49c770081fa44848482f7d2904b8, type: 2}
+        - {fileID: 11400000, guid: 071df7d7f9bacff498739304d512ae5f, type: 2}
       - Key: 8
         Value:
         - {fileID: 11400000, guid: e03d35f4c8f501f40b39bb861cc506ca, type: 2}
         - {fileID: 11400000, guid: 2294dca5d6591c948a6a4911902f63ba, type: 2}
+        - {fileID: 11400000, guid: 5aabddbb788713c4eb02be946acb4afa, type: 2}
       - Key: 10
         Value:
         - {fileID: 11400000, guid: 1f0e698396993724da752ac01d55a193, type: 2}

@@ -878,7 +878,6 @@ public class GridUtils : MonoBehaviour {
                 }
             }
         }
-Debug.Log(edgeCells.Count + " edge count "+ middleCells.Count + " middle count");
         return (middleCells, edgeCells);
     }
     public static Dictionary<CarPartRare, int> _maxLevelsForRare = new Dictionary<CarPartRare, int>() {
@@ -909,18 +908,18 @@ Debug.Log(edgeCells.Count + " edge count "+ middleCells.Count + " middle count")
                     }
 
                     randomPosition = edgeCells[Random.Range(0, edgeCells.Count)];
-                    if (randomPosition.y + 1 >= upGrid.GetLength(1) || upGrid[randomPosition.x, randomPosition.y + 1] == 0) {
+                    if (randomPosition.y + 1 >= upGrid.GetLength(1) || downGrid[randomPosition.x, randomPosition.y + 1] == 0) {
                         rotateAngle = 0;
                         if (carPartSize.y > 1)
                             randomPosition = new Vector2Int(randomPosition.x, randomPosition.y - (carPartSize.y - 1));
-                    } else if (randomPosition.y - 1 < 0 || upGrid[randomPosition.x, randomPosition.y - 1] == 0)
+                    } else if (randomPosition.y - 1 < 0 || downGrid[randomPosition.x, randomPosition.y - 1] == 0)
                         rotateAngle = 180;
 
-                    else if (randomPosition.x + 1 >= upGrid.GetLength(0) || upGrid[randomPosition.x + 1, randomPosition.y] == 0) {
+                    else if (randomPosition.x + 1 >= upGrid.GetLength(0) || downGrid[randomPosition.x + 1, randomPosition.y] == 0) {
                         rotateAngle = 90;
                         if (carPartSize.x > 1)
                             randomPosition = new Vector2Int(randomPosition.x - (carPartSize.x - 1), randomPosition.y);
-                    } else if (randomPosition.x - 1 < 0 || upGrid[randomPosition.x- 1, randomPosition.y ] == 0)
+                    } else if (randomPosition.x - 1 < 0 || downGrid[randomPosition.x- 1, randomPosition.y ] == 0)
                         rotateAngle = 270;
                 } else {
                     float randomValue = Random.value;
@@ -956,7 +955,6 @@ Debug.Log(edgeCells.Count + " edge count "+ middleCells.Count + " middle count")
             }
         }
     }
-
     private static int[,] PlaceCarPartOnGrid(int[,] mapGrid,Vector2Int[] carPart, int carPartId, Vector2Int needEdgePosition) {
         foreach (var needPosition in carPart) {
             mapGrid[needEdgePosition.x+needPosition.x, needEdgePosition.y + needPosition.y] = carPartId;

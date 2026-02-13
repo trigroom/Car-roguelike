@@ -8,7 +8,7 @@ public class GunConfig : CarPartConfig
     
     public float MaxRotateAngle;
     public float RotateSpeed;
-    
+
     public float Damage;
     public float AttackCouldown;
     public int BulletsCountInMagazine;
@@ -28,8 +28,9 @@ public class GunConfig : CarPartConfig
     public int BreakingThroughCount;
     public float BreakingThroughDamageFalloff;
     public float CarRecoil;
-       public float ProjectileLifeTime;
-       public float ElectricityConsumption;
+    public float ProjectileLifeTime;
+    public float ElectricityConsumption;
+    public float ProjectileRotateSpeed;
 }
 
 public enum MissleType {

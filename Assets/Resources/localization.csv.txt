@@ -376,3 +376,5 @@ brokenCarsTask,Destroy enemy vehicles. Reward,Уничтожь вражески�
 endRoundsWithTask,Finish with >90% intact parts. Reward,Заканчивай раунды с >90% целых деталей. Награда,Beende mit >90% intakten Teilen. Belohnung,Termina con >90% piezas intactas. Recompensa,Termine avec >90% pièces intactes. Récompense
 Upgrade shop,Upgrade Shop,Улучшить магазин,Shop verbessern,Mejorar tienda,Améliorer boutique
 Price rise per round,Price increase per round,Повышение цены каждый раунд,Preisanstieg pro Runde,Aumento precio por ronda,Augmentation prix par round
+Homing projectiles,Homing Projectiles,Самонаводящиеся Снаряды,Zielsuchende Geschosse,Proyectiles Teledirigidos,Projectiles Téléguidés
+Projectile turning speed,Projectile Turn Speed,Скорость Поворота Снаряда,Projektil Drehgeschwindigkeit,Velocidad Giro Proyectil,Vitesse Rotation Projectile

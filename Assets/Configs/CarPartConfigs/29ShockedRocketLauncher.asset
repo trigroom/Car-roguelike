@@ -33,7 +33,7 @@ MonoBehaviour:
   AttackCouldown: 2
   BulletsCountInMagazine: 1
   BulletsCount: 1
-  BulletSpeed: 20
+  BulletSpeed: 5
   ReloadDuration: 2
   MissleType: 1
   MissleSprite: {fileID: 21300000, guid: 778e7cd85b15aa44ea255a10cec81bb3, type: 3}
@@ -48,4 +48,6 @@ MonoBehaviour:
   BreakingThroughCount: 1
   BreakingThroughDamageFalloff: 0
   CarRecoil: 200
-  ProjectileLifeTime: 3.5
+  ProjectileLifeTime: 5.5
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 45
