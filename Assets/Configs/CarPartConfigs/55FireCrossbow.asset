@@ -13,40 +13,42 @@ MonoBehaviour:
   m_Name: 55FireCrossbow
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 55
-  <MaxHealth>k__BackingField: 250
+  <MaxHealth>k__BackingField: 210
   <Weight>k__BackingField: 27
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 620e2a5eb2d5f1e4599251743b9091b9, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Fire crossbow
   <ModuleTypes>k__BackingField: 0100000003000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
-  <MoneyCost>k__BackingField: 25
+  <MoneyCost>k__BackingField: 35
   UpPartSprite: {fileID: 21300000, guid: 25618cf69425d7149bf0abe5929f99ff, type: 3}
   UpPartPosition: {x: 0, y: 0.2}
   MaxRotateAngle: 15
   RotateSpeed: 0.15
-  Damage: 27
+  Damage: 25
   AttackCouldown: 0.9
   BulletsCountInMagazine: 1
   BulletsCount: 1
-  BulletSpeed: 11
+  BulletSpeed: 12
   ReloadDuration: 0.9
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 00d235b26e40e7e4191d6f8a20f6ee79, type: 3}
   FirePointPosition: {x: 0, y: 0.2}
   GunContainerPosition: {x: 0, y: -0.4}
-  SpreadAngle: 0
+  SpreadAngle: 2
   ExplosionRadius: 0
   ExplosionDamage: 0
   ImpulseForce: 200
   EffectType: 1
-  EffectDuration: 3
+  EffectDuration: 4
   BreakingThroughCount: 2
   BreakingThroughDamageFalloff: 0.25
   CarRecoil: 0
   ProjectileLifeTime: 3
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

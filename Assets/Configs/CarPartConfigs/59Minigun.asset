@@ -13,41 +13,43 @@ MonoBehaviour:
   m_Name: 59Minigun
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 59
-  <MaxHealth>k__BackingField: 720
-  <Weight>k__BackingField: 52
+  <MaxHealth>k__BackingField: 650
+  <Weight>k__BackingField: 55
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 8e332f50fa739504389fa4cd38cadfb8, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Minigun
   <ModuleTypes>k__BackingField: 0900000004000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
   - {x: 0, y: 2}
-  <MoneyCost>k__BackingField: 50
+  <MoneyCost>k__BackingField: 70
   UpPartSprite: {fileID: 21300000, guid: 97648a144c0d8fc418b1a2dbe06277f0, type: 3}
   UpPartPosition: {x: -0.06, y: 0.1}
   MaxRotateAngle: 30
   RotateSpeed: 0.2
-  Damage: 27
-  AttackCouldown: 0.15
+  Damage: 5
+  AttackCouldown: 0.1
   BulletsCountInMagazine: 100
   BulletsCount: 1
-  BulletSpeed: 20
-  ReloadDuration: 5
+  BulletSpeed: 18
+  ReloadDuration: 8
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
   FirePointPosition: {x: 0, y: 0.9}
   GunContainerPosition: {x: -0.06, y: -0.5}
-  SpreadAngle: 3
-  ExplosionRadius: 0.2
-  ExplosionDamage: 10
+  SpreadAngle: 10
+  ExplosionRadius: 0
+  ExplosionDamage: 0
   ImpulseForce: 150
   EffectType: 0
   EffectDuration: 0
-  BreakingThroughCount: 1
-  BreakingThroughDamageFalloff: 0
+  BreakingThroughCount: 2
+  BreakingThroughDamageFalloff: 0.6
   CarRecoil: 100
-  ProjectileLifeTime: 3
+  ProjectileLifeTime: 2.7
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

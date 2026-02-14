@@ -13,35 +13,35 @@ MonoBehaviour:
   m_Name: 29ShockedRocketLauncher
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 29
-  <MaxHealth>k__BackingField: 120
-  <Weight>k__BackingField: 8
+  <MaxHealth>k__BackingField: 170
+  <Weight>k__BackingField: 12
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 438d4685b1145964f80b86d8d08e34f7, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Shocked Rocket launcher
   <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 40
+  <MoneyCost>k__BackingField: 57
   UpPartSprite: {fileID: 21300000, guid: 23bee7f5996ace8488782f63953400c6, type: 3}
   UpPartPosition: {x: -0.1, y: 0.25}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 5
-  AttackCouldown: 2
+  Damage: 15
+  AttackCouldown: 2.3
   BulletsCountInMagazine: 1
   BulletsCount: 1
-  BulletSpeed: 5
-  ReloadDuration: 2
+  BulletSpeed: 8
+  ReloadDuration: 2.3
   MissleType: 1
   MissleSprite: {fileID: 21300000, guid: 778e7cd85b15aa44ea255a10cec81bb3, type: 3}
   FirePointPosition: {x: 0, y: 0}
   GunContainerPosition: {x: 0, y: 0}
   SpreadAngle: 2
-  ExplosionRadius: 2
-  ExplosionDamage: 30
+  ExplosionRadius: 2.2
+  ExplosionDamage: 45
   ImpulseForce: 650
   EffectType: 3
   EffectDuration: 3
@@ -50,4 +50,4 @@ MonoBehaviour:
   CarRecoil: 200
   ProjectileLifeTime: 5.5
   ElectricityConsumption: 0
-  ProjectileRotateSpeed: 45
+  ProjectileRotateSpeed: 65

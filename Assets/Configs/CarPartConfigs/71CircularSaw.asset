@@ -19,17 +19,17 @@ MonoBehaviour:
   <PartType>k__BackingField: 7
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 12
+  <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Circular saw
   <ModuleTypes>k__BackingField: 0100000002000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
-  <MoneyCost>k__BackingField: 45
-  Damage: 12
-  AttackCountdown: 0.15
+  <MoneyCost>k__BackingField: 37
+  Damage: 7
+  AttackCountdown: 0.22
   DamageAddedFromOneSpeed: 0
   UpSprite: {fileID: 21300000, guid: 3eb5e52bd83673f458fbe18b7136c88e, type: 3}
   UpSpritePosition: {x: 0, y: 0.65}
   IsAttackAfterCountdown: 1
-  FuelConsumption: 0.5
+  FuelConsumption: 0.2

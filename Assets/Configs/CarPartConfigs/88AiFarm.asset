@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 88AiFarm
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 88
-  <MaxHealth>k__BackingField: 70
+  <MaxHealth>k__BackingField: 100
   <Weight>k__BackingField: 8
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 29d213c126445f3469bb052e1f22b0bd, type: 3}
   <PartType>k__BackingField: 3
@@ -25,7 +25,7 @@ MonoBehaviour:
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
-  <MoneyCost>k__BackingField: 55
+  <MoneyCost>k__BackingField: 40
   ModuleType: 5
   FirstCount: 35
   SecondCount: 0

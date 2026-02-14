@@ -13,41 +13,43 @@ MonoBehaviour:
   m_Name: 36SmallCannon
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 36
-  <MaxHealth>k__BackingField: 270
+  <MaxHealth>k__BackingField: 550
   <Weight>k__BackingField: 38
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 4029eb614dac17b49b9bcf132353bb5b, type: 3}
   <PartType>k__BackingField: 6
-  <RartRare>k__BackingField: 1
+  <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Small cannon
   <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
   - {x: 0, y: 2}
-  <MoneyCost>k__BackingField: 20
+  <MoneyCost>k__BackingField: 34
   UpPartSprite: {fileID: 21300000, guid: 838867b34f3c8ae47a78b7e64e9116a3, type: 3}
   UpPartPosition: {x: 0, y: -0.1}
   MaxRotateAngle: 30
   RotateSpeed: 0.2
-  Damage: 20
+  Damage: 75
   AttackCouldown: 1
   BulletsCountInMagazine: 1
   BulletsCount: 1
-  BulletSpeed: 12
-  ReloadDuration: 3.2
+  BulletSpeed: 11
+  ReloadDuration: 3
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 69ba86400dfe3304f85bf82ad2a1de89, type: 3}
   FirePointPosition: {x: 0, y: 1.2}
   GunContainerPosition: {x: 0, y: -0.1}
-  SpreadAngle: 0
+  SpreadAngle: 6
   ExplosionRadius: 0
   ExplosionDamage: 0
   ImpulseForce: 350
   EffectType: 0
   EffectDuration: 0
   BreakingThroughCount: 3
-  BreakingThroughDamageFalloff: 0.5
+  BreakingThroughDamageFalloff: 0.45
   CarRecoil: 850
   ProjectileLifeTime: 3
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

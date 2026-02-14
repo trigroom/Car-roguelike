@@ -19,23 +19,23 @@ MonoBehaviour:
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 5
+  <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Sniper rifle
   <ModuleTypes>k__BackingField: 0900000004000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
-  <MoneyCost>k__BackingField: 29
+  <MoneyCost>k__BackingField: 40
   UpPartSprite: {fileID: 21300000, guid: 409ca4133cdec17459176ebb236c849f, type: 3}
   UpPartPosition: {x: 0, y: -0.1}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 80
-  AttackCouldown: 1.2
+  Damage: 45
+  AttackCouldown: 1.4
   BulletsCountInMagazine: 7
   BulletsCount: 1
   BulletSpeed: 30
-  ReloadDuration: 2.2
+  ReloadDuration: 2.45
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
   FirePointPosition: {x: 0, y: 0}
@@ -50,3 +50,5 @@ MonoBehaviour:
   BreakingThroughDamageFalloff: 0.2
   CarRecoil: 300
   ProjectileLifeTime: 4
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

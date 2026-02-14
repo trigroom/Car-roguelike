@@ -13,30 +13,30 @@ MonoBehaviour:
   m_Name: 32LaserWeaponSystem
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 32
-  <MaxHealth>k__BackingField: 270
+  <MaxHealth>k__BackingField: 360
   <Weight>k__BackingField: 31
   <PartSprite>k__BackingField: {fileID: 21300000, guid: abe9f2ea952d1fb43aab058997b20238, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Laser weapon system
   <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
   - {x: 0, y: 1}
-  <MoneyCost>k__BackingField: 42
+  <MoneyCost>k__BackingField: 60
   UpPartSprite: {fileID: 0}
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 10
-  AttackCouldown: 1
+  Damage: 55
+  AttackCouldown: 5
   BulletsCountInMagazine: 1
   BulletsCount: 1
-  BulletSpeed: 12
-  ReloadDuration: 1
+  BulletSpeed: 13
+  ReloadDuration: 1.8
   MissleType: 2
   MissleSprite: {fileID: 0}
   FirePointPosition: {x: -0.5, y: 0.8}
@@ -51,3 +51,5 @@ MonoBehaviour:
   BreakingThroughDamageFalloff: 0
   CarRecoil: 0
   ProjectileLifeTime: 3
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

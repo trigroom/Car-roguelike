@@ -13,19 +13,19 @@ MonoBehaviour:
   m_Name: 74Heater
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 74
-  <MaxHealth>k__BackingField: 175
+  <MaxHealth>k__BackingField: 220
   <Weight>k__BackingField: 55
   <PartSprite>k__BackingField: {fileID: 21300000, guid: c14ed0bc71ae9e7448e324bc342f770d, type: 3}
   <PartType>k__BackingField: 3
   <RartRare>k__BackingField: 1
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 15
+  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Heater
   <ModuleTypes>k__BackingField: 01000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
-  <MoneyCost>k__BackingField: 18
+  <MoneyCost>k__BackingField: 22
   ModuleType: 7
   FirstCount: 2
   SecondCount: 3

@@ -21,10 +21,10 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 6
   <PartName>k__BackingField: Recovery pack
-  <DefaultModuleCount>k__BackingField: 0
+  <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 15
+  <MoneyCost>k__BackingField: 20
   ModuleType: 3
   FirstCount: 1
   SecondCount: 2

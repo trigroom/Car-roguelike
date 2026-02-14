@@ -688,7 +688,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.EnemyTargetPosition = Vector2.one * 999; 
         _sceneService.Value._parachuteSpriteRenderer.DOKill();
         _sceneService.Value._enemyAirplane.DOKill();
-        
+        _sceneService.Value._enemyAirplane.gameObject.SetActive(false);
+        _sceneService.Value._parachuteSpriteRenderer.gameObject.SetActive(false);
     }
 
     private void ReleaseAllCarPartUI() {

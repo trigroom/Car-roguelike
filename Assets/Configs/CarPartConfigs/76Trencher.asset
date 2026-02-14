@@ -13,24 +13,24 @@ MonoBehaviour:
   m_Name: 76Trencher
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 76
-  <MaxHealth>k__BackingField: 325
+  <MaxHealth>k__BackingField: 425
   <Weight>k__BackingField: 55
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 304ef9c21b7215140a8155c82613334c, type: 3}
   <PartType>k__BackingField: 7
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 25
+  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Trencher
   <ModuleTypes>k__BackingField: 0100000002000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
   - {x: 0, y: 2}
-  <MoneyCost>k__BackingField: 49
-  Damage: 27
+  <MoneyCost>k__BackingField: 60
+  Damage: 20
   AttackCountdown: 0.3
   DamageAddedFromOneSpeed: 0
   UpSprite: {fileID: 21300000, guid: 950f13061ea10f646b06393c8fb62bff, type: 3}
   UpSpritePosition: {x: -0.438, y: 0.062}
   IsAttackAfterCountdown: 1
-  FuelConsumption: 0.85
+  FuelConsumption: 0.65

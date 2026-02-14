@@ -13,24 +13,24 @@ MonoBehaviour:
   m_Name: 47Drill
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 47
-  <MaxHealth>k__BackingField: 300
+  <MaxHealth>k__BackingField: 410
   <Weight>k__BackingField: 75
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 9bd54218489a12f4db1daca7c1914a24, type: 3}
   <PartType>k__BackingField: 7
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 10
+  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Drill
   <ModuleTypes>k__BackingField: 0100000002000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 1}
   - {x: 0, y: 1}
-  <MoneyCost>k__BackingField: 45
-  Damage: 15
-  AttackCountdown: 0.15
+  <MoneyCost>k__BackingField: 65
+  Damage: 13
+  AttackCountdown: 0.2
   DamageAddedFromOneSpeed: 0
   UpSprite: {fileID: 21300000, guid: 7f1e168834e61f5489c0313ad7224a02, type: 3}
   UpSpritePosition: {x: -0.5, y: 1.64}
   IsAttackAfterCountdown: 1
-  FuelConsumption: 1
+  FuelConsumption: 0.5

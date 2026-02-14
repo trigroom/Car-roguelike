@@ -13,18 +13,18 @@ MonoBehaviour:
   m_Name: 45DinamicDefenceCorner
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 45
-  <MaxHealth>k__BackingField: 480
+  <MaxHealth>k__BackingField: 350
   <Weight>k__BackingField: 15
   <PartSprite>k__BackingField: {fileID: 21300000, guid: b1954161db5f5544eadaf7d73ca7947b, type: 3}
   <PartType>k__BackingField: 1
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 2
+  <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Dinamic defence corner
   <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 30
-  DefencePercent: 65
+  <MoneyCost>k__BackingField: 35
+  DefencePercent: 70
   DefenceDirections: 0000000002000000
   ExplosionDefence: 1

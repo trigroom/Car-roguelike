@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 24
   <MaxHealth>k__BackingField: 150
-  <Weight>k__BackingField: 3
+  <Weight>k__BackingField: 7
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 438d4685b1145964f80b86d8d08e34f7, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 2
@@ -24,17 +24,17 @@ MonoBehaviour:
   <ModuleTypes>k__BackingField: 0900000004000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 25
+  <MoneyCost>k__BackingField: 35
   UpPartSprite: {fileID: 21300000, guid: 2907c8c72d5128c4f86b49335d0b904c, type: 3}
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 8
-  AttackCouldown: 0.75
+  Damage: 6
+  AttackCouldown: 0.85
   BulletsCountInMagazine: 4
-  BulletsCount: 5
+  BulletsCount: 6
   BulletSpeed: 20
-  ReloadDuration: 2.5
+  ReloadDuration: 2.25
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: decf9f8f9a61ae84091faabc536f5b0f, type: 3}
   FirePointPosition: {x: 0, y: 0}
@@ -42,11 +42,12 @@ MonoBehaviour:
   SpreadAngle: 15
   ExplosionRadius: 0
   ExplosionDamage: 0
-  ImpulseForce: 400
+  ImpulseForce: 270
   EffectType: 0
   EffectDuration: 0
   BreakingThroughCount: 1
   BreakingThroughDamageFalloff: 0
   CarRecoil: 300
-  ProjectileLifeTime: 1.5
+  ProjectileLifeTime: 1.35
   ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

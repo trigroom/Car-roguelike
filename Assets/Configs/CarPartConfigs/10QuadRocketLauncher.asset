@@ -13,26 +13,26 @@ MonoBehaviour:
   m_Name: 10QuadRocketLauncher
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 10
-  <MaxHealth>k__BackingField: 150
-  <Weight>k__BackingField: 2
+  <MaxHealth>k__BackingField: 250
+  <Weight>k__BackingField: 23
   <PartSprite>k__BackingField: {fileID: 21300000, guid: f7acc31c47f370448845a59e9df9dcbd, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Quad rocket launcher
   <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 45
+  <MoneyCost>k__BackingField: 60
   UpPartSprite: {fileID: 21300000, guid: 6ec43ab1b1fc96e469e79dba86e7a73e, type: 3}
   UpPartPosition: {x: 0, y: 0}
   MaxRotateAngle: 40
   RotateSpeed: 0.2
-  Damage: 23
-  AttackCouldown: 1.4
-  BulletsCountInMagazine: 1
-  BulletsCount: 4
+  Damage: 20
+  AttackCouldown: 0.9
+  BulletsCountInMagazine: 4
+  BulletsCount: 1
   BulletSpeed: 10
   ReloadDuration: 3.7
   MissleType: 1
@@ -49,3 +49,5 @@ MonoBehaviour:
   BreakingThroughDamageFalloff: 0
   CarRecoil: 0
   ProjectileLifeTime: 3.5
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

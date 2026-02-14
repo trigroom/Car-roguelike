@@ -349,7 +349,6 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                     currentTarget = hitCollider.transform;
                 }
             }
-Debug.Log(targetLayerMask + " l "+hitColliders.Length);
             projectileCmp.TargetToMove = currentTarget;
         } else {
             Vector2 directionToTarget = (projectileCmp.TargetToMove.position - projectile.gameObject.transform.position).normalized;

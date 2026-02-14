@@ -25,17 +25,17 @@ MonoBehaviour:
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
-  <MoneyCost>k__BackingField: 43
+  <MoneyCost>k__BackingField: 60
   UpPartSprite: {fileID: 21300000, guid: 4c2a366a6ab1d444397c78a2d90aaa9c, type: 3}
   UpPartPosition: {x: -0.06, y: 0.1}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 10
-  AttackCouldown: 0.1
-  BulletsCountInMagazine: 30
+  Damage: 7
+  AttackCouldown: 0.17
+  BulletsCountInMagazine: 28
   BulletsCount: 1
-  BulletSpeed: 15
-  ReloadDuration: 2.5
+  BulletSpeed: 16
+  ReloadDuration: 5
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
   FirePointPosition: {x: 0, y: 0.845}
@@ -43,10 +43,12 @@ MonoBehaviour:
   SpreadAngle: 3
   ExplosionRadius: 0.2
   ExplosionDamage: 10
-  ImpulseForce: 150
+  ImpulseForce: 130
   EffectType: 0
   EffectDuration: 0
   BreakingThroughCount: 1
   BreakingThroughDamageFalloff: 0
-  CarRecoil: 50
-  ProjectileLifeTime: 3
+  CarRecoil: 40
+  ProjectileLifeTime: 2.8
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

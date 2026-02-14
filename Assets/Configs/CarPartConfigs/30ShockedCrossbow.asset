@@ -19,22 +19,22 @@ MonoBehaviour:
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 1
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 3
+  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Shocked crossbow
   <ModuleTypes>k__BackingField: 000000000300000002000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 15
+  <MoneyCost>k__BackingField: 24
   UpPartSprite: {fileID: 21300000, guid: d1c6bc641a15b194d8331656671e63e4, type: 3}
   UpPartPosition: {x: 0, y: 0.2}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 10
-  AttackCouldown: 1
+  Damage: 25
+  AttackCouldown: 1.5
   BulletsCountInMagazine: 1
   BulletsCount: 1
-  BulletSpeed: 12
-  ReloadDuration: 1
+  BulletSpeed: 16
+  ReloadDuration: 1.5
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 201e6d1d9c26b9c4ea7b96a99d5b7d5b, type: 3}
   FirePointPosition: {x: 0, y: 0}
@@ -48,4 +48,6 @@ MonoBehaviour:
   BreakingThroughCount: 1
   BreakingThroughDamageFalloff: 0
   CarRecoil: 0
-  ProjectileLifeTime: 3
+  ProjectileLifeTime: 3.35
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

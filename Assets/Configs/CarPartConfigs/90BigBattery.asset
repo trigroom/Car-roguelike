@@ -19,13 +19,13 @@ MonoBehaviour:
   <PartType>k__BackingField: 3
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 5
+  <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Big battery
   <ModuleTypes>k__BackingField: 01000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
-  <MoneyCost>k__BackingField: 23
+  <MoneyCost>k__BackingField: 37
   ModuleType: 8
-  FirstCount: 25
+  FirstCount: 28
   SecondCount: 0

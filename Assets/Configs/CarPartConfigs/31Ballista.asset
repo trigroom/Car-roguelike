@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 31Ballista
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 31
-  <MaxHealth>k__BackingField: 320
+  <MaxHealth>k__BackingField: 360
   <Weight>k__BackingField: 35
   <PartSprite>k__BackingField: {fileID: 21300000, guid: da4348ab2f217da4ebae4b08fec7e14e, type: 3}
   <PartType>k__BackingField: 6
@@ -27,17 +27,17 @@ MonoBehaviour:
   - {x: 1, y: 0}
   - {x: 0, y: 1}
   - {x: 1, y: 1}
-  <MoneyCost>k__BackingField: 20
+  <MoneyCost>k__BackingField: 23
   UpPartSprite: {fileID: 21300000, guid: f1e42c27bb007644cab026503effd3cd, type: 3}
   UpPartPosition: {x: 0, y: 0.2}
   MaxRotateAngle: 30
   RotateSpeed: 0.2
-  Damage: 40
-  AttackCouldown: 1.1
+  Damage: 55
+  AttackCouldown: 2.5
   BulletsCountInMagazine: 1
   BulletsCount: 1
-  BulletSpeed: 12
-  ReloadDuration: 1
+  BulletSpeed: 15
+  ReloadDuration: 2.5
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 201e6d1d9c26b9c4ea7b96a99d5b7d5b, type: 3}
   FirePointPosition: {x: 0, y: 0.2}
@@ -52,3 +52,5 @@ MonoBehaviour:
   BreakingThroughDamageFalloff: 0.3
   CarRecoil: 0
   ProjectileLifeTime: 3
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

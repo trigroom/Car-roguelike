@@ -13,19 +13,19 @@ MonoBehaviour:
   m_Name: 35StoneFence
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 35
-  <MaxHealth>k__BackingField: 600
-  <Weight>k__BackingField: 40
+  <MaxHealth>k__BackingField: 400
+  <Weight>k__BackingField: 36.5
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 9653c5e522165a04293ba23dbdf0413e, type: 3}
   <PartType>k__BackingField: 1
   <RartRare>k__BackingField: 1
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 2
+  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Stone fence
-  <DefaultModuleCount>k__BackingField: 0
+  <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 1, y: 0}
-  <MoneyCost>k__BackingField: 16
+  <MoneyCost>k__BackingField: 21
   DefencePercent: 55
   DefenceDirections: 0000000001000000
   ExplosionDefence: 0

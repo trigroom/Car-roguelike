@@ -13,22 +13,22 @@ MonoBehaviour:
   m_Name: 22Chainsaw
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 22
-  <MaxHealth>k__BackingField: 300
+  <MaxHealth>k__BackingField: 305
   <Weight>k__BackingField: 10
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 2f8c784fee5ec184cba25816aa31b2d2, type: 3}
   <PartType>k__BackingField: 7
   <RartRare>k__BackingField: 2
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 10
+  <UpgradedPartCost>k__BackingField: 15
   <PartName>k__BackingField: Chainsaw
   <ModuleTypes>k__BackingField: 01000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 25
-  Damage: 10
+  <MoneyCost>k__BackingField: 36
+  Damage: 8
   AttackCountdown: 0.2
   DamageAddedFromOneSpeed: 0
   UpSprite: {fileID: 21300000, guid: 5611ac3bbbe480241a01d3e79d1776d2, type: 3}
   UpSpritePosition: {x: 0, y: 0.35}
   IsAttackAfterCountdown: 1
-  FuelConsumption: 0.4
+  FuelConsumption: 0.25

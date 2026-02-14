@@ -13,30 +13,30 @@ MonoBehaviour:
   m_Name: 64HeavySniperRifle
   m_EditorClassIdentifier: 
   <Id>k__BackingField: 64
-  <MaxHealth>k__BackingField: 240
+  <MaxHealth>k__BackingField: 340
   <Weight>k__BackingField: 12
   <PartSprite>k__BackingField: {fileID: 21300000, guid: 8e332f50fa739504389fa4cd38cadfb8, type: 3}
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 5
+  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Heavy sniper rifle
   <ModuleTypes>k__BackingField: 0900000004000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   - {x: 0, y: 1}
   - {x: 0, y: 2}
-  <MoneyCost>k__BackingField: 52
+  <MoneyCost>k__BackingField: 63
   UpPartSprite: {fileID: 21300000, guid: d0837af269a6f7549afa22d94cb0dd1f, type: 3}
   UpPartPosition: {x: 0.095, y: -0.1}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 123
-  AttackCouldown: 1.7
+  Damage: 100
+  AttackCouldown: 2
   BulletsCountInMagazine: 5
   BulletsCount: 1
-  BulletSpeed: 35
-  ReloadDuration: 3
+  BulletSpeed: 33
+  ReloadDuration: 4
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
   FirePointPosition: {x: 0, y: 1.3}
@@ -51,3 +51,5 @@ MonoBehaviour:
   BreakingThroughDamageFalloff: 0.15
   CarRecoil: 600
   ProjectileLifeTime: 4
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0

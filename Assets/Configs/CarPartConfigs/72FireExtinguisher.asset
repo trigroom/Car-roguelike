@@ -24,7 +24,7 @@ MonoBehaviour:
   <ModuleTypes>k__BackingField: 01000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
-  <MoneyCost>k__BackingField: 15
+  <MoneyCost>k__BackingField: 20
   ModuleType: 6
   FirstCount: 2.5
   SecondCount: 2
