@@ -163,8 +163,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         settingsView._blueColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._redColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._greenColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
-        settingsView._setPixelizedEffectModeButton.onClick.AddListener(ChangePixelizedEffectsMode);
-
+        
+        settingsView._setPixelizedEffectModeButton.onClick.AddListener(()=>ChangePixelizedEffectsMode(true));
+        settingsView._setHealthBarsButton.onClick.AddListener(()=>ChangeHealthBarsMode(true));
+        settingsView._setDamageNumbersButton.onClick.AddListener(()=>ChangeDamageNumbersMode(true));
+        SetSettingCheckers();
+        
         settingsView._quitButton.onClick.AddListener(GoToDesktop);
         settingsView._mainMenuButton.onClick.AddListener(GoToMainMenu);
         settingsView._restartButton.onClick.AddListener(RestartGame);
@@ -548,10 +552,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial.SetColor("_OffsetColor", newColor);
     }
 
-    private void ChangePixelizedEffectsMode() {
+    private void ChangePixelizedEffectsMode(bool changeMode) {
         var settingsView = _sceneService.Value._settingsView; 
        
-        bool isPixelized = !settingsView._setPixelizedEffectModeChecker.gameObject.activeInHierarchy;
+        bool isPixelized = changeMode?!DataPersistenceManagerSystem._gameData.UsePixelizedEffects:DataPersistenceManagerSystem._gameData.UsePixelizedEffects;
+        DataPersistenceManagerSystem._gameData.UsePixelizedEffects = isPixelized;
         settingsView._setPixelizedEffectModeChecker.gameObject.SetActive(isPixelized);
         _sceneService.Value._pixelizedEffectsImage.gameObject.SetActive(isPixelized);
         _sceneService.Value._pixelizedEffectsUnderCarImage.gameObject.SetActive(isPixelized);
@@ -563,6 +568,26 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             _sceneService.Value.mainCamera.cullingMask &= ~(1 << 3);
         }
       
+    }
+    private void ChangeHealthBarsMode(bool changeMode) {
+        var settingsView = _sceneService.Value._settingsView;
+
+        bool useDamageNumbers = changeMode?!DataPersistenceManagerSystem._gameData.UseHpBars:DataPersistenceManagerSystem._gameData.UseHpBars;
+        DataPersistenceManagerSystem._gameData.UseHpBars = useDamageNumbers;
+        settingsView._setHealthBarsChecker.gameObject.SetActive(useDamageNumbers);
+    }
+    private void ChangeDamageNumbersMode(bool changeMode) {
+        var settingsView = _sceneService.Value._settingsView;
+
+        bool useDamageNumbers = changeMode?!DataPersistenceManagerSystem._gameData.UseDamageNumbers:DataPersistenceManagerSystem._gameData.UseDamageNumbers;
+        DataPersistenceManagerSystem._gameData.UseDamageNumbers = useDamageNumbers;
+        settingsView._setDamageNumbersChecker.gameObject.SetActive(useDamageNumbers);
+    }
+
+    private void SetSettingCheckers() {
+        ChangeDamageNumbersMode(false);
+        ChangeHealthBarsMode(false);
+        ChangePixelizedEffectsMode(false);
     }
 
     private void ChangePickedEnemyProjectilesColor(float value) {

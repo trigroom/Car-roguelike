@@ -11,6 +11,8 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public Transform _hpBarPrefab { get; private set; }
+        [field: SerializeField] public Transform _hpBarsContainer{ get; private set; }
     [field: SerializeField] public SpriteRenderer _parachuteSpriteRenderer { get; private set; }
     [field: SerializeField] public Transform _enemyAirplane{ get; private set; }
     [field: SerializeField] public MapEventsContentView _mapEventsContentView{ get; private set; }
@@ -102,6 +104,7 @@ public class SceneService : MonoBehaviour {
     private ObjectPool<SpriteRenderer> _spriteRenderersPool;
     private ObjectPool<Transform> _gunContainersPool;
     private ObjectPool<Image> _imagesPool;
+    private ObjectPool<Transform> _hpBarsPool;
     private ObjectPool<ParticleSystem> _carPartsParticleSystemPool;
     
 
@@ -122,6 +125,7 @@ public class SceneService : MonoBehaviour {
         aspectRatio = 7.5f;
         mainCamera = Camera.main;
         _gunContainersPool = new ObjectPool<Transform>(() => Instantiate(_gunContainerPrefab));
+        _hpBarsPool = new ObjectPool<Transform>(() => Instantiate(_hpBarPrefab, _hpBarsContainer));
         _laserLineRenderersPool = new ObjectPool<LineRenderer>(() => Instantiate(_laserLineRenderer, _notUsedCarPartsContainer));
         _projectilesPool = new ObjectPool<ProjectileView>(() => Instantiate(_projectileView));
         _floatingTextsPool = new ObjectPool<TMP_Text>(() => Instantiate(_floatingTextPrefab, _floatingTextContainer));
@@ -154,6 +158,16 @@ public class SceneService : MonoBehaviour {
         gunContainer.parent = parent;
         return gunContainer;
     }
+    public Image GetHpBar(Transform parent) {
+        var hpBar = _hpBarsPool.Get();
+        hpBar.transform.position = parent.position;
+        hpBar.transform.gameObject.SetActive(true);
+        return hpBar.GetChild(0).GetComponent<Image>();
+    }
+    public void ReleaseHpBar(Image hpBar) {
+        _hpBarsPool.Release(hpBar.transform.parent);
+        hpBar.transform.parent.gameObject.SetActive(false);
+    }
     public ParticleSystem GetCarPartParticles() {
         var gunContainer = _carPartsParticleSystemPool.Get();
         gunContainer.gameObject.SetActive(true);
@@ -179,6 +193,7 @@ public class SceneService : MonoBehaviour {
         _imagesPool.Release(carPartImage);
     }
     public (TMP_Text, Sequence) GetFloatingTextPrefab(Vector2 position, string text, Color textColor) {
+        if (!DataPersistenceManagerSystem._gameData.UseDamageNumbers) return(null,null);
         var floatingText = _floatingTextsPool.Get();
         var curSequence = SetFloatingText(position, text, textColor, floatingText);
         return (floatingText,curSequence);

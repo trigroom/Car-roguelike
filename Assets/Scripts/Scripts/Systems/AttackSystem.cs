@@ -55,8 +55,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<FireExtinguisherComponent> _fireExtinguisherComponentsPool;
     private EcsPoolInject<VersusBattleComponent> _versusBattleComponentsPool;
     private EcsPoolInject<TrainControllerComponent> _trainControllerComponentsPool;
+    private EcsPoolInject<HpBarComponent> _hpBarComponentsPool;
 
     private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
+    private EcsFilterInject<Inc<HpBarComponent>> _hpBarComponentsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
     private EcsFilterInject<Inc<FireComponent>> _fireComponentsFilter;
     private EcsFilterInject<Inc<FrozenComponent>> _frozenComponentsFilter;
@@ -84,10 +86,16 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
 
+       
         float deltaTime = Time.deltaTime;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (RoundUtilits.IsNotBattleRound(curGameCmp.CurrentRoundType) && curGameCmp.CurrentRoundType != RoundType.VersusBattle) return;
 
+        foreach (var hpBarEntity in _hpBarComponentsFilter.Value) 
+            if(_carPartInfoComponentsPool.Value.Get(hpBarEntity).CurrentHealth > 0)
+                _hpBarComponentsPool.Value.Get(hpBarEntity).hpBarImage.transform.parent.position = _carPartComponentsPool.Value.Get(hpBarEntity).CarPartCellRenderer.transform.position;
+            
+        
         foreach (var fireExtinguisherEntity in _fireExtinguisherComponentsFilter.Value) {
             ref var fireExtinguisherCmp = ref _fireExtinguisherComponentsPool.Value.Get(fireExtinguisherEntity);
             int mainEntity = _carPartComponentsPool.Value.Get(fireExtinguisherEntity).MainEntity;
@@ -1115,18 +1123,22 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             }
 
             if (weaponCellEntity > 0 && _laserComponentsPool.Value.Has(weaponCellEntity)) {
-                ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
-                if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
-                    !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
-                    laserCmp.DamageCountForLastPart = 0;
-                    laserCmp.LastDamagedEntity = damagedEntity;
-                    (laserCmp.LaserDamageText, laserCmp.CurrentSequence) =
-                        _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
-                } else {
-                    laserCmp.CurrentSequence.Kill();
-                    laserCmp.CurrentSequence = _sceneService.Value.SetFloatingText(collisionPoint,
-                        laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText, laserCmp.CurrentSequence);
-                    laserCmp.DamageCountForLastPart += damagePoints;
+                if (DataPersistenceManagerSystem._gameData.UseDamageNumbers) {
+                    ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
+
+                    if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
+                        !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
+                        laserCmp.DamageCountForLastPart = 0;
+                        laserCmp.LastDamagedEntity = damagedEntity;
+
+                        (laserCmp.LaserDamageText, laserCmp.CurrentSequence) =
+                            _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                    } else {
+                        laserCmp.CurrentSequence.Kill();
+                        laserCmp.CurrentSequence = _sceneService.Value.SetFloatingText(collisionPoint,
+                            laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText, laserCmp.CurrentSequence);
+                        laserCmp.DamageCountForLastPart += damagePoints;
+                    }
                 }
             } else
                 _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
@@ -1219,6 +1231,34 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             ChangeCarPartMaterial(cellEntity, carPartCmp, needMaterial, carPartConfig);
         }
 
+        if (DataPersistenceManagerSystem._gameData.UseHpBars) {
+            if (!_hpBarComponentsPool.Value.Has(cellEntity)) {
+                var healthPercentBefore = (carPartInfoCmp.CurrentHealth + health) / carPartCmp.MaxHealth;
+                var hpBar = _sceneService.Value.GetHpBar(carPartCmp.CarPartCellRenderer.transform);
+                _hpBarComponentsPool.Value.Add(cellEntity).hpBarImage = hpBar;
+                hpBar.fillAmount = healthPercentBefore;
+                hpBar.color = _sceneService.Value._healthGradient.Evaluate(healthPercentBefore);
+                hpBar.transform.parent.GetComponent<Image>().color = new Color(0.22f, 0.22f, 0.22f, 1);
+            }
+
+            ref var hpBarCmp = ref _hpBarComponentsPool.Value.Get(cellEntity);
+            hpBarCmp.hpBarSequence.Kill();
+
+            hpBarCmp.hpBarSequence = DOTween.Sequence();
+            var hpBarImage = hpBarCmp.hpBarImage;
+            hpBarCmp.hpBarSequence.Append(hpBarImage.DOFillAmount(healthPercent, 0.7f));
+            hpBarCmp.hpBarSequence.Join(hpBarImage.DOColor(_sceneService.Value._healthGradient.Evaluate(healthPercent), 0.7f));
+            hpBarCmp.hpBarSequence.Append(hpBarImage.transform.parent.GetComponent<Image>().DOFade(0, 0.3f));
+            hpBarCmp.hpBarSequence.Join(hpBarImage.DOFade(0, 0.3f));
+            hpBarCmp.hpBarSequence.OnComplete((() => {
+                _sceneService.Value.ReleaseHpBar(hpBarImage);
+                if (_hpBarComponentsPool.Value.Has(cellEntity))
+                    _hpBarComponentsPool.Value.Del(cellEntity);
+            }));
+        }
+       
+        
+            
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.VersusBattle) {
             ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);

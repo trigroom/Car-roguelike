@@ -25,9 +25,15 @@ public class GameData
     
     public bool TutorialIsCompleted;
 
+    public bool UseDamageNumbers;
+    public bool UseHpBars;
+    public bool UsePixelizedEffects;
     public GameData()
     {
         LevelRounds = new int[3];
+        UseHpBars = true;
+        UsePixelizedEffects = true;
+        UseDamageNumbers= true;
         lastGameVersion = Application.version;
         CurrentLanguage = GetSystemLanguageCode();
     }

@@ -378,3 +378,5 @@ Upgrade shop,Upgrade Shop,Улучшить магазин,Shop verbessern,Mejora
 Price rise per round,Price increase per round,Повышение цены каждый раунд,Preisanstieg pro Runde,Aumento precio por ronda,Augmentation prix par round
 Homing projectiles,Homing Projectiles,Самонаводящиеся Снаряды,Zielsuchende Geschosse,Proyectiles Teledirigidos,Projectiles Téléguidés
 Projectile turning speed,Projectile Turn Speed,Скорость Поворота Снаряда,Projektil Drehgeschwindigkeit,Velocidad Giro Proyectil,Vitesse Rotation Projectile
+Health bars,Health Bars,Полоски здоровья,Lebensbalken,Barras de salud,Barres de santé
+Damage numbers,Damage Numbers,Цифры урона,Schadenszahlen,Números de daño,Chiffres de dégâts

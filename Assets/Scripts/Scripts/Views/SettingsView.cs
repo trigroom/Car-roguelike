@@ -5,6 +5,14 @@ using UnityEngine.UI;
 public class SettingsView : MonoBehaviour
 {
     [field:SerializeField]
+    public Button _setDamageNumbersButton { get; private set; }
+    [field:SerializeField]
+    public Transform _setDamageNumbersChecker{ get; private set; }
+    [field:SerializeField]
+    public Button _setHealthBarsButton { get; private set; }
+    [field:SerializeField]
+    public Transform _setHealthBarsChecker{ get; private set; }
+    [field:SerializeField]
     public Button _closeSettingsButton { get; private set; }
     [field:SerializeField]
     public Button _restartButton { get; private set; }
