@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -58,21 +59,51 @@ sealed class MetaUiSystem : IEcsInitSystem {
                 OpenNewWindow(_metaSceneService.Value._shopUIContainer.transform));
             _metaSceneService.Value._mainMenuView._catalogButton.onClick.AddListener(() =>
                 OpenNewWindow(_metaSceneService.Value._catalogUIView.transform));
+            _metaSceneService.Value._mainMenuView._catalogButton.onClick.AddListener(() => {
+                OpenNewWindow(_metaSceneService.Value._mainMenuView.transform);
+            });
+            _metaSceneService.Value.backButtonSelectCarUI.onClick.AddListener(() => {
+                if (_betweenSceneService.Value.IsCoop)
+                    OpenNewWindow(_metaSceneService.Value._networkButtonsUIView.transform);
+                else
+                    OpenNewWindow(_metaSceneService.Value._mainMenuView.transform);
+            });
+            _metaSceneService.Value._lobbyUIView._backButton.onClick.AddListener(() => {
+                    if (!NetworkManager.Singleton.IsHost)
+                        OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform);
+                    else
+                        OpenNewWindow(_metaSceneService.Value.selectMapDifficultyUIView.transform);
+                }
+               );
+            _metaSceneService.Value._mainMenuView._playCoopButton.onClick.AddListener(() => {
+                    OpenNewWindow(_metaSceneService.Value._networkButtonsUIView.transform);
+                    BetweenScenesService.Instance.IsCoop = true;
+                }
+               );
             _metaSceneService.Value._mainMenuView._playButton.onClick.AddListener(Play);
             _metaSceneService.Value._mainMenuView._exitButton.onClick.AddListener(ExitFromGame);
             _metaSceneService.Value._staticTextsView.SetTextLanguage();
             SetupLocalizationButtons();
             _metaSceneService.Value._achievementsUIView.NextRewardedAchievementButton.onClick.AddListener(SetNextAchievementInfo);
-
+            _metaSceneService.Value.selectMapDifficultyUIView._startMapButton.onClick.AddListener(StartGame);
             if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
                 _metaSceneService.Value._mainMenuView._achivementsButton.gameObject.SetActive(false);
                 _metaSceneService.Value._mainMenuView._shopButton.gameObject.SetActive(false);
                 _metaSceneService.Value._mainMenuView._catalogButton.gameObject.SetActive(false);
+                _metaSceneService.Value._mainMenuView._playCoopButton.gameObject.SetActive(false);
             }
 
-            
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        }
+        private void OnClientConnected(ulong clientId) {
+            OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform);
         }
 
+        private void OnClientDisconnected(ulong clientId)
+        {
+            OpenNewWindow(_metaSceneService.Value._mainMenuView.transform);
+        }
         private void SetNextAchievementInfo() {
             ref var metaUiComponent = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
             if (metaUiComponent.CurrentRewardedAchievementIds.Count == 0) {
@@ -261,9 +292,8 @@ sealed class MetaUiSystem : IEcsInitSystem {
             metaUICmp.CurrentOpenedWindow = newWindow;
         }
         
-        
-
         private void Play() {
+            BetweenScenesService.Instance.IsCoop = false;
             if (DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
                 OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform);
             } else {
@@ -299,9 +329,15 @@ sealed class MetaUiSystem : IEcsInitSystem {
             }
             _metaSceneService.Value.selectMapDifficultyUIView.SetLocalizationText(_betweenSceneService.Value.GetMapConfig());
         }
+
         public void SelectCar(int carId) {
             _betweenSceneService.Value.CurrentSelectedCar = carId;
-            OpenNewWindow(_metaSceneService.Value._selectMapUiView.transform);
+            if (BetweenScenesService.Instance.IsCoop)
+                _metaSceneService.Value._networkButtonsUIView.OnReadyButtonClicked(carId);
+            if (!BetweenScenesService.Instance.IsCoop || NetworkManager.Singleton.IsHost)
+                OpenNewWindow(_metaSceneService.Value._selectMapUiView.transform);
+            else
+                OpenNewWindow(_metaSceneService.Value._lobbyUIView.transform);
             //go to select map
         }
 
@@ -315,7 +351,12 @@ sealed class MetaUiSystem : IEcsInitSystem {
             SelectMapDifficulty(0);
             //go to select diff
         }
-
+        public void StartGame() {
+            if (BetweenScenesService.Instance.IsCoop && NetworkManager.Singleton.IsHost)
+                OpenNewWindow(_metaSceneService.Value._lobbyUIView.transform);
+            else
+                BetweenScenesService.Instance.ShowBlackScreen( ()=>SceneManager.LoadScene("Scenes/SampleScene"));
+        }
         public void SelectMapDifficulty(int difficultyLevel) {
             _betweenSceneService.Value.CurrentSelectedMapDifficlty = difficultyLevel;
             _metaSceneService.Value.selectMapDifficultyUIView.SetDifficultyDescription(_betweenSceneService.Value.GetMapDifficultyConfig());

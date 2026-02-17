@@ -550,6 +550,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var newColor = new Color(settingsView._redColorSlider.normalizedValue, settingsView._blueColorSlider.normalizedValue,
             settingsView._greenColorSlider.normalizedValue);
         _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial.SetColor("_OffsetColor", newColor);
+        DataPersistenceManagerSystem.SaveGame();
     }
 
     private void ChangePixelizedEffectsMode(bool changeMode) {

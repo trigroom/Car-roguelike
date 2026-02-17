@@ -15,6 +15,7 @@ public class GameData
     public int ScrapCount;
     public int[] LevelRounds;
     public string CurrentLanguage;
+    public string CoopPlayerName;
     
     public bool[] AchievementsCompleted;
     public bool[] CarPartsUnlocked;
@@ -34,6 +35,7 @@ public class GameData
         UseHpBars = true;
         UsePixelizedEffects = true;
         UseDamageNumbers= true;
+        CoopPlayerName = "Player";
         lastGameVersion = Application.version;
         CurrentLanguage = GetSystemLanguageCode();
     }

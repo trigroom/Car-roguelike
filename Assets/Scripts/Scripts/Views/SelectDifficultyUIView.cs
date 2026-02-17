@@ -10,6 +10,8 @@ public class SelectDifficultyUIView : MonoBehaviour
    private TMP_Text _mapDescription;
    [SerializeField]
    private TMP_Text _difficultyDescription;
+   [field:SerializeField]
+   public Button _startMapButton { get; private set; }
       [field:SerializeField]
       public Button backButton { get; private set; }
   

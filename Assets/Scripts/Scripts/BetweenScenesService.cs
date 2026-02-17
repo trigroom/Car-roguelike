@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class BetweenScenesService : MonoBehaviour {
     public int CurrentSelectedCar;
     public int CurrentSelectedMap;
+    public bool IsCoop;
     public int CurrentSelectedMapDifficlty;
     public RectTransform BlackScreen;
     [SerializeField]
