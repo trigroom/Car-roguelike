@@ -235,7 +235,7 @@ public class RelayManager : MonoBehaviour
             }
         }
         
-        SceneManager.LoadScene("Menu");
+     //   SceneManager.LoadScene("Menu");
     }
 
     private void OnDestroy()

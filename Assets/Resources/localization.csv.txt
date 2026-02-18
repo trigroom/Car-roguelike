@@ -380,3 +380,11 @@ Homing projectiles,Homing Projectiles,Самонаводящиеся Снаря�
 Projectile turning speed,Projectile Turn Speed,Скорость Поворота Снаряда,Projektil Drehgeschwindigkeit,Velocidad Giro Proyectil,Vitesse Rotation Projectile
 Health bars,Health Bars,Полоски здоровья,Lebensbalken,Barras de salud,Barres de santé
 Damage numbers,Damage Numbers,Цифры урона,Schadenszahlen,Números de daño,Chiffres de dégâts
+Play coop,Start Co-op,Начать кооператив,Kooperation starten,Empezar cooperativo,Démarrer coop
+Host,Create Room,Создать комнату,Raum erstellen,Crear sala,Créer salon
+Join,Enter Room,Войти в комнату,Raum betreten,Entrar sala,Entrer salon
+Join code,Room Code,Код комнаты,Raumcode,Código sala,Code salon
+Ready,Im Ready,Я готов,Ich bin bereit,Estoy listo,Je suis prêt
+Nickname,Display Name,Отображаемое имя,Anzeigename,Nombre mostrado,Nom affiché
+Connect menu,Connect Menu,Меню подключения,Verbindungsmenü,Menú conexión,Menu connexion
+Lobby,Lobby,Лобби,Lobby,Lobby,Lobby

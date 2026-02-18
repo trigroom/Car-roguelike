@@ -17,6 +17,7 @@ public class NetworkButtons : NetworkBehaviour {
     [SerializeField] private Button changeNicknameButton;
     [SerializeField] private TMP_Text joinCodeDisplay;
     [SerializeField] private Button leaveButton;
+    [SerializeField] private Button disconnectButton;
     [SerializeField] private Transform joinCodeContainer;
     // Состояние игроков (синхронизируется через NetworkList)
     public NetworkList<PlayerReadyState> playerReadyStates;
@@ -31,11 +32,11 @@ public class NetworkButtons : NetworkBehaviour {
         hostButton.onClick.AddListener(OnHostButtonClicked);
         clientButton.onClick.AddListener(OnClientButtonClicked);
         _lobbyManager._readyButton.onClick.AddListener(OnReadyButtonClicked);
-        leaveButton.onClick.AddListener(OnLeaveButtonClicked);
+        disconnectButton.onClick.AddListener(OnLeaveButtonClicked);
         changeNicknameButton.onClick.AddListener(()=>DataPersistenceManagerSystem._gameData.CoopPlayerName = nicknameInput.text);
         // Изначально кнопка выхода неактивна
-        leaveButton.gameObject.SetActive(false);
         
+        disconnectButton.gameObject.SetActive(false);
         // Подписываемся на события NetworkManager
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
@@ -54,7 +55,7 @@ public class NetworkButtons : NetworkBehaviour {
         
         playerReadyStates.OnListChanged -= OnPlayerReadyStatesChanged;
     }
-    
+
     private void OnReadyButtonClicked()
     {
         isPlayerReady = !isPlayerReady;
@@ -129,6 +130,7 @@ public class NetworkButtons : NetworkBehaviour {
             lobbyStatusText.text = "⏳ Ожидание готовности всех игроков...";
         }*/
     }
+    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     private async void OnHostButtonClicked()
     {
         DisableMenuButtons();
@@ -137,9 +139,9 @@ public class NetworkButtons : NetworkBehaviour {
         
         if (!string.IsNullOrEmpty(joinCode))
         {
-            joinCodeDisplay.text = $"Join Code: {joinCode}";
+            joinCodeDisplay.text = $"{GetLocalization("Join code")}: {joinCode}";
             joinCodeContainer.gameObject.SetActive(true);
-            leaveButton.gameObject.SetActive(true);
+            disconnectButton.gameObject.SetActive(true);
             
            /* if (IsServer)
             {
@@ -173,7 +175,7 @@ public class NetworkButtons : NetworkBehaviour {
         
         if (connected)
         {
-            leaveButton.gameObject.SetActive(true);
+           // leaveButton.gameObject.SetActive(true);
         }
         else
         {
@@ -184,14 +186,17 @@ public class NetworkButtons : NetworkBehaviour {
     private void OnLeaveButtonClicked()
     {
         RelayManager.Instance.LeaveSession();
-        joinCodeDisplay.gameObject.SetActive(false);
+        joinCodeContainer.gameObject.SetActive(false);
         joinCodeInput.text = "";
         EnableMenuButtons();
-        leaveButton.gameObject.SetActive(false);
+        leaveButton.gameObject.SetActive(true);
+        disconnectButton.gameObject.SetActive(false);
     }
 
     private void OnClientConnected(ulong clientId)
     {
+        leaveButton.gameObject.SetActive(false);
+        disconnectButton.gameObject.SetActive(true);
         if (!IsServer/*&& clientId != NetworkManager.Singleton.LocalClientId*/) return;
         
         // Новый клиент подключился - добавляем в список
@@ -210,6 +215,8 @@ public class NetworkButtons : NetworkBehaviour {
 
     private void OnClientDisconnected(ulong clientId)
     {
+        leaveButton.gameObject.SetActive(true);
+        disconnectButton.gameObject.SetActive(false);
         if (!IsServer) return;
         
         // Удаляем игрока из списка
@@ -226,7 +233,6 @@ public class NetworkButtons : NetworkBehaviour {
 
     private void DisableMenuButtons()
     {
-      //  joinCodeContainer.gameObject.SetActive(true);
         hostButton.interactable = false;
         clientButton.interactable = false;
         joinCodeInput.interactable = false;
@@ -238,6 +244,8 @@ public class NetworkButtons : NetworkBehaviour {
         hostButton.interactable = true;
         clientButton.interactable = true;
         joinCodeInput.interactable = true;
+        leaveButton.gameObject.SetActive(true);
+        disconnectButton.gameObject.SetActive(false);
     }
     
     [ServerRpc(RequireOwnership = false)]
