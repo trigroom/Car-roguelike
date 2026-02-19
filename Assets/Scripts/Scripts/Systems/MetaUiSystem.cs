@@ -5,7 +5,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-sealed class MetaUiSystem : IEcsInitSystem {
+sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
         private EcsWorldInject _world;
         private EcsCustomInject<MetaSceneService> _metaSceneService;
         private EcsCustomInject<BetweenScenesService> _betweenSceneService;
@@ -96,13 +96,15 @@ sealed class MetaUiSystem : IEcsInitSystem {
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }
+
+
         private void OnClientConnected(ulong clientId) {
             OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform);
         }
 
-        private void OnClientDisconnected(ulong clientId)
-        {
-            OpenNewWindow(_metaSceneService.Value._mainMenuView.transform);
+        private void OnClientDisconnected(ulong clientId) {
+            if (_metaSceneService.Value)
+                OpenNewWindow(_metaSceneService.Value._mainMenuView.transform);
         }
         private void SetNextAchievementInfo() {
             ref var metaUiComponent = ref _metaUIComponentsPool.Value.Get(_metaSceneService.Value.MainEntity);
@@ -348,6 +350,11 @@ sealed class MetaUiSystem : IEcsInitSystem {
             _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficultyScreen(mapConfig);
             _metaSceneService.Value._selectMapUiView._groundFieldSpriteRenderer.material =
                 mapConfig.MapVisualInfoConfigs[0].BehindMapGroundMaterial;
+            if (_betweenSceneService.Value.IsCoop) {
+                _metaSceneService.Value._networkButtonsUIView.OnChangeMap(mapId);
+                _metaSceneService.Value._networkButtonsUIView.OnChangeDifficultyDescription(0);
+            }
+        
             SelectMapDifficulty(0);
             //go to select diff
         }
@@ -360,6 +367,13 @@ sealed class MetaUiSystem : IEcsInitSystem {
         public void SelectMapDifficulty(int difficultyLevel) {
             _betweenSceneService.Value.CurrentSelectedMapDifficlty = difficultyLevel;
             _metaSceneService.Value.selectMapDifficultyUIView.SetDifficultyDescription(_betweenSceneService.Value.GetMapDifficultyConfig());
+            if (_betweenSceneService.Value.IsCoop)
+                _metaSceneService.Value._networkButtonsUIView.OnChangeDifficultyDescription(difficultyLevel);
             //SceneManager.LoadScene("Scenes/SampleScene");
         }
-    }
+
+        public void Destroy(IEcsSystems systems) {
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
+        }
+}

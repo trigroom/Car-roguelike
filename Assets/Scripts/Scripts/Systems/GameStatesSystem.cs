@@ -8,6 +8,7 @@ using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
 using NUnit.Framework;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -16,6 +17,7 @@ using UnityEngine.UI;
 public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsWorldInject _world;
     private EcsCustomInject<SceneService> _sceneService;
+    private EcsCustomInject<NetcodeSceneService> _netcodeSceneService;
     private EcsCustomInject<BetweenScenesService> _betweenScenesService;
 
     private EcsPoolInject<EndRoundEvent> _endRoundEventsPool;
@@ -2192,11 +2194,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     
         return true; // Все соседи не равны 0
     }
-    private void GenerateMap() {
-        ref var currentGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        currentGameCmp.MapGrid = new int[40, 40];
-       
-        
+
+    [ClientRpc]
+    private void UpdateMapVisualClientRpc() {
+        _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MapGrid = new int[40, 40];
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
         var mapVisualConfig = mapConfig.MapVisualInfoConfigs[0];
         _sceneService.Value._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
@@ -2206,6 +2207,25 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         versusBattleView._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         versusBattleView._behindMapBorderSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
         versusBattleView._mapGroundSpriteRenderer.material = mapVisualConfig.GroundMaterial;
+    }
+
+    [ClientRpc]
+    private void UpdateMapGridClientRpc(int x, int y) {
+        ref var currentGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        currentGameCmp.MapGrid[x * 2, y * 2] = 1;
+        currentGameCmp.MapGrid[x * 2 + 1, y * 2 + 1] = 1;
+        currentGameCmp.MapGrid[x * 2 + 1, y * 2] = 1;
+        currentGameCmp.MapGrid[x * 2, y * 2 + 1] = 1;
+    }
+    private void GenerateMap() {
+    
+        if(_betweenScenesService.Value.IsCoop && !_netcodeSceneService.Value.IsHost)return;
+        
+        ref var currentGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+       
+        
+        var mapConfig = _betweenScenesService.Value.GetMapConfig();
+        UpdateMapVisualClientRpc();
         Vector2 randomOffset = new Vector2(Random.Range(-1000f, 1000f), Random.Range(-1000f, 1000f));
 
         if (mapConfig.MapId == 1) {
@@ -2216,10 +2236,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             for (int i = 0; i < buildigsMap.GetLength(0); i++) {
                 for (int j = 0; j < buildigsMap.GetLength(1); j++) {
                     if (buildigsMap[i, j] == 0) continue;
-                    currentGameCmp.MapGrid[i * 2, j * 2] = 1;
-                    currentGameCmp.MapGrid[i * 2 + 1, j * 2 + 1] = 1;
-                    currentGameCmp.MapGrid[i * 2 + 1, j * 2] = 1;
-                    currentGameCmp.MapGrid[i * 2, j * 2 + 1] = 1;
+                    UpdateMapGridClientRpc(i, j);
                 }
             }
 
@@ -2386,7 +2403,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
     }
 
-    private void GenerateQuicksandInCell(int cellX, int cellY, Vector2 randomOffsetForNoise, Transform[] obstacles) {
+    private void GenerateQuicksandInCell(int cellX, int cellY, Vector2 randomOffsetForNoise, NetworkObject[] obstacles) {
         float noiseValue = PerlinNoiseUtil.GetFractalNoise(
             cellX * 20 + 20 / 2f + randomOffsetForNoise.x, cellY * 20 + 20 / 2f + randomOffsetForNoise.y);
         if (noiseValue > 0.4f) return;
@@ -2416,17 +2433,18 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 SpawnObstacle(randomPosition, mapVisualConfig.MapObstacles[Random.Range(0, mapVisualConfig.MapObstacles.Length)]);
         }
     }
-    
-    private Transform SpawnObstacle(Vector2 position, Transform obstaclePrefab) {
+
+    private Transform SpawnObstacle(Vector2 position, NetworkObject obstaclePrefab) {
         if ((position.x < 10 && position.x > -10) && (position.y < 10 && position.y > -10)) return null;
-       // Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
-        
-        Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4)*90);
-        
-        Transform obstacle = _sceneService.Value.InstantiateObject(obstaclePrefab, new Vector3(position.x, position.y, 0f));
-        obstacle.parent = _sceneService.Value._mapContainer;
-       obstacle.localRotation = randomRotation;
-       return obstacle;
+        // Transform obstaclePrefab = _sceneService.Value._mountains[Random.Range(0, _sceneService.Value._mountains.Length)];
+
+        Quaternion randomRotation = Quaternion.Euler(0f, 0f, Random.Range(0, 4) * 90);
+
+        NetworkObject obstacle = _netcodeSceneService.Value.InstantiateObject(obstaclePrefab, new Vector3(position.x, position.y, 0f),
+            _sceneService.Value._mapContainer, randomRotation);
+        //  obstacle.parent = _sceneService.Value._mapContainer;
+        //obstacle.localRotation = randomRotation;
+        return obstacle.transform;
     }
     
     private Vector2 GetRandomPositionInCell(int cellX, int cellY)

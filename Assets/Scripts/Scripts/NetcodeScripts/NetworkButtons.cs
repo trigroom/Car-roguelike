@@ -4,6 +4,7 @@ using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class NetworkButtons : NetworkBehaviour {
@@ -19,12 +20,12 @@ public class NetworkButtons : NetworkBehaviour {
     [SerializeField] private Button leaveButton;
     [SerializeField] private Button disconnectButton;
     [SerializeField] private Transform joinCodeContainer;
-    // Состояние игроков (синхронизируется через NetworkList)
-    public NetworkList<PlayerReadyState> playerReadyStates;
+    [SerializeField] private SelectMapUiView selectMapUiView;
+    [SerializeField] private SelectDifficultyUIView selectDifficultyUIView;
     private bool isPlayerReady = true;
     private void Awake()
     {
-        playerReadyStates = new NetworkList<PlayerReadyState>();
+     
     }
     private void Start() {
         nicknameInput.text = DataPersistenceManagerSystem._gameData.CoopPlayerName;
@@ -41,7 +42,7 @@ public class NetworkButtons : NetworkBehaviour {
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         
-        playerReadyStates.OnListChanged += OnPlayerReadyStatesChanged;
+        RelayManager.Instance.playerReadyStates.OnListChanged += OnPlayerReadyStatesChanged;
     }
 
     private void OnDestroy()
@@ -53,7 +54,7 @@ public class NetworkButtons : NetworkBehaviour {
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
         }
         
-        playerReadyStates.OnListChanged -= OnPlayerReadyStatesChanged;
+        RelayManager.Instance.playerReadyStates.OnListChanged -= OnPlayerReadyStatesChanged;
     }
 
     private void OnReadyButtonClicked()
@@ -73,62 +74,24 @@ public class NetworkButtons : NetworkBehaviour {
        
         SetPlayerCarIdServerRpc(NetworkManager.Singleton.LocalClientId, carId);
     }
+    
     private void OnPlayerReadyStatesChanged(NetworkListEvent<PlayerReadyState> changeEvent)
     {
         Debug.Log(" update lobby ui");
         // Обновляем UI при изменении списка игроков
         UpdateLobbyUI();
     }
-    
-    private void UpdateLobbyUI()
-    {
-        // Очищаем старые слоты
-       foreach (var slot in _lobbyManager._lobbyPlayerUIViews)
-        {
-           slot.gameObject.SetActive(false);
-        }
 
-        // Создаем новые слоты
-        foreach (var state in playerReadyStates) {
+    private void UpdateLobbyUI() {
+        foreach (var slot in _lobbyManager._lobbyPlayerUIViews)
+            slot.gameObject.SetActive(false);
+
+        foreach (var state in RelayManager.Instance.playerReadyStates) {
             var playerSlotUIView = _lobbyManager._lobbyPlayerUIViews[state.PlayerNumber - 1];
             playerSlotUIView.gameObject.SetActive(true);
             playerSlotUIView.ChangeCarSprite(BetweenScenesService.Instance._carStuffListsConfig.CarConfigs[state.PlayerCarId].CarIcon,
                 state.GetNickname(), state.IsReady);
-           /* string readyText = state.IsReady ? "✅ ГОТОВ" : "⏳...";
-            slot.SetPlayerInfo($"Игрок {state.PlayerNumber}", readyText, state.IsReady);
-            
-            // Подсвечиваем текущего игрока
-            if (state.ClientId == NetworkManager.Singleton.LocalClientId)
-            {
-                slot.HighlightAsCurrent();
-            }
-            
-            playerSlots.Add(slot);*/
         }
-
-        // Обновляем кнопки и статус
-       /* if (IsHost)
-        {
-            bool allReady = true;
-            foreach (var state in playerReadyStates)
-            {
-                if (!state.IsReady)
-                {
-                    allReady = false;
-                    break;
-                }
-            }
-            
-            startButton.gameObject.SetActive(allReady && playerReadyStates.Count > 0);
-            lobbyStatusText.text = allReady ? 
-                "🎮 Все готовы! Можно начинать игру" : 
-                "⏳ Ожидание готовности игроков...";
-        }
-        else
-        {
-            startButton.gameObject.SetActive(false);
-            lobbyStatusText.text = "⏳ Ожидание готовности всех игроков...";
-        }*/
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     private async void OnHostButtonClicked()
@@ -158,6 +121,19 @@ public class NetworkButtons : NetworkBehaviour {
         else
         {
             EnableMenuButtons();
+        }
+    }
+    
+    [ClientRpc]
+    private void StartGameForAllClientRpc() {
+        if (IsServer) {
+            for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++) {
+                var state = RelayManager.Instance.playerReadyStates[i];
+                state.IsReady = false;
+                RelayManager.Instance.ChangePlayerList(state, i);
+            }
+
+            NetworkManager.Singleton.SceneManager.LoadScene("SampleScene", LoadSceneMode.Single);
         }
     }
 
@@ -192,7 +168,28 @@ public class NetworkButtons : NetworkBehaviour {
         leaveButton.gameObject.SetActive(true);
         disconnectButton.gameObject.SetActive(false);
     }
-
+    public void OnChangeDifficultyDescription(int difficultyIndex)
+    {
+        UpdateDifficultyForAllClientRpc(difficultyIndex);
+    }
+    
+    public void OnChangeMap(int mapIndex)
+    {
+        UpdateMapForAllClientRpc(mapIndex);
+    }
+   
+    [ClientRpc]
+    private void UpdateMapForAllClientRpc(int mapId)
+    { 
+        BetweenScenesService.Instance.CurrentSelectedMap = mapId;
+        selectMapUiView._groundFieldSpriteRenderer.material = BetweenScenesService.Instance._carStuffListsConfig.MapConfigs[mapId].MapVisualInfoConfigs[0].BehindMapGroundMaterial;
+       
+    }
+    [ClientRpc]
+    private void UpdateDifficultyForAllClientRpc(int difficultyIndex) {
+        BetweenScenesService.Instance.CurrentSelectedMapDifficlty = difficultyIndex;
+       _lobbyManager._difficultyDescriptionText.text = selectDifficultyUIView.GetDifficultyDescription(BetweenScenesService.Instance.GetMapDifficultyConfig());
+    }
     private void OnClientConnected(ulong clientId)
     {
         leaveButton.gameObject.SetActive(false);
@@ -200,8 +197,8 @@ public class NetworkButtons : NetworkBehaviour {
         if (!IsServer/*&& clientId != NetworkManager.Singleton.LocalClientId*/) return;
         
         // Новый клиент подключился - добавляем в список
-        int playerNumber = playerReadyStates.Count + 1;
-        playerReadyStates.Add(new PlayerReadyState 
+        int playerNumber = RelayManager.Instance.playerReadyStates.Count + 1;
+        RelayManager.Instance.playerReadyStates.Add(new PlayerReadyState 
         { 
             ClientId = clientId,
             IsReady = false,
@@ -220,12 +217,12 @@ public class NetworkButtons : NetworkBehaviour {
         if (!IsServer) return;
         
         // Удаляем игрока из списка
-        for (int i = 0; i < playerReadyStates.Count; i++)
+        for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++)
         {
-            if (playerReadyStates[i].ClientId == clientId)
+            if (RelayManager.Instance.playerReadyStates[i].ClientId == clientId)
             {
-                Debug.Log($"👋 Игрок {playerReadyStates[i].PlayerNumber} отключился");
-                playerReadyStates.RemoveAt(i);
+                Debug.Log($"👋 Игрок {RelayManager.Instance.playerReadyStates[i].PlayerNumber} отключился");
+                RelayManager.Instance.playerReadyStates.RemoveAt(i);
                 break;
             }
         }
@@ -251,13 +248,13 @@ public class NetworkButtons : NetworkBehaviour {
     [ServerRpc(RequireOwnership = false)]
     private void SetPlayerReadyServerRpc(ulong clientId, bool isReady)
     {
-        for (int i = 0; i < playerReadyStates.Count; i++)
+        for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++)
         {
-            if (playerReadyStates[i].ClientId == clientId)
+            if (RelayManager.Instance.playerReadyStates[i].ClientId == clientId)
             {
-                var state = playerReadyStates[i];
+                var state = RelayManager.Instance.playerReadyStates[i];
                 state.IsReady = isReady;
-                playerReadyStates.Set(i,state);
+                RelayManager.Instance.ChangePlayerList(state,i);
                 break;
             }
         }
@@ -269,13 +266,16 @@ public class NetworkButtons : NetworkBehaviour {
     [ServerRpc(RequireOwnership = false)]
     private void SetPlayerCarIdServerRpc(ulong clientId, int carId)
     {
-        for (int i = 0; i < playerReadyStates.Count; i++)
+        for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++)
         {
-            if (playerReadyStates[i].ClientId == clientId)
+            if (RelayManager.Instance.playerReadyStates[i].ClientId == clientId)
             {
-                var state = playerReadyStates[i];
+                var state = RelayManager.Instance.playerReadyStates[i];
                 state.PlayerCarId = carId;
-                playerReadyStates.Set(i,state);
+                   
+                RelayManager.Instance.ChangePlayerList(state, i);
+            
+             
                 break;
             }
         }
@@ -288,10 +288,10 @@ public class NetworkButtons : NetworkBehaviour {
     {
         if (!IsServer) return;
         
-        if (playerReadyStates.Count == 0) return;
+        if (RelayManager.Instance.playerReadyStates.Count == 0) return;
         
         bool allReady = true;
-        foreach (var state in playerReadyStates)
+        foreach (var state in RelayManager.Instance.playerReadyStates)
         {
             if (!state.IsReady)
             {
@@ -303,13 +303,7 @@ public class NetworkButtons : NetworkBehaviour {
         if (allReady)
         {
             Debug.Log("🎮 ВСЕ ГОТОВЫ! Запускаем игру...");
-            
-            // Здесь два варианта:
-            // Вариант 1: Загрузить новую сцену
-            // NetworkManager.Singleton.SceneManager.LoadScene("Game", LoadSceneMode.Single);
-            
-            // Вариант 2: Спавнить игроков прямо в этой сцене
-           // StartGameInCurrentSceneClientRpc();
+            StartGameForAllClientRpc();
         }
     }
     

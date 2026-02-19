@@ -43,23 +43,30 @@ public class SelectDifficultyUIView : MonoBehaviour
    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
    public void SetDifficultyDescription(MapDifficultyConfig difficultyConfig) {
-      _difficultyDescription.text = $"{GetLocalization(difficultyConfig.DifficultyName)}\n{GetLocalization("Enemy damage")} " +
-                                    $"x{difficultyConfig.DamageMultiplayer}\n{GetLocalization("Enemy health")} x{difficultyConfig.HealthMultiplayer} \n" +
-                                    $"{GetLocalization("Scrap for round")} {difficultyConfig.ScrapForRound}\n" +
-                                    $"{GetLocalization("Scrap for map complete")} {difficultyConfig.ScrapForMapComplete}" +
-                                    $"\n{GetLocalization("Start money")} {difficultyConfig.StartMoney}$\n{GetLocalization("Heal after end round to")}" +
-                                    $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%\n" +
-                                    $"{GetLocalization("Rounds count")}: {difficultyConfig.RoundsCount} ";
+      _difficultyDescription.text = GetDifficultyDescription(difficultyConfig);
+      _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
+   }
+
+   public string GetDifficultyDescription(MapDifficultyConfig difficultyConfig) {
+      string needString;
+      needString = $"{GetLocalization(difficultyConfig.DifficultyName)}\n{GetLocalization("Enemy damage")} " +
+                   $"x{difficultyConfig.DamageMultiplayer}\n{GetLocalization("Enemy health")} x{difficultyConfig.HealthMultiplayer} \n" +
+                   $"{GetLocalization("Scrap for round")} {difficultyConfig.ScrapForRound}\n" +
+                   $"{GetLocalization("Scrap for map complete")} {difficultyConfig.ScrapForMapComplete}" +
+                   $"\n{GetLocalization("Start money")} {difficultyConfig.StartMoney}$\n{GetLocalization("Heal after end round to")}" +
+                   $" {difficultyConfig.HealedHealthPartAfterEndRound * 100}%\n" +
+                   $"{GetLocalization("Rounds count")}: {difficultyConfig.RoundsCount} ";
       if(!difficultyConfig.DestroyEnemyCarsAfterDeath)
-         _difficultyDescription.text += "\n" + GetLocalization("Enemy cars don't destroy");
+         needString += "\n" + GetLocalization("Enemy cars don't destroy");
       if (difficultyConfig.MapEvents != null)
          foreach (var mapEvent in difficultyConfig.MapEvents) {
-            _difficultyDescription.text += "\n" + GetMapEventDescription(mapEvent);
+            needString += "\n" + GetMapEventDescription(mapEvent);
          }
 
       if (difficultyConfig.ShopInflationPerRound != 0)
-         _difficultyDescription.text += $"\n {GetLocalization("Price rise per round")}: {(difficultyConfig.ShopInflationPerRound * 100f)}%";
-      _difficultyColorGradient.color = difficultyConfig.DifficltyUiColor;
+         needString += $"\n {GetLocalization("Price rise per round")}: {(difficultyConfig.ShopInflationPerRound * 100f)}%";
+
+      return needString;
    }
 
    private string GetMapEventDescription(MapEventInfo mapEventInfo) {

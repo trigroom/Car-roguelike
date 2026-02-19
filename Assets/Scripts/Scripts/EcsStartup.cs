@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class EcsStartUp : MonoBehaviour
 {
+    [SerializeField] private NetcodeSceneService _netcodeSceneService;
     [SerializeField] private SceneService _sceneService;
     [SerializeField] private BetweenScenesService _betweenSceneService;
     
@@ -21,6 +22,7 @@ public class EcsStartUp : MonoBehaviour
 
     void Start() {
         _betweenSceneService = BetweenScenesService.Instance;
+        
         _world = new EcsWorld();
         _systemsUpdate = new EcsSystems(_world);
         _systemsFixedUpdate = new EcsSystems(_world);
@@ -38,8 +40,10 @@ public class EcsStartUp : MonoBehaviour
         }
 
         _systemsUpdate.DelHere<ConstructMeleeCellEvent>().DelHere<StartRoundEvent>().DelHere<EndRoundEvent>()
-            .Inject(_sceneService).Inject(_betweenSceneService).Init();
-        _systemsFixedUpdate.Add(new ForwardWheelsRotateSystem()).Inject(_sceneService).Inject(_betweenSceneService).Init();
+            .Inject(_sceneService).Inject(_betweenSceneService).Inject(_netcodeSceneService).Init();
+        
+        
+        _systemsFixedUpdate.Add(new ForwardWheelsRotateSystem()).Inject(_sceneService).Inject(_betweenSceneService).Inject(_netcodeSceneService).Init();
     }
     void Update()
     {

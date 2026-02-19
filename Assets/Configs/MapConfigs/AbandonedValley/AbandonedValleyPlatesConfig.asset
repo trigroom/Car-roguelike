@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: AbandonedValleyPlatesConfig
   m_EditorClassIdentifier: 
   MapObstacles:
-  - {fileID: 8773321095680263310, guid: 9504ff5bf675153478bb3b9c25dd398b, type: 3}
-  - {fileID: 8773321095680263310, guid: 0b1904378fe1e9d44aba3281b05db69e, type: 3}
-  - {fileID: 8773321095680263310, guid: 9e4e503b40b7ef642842fab43ae373c6, type: 3}
+  - {fileID: 1072833158218980263, guid: 638989a02506cd04a80f262c77ee0817, type: 3}
+  - {fileID: 2055443694748575403, guid: 4205dedf0dfff6e45a097b970e3627e2, type: 3}
+  - {fileID: -3661068048884788822, guid: 6520179c6fec8cd4989d2fe221742255, type: 3}
   GroundMaterial: {fileID: 2100000, guid: 4f728ff5bc3ea484190b8f43738cc3ab, type: 2}
   BehindMapGroundMaterial: {fileID: 0}
   NoiseObstaclesCountChances: []
+  WheelParticlesColor: {r: 0, g: 0, b: 0, a: 0}

@@ -17,18 +17,20 @@ public class RelayManager : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private int maxConnections = 4;
-    [SerializeField] private string gameSceneName = "Sample scene";
+    [SerializeField] private string gameSceneName = "SampleScene";
     [SerializeField] private bool useEncryption = false; // DTLS требует сертификаты, для тестов лучше false
     [SerializeField] private bool useWebSockets = false; // Для WebGL включите true
-
+    public NetworkList<PlayerReadyState> playerReadyStates { get;private set; }
     public string JoinCode { get; private set; }
 
     private void Awake()
     {
+        
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            playerReadyStates = new NetworkList<PlayerReadyState>();
         }
         else
         {
@@ -41,6 +43,9 @@ public class RelayManager : MonoBehaviour
         await InitializeUnityServices();
     }
 
+    public void ChangePlayerList(PlayerReadyState state, int index) {
+        playerReadyStates.Set(index,state, true);
+    }
     private async Task InitializeUnityServices()
     {
         try
@@ -81,11 +86,56 @@ public class RelayManager : MonoBehaviour
             Debug.LogError($"❌ Failed to initialize services: {e.Message}");
         }
     }
-
+    private void CleanupNetworkManager()
+    {
+        if (NetworkManager.Singleton == null) return;
+        
+        Debug.Log("🧹 Cleaning up NetworkManager before restart...");
+        
+        // 1. Если есть активная сессия - завершаем её
+        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer || NetworkManager.Singleton.IsClient)
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+        
+        // 2. Ждем кадр для завершения всех процессов
+        StartCoroutine(DelayedCleanup());
+    }
+    
+    private System.Collections.IEnumerator DelayedCleanup()
+    {
+        yield return null; // Ждем один кадр
+        
+        // 3. Принудительно останавливаем транспорт
+        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        if (transport != null)
+        {
+            // Для UnityTransport 2.0+
+            if (transport.GetType().GetMethod("Shutdown") != null)
+            {
+                transport.GetType().GetMethod("Shutdown")?.Invoke(transport, null);
+            }
+        }
+        
+        // 4. Сбрасываем NetworkManager в "чистое" состояние
+        var networkManagerType = typeof(NetworkManager);
+        var fieldInfo = networkManagerType.GetField("s_Singleton", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        if (fieldInfo != null)
+        {
+            fieldInfo.SetValue(null, null); // Сбрасываем синглтон
+        }
+        
+        Debug.Log("✅ NetworkManager cleaned up");
+    }
     public async Task<string> StartHostWithRelay()
     {
         try
         {
+            // Важно: очищаем NetworkManager перед рестартом
+           CleanupNetworkManager();
+            
+            // Даем время на очистку
+            await Task.Delay(100);
             if (UnityServices.State != ServicesInitializationState.Initialized)
             {
                 await InitializeUnityServices();
@@ -126,7 +176,6 @@ public class RelayManager : MonoBehaviour
             transport.SetRelayServerData(relayServerData);
             
             Debug.Log($"✅ Relay configured (Encryption: {useEncryption})");
-
             Debug.Log("🚀 Starting host...");
             if (!NetworkManager.Singleton.StartHost())
             {
