@@ -2,6 +2,7 @@ using Leopotam.EcsLite;
 using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Pool;
@@ -109,13 +110,22 @@ public class SceneService : MonoBehaviour {
     
 
     private void Awake() {
-        if (BetweenScenesService.Instance == null)
-            SceneManager.LoadScene("Scenes/LoadingScene");
+
+
+        if (BetweenScenesService.Instance == null) {
+              SceneManager.LoadScene("Scenes/LoadingScene");
+              return;
+        }
+          
         else {
           _defaultCarConfigId = BetweenScenesService.Instance.CurrentSelectedCar;
                   BetweenScenesService.Instance.HideBlackScreen();  
         }
         
+        NetcodeBetweenScenesService.Instance.MapContainer = _mapContainer;
+        NetcodeBetweenScenesService.Instance.MapEventsContentView = _mapEventsContentView;
+        NetcodeBetweenScenesService.Instance.GroundSpriteRenderer = _mapGroundSpriteRenderer;
+   
         _endGameScreenView.OnInitialize();
         _endGameScreenView.gameObject.SetActive(false);
     //    gameInput = new InputSystem_Actions();

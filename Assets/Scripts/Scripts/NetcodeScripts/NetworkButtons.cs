@@ -11,6 +11,7 @@ public class NetworkButtons : NetworkBehaviour {
     [Header("UI Elements")]
     [SerializeField]
     private CoopLobbyUIManager _lobbyManager;
+    [SerializeField] private Button copyButton;
     [SerializeField] private Button hostButton;
     [SerializeField] private Button clientButton;
     [SerializeField] private TMP_InputField joinCodeInput;
@@ -30,6 +31,7 @@ public class NetworkButtons : NetworkBehaviour {
     private void Start() {
         nicknameInput.text = DataPersistenceManagerSystem._gameData.CoopPlayerName;
         // Назначаем обработчики
+        copyButton.onClick.AddListener(CopyJoinCode);
         hostButton.onClick.AddListener(OnHostButtonClicked);
         clientButton.onClick.AddListener(OnClientButtonClicked);
         _lobbyManager._readyButton.onClick.AddListener(OnReadyButtonClicked);
@@ -42,7 +44,7 @@ public class NetworkButtons : NetworkBehaviour {
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         
-        RelayManager.Instance.playerReadyStates.OnListChanged += OnPlayerReadyStatesChanged;
+        NetcodeBetweenScenesService.Instance.playerReadyStates.OnListChanged += OnPlayerReadyStatesChanged;
     }
 
     private void OnDestroy()
@@ -54,7 +56,7 @@ public class NetworkButtons : NetworkBehaviour {
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
         }
         
-        RelayManager.Instance.playerReadyStates.OnListChanged -= OnPlayerReadyStatesChanged;
+        NetcodeBetweenScenesService.Instance.playerReadyStates.OnListChanged -= OnPlayerReadyStatesChanged;
     }
 
     private void OnReadyButtonClicked()
@@ -86,7 +88,7 @@ public class NetworkButtons : NetworkBehaviour {
         foreach (var slot in _lobbyManager._lobbyPlayerUIViews)
             slot.gameObject.SetActive(false);
 
-        foreach (var state in RelayManager.Instance.playerReadyStates) {
+        foreach (var state in NetcodeBetweenScenesService.Instance.playerReadyStates) {
             var playerSlotUIView = _lobbyManager._lobbyPlayerUIViews[state.PlayerNumber - 1];
             playerSlotUIView.gameObject.SetActive(true);
             playerSlotUIView.ChangeCarSprite(BetweenScenesService.Instance._carStuffListsConfig.CarConfigs[state.PlayerCarId].CarIcon,
@@ -106,17 +108,6 @@ public class NetworkButtons : NetworkBehaviour {
             joinCodeContainer.gameObject.SetActive(true);
             disconnectButton.gameObject.SetActive(true);
             
-           /* if (IsServer)
-            {
-                playerReadyStates.Add(new PlayerReadyState 
-                { 
-                    ClientId = NetworkManager.Singleton.LocalClientId,
-                    IsReady = false,
-                    PlayerNumber = 1,
-                    PlayerNickname = DataPersistenceManagerSystem._gameData.CoopPlayerName,
-                    PlayerCarId = 0
-                });
-            }*/
         }
         else
         {
@@ -127,10 +118,10 @@ public class NetworkButtons : NetworkBehaviour {
     [ClientRpc]
     private void StartGameForAllClientRpc() {
         if (IsServer) {
-            for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++) {
-                var state = RelayManager.Instance.playerReadyStates[i];
+            for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++) {
+                var state = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
                 state.IsReady = false;
-                RelayManager.Instance.ChangePlayerList(state, i);
+                NetcodeBetweenScenesService.Instance. playerReadyStates.Set(i,state, true);
             }
 
             NetworkManager.Singleton.SceneManager.LoadScene("SampleScene", LoadSceneMode.Single);
@@ -159,6 +150,9 @@ public class NetworkButtons : NetworkBehaviour {
         }
     }
 
+    private void CopyJoinCode() {
+        GUIUtility.systemCopyBuffer = RelayManager.Instance.JoinCode;
+    }
     private void OnLeaveButtonClicked()
     {
         RelayManager.Instance.LeaveSession();
@@ -197,8 +191,8 @@ public class NetworkButtons : NetworkBehaviour {
         if (!IsServer/*&& clientId != NetworkManager.Singleton.LocalClientId*/) return;
         
         // Новый клиент подключился - добавляем в список
-        int playerNumber = RelayManager.Instance.playerReadyStates.Count + 1;
-        RelayManager.Instance.playerReadyStates.Add(new PlayerReadyState 
+        int playerNumber = NetcodeBetweenScenesService.Instance.playerReadyStates.Count + 1;
+        NetcodeBetweenScenesService.Instance.playerReadyStates.Add(new PlayerReadyState 
         { 
             ClientId = clientId,
             IsReady = false,
@@ -217,12 +211,12 @@ public class NetworkButtons : NetworkBehaviour {
         if (!IsServer) return;
         
         // Удаляем игрока из списка
-        for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++)
+        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++)
         {
-            if (RelayManager.Instance.playerReadyStates[i].ClientId == clientId)
+            if (NetcodeBetweenScenesService.Instance.playerReadyStates[i].ClientId == clientId)
             {
-                Debug.Log($"👋 Игрок {RelayManager.Instance.playerReadyStates[i].PlayerNumber} отключился");
-                RelayManager.Instance.playerReadyStates.RemoveAt(i);
+                Debug.Log($"👋 Игрок {NetcodeBetweenScenesService.Instance.playerReadyStates[i].PlayerNumber} отключился");
+                NetcodeBetweenScenesService.Instance.playerReadyStates.RemoveAt(i);
                 break;
             }
         }
@@ -248,13 +242,13 @@ public class NetworkButtons : NetworkBehaviour {
     [ServerRpc(RequireOwnership = false)]
     private void SetPlayerReadyServerRpc(ulong clientId, bool isReady)
     {
-        for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++)
+        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++)
         {
-            if (RelayManager.Instance.playerReadyStates[i].ClientId == clientId)
+            if (NetcodeBetweenScenesService.Instance.playerReadyStates[i].ClientId == clientId)
             {
-                var state = RelayManager.Instance.playerReadyStates[i];
+                var state = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
                 state.IsReady = isReady;
-                RelayManager.Instance.ChangePlayerList(state,i);
+                NetcodeBetweenScenesService.Instance. playerReadyStates.Set(i,state, true);
                 break;
             }
         }
@@ -266,14 +260,14 @@ public class NetworkButtons : NetworkBehaviour {
     [ServerRpc(RequireOwnership = false)]
     private void SetPlayerCarIdServerRpc(ulong clientId, int carId)
     {
-        for (int i = 0; i < RelayManager.Instance.playerReadyStates.Count; i++)
+        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++)
         {
-            if (RelayManager.Instance.playerReadyStates[i].ClientId == clientId)
+            if (NetcodeBetweenScenesService.Instance.playerReadyStates[i].ClientId == clientId)
             {
-                var state = RelayManager.Instance.playerReadyStates[i];
+                var state = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
                 state.PlayerCarId = carId;
                    
-                RelayManager.Instance.ChangePlayerList(state, i);
+                NetcodeBetweenScenesService.Instance. playerReadyStates.Set(i,state, true);
             
              
                 break;
@@ -288,10 +282,10 @@ public class NetworkButtons : NetworkBehaviour {
     {
         if (!IsServer) return;
         
-        if (RelayManager.Instance.playerReadyStates.Count == 0) return;
+        if (NetcodeBetweenScenesService.Instance.playerReadyStates.Count == 0) return;
         
         bool allReady = true;
-        foreach (var state in RelayManager.Instance.playerReadyStates)
+        foreach (var state in NetcodeBetweenScenesService.Instance.playerReadyStates)
         {
             if (!state.IsReady)
             {

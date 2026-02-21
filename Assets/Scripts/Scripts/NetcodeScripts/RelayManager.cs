@@ -20,7 +20,6 @@ public class RelayManager : MonoBehaviour
     [SerializeField] private string gameSceneName = "SampleScene";
     [SerializeField] private bool useEncryption = false; // DTLS требует сертификаты, для тестов лучше false
     [SerializeField] private bool useWebSockets = false; // Для WebGL включите true
-    public NetworkList<PlayerReadyState> playerReadyStates { get;private set; }
     public string JoinCode { get; private set; }
 
     private void Awake()
@@ -30,7 +29,6 @@ public class RelayManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            playerReadyStates = new NetworkList<PlayerReadyState>();
         }
         else
         {
@@ -43,9 +41,6 @@ public class RelayManager : MonoBehaviour
         await InitializeUnityServices();
     }
 
-    public void ChangePlayerList(PlayerReadyState state, int index) {
-        playerReadyStates.Set(index,state, true);
-    }
     private async Task InitializeUnityServices()
     {
         try

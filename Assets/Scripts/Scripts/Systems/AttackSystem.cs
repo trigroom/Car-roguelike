@@ -1238,12 +1238,12 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 _hpBarComponentsPool.Value.Add(cellEntity).hpBarImage = hpBar;
                 hpBar.fillAmount = healthPercentBefore;
                 hpBar.color = _sceneService.Value._healthGradient.Evaluate(healthPercentBefore);
-                hpBar.transform.parent.GetComponent<Image>().color = new Color(0.22f, 0.22f, 0.22f, 1);
+                
             }
 
             ref var hpBarCmp = ref _hpBarComponentsPool.Value.Get(cellEntity);
             hpBarCmp.hpBarSequence.Kill();
-
+            hpBarCmp.hpBarImage.transform.parent.GetComponent<Image>().color = new Color(0.22f, 0.22f, 0.22f, 1);
             hpBarCmp.hpBarSequence = DOTween.Sequence();
             var hpBarImage = hpBarCmp.hpBarImage;
             hpBarCmp.hpBarSequence.Append(hpBarImage.DOFillAmount(healthPercent, 0.7f));

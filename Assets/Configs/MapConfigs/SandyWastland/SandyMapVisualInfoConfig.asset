@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: SandyMapVisualInfoConfig
   m_EditorClassIdentifier: 
   MapObstacles:
-  - {fileID: -8412258973500810017, guid: c1f7402a1802b314c8880d86101013c4, type: 3}
-  - {fileID: 8362474789613438669, guid: 722ba426d98f3b04e816a27da0b8afff, type: 3}
-  - {fileID: -2023974000817083103, guid: be1456a47346f4c4aaf91d24622ad78a, type: 3}
+  - {fileID: 5901465273616574507, guid: af4bbf3d1d6987c45825741c8465d97a, type: 3}
+  - {fileID: 999178926518854591, guid: a14e24d95fd835942a06df223cbb5ce1, type: 3}
+  - {fileID: 8773321095680263310, guid: 7f417daf3d26a6f479aa8db6a2c873c9, type: 3}
   GroundMaterial: {fileID: 2100000, guid: 565f04876332e2e4b94d1f256e81f251, type: 2}
   BehindMapGroundMaterial: {fileID: 2100000, guid: 26bd6cbfe5602f7479b14ca75f53fc31, type: 2}
   NoiseObstaclesCountChances:

@@ -3,14 +3,14 @@ using UnityEngine;
 using Unity.Netcode.Transports.UTP;
 using Unity.Netcode.Transports.SinglePlayer;
 
-public class NetcodeSceneService : NetworkBehaviour
+public class NetcodeSceneService : MonoBehaviour
 {
    // private UnityTransport unityTransport;
     private SinglePlayerTransport singlePlayerTransport;
    [field:SerializeField] public Transform playersContainersTransform { get; private set; }
     private void Awake() {
       //  unityTransport = RelayManager.Instance.GetComponent<UnityTransport>();
-        singlePlayerTransport = RelayManager.Instance.GetComponent<SinglePlayerTransport>();
+      /*  singlePlayerTransport = RelayManager.Instance.GetComponent<SinglePlayerTransport>();
         
         if (!BetweenScenesService.Instance.IsCoop)
             StartSinglePlayer();
@@ -18,7 +18,7 @@ public class NetcodeSceneService : NetworkBehaviour
             StartMultiplayerHost();
         else 
             StartMultiplayerClient();
-        playersContainersTransform.gameObject.SetActive(false);
+        playersContainersTransform.gameObject.SetActive(false);*/
     }
     
     private void StartSinglePlayer()
@@ -56,10 +56,11 @@ public class NetcodeSceneService : NetworkBehaviour
      //   }
     }
 
-    public NetworkObject InstantiateObject(NetworkObject spawnObject, Vector2 spawnPosition = default, Transform parent = null,
+    public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default, Transform parent = null,
         Quaternion rotation = default) {
         var needObject = Instantiate(spawnObject, spawnPosition,rotation,parent);
-        needObject.Spawn(true);
+        if (isSpawn)
+            needObject.Spawn(true);
         return needObject;
     }
     
