@@ -252,9 +252,9 @@ public class NetworkButtons : NetworkBehaviour {
                 break;
             }
         }
-        
-        // Проверяем, все ли готовы
-        CheckAllPlayersReady();
+
+        if (NetcodeBetweenScenesService.Instance.CheckAllPlayersReady())
+            StartGameForAllClientRpc();
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -274,34 +274,8 @@ public class NetworkButtons : NetworkBehaviour {
             }
         }
         
-        // Проверяем, все ли готовы
-        CheckAllPlayersReady();
     }
 
-    private void CheckAllPlayersReady()
-    {
-        if (!IsServer) return;
-        
-        if (NetcodeBetweenScenesService.Instance.playerReadyStates.Count == 0) return;
-        
-        bool allReady = true;
-        foreach (var state in NetcodeBetweenScenesService.Instance.playerReadyStates)
-        {
-            if (!state.IsReady)
-            {
-                allReady = false;
-                break;
-            }
-        }
-        
-        if (allReady)
-        {
-            Debug.Log("🎮 ВСЕ ГОТОВЫ! Запускаем игру...");
-            StartGameForAllClientRpc();
-        }
-    }
-    
-    
 }
 
 [System.Serializable]

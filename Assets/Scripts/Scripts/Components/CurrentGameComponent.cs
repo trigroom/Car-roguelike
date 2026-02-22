@@ -33,6 +33,7 @@
         public Vector2 SupportBoxTargetPosition;
 
         public float LocalTimeScale;
+        public bool IsReady;
 
         public Dictionary<CarPartType, List<int>> CarPartsToEnemyBuilding;
  }

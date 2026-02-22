@@ -388,3 +388,4 @@ Ready,Im Ready,Я готов,Ich bin bereit,Estoy listo,Je suis prêt
 Nickname,Display Name,Отображаемое имя,Anzeigename,Nombre mostrado,Nom affiché
 Connect menu,Connect Menu,Меню подключения,Verbindungsmenü,Menú conexión,Menu connexion
 Lobby,Lobby,Лобби,Lobby,Lobby,Lobby
+Not ready,Not Ready,Не готов,Nicht bereit,No listo,Pas prêt

@@ -159,7 +159,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
         
         _settingsComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).pixelizedEffectIsUsed = true;
-        _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
+        if (_betweenScenesService.Value.IsCoop) {
+            _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeGameReadyState);
+            NetcodeBetweenScenesService.Instance.playerReadyStates.OnListChanged += OnPlayerReadyStatesChanged;
+        }
+            
+        else
+            _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
         _sceneService.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
         _sceneService.Value._mapFilledZoneView.SetupFilledZone(SetFeelingZoneState);
         _sceneService.Value._mapFilledZoneView.FilledZoneGround.color = mapConfig.MapVisualInfoConfigs[0].WheelParticlesColor;
@@ -330,6 +336,24 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         );
         _sceneService.Value._enemyAirplane.gameObject.SetActive(true);
 
+    }
+
+    private void OnPlayerReadyStatesChanged(NetworkListEvent<PlayerReadyState> changeEvent) {
+      /*  foreach (var slot in _sceneService.Value._inventoryUIView._lobbyPlayersUI)
+            slot.gameObject.SetActive(false);
+        int playerUIindex = 0;
+        foreach (var state in NetcodeBetweenScenesService.Instance.playerReadyStates) {
+            if(state.ClientId == NetworkManager.Singleton.LocalClientId)continue;
+            var playerSlotUIView =_sceneService.Value._inventoryUIView._lobbyPlayersUI[playerUIindex];
+            playerSlotUIView.gameObject.SetActive(true);
+            playerSlotUIView.ChangeCarSprite(BetweenScenesService.Instance._carStuffListsConfig.CarConfigs[state.PlayerCarId].CarIcon,
+                state.GetNickname(), state.IsReady);
+            playerUIindex++;
+        }*/
+      UpdateLobbyUI();
+        if (NetcodeBetweenScenesService.Instance.CheckAllPlayersReady()) 
+            ChangeRoundInfo();
+        
     }
     private void CheckEnemyAirplane() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -747,7 +771,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
     }
 
+    private void ChangeGameReadyState() {
+        if (!CanStartRound()) return;
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        curGameCmp.IsReady = !curGameCmp.IsReady;
+        NetcodeBetweenScenesService.Instance.SetPlayerReadyServerRpc(NetworkManager.Singleton.LocalClientId, curGameCmp.IsReady);
+    }
     private void ChangeRoundInfo() {
+       
         if (!CanStartRound()) return;
        // _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentDraggedCellEntity = -1;
         _sceneService.Value._mapUIView.gameObject.SetActive(true);
@@ -2555,7 +2586,7 @@ GridUtils.PrintGrid(currentGameCmp.MapGrid);
             return;
         }
         for (int i = 0; i < _sceneService.Value._inventoryUIView._lobbyPlayersUI.Length; i++) {
-         //   _sceneService.Value._inventoryUIView._lobbyPlayersUI[i].gameObject.SetActive(NetcodeBetweenScenesService.Instance.playerReadyStates.Count - 2 >= i);
+            _sceneService.Value._inventoryUIView._lobbyPlayersUI[i].gameObject.SetActive(NetcodeBetweenScenesService.Instance.playerReadyStates.Count - 2 >= i);
         }
 
         UpdateLobbyUI();
@@ -2563,7 +2594,7 @@ GridUtils.PrintGrid(currentGameCmp.MapGrid);
 
     private void UpdateLobbyUI() {
         int index = 0;
-    /*    for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++) {
+        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++) {
             var playerState = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
             if (NetworkManager.Singleton.LocalClientId != playerState.ClientId) {
                 _sceneService.Value._inventoryUIView._lobbyPlayersUI[index].ChangeCarSprite(
@@ -2571,7 +2602,7 @@ GridUtils.PrintGrid(currentGameCmp.MapGrid);
                     playerState.IsReady);
                 index++;
             }
-        }*/
+        }
     }
     private void ChangeInventoryState(bool state) => _sceneService.Value._inventoryUIView.gameObject.SetActive(state);
     private void ChangePlayerUIState(bool state) => _sceneService.Value._playerUIView.gameObject.SetActive(state);

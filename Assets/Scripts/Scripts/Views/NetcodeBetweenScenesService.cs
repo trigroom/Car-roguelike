@@ -90,7 +90,40 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         mapObject.material = BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[1].GroundMaterial;
         mapObject.transform.localScale = new (5,5);
     }
-
+    [ServerRpc(RequireOwnership = false)]
+    public void SetPlayerReadyServerRpc(ulong clientId, bool isReady)
+    {
+        for (int i = 0; i < playerReadyStates.Count; i++)
+        {
+            if (playerReadyStates[i].ClientId == clientId)
+            {
+                var state = playerReadyStates[i];
+                state.IsReady = isReady;
+                playerReadyStates.Set(i,state, true);
+                break;
+            }
+        }
+        
+        // Проверяем, все ли готовы
+        CheckAllPlayersReady();
+    }
+    public bool CheckAllPlayersReady()
+    {
+        if (!IsServer) return false;
+        
+        if (playerReadyStates.Count == 0) return false;
+        
+        bool allReady = true;
+        foreach (var state in playerReadyStates)
+        {
+            if (!state.IsReady)
+            {
+                allReady = false;
+                break;
+            }
+        }
+        return allReady;
+    }
     public void SetupService(Action<int[]> updateAction, Action<Transform> quicksandAction, Action<Transform,int> addTrainTrailAction) {
         this.updateAction = updateAction;
         this.quicksandAction = quicksandAction;
