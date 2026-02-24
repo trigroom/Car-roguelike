@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Netcode.Transports.SinglePlayer;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
@@ -95,6 +96,50 @@ public class RelayManager : MonoBehaviour
         
         // 2. Ждем кадр для завершения всех процессов
         StartCoroutine(DelayedCleanup());
+    }
+    
+    public void StartSinglePlayer()
+    {
+        Debug.Log("🎮 Starting SINGLE PLAYER mode");
+        
+        CleanupNetworkManager();
+        
+        StartCoroutine(StartSinglePlayerCoroutine());
+    }
+
+    private System.Collections.IEnumerator StartSinglePlayerCoroutine()
+    {
+        yield return null;
+        
+        if (NetworkManager.Singleton == null)
+        {
+            Debug.LogError("❌ NetworkManager not found in scene!");
+            yield break;
+        }
+        
+        var unityTransport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        if (unityTransport != null)
+        {
+            unityTransport.enabled = false;
+        }
+        
+        var singleTransport = NetworkManager.Singleton.GetComponent<SinglePlayerTransport>();
+        if (singleTransport == null)
+        {
+            singleTransport = NetworkManager.Singleton.gameObject.AddComponent<SinglePlayerTransport>();
+        }
+        singleTransport.enabled = true;
+        
+        NetworkManager.Singleton.NetworkConfig.NetworkTransport = singleTransport;
+        
+        if (NetworkManager.Singleton.StartHost())
+        {
+            Debug.Log("✅ Single player started successfully");
+        }
+        else
+        {
+            Debug.LogError("❌ Failed to start single player");
+        }
     }
     
     private System.Collections.IEnumerator DelayedCleanup()

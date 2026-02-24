@@ -17,8 +17,11 @@ public class LobbyPlayerUIView : MonoBehaviour {
     public void ChangeCarSprite(Sprite carSprite, string playerName, bool isReady) {
         if (_playerCarHighlightImage)
             _playerCarHighlightImage.color = isReady ? new Color(0.53f, 0.8f, 0.53f, 0.25f) : new Color(0.8f, 0.53f, 0.53f, 0.25f);
-        else
-            _readyStateText.text = isReady ? GetLocalization("Ready")+"!" : GetLocalization("Not ready")+"!";
+        else {
+             _readyStateText.text = isReady ? GetLocalization("Ready")+"!" : GetLocalization("Not ready")+"!";
+             _readyStateText.color = isReady ? new Color(0.53f, 0.8f, 0.53f, 1f) : new Color(0.8f, 0.53f, 0.53f, 1f);
+        }
+           
 
         _playerNameText.text = playerName;
         _playerCarImage.sprite = carSprite;

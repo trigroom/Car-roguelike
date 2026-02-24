@@ -389,3 +389,4 @@ Nickname,Display Name,Отображаемое имя,Anzeigename,Nombre mostrad
 Connect menu,Connect Menu,Меню подключения,Verbindungsmenü,Menú conexión,Menu connexion
 Lobby,Lobby,Лобби,Lobby,Lobby,Lobby
 Not ready,Not Ready,Не готов,Nicht bereit,No listo,Pas prêt
+Host select round,Host selects next round,Хост выбирает следующий раунд,Host wählt nächste Runde,Anfitrión selecciona siguiente ronda,Hôte sélectionne prochain round

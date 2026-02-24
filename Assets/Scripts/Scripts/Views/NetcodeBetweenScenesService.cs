@@ -8,12 +8,14 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
     public NetworkList<PlayerReadyState> playerReadyStates;
     public NetworkVariable<int> readyClientsCount = new NetworkVariable<int>(0);
     public static NetcodeBetweenScenesService Instance { get; private set; }
+    private Action<RoundType> startRoundAction;
     private Action<int[]> updateAction;
     private Action<Transform> quicksandAction;
     private Action<Transform, int> addTrainTrailAction;
     public Transform MapContainer;
     public SpriteRenderer GroundSpriteRenderer;
     public MapEventsContentView MapEventsContentView;
+    public NetcodeSceneService NetcodeSceneService;
     private void Awake()
     {
         playerReadyStates = new NetworkList<PlayerReadyState>();
@@ -59,6 +61,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, rotationIndex * 90);
         var mapObject = Instantiate(BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].MapObstacles[index], spawnPosition,
             Quaternion.identity, MapContainer);
+       // mapObject.GetComponent<NetworkObject>()?.TrySetParent(MapContainer);
         mapObject.rotation = randomRotation;
     }
     [ClientRpc]
@@ -90,6 +93,19 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         mapObject.material = BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[1].GroundMaterial;
         mapObject.transform.localScale = new (5,5);
     }
+    [ClientRpc]
+    public void ShowMessageClientRpc(string text) {
+        if (NetworkManager.Singleton.IsHost) return;
+        NetcodeSceneService.clientsMessegeText.text = GetLocalization(text);
+        NetcodeSceneService.clientsMessegeText.transform.parent.gameObject.SetActive(true);
+    }
+    private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
+    [ClientRpc]
+    public void StartRoundClientRpc(RoundType roundType) {
+        startRoundAction.Invoke(roundType);
+        if (NetworkManager.Singleton.IsHost) return;
+        NetcodeSceneService.HideMessageClient();
+    }
     [ServerRpc(RequireOwnership = false)]
     public void SetPlayerReadyServerRpc(ulong clientId, bool isReady)
     {
@@ -109,8 +125,6 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
     }
     public bool CheckAllPlayersReady()
     {
-        if (!IsServer) return false;
-        
         if (playerReadyStates.Count == 0) return false;
         
         bool allReady = true;
@@ -124,9 +138,11 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         }
         return allReady;
     }
-    public void SetupService(Action<int[]> updateAction, Action<Transform> quicksandAction, Action<Transform,int> addTrainTrailAction) {
+    public void SetupService(Action<int[]> updateAction, Action<Transform> quicksandAction, Action<Transform,int> addTrainTrailAction,
+        Action<RoundType> startRoundAction) {
         this.updateAction = updateAction;
         this.quicksandAction = quicksandAction;
         this.addTrainTrailAction = addTrainTrailAction;
+        this.startRoundAction = startRoundAction;
     }
 }

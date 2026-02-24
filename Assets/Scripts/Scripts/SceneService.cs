@@ -121,7 +121,7 @@ public class SceneService : MonoBehaviour {
           _defaultCarConfigId = BetweenScenesService.Instance.CurrentSelectedCar;
                   BetweenScenesService.Instance.HideBlackScreen();  
         }
-        
+       
         NetcodeBetweenScenesService.Instance.MapContainer = _mapContainer;
         NetcodeBetweenScenesService.Instance.MapEventsContentView = _mapEventsContentView;
         NetcodeBetweenScenesService.Instance.GroundSpriteRenderer = _mapGroundSpriteRenderer;

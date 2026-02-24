@@ -296,6 +296,7 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
         
         private void Play() {
             BetweenScenesService.Instance.IsCoop = false;
+            RelayManager.Instance.StartSinglePlayer();
             if (DataPersistenceManagerSystem._gameData.TutorialIsCompleted) {
                 OpenNewWindow(_metaSceneService.Value._selectCarUIContainer.transform);
             } else {
