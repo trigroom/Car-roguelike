@@ -6,6 +6,8 @@ using UnityEngine.UI;
 public class InventoryUIView : MonoBehaviour {
     private Sequence fadeSequence;
     [field: SerializeField]
+    public TMP_Text _playButtonText { get;private set; }
+    [field: SerializeField]
     public LobbyPlayerUIView[] _lobbyPlayersUI { get; private set; }
     [field: SerializeField]
     public Image _highlightUpgradeImage { get; private set; }

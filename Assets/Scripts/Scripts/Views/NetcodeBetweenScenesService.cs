@@ -104,7 +104,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
     public void StartRoundClientRpc(RoundType roundType) {
         startRoundAction.Invoke(roundType);
         if (NetworkManager.Singleton.IsHost) return;
-        NetcodeSceneService.HideMessageClient();
+        NetcodeSceneService.HideMessageClientRpc();
     }
     [ServerRpc(RequireOwnership = false)]
     public void SetPlayerReadyServerRpc(ulong clientId, bool isReady)
@@ -121,7 +121,16 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         }
         
         // Проверяем, все ли готовы
-        CheckAllPlayersReady();
+      //  CheckAllPlayersReady();
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void SetPlayersToNotReadyServerRpc() {
+        for (int i = 0; i < playerReadyStates.Count; i++) {
+            var state = playerReadyStates[i];
+            state.IsReady = false;
+            playerReadyStates.Set(i, state, true);
+        }
     }
     public bool CheckAllPlayersReady()
     {

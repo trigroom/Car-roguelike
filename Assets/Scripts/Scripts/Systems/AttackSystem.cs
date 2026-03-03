@@ -145,9 +145,9 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                         int needEntity = Random.value > 0.5f
                             ? _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LeftOpponentEntity
                             : _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RightOpponentEntity;
-                        needPosition = _movementComponentsPool.Value.Get(needEntity).MovableObjectRigidbody.transform.position;
+                        needPosition = _carComponentsPool.Value.Get(needEntity).CarView.transform.position;
                     } else
-                        needPosition = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MovableObjectRigidbody.transform
+                        needPosition = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.transform
                             .position;
 
                     Vector2 randomCircle = Random.insideUnitCircle * 15f;
@@ -849,8 +849,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
         if (gunConfig.CarRecoil != 0) {
             Vector2 recoilDirection = -gunCmp.GunSpriteRenderer.transform.up;
-            _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MovableObjectRigidbody
-                .AddForce(gunConfig.CarRecoil * recoilDirection, ForceMode2D.Impulse);
+            _carComponentsPool.Value.Get(carPartCmp.MainEntity).CarView
+                .SyncRigidbodyView.RequestPushImpulseServerRpc(gunConfig.CarRecoil * recoilDirection);
         }
 
         gunCmp.CurrentMagazineCount--;
@@ -1060,26 +1060,20 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 meleeCmp.isTriggered = true;
                 meleeCmp.Countdown += meleeCmp.CurrentMaxCountdown;
                 int mainEntity = _carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity;
-                var moveCmp = _movementComponentsPool.Value.Get(mainEntity);
+                var rigidbodyCurrent = _carComponentsPool.Value.Get(mainEntity).CarView.Rigidbody;
                 isPlayer = mainEntity == _sceneService.Value.PlayerEntity;
                 float damagedObjectMass = 10;
                 float damagedObjectSpeed = 0;
                 if (_movementComponentsPool.Value.Has(damagedMainEntity)) {
-                    var moveCmpDamaged = _movementComponentsPool.Value.Get(damagedMainEntity);
-                    damagedObjectMass = moveCmpDamaged.MovableObjectRigidbody.mass;
-                    damagedObjectSpeed = moveCmpDamaged.MovableObjectRigidbody.linearVelocity.magnitude;
+                    var rigidbodyDamaged = _carComponentsPool.Value.Get(damagedMainEntity).CarView.Rigidbody;
+                    damagedObjectMass = rigidbodyDamaged.mass;
+                    damagedObjectSpeed = rigidbodyDamaged.linearVelocity.magnitude;
                 }
-                float relativeSpeed = Mathf.Abs(moveCmp.MovableObjectRigidbody.linearVelocity.magnitude - damagedObjectSpeed);
+                float relativeSpeed = Mathf.Abs(rigidbodyCurrent.linearVelocity.magnitude - damagedObjectSpeed);
                 float speedFactor = relativeSpeed * 0.3f; // Настраиваемый коэффициент
                 float massFactor = damagedObjectMass / 100f; // Нормализуем массу
 
                 float damageByCollision = meleeCmp.DamageBySpeed * speedFactor * massFactor;
-              /*  float reducedMass = (damagedObjectMass * moveCmp.MovableObjectRigidbody.mass) /
-                                    (moveCmp.MovableObjectRigidbody.mass + damagedObjectMass);
-
-                float relativeSpeed = Mathf.Abs(moveCmp.MovableObjectRigidbody.linearVelocity.magnitude - damagedObjectSpeed);
-
-                float damageByCollision = meleeCmp.DamageBySpeed * reducedMass * Mathf.Pow(relativeSpeed, 2) / 5f;*/
                 
                 damagePoints = meleeCmp.CurrentDamage + damageByCollision;
             } else {
@@ -1155,7 +1149,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (mainEntity < 0) return;
         ref var moveCmp = ref _movementComponentsPool.Value.Get(mainEntity);
         float weight = _carComponentsPool.Value.Get(mainEntity).CurrentWeight;
-        moveCmp.MovableObjectRigidbody.AddForce(collisionPoint * impulseForce / weight * 2, ForceMode2D.Impulse);
+        _carComponentsPool.Value.Get(mainEntity).CarView.SyncRigidbodyView.RequestPushImpulseServerRpc(collisionPoint * impulseForce / weight * 2);
         moveCmp.CantMoveTime = 0.3f;
 
         moveCmp.CurrentMoveSpeed -= impulseForce / weight / 2;
@@ -1171,8 +1165,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 ? carCmp.CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y]
                 : carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y];
 
-            ref var moveCmp = ref _movementComponentsPool.Value.Get(mainEntity);
-            moveCmp.MovableObjectRigidbody.AddForce(100 * tornadoCmp.TornadoSpeed * tornadoCmp.TornadoDirection);
+           
+            _carComponentsPool.Value.Get(mainEntity).CarView.SyncRigidbodyView.RequestPushForceServerRpc(100 * tornadoCmp.TornadoSpeed * tornadoCmp.TornadoDirection);
             if (tornadoCmp.EffectType == EffectType.none) {
                 ChangeHealth(5f * Time.fixedDeltaTime, carPartEntity);
             } else {
@@ -1522,7 +1516,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         var carConfig = _sceneService.Value.GetCarConfig(carCmp.CarId);
 
         ref var moveCmp = ref _movementComponentsPool.Value.Get(carPartCmp.MainEntity);
-        moveCmp.MovableObjectRigidbody.mass = carCmp.CurrentWeight;
+        carCmp.CarView.SyncRigidbodyView.SetMassServerRpc(carCmp.CurrentWeight);
+      //  moveCmp.MovableObjectRigidbody.mass = carCmp.CurrentWeight;
         moveCmp.MaxMoveSpeed = carConfig.DefaultMaxSpeed * (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
 
         if (isEnemy && !_destroyEntityEventsPool.Value.Has(cellEntity)) {
@@ -1775,13 +1770,13 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
     private void BuildNewBorder(int entity) {
         var carCmp = _carComponentsPool.Value.Get(entity);
-        PolygonCollider2D collider = carCmp.CarView.CarBaseCollider;
-
+        // PolygonCollider2D collider = carCmp.CarView.CarBaseCollider;
+        
         var grid = carCmp.CarPartContainerGroupsGrid;
-
+      
         List<Vector2> contour = GridUtils.FindBorderContour(grid);
-
-        collider.SetPath(0, contour.ToArray());
+        carCmp.CarView.SyncRigidbodyView.ChangePolygonServerRpc(contour.ToArray());
+        //collider.SetPath(0, contour.ToArray());
     }
 
     public void CheckTasks(TaskType taskType) {

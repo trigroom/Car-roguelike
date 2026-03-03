@@ -19,13 +19,13 @@ sealed class ForwardWheelsRotateSystem : IEcsRunSystem {
                 var moveCmp = _movementComponentsPool.Value.Get(carEntity);
                 if(!moveCmp.MovableObjectRigidbody)continue;
                 if (moveCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0 && moveCmp.MaxMoveSpeed > 0) {
-                    moveCmp.MovableObjectRigidbody.AddForce(
-                        moveCmp.MovableObjectRigidbody.transform.up * moveCmp.CurrentMoveSpeed * carCmp.CurrentWeight / 10, ForceMode2D.Force);
+                    carCmp.CarView.SyncRigidbodyView.RequestPushForceServerRpc(
+                        moveCmp.MovableObjectRigidbody.transform.up * moveCmp.CurrentMoveSpeed * carCmp.CurrentWeight / 10);
                 }
 
                 if (_windComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
                     var windCmp = _windComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-                    moveCmp.MovableObjectRigidbody.AddForce(windCmp.WindDirection * windCmp.WindSpeed, ForceMode2D.Force);
+                    carCmp.CarView.SyncRigidbodyView.RequestPushForceServerRpc(windCmp.WindDirection * windCmp.WindSpeed);
                 }
                 /*    if(carCmp.ForwardWheels == null) continue;
                    var needRot = Quaternion.Euler(0, 0, carCmp.WheelsRotateAngle);

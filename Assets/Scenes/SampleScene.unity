@@ -21391,6 +21391,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 548e03f0926cf5a43809a227ccbff74e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <_playButtonText>k__BackingField: {fileID: 683272492}
   <_lobbyPlayersUI>k__BackingField:
   - {fileID: 554230742}
   - {fileID: 1803522425}
@@ -25335,7 +25336,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _texts:
-  - {fileID: 683272492}
   - {fileID: 622390745}
   - {fileID: 1093679734}
   - {fileID: 1924443097}
@@ -25364,7 +25364,6 @@ MonoBehaviour:
   - {fileID: 662998412}
   - {fileID: 549286659}
   _keys:
-  - Start game
   - Inventory
   - Shop
   - Move to inventory
@@ -30961,9 +30960,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 513e68d3ce9190443a2c19d1865083df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   <playersContainersTransform>k__BackingField: {fileID: 685733982}
   <clientsMessegeText>k__BackingField: {fileID: 192271051}
+  <_carView>k__BackingField: {fileID: 5873621609195199634, guid: 596d0515881a06c429abe7c6439d6264, type: 3}
   <networkObjectsMapContainer>k__BackingField: {fileID: 1697414393}
+  <carPartStuffContainerView>k__BackingField: {fileID: -1664156723454980657, guid: 78c694d2b7e05a74696c662d4663096e, type: 3}
+  <gunContainer>k__BackingField: {fileID: -8415562921734903469, guid: 39c00479604e7604ebfc80ff876a5592, type: 3}
+  <spriteRenderer>k__BackingField: {fileID: 6183967727194747548, guid: ab2d43c8c551ecd4b99f88ac6593dd94, type: 3}
+  <laserLineRenderer>k__BackingField: {fileID: -2127818427148117112, guid: 3152071df4c62e143b3da62e7835773c, type: 3}
+  <meleeCarPartStuffView>k__BackingField: {fileID: -2567297385982231377, guid: 93647ed554c1ac8459a95eea789af13e, type: 3}
+  <notUsedNetworkObjectsContainer>k__BackingField: {fileID: 1757493233}
 --- !u!1 &1357007293
 GameObject:
   m_ObjectHideFlags: 0
@@ -39636,6 +39643,63 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 0}
+--- !u!1 &1757493232
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1757493234}
+  - component: {fileID: 1757493233}
+  m_Layer: 0
+  m_Name: 'NotUsedNetworkObjectMapContainer '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1757493233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757493232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 857598124
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!4 &1757493234
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757493232}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1761202578 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6049228664639487450, guid: 908c292f3dd57ea4ca9e11564b214c59, type: 3}
@@ -48548,6 +48612,7 @@ SceneRoots:
   - {fileID: 536468873}
   - {fileID: 690820216}
   - {fileID: 1697414395}
+  - {fileID: 1757493234}
   - {fileID: 1189824386}
   - {fileID: 1846311316}
   - {fileID: 176192521}

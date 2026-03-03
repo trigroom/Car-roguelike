@@ -184,6 +184,7 @@ public class MovementSystem : IEcsRunSystem {
                     continue;
                 }
             }
+            else if(!isPlayer)return;
 
             ref var fuelCmp = ref _fuelComponentsPool.Value.Get(movementEntity); 
             var electricityConsumption = fuelCmp.ConstantElectricityReplenishment - fuelCmp.ConstantElectricityConsumption;
@@ -284,10 +285,9 @@ public class MovementSystem : IEcsRunSystem {
                         movementCmp.CurrentRotateSpeed, 0f, movementCmp.RotateSpeed * Time.fixedDeltaTime);
                 }
 
-                movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
-               // if (movementCmp.MovableObjectRigidbody.linearVelocity.magnitude > movementCmp.Acceleration && movementCmp.MovableObjectRigidbody.linearVelocity.magnitude < movementCmp.Deceleration)
-                //    movementCmp.MovableObjectRigidbody.AddForce(moveObjectTransform.up * movementCmp.CurrentMoveSpeed*carCmp.CurrentWeight/10, ForceMode2D.Force);
-                
+                //movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
+                carCmp.CarView.SyncRigidbodyView.RequestSetAngularVelocityServerRpc( movementCmp.CurrentRotateSpeed);
+              
             } else {
                   movementCmp.CantMoveTime -= deltaTime;
                   SetWheelParticleSystemState(movementEntity, false);
@@ -331,6 +331,7 @@ public class MovementSystem : IEcsRunSystem {
 
     private void CheckForObstacles(int entity) {
         ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(entity);
+        if(enemyAiCmp.CheckedEnemyLeftPoints == null && enemyAiCmp.CheckedEnemyRightPoints == null )return;
         enemyAiCmp.LastCollisionWithObstacleTime = 1f;
         string[] layerNames;
         if (enemyAiCmp.TargetToMove && Vector2.Distance(enemyAiCmp.TargetToMove.position, _movementComponentsPool.Value.Get(entity).PreviousPosition) < 7)
@@ -443,8 +444,7 @@ public class MovementSystem : IEcsRunSystem {
                 wheelParticle.Play();
         }
 
-       
-        if (wheels == null || wheels.Count > 0 && wheels[0] == null) return;
+        if (wheels == null||  wheels.Count == 0|| (wheels.Count > 0 && wheels[0] == null)) return;
         var currentWheelAngle = wheels[0].transform.localRotation;
 
         targetWheelAngle = Mathf.Clamp(targetWheelAngle, -40, 40);
