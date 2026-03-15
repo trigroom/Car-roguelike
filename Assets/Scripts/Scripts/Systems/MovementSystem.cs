@@ -179,8 +179,8 @@ public class MovementSystem : IEcsRunSystem {
                 }
 
                 if (!enemyAiCmp.TargetToMove) {
-                    carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
-                    carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
+               //     carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
+                 //   carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
                     continue;
                 }
             }
@@ -258,7 +258,7 @@ public class MovementSystem : IEcsRunSystem {
                         movementCmp.CurrentRotateSpeed = Mathf.MoveTowards(movementCmp.CurrentRotateSpeed, 0f,
                             movementCmp.RotateSpeed * Time.fixedDeltaTime);
                     }
-
+//mb move to end
                     RotateWheels(angleToTarget, movementCmp.CurrentRotateSpeed, movementEntity);
                     SetWheelParticleSystemState(movementEntity, true);
 
@@ -285,23 +285,38 @@ public class MovementSystem : IEcsRunSystem {
                         movementCmp.CurrentRotateSpeed, 0f, movementCmp.RotateSpeed * Time.fixedDeltaTime);
                 }
 
-                //movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
-                carCmp.CarView.SyncRigidbodyView.RequestSetAngularVelocityServerRpc( movementCmp.CurrentRotateSpeed);
+             //   movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
+           
+            //    Debug.Log($"Try sent angular velocity: {movementCmp.RotateSpeed}");
+             //    movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
+               carCmp.CarView.SyncRigidbodyView.RequestSetAngularVelocityServerRpc(movementCmp.CurrentRotateSpeed,carCmp.WheelsRotateAngle);
               
             } else {
                   movementCmp.CantMoveTime -= deltaTime;
                   SetWheelParticleSystemState(movementEntity, false);
             }
-              
 
+        //    carCmp.CarView.SyncRigidbodyView.SetRotationClientRpc(carCmp.CarView.transform.eulerAngles.z,NetcodeBetweenScenesService.Instance.OwnerClientId);
+         /*   if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0 && movementCmp.MaxMoveSpeed > 0) {
+               carCmp.CarView.SyncRigidbodyView.RequestPushForceServerRpc(
+                    movementCmp.MovableObjectRigidbody.transform.up * movementCmp.CurrentMoveSpeed * carCmp.CurrentWeight / 10);
+              //   movementCmp.MovableObjectRigidbody.AddForce(movementCmp.MovableObjectRigidbody.transform.up * movementCmp.CurrentMoveSpeed * carCmp.CurrentWeight / 10);
+            }
+
+            if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
+                var windCmp = _windComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+               carCmp.CarView.SyncRigidbodyView.RequestPushForceServerRpc(windCmp.WindDirection * windCmp.WindSpeed);
+              //  movementCmp.MovableObjectRigidbody.AddForce(windCmp.WindDirection * windCmp.WindSpeed);
+            }*/
+          //  movementCmp.MovableObjectRigidbody.AddForce( movementCmp.CurrentMoveSpeed, ForceMode2D.Force);
           /*  if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
                 var windCmp = _windComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
                 movementCmp.MovableObjectRigidbody.AddForce(windCmp.WindDirection * windCmp.WindSpeed, ForceMode2D.Force);
             }*/
                 
             
-            carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
-            carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
+          //  carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
+         //   carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
 
             if (isPlayer)
                 UpdateCameraPosition(carCmp.CarView.transform.position);
@@ -454,8 +469,8 @@ public class MovementSystem : IEcsRunSystem {
       
       
 
-        foreach (var wheel in wheels)
-            wheel.transform.localRotation = currentWheelAngle;
+      //  foreach (var wheel in wheels)
+       //     wheel.transform.localRotation = currentWheelAngle;
     }
 
     private void SetWheelParticleSystemState(int entity, bool needParticles) {

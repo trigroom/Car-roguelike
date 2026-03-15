@@ -1144,6 +1144,137 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
     }
 
+    /*private void ProjectileHitCalculating(AttackType attackType, int weaponId, Vector2Int damagedEntityGridPosition, int damagedMainEntity,
+        Vector2 collisionPoint, ProjectileView projectile = null, int weaponCellEntity = -1, string layerName = null) {
+        float damagePoints;
+
+        if (damagedEntityGridPosition == -Vector2Int.one) {
+            ReleaseProjectileForObstacle(projectile);
+            return;
+        }
+
+    
+
+    
+        bool isPlayer = false;
+        if *//*gunProjectile*//* (attackType == AttackType.Projectile) {
+            if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
+            ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectile.entity);
+
+            var gunConfig = _sceneService.Value.GetGunFromCarPart(weaponId);
+            damagePoints = projectileCmp.Damage;
+
+            projectileCmp.CurrentBreakingThroughCount--;
+            if (projectileCmp.CurrentBreakingThroughCount <= 0) {
+                projectileCmp.IsActive = false;
+                _sceneService.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius, _sceneService.Value._bulletSprites);
+                projectile.rigidbody2D.linearVelocity = Vector2.zero;
+            } else
+                projectileCmp.Damage *= 1 - gunConfig.BreakingThroughDamageFalloff;
+
+            isPlayer = projectileCmp.MainEntity == _sceneService.Value.PlayerEntity;
+
+    
+
+            LayerMask layerMask = layerName == "Player"
+                ? LayerMask.GetMask(new string[] { "CarBase", "UpCarPart" })
+                : LayerMask.GetMask(new string[] { "CarBaseEnemy", "UpCarPartEnemy", "PlayerDamageable" });
+ 
+        
+        } else if (attackType == AttackType.Melee) {
+            if (weaponCellEntity != -1) {
+                if (_shockEffectComponentsPool.Value.Has(weaponCellEntity)) return;
+
+                ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(weaponCellEntity);
+                if (meleeCmp.Countdown > 0) return;
+                meleeCmp.isTriggered = true;
+                meleeCmp.Countdown += meleeCmp.CurrentMaxCountdown;
+                int mainEntity = _carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity;
+                var rigidbodyCurrent = _carComponentsPool.Value.Get(mainEntity).CarView.Rigidbody;
+                isPlayer = mainEntity == _sceneService.Value.PlayerEntity;
+                float damagedObjectMass = 10;
+                float damagedObjectSpeed = 0;
+                if (_movementComponentsPool.Value.Has(damagedMainEntity)) {
+                    var rigidbodyDamaged = _carComponentsPool.Value.Get(damagedMainEntity).CarView.Rigidbody;
+                    damagedObjectMass = rigidbodyDamaged.mass;
+                    damagedObjectSpeed = rigidbodyDamaged.linearVelocity.magnitude;
+                }
+
+                float relativeSpeed = Mathf.Abs(rigidbodyCurrent.linearVelocity.magnitude - damagedObjectSpeed);
+                float speedFactor = relativeSpeed * 0.3f; // Настраиваемый коэффициент
+                float massFactor = damagedObjectMass / 100f; // Нормализуем массу
+
+                float damageByCollision = meleeCmp.DamageBySpeed * speedFactor * massFactor;
+
+                damagePoints = meleeCmp.CurrentDamage + damageByCollision;
+            } else {
+                damagePoints = weaponId;
+            }
+        } else*/ /*laser*/ /*{
+            float distanceBetween = Vector2.Distance(_carPartComponentsPool.Value.Get(weaponCellEntity).CarPartCellRenderer.transform.position,
+                collisionPoint);
+            var gunConfig = _sceneService.Value.GetGunFromCarPart(weaponId);
+            var gunCmp = _gunComponentsPool.Value.Get(weaponCellEntity);
+            float radiusDamageMultiplayer = (1 - distanceBetween / gunConfig.BulletSpeed) * gunConfig.ExplosionRadius +
+                                            (1 - gunConfig.ExplosionRadius);
+            damagePoints = gunCmp.CurrentDamage * radiusDamageMultiplayer * Time.deltaTime;
+            int mainEntity = _carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity;
+            isPlayer = mainEntity == _sceneService.Value.PlayerEntity;
+            // gunConfig.ExplosionRadius is damage that can be minus from all damage from distance - smaller = higher damage
+        }
+
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (layerName == "Player" && curGameCmp.CurrentRoundType != RoundType.VersusBattle) {
+            damagePoints *= curGameCmp.RoundMoneyMultiplayer;
+            damagePoints *= curGameCmp.DifficultyDamageMultiplayer;
+        }
+
+        if (damagePoints > 0) {
+            var damagedCarPartCmp = _carPartInfoComponentsPool.Value.Get(damagedEntity);
+
+            if (damagedEntityGridPosition.x >= 0 &&
+                _sceneService.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
+                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
+                var damagedCell = carCmpDamaged.CarPartViewsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+                var armorConfig = _sceneService.Value.GetArmorFromCarPart(damagedCarPartCmp.CarPartId);
+                if (GetBulletDirection(damagedCell.transform, collisionPoint, armorConfig)) {
+                    float defencePercent = armorConfig.DefencePercent * GridUtils.GetArmorLevelMultipliers(damagedCarPartCmp.PartLevel);
+                    damagePoints *= 1f - defencePercent / (defencePercent + 100f);
+                }
+            }
+
+            if (_frozenComponentsPool.Value.Has(damagedEntity)) {
+                damagePoints *= 1f + _frozenComponentsPool.Value.Get(damagedEntity).Duration / 100;
+            }
+
+            if (weaponCellEntity > 0 && _laserComponentsPool.Value.Has(weaponCellEntity)) {
+                if (DataPersistenceManagerSystem._gameData.UseDamageNumbers) {
+                    ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
+
+                    if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
+                        !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
+                        laserCmp.DamageCountForLastPart = 0;
+                        laserCmp.LastDamagedEntity = damagedEntity;
+
+                        (laserCmp.LaserDamageText, laserCmp.CurrentSequence) =
+                            _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                    } else {
+                        laserCmp.CurrentSequence.Kill();
+                        laserCmp.CurrentSequence = _sceneService.Value.SetFloatingText(collisionPoint,
+                            laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText, laserCmp.CurrentSequence);
+                        laserCmp.DamageCountForLastPart += damagePoints;
+                    }
+                }
+            } else
+                _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+
+            if (isPlayer)
+                DataPersistenceManagerSystem._gameData.PlayerDamage += damagePoints;
+
+            ChangeHealth(damagePoints, damagedEntity);
+        }
+    }*/
+    
     private void ProjectileImpulse(float impulseForce, int damagedEntity, Vector2 collisionPoint) {
         int mainEntity = _carPartComponentsPool.Value.Get(damagedEntity).MainEntity;
         if (mainEntity < 0) return;
@@ -1442,7 +1573,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 var gridPos = carCmp.CarPartGroupsList[cellEntity][i];
                 carCmp.CarPartGroupsGrid[gridPos.x, gridPos.y] = 0;
                 string needLayer = !isEnemy ? "CarBase" : "CarBaseEnemy";
-                carPart.SetupCarPart(gridPos, needLayer, carPartCmp.MainEntity);
+                carPart.SetupCarPart(gridPos, needLayer, carPartCmp.MainEntity,0);
             }
 
             if (carPartConfig.PartType == CarPartType.Support) {

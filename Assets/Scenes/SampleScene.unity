@@ -30965,12 +30965,12 @@ MonoBehaviour:
   <clientsMessegeText>k__BackingField: {fileID: 192271051}
   <_carView>k__BackingField: {fileID: 5873621609195199634, guid: 596d0515881a06c429abe7c6439d6264, type: 3}
   <networkObjectsMapContainer>k__BackingField: {fileID: 1697414393}
-  <carPartStuffContainerView>k__BackingField: {fileID: -1664156723454980657, guid: 78c694d2b7e05a74696c662d4663096e, type: 3}
-  <gunContainer>k__BackingField: {fileID: -8415562921734903469, guid: 39c00479604e7604ebfc80ff876a5592, type: 3}
-  <spriteRenderer>k__BackingField: {fileID: 6183967727194747548, guid: ab2d43c8c551ecd4b99f88ac6593dd94, type: 3}
-  <laserLineRenderer>k__BackingField: {fileID: -2127818427148117112, guid: 3152071df4c62e143b3da62e7835773c, type: 3}
-  <meleeCarPartStuffView>k__BackingField: {fileID: -2567297385982231377, guid: 93647ed554c1ac8459a95eea789af13e, type: 3}
-  <notUsedNetworkObjectsContainer>k__BackingField: {fileID: 1757493233}
+  <carPartStuffContainerView>k__BackingField: {fileID: -6712694133279507477, guid: e61c40a5a84f28a48be59a1d252c12e1, type: 3}
+  <gunContainer>k__BackingField: {fileID: 7202835890898529445, guid: 9f85ea5978a199c4f95315ce4358fb74, type: 3}
+  <spriteRenderer>k__BackingField: {fileID: 2748260374502283327, guid: ab2d43c8c551ecd4b99f88ac6593dd94, type: 3}
+  <laserLineRenderer>k__BackingField: {fileID: 1786550604781276581, guid: 25d4e7f5647b5f74d9d80b2da1ddf827, type: 3}
+  <meleeCarPartStuffView>k__BackingField: {fileID: 5055266588798338170, guid: b5905cdd0149c9f41920c02fc4fc69ff, type: 3}
+  <notUsedNetworkObjectsContainer>k__BackingField: {fileID: 1697414395}
 --- !u!1 &1357007293
 GameObject:
   m_ObjectHideFlags: 0
@@ -48605,13 +48605,13 @@ SceneRoots:
   - {fileID: 913908418}
   - {fileID: 1115407813}
   - {fileID: 829436328}
+  - {fileID: 1697414395}
   - {fileID: 1466434875}
   - {fileID: 1423517199}
   - {fileID: 1888120595}
   - {fileID: 1408553245}
   - {fileID: 536468873}
   - {fileID: 690820216}
-  - {fileID: 1697414395}
   - {fileID: 1757493234}
   - {fileID: 1189824386}
   - {fileID: 1846311316}

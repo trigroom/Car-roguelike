@@ -103,8 +103,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
     [ClientRpc]
     public void StartRoundClientRpc(RoundType roundType) {
         startRoundAction.Invoke(roundType);
-        if (NetworkManager.Singleton.IsHost) return;
-        NetcodeSceneService.HideMessageClientRpc();
+    //    NetcodeSceneService.HideMessageClientRpc();
     }
     [ServerRpc(RequireOwnership = false)]
     public void SetPlayerReadyServerRpc(ulong clientId, bool isReady)

@@ -8,11 +8,15 @@ public class CarPartStuffView : MonoBehaviour
     public Vector2Int _gridPosition { get;private set; }
     [field: SerializeField]
     public int _mainEntity { get;private set; }
+    [field: SerializeField]
+    public ulong _clientId { get;private set; }
 
-    public void SetupCarPart(Vector2Int gridPosition, string carPartLayer, int mainEntity) {
+    public void SetupCarPart(Vector2Int gridPosition, string carPartLayer, int mainEntity, ulong clientId) {
         _gridPosition = gridPosition;
         gameObject.layer = LayerMask.NameToLayer(carPartLayer);
         _mainEntity = mainEntity;
+        if (clientId != 0)
+            _clientId = clientId;
     }
 
     public void SetColliderEnableState(bool state) {

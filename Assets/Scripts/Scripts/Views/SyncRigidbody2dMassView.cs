@@ -1,18 +1,28 @@
+using System;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 public class SyncRigidbody2DMassView : NetworkBehaviour {
+    [SerializeField]
     private Rigidbody2D rb;
+    public Animator[] ForwardWheels;
+    public ParticleSystem[] WheelsParticles;
 
-    private NetworkVariable<float> networkMass = new NetworkVariable<float>(1f, 
-        NetworkVariableReadPermission.Everyone, 
-        NetworkVariableWritePermission.Server 
-    );
+    private NetworkVariable<float> networkMass = new NetworkVariable<float>(1f,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<float> networkAngle = new NetworkVariable<float>(1f,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<NetworkPoints> networkPoints = new NetworkVariable<NetworkPoints>(new NetworkPoints(),
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    private void Awake() {
+        rb = GetComponentInChildren<Rigidbody2D>();
+        polygonCollider = GetComponentInChildren<PolygonCollider2D>();
+    }
 
     public override void OnNetworkSpawn() {
-        rb = GetComponent<Rigidbody2D>();
-        polygonCollider = GetComponent<PolygonCollider2D>();
+      
       
         networkMass.OnValueChanged += OnMassChanged;
         networkPoints.OnValueChanged += OnPointsChanged;
@@ -32,19 +42,18 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
         rb.mass = newMass;
         networkMass.Value = newMass;
     }
-    
-    
-    
-  private PolygonCollider2D polygonCollider;
+    [ClientRpc]
+    public void SetWheelsRotateClientRpc(float newAngle) {
+        var needRot = Quaternion.Euler(0, 0, newAngle);
+      //  Debug.Log(needRot+ " len "+ForwardWheels.Length);
+        foreach (var wheel in ForwardWheels) 
+            wheel.transform.rotation = needRot;
+    }
+
+    private PolygonCollider2D polygonCollider;
     
     // Вместо FixedList используем кастомный тип с массивом
-    private NetworkVariable<NetworkPoints> networkPoints = 
-        new NetworkVariable<NetworkPoints>(
-            new NetworkPoints(),
-            NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Server
-        );
-
+   
     // Кастомная структура для сериализации массива точек
     [System.Serializable]
     public struct NetworkPoints : INetworkSerializable
@@ -75,10 +84,9 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
     private void OnPointsChanged(NetworkPoints oldValue, NetworkPoints newValue)
     {
         // Когда сервер обновляет точки, клиенты применяют новую форму
-        if (!IsServer)
-        {
+      
             UpdateColliderFromNetworkPoints();
-        }
+        
     }
 
     // Метод для обновления коллайдера на клиентах
@@ -87,23 +95,25 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
         if (polygonCollider == null) return;
         
         // Применяем точки из NetworkVariable к коллайдеру
-        if (networkPoints.Value.Points != null && networkPoints.Value.Points.Length > 0)
-        {
+    //    if (networkPoints.Value.Points != null && networkPoints.Value.Points.Length > 0)
+   //     {
             polygonCollider.SetPath(0, networkPoints.Value.Points);
-        }
+     //   }
     }
 
-    // Метод для обновления сетевых точек с коллайдера (вызывается на сервере)
-    private void UpdateNetworkPointsFromCollider()
-    {
-        if (!IsServer || polygonCollider == null) return;
-        
-        var points = polygonCollider.GetPath(0);
-        networkPoints.Value = new NetworkPoints { Points = points };
+    private void Update() {
+        if (IsOwner) {
+            networkAngle.Value = rb.transform.rotation.eulerAngles.z;
+            Debug.Log(networkAngle.Value + "         "+ rb.transform.rotation.eulerAngles.z);
+        }
+            
+        else
+            rb.transform.rotation = Quaternion.Euler(0, 0, networkAngle.Value);
+        //     SetRotationClientRpc(rb.transform.eulerAngles.z, NetcodeBetweenScenesService.Instance.OwnerClientId);
     }
 
     // Этот метод можно вызывать на сервере, чтобы изменить форму
-    public void SetPolygonPathOnServer(Vector2[] newPoints)
+    public void SetPolygonPath(Vector2[] newPoints)
     {
         if (!IsServer) return;
         
@@ -116,29 +126,42 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
     
     // Клиенты могут запросить изменение через ServerRpc
     [ServerRpc(RequireOwnership = false)]
-    public void ChangePolygonServerRpc(Vector2[] newPoints, ServerRpcParams rpcParams = default)
+    public void ChangePolygonServerRpc(Vector2[] newPoints)
     {
-        SetPolygonPathOnServer(newPoints);
+        SetPolygonPath(newPoints);
     }
     
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     public void RequestPushImpulseServerRpc(Vector2 force)
     {
         // Сервер применяет силу
         rb.AddForce(force, ForceMode2D.Impulse);
     }
     
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     public void RequestPushForceServerRpc(Vector2 force)
     {
         // Сервер применяет силу
+        Debug.Log($"Try sent force: {force}");
         rb.AddForce(force, ForceMode2D.Force);
     }
     
-    [ServerRpc]
-    public void RequestSetAngularVelocityServerRpc(float angularVelocity)
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestSetAngularVelocityServerRpc(float angularVelocity, float wheelAngle, ServerRpcParams rpcParams = default)
     {
-        // Сервер устанавливает угловую скорость
-        rb.angularVelocity = angularVelocity;
+        Debug.Log($"{angularVelocity} wheel angle {wheelAngle} ");
+        SetWheelsRotateClientRpc(wheelAngle);
+     
+       rb.angularVelocity = angularVelocity;
+     //  SetAngularVelocityClientRpc(angularVelocity);
+    }
+    
+    [ClientRpc]
+    public void SetRotationClientRpc(float angularVelocity, ulong clientId) {
+        Debug.Log($"{angularVelocity} av + need id {clientId} + owner {OwnerClientId}");
+       // if (clientId == OwnerClientId)return;
+        
+       // Debug.Log(angularVelocity);
+            rb.transform.rotation = Quaternion.Euler(0, 0, angularVelocity);
     }
 }
