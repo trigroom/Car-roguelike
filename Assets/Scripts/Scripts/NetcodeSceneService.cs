@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DG.Tweening;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -17,6 +18,8 @@ public class NetcodeSceneService : NetworkBehaviour
    [field:SerializeField] public TMP_Text clientsMessegeText { get; private set; }
    [field:SerializeField] public Transform _carView { get; private set; }
    [field:SerializeField] public NetworkObject networkObjectsMapContainer { get; private set; }
+   [field:SerializeField] public NetworkObject floatingTextMapContainer { get; private set; }
+   [field:SerializeField] public NetworkObject floatingTextPrefab { get; private set; }
    [field:SerializeField] public CarPartStuffView carPartStuffContainerView { get; private set; }
    [field:SerializeField] public Transform gunContainer { get; private set; }
    [field:SerializeField] public SpriteRenderer spriteRenderer { get; private set; }
@@ -24,6 +27,7 @@ public class NetcodeSceneService : NetworkBehaviour
    [field:SerializeField] public MeleeCarPartStuffView meleeCarPartStuffView { get; private set; }
    [field:SerializeField] public Transform notUsedNetworkObjectsContainer { get; private set; }
    private Action<CarView, int> _carSetupAction;
+   private Action<NetworkObject,Sequence, int> _laserTextGetAction;
    private Action<Animator[], int[]> _wheelComponentsSetupAction;
 
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
@@ -33,6 +37,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private ObjectPool<SpriteRenderer> _spriteRenderersPool;
    private ObjectPool<LineRenderer> _laserLineRenderersPool;
    private ObjectPool<MeleeCarPartStuffView> _meleeCarPartStuffViewsPool;
+   private ObjectPool<NetworkObject> _floatingTextsPool;
     private void Awake() {
         NetcodeBetweenScenesService.Instance.NetcodeSceneService = this;
       
@@ -40,7 +45,11 @@ public class NetcodeSceneService : NetworkBehaviour
 
     public override void OnNetworkSpawn() {
         base.OnNetworkSpawn();
-        
+        _floatingTextsPool = new ObjectPool<NetworkObject>(() => {
+            var needObject = Instantiate(floatingTextPrefab);
+         
+            return needObject;
+        });
         _carPartsPool = new ObjectPool<CarPartStuffView>(() => {
             var needObject = Instantiate(carPartStuffContainerView);
          
@@ -67,13 +76,34 @@ public class NetcodeSceneService : NetworkBehaviour
             return needObject;
         });
     }
+    [ServerRpc(RequireOwnership = false)]
+    public void GetLaserFloatingTextServerRpc(int entity, Vector2 position,string text, ServerRpcParams rpcParams = default) {
+        var floatingText = _floatingTextsPool.Get();
+        if (!floatingText.IsSpawned) {
+            floatingText.Spawn();
+            floatingText.TrySetParent(floatingTextMapContainer);
+        }
+            
+        SetFloatingTextClientRpc(position, text, Color.white, floatingText,entity,rpcParams.Receive.SenderClientId);
+       
+    }
+    
+    /*[ServerRpc(RequireOwnership = false)]
+    public void SpawnCarPartSpritesServerRpc(int mainEntity, int cellEntity, int carPartId, int rotateAngle, bool isPlayer,
+        int containerSizeX, int containerSizeY, NetworkObjectReference carView, int[] carpartStuffPositionsX, int[] carpartStuffPositionsY,
+        ServerRpcParams rpcParams = default) {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        SpawnCarPartSpritesClientRpc(clientId,mainEntity,  cellEntity, carPartId, rotateAngle,  isPlayer, containerSizeX,
+            containerSizeY, carView,  carpartStuffPositionsX, carpartStuffPositionsY);
+    }*/
 
-    public void SetupService(Action<CarView, int> carSetupAction, Action<Animator[], int[]> wheelComponentsSetupAction,
+    public void SetupService(Action<NetworkObject,Sequence, int> laserTextGetAction,Action<CarView, int> carSetupAction, Action<Animator[], int[]> wheelComponentsSetupAction,
         Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
             carPartSetupAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
+        _laserTextGetAction = laserTextGetAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -82,6 +112,43 @@ public class NetcodeSceneService : NetworkBehaviour
         if (isSpawn)
             needObject.Spawn(true);
         return needObject;
+    }
+    [ServerRpc(RequireOwnership = false)]
+    public void GetFloatingTextPrefabServerRpc(Vector2 position, string text, Color textColor, ServerRpcParams rpcParams = default) {
+      
+        var floatingText = _floatingTextsPool.Get();
+        if (!floatingText.IsSpawned) {
+             floatingText.Spawn();
+             floatingText.TrySetParent(floatingTextMapContainer);
+        }
+           
+        SetFloatingTextClientRpc(position, text, textColor, floatingText);
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SetFloatingTextClientRpc(Vector2 position, string text, Color textColor, NetworkObjectReference floatingTextNO,int entity = -1, ulong clientId = 0) {
+        floatingTextNO.TryGet(out var networkObject);
+       
+        var floatingText = networkObject.GetComponent<TMP_Text>();
+        floatingText.text = text;
+        floatingText.transform.position = position;
+        floatingText.color = textColor; 
+        networkObject.gameObject.SetActive(DataPersistenceManagerSystem._gameData.UseDamageNumbers);
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(floatingText.transform.DOLocalMoveY(position.y + 1, 0.7f).SetEase(Ease.OutCubic));
+        sequence.Join(floatingText.DOColor(new Color(textColor.r, textColor.g, textColor.b, 0), 0.7f));
+        sequence.OnComplete(() => {
+            if (IsServer)
+                ReleaseFloatingText(floatingTextNO);
+        });
+        
+        sequence.Play();
+        
+        if(entity != -1 && clientId == NetworkManager.LocalClientId)
+            _laserTextGetAction.Invoke(networkObject,sequence, entity);
+    }
+
+    public void ReleaseFloatingText(NetworkObjectReference textObject) {
+       _floatingTextsPool.Release(textObject);
     }
     public void ShowMessageClient(string text) {
         if (NetworkManager.Singleton.IsHost) return;

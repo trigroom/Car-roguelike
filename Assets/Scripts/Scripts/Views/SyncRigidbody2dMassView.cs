@@ -104,7 +104,7 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
     private void Update() {
         if (IsOwner) {
             networkAngle.Value = rb.transform.rotation.eulerAngles.z;
-            Debug.Log(networkAngle.Value + "         "+ rb.transform.rotation.eulerAngles.z);
+         //   Debug.Log(networkAngle.Value + "         "+ rb.transform.rotation.eulerAngles.z);
         }
             
         else

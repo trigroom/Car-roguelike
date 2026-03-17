@@ -81,7 +81,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _playerCurrencyComponentsPool.Value.Add(playerEntity);
         _sceneService.Value.PlayerEntity = playerEntity;
         
-      _netcodeSceneService.Value.SetupService(CarViewSetup,SetupWheelComponents,SetupCarPartSprites);
+      _netcodeSceneService.Value.SetupService(SetupLaserComponent,CarViewSetup,SetupWheelComponents,SetupCarPartSprites);
       //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         
@@ -359,6 +359,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             SendEnemyCar();
     }
 
+    private void SetupLaserComponent( NetworkObject newText, Sequence needSequence,int entity) {
+        ref var laserCmp = ref _laserComponentsPool.Value.Get(entity);
+        laserCmp.LaserDamageText = newText;
+        laserCmp.CurrentSequence = needSequence;
+    }
     private void SendEnemyCar() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.EnemySendPhase = 2;

@@ -208,6 +208,8 @@ public class SceneService : MonoBehaviour {
         var curSequence = SetFloatingText(position, text, textColor, floatingText);
         return (floatingText,curSequence);
     }
+    
+    
 
     public Sequence SetFloatingText(Vector2 position, string text, Color textColor, TMP_Text floatingText, Sequence needSequence = null) {
         floatingText.text = text;

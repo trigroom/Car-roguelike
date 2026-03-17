@@ -5,6 +5,8 @@ using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
+using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.UI;
@@ -20,6 +22,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsWorldInject _world;
     private EcsCustomInject<SceneService> _sceneService;
     private EcsCustomInject<BetweenScenesService> _betweenScenesService;
+    private EcsCustomInject<NetcodeSceneService> _netcodeSceneService;
 
     private EcsPoolInject<CarPartCellComponent> _carPartCellComponentsPool;
     private EcsPoolInject<CarComponent> _carComponentsPool;
@@ -320,9 +323,11 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 if (_carPartInfoComponentsPool.Value.Get(burnedEntity).CurrentHealth <= 0 ||
                     _carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer == null)
                     continue;
-
-                _sceneService.Value.GetFloatingTextPrefab(_carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer.transform.position,
-                    damage.ToString("F2"), new Color(1, 0.5f, 0.1f, 1));
+                _netcodeSceneService.Value.GetFloatingTextPrefabServerRpc(
+                    _carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer.transform.position, damage.ToString("F2"),
+                    new Color(1, 0.5f, 0.1f, 1));
+               /* _sceneService.Value.GetFloatingTextPrefab(_carPartComponentsPool.Value.Get(burnedEntity).CarPartCellRenderer.transform.position,
+                    damage.ToString("F2"), new Color(1, 0.5f, 0.1f, 1));*/
                 if (damage <= 1) {
                     foreach (var particles in fireCmp.ParticleSystem) {
                         _sceneService.Value.ReleaseCarPartParticles(particles);
@@ -497,7 +502,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 SetEffectComponent(carPartEntity, effect, duration * distanceMultiplayer);
             else {
                 ChangeHealth(duration * distanceMultiplayer, carPartEntity);
-                _sceneService.Value.GetFloatingTextPrefab(explodePosition, (duration * distanceMultiplayer).ToString("F2"), Color.white);
+                _netcodeSceneService.Value.GetFloatingTextPrefabServerRpc(explodePosition, (duration * distanceMultiplayer).ToString("F2"), Color.white);
+             //   _sceneService.Value.GetFloatingTextPrefab(explodePosition, (duration * distanceMultiplayer).ToString("F2"), Color.white);
             }
         }
     }
@@ -1038,9 +1044,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                     if (_frozenComponentsPool.Value.Has(currentDamagedEntity)) {
                         damagePoints *= 1f + _frozenComponentsPool.Value.Get(currentDamagedEntity).Duration / 100;
                     }
-
-                    _sceneService.Value.GetFloatingTextPrefab(castedObject.transform.position, explosionDamagePoints.ToString("F2"),
+                    _netcodeSceneService.Value.GetFloatingTextPrefabServerRpc(castedObject.transform.position, explosionDamagePoints.ToString("F2"),
                         Color.white);
+                  /*  _sceneService.Value.GetFloatingTextPrefab(castedObject.transform.position, explosionDamagePoints.ToString("F2"),
+                        Color.white);*/
                     if (isPlayer)
                         DataPersistenceManagerSystem._gameData.PlayerDamage += explosionDamagePoints;
                     ChangeHealth(explosionDamagePoints, currentDamagedEntity);
@@ -1120,22 +1127,28 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 if (DataPersistenceManagerSystem._gameData.UseDamageNumbers) {
                     ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
 
-                    if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
+                    if (laserCmp.LaserDamageText == null ||
+                        (laserCmp.LastDamagedEntity != damagedEntity || laserCmp.LastDamagedCarPartPosition != damagedEntityGridPosition) ||
                         !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
                         laserCmp.DamageCountForLastPart = 0;
                         laserCmp.LastDamagedEntity = damagedEntity;
-
-                        (laserCmp.LaserDamageText, laserCmp.CurrentSequence) =
-                            _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                        laserCmp.LastDamagedCarPartPosition = damagedEntityGridPosition;
+                //     laserCmp.TextIsAdded = true;
+                       /*  TMP_Text newText;
+                        (newText, laserCmp.CurrentSequence) =
+                           _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                        laserCmp.LaserDamageText = newText.gameObject.GetComponent<NetworkObject>();*/
+                       _netcodeSceneService.Value.GetLaserFloatingTextServerRpc(weaponCellEntity, collisionPoint, damagePoints.ToString("F2"));
                     } else {
                         laserCmp.CurrentSequence.Kill();
                         laserCmp.CurrentSequence = _sceneService.Value.SetFloatingText(collisionPoint,
-                            laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText, laserCmp.CurrentSequence);
+                            laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText.GetComponent<TMP_Text>(), laserCmp.CurrentSequence);
                         laserCmp.DamageCountForLastPart += damagePoints;
                     }
                 }
             } else
-                _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                _netcodeSceneService.Value.GetFloatingTextPrefabServerRpc(collisionPoint, damagePoints.ToString("F2"), Color.white);
+               // _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
 
             if (isPlayer)
                 DataPersistenceManagerSystem._gameData.PlayerDamage += damagePoints;
@@ -1144,7 +1157,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
     }
 
-    /*private void ProjectileHitCalculating(AttackType attackType, int weaponId, Vector2Int damagedEntityGridPosition, int damagedMainEntity,
+    private void ProjectileHitCalculating(ulong playerId,AttackType attackType, int weaponId, Vector2Int damagedEntityGridPosition, int damagedMainEntity,
         Vector2 collisionPoint, ProjectileView projectile = null, int weaponCellEntity = -1, string layerName = null) {
         float damagePoints;
 
@@ -1157,7 +1170,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
     
         bool isPlayer = false;
-        if *//*gunProjectile*//* (attackType == AttackType.Projectile) {
+        if /*gunProjectile*/ (attackType == AttackType.Projectile) {
             if (!_projectileComponentsPool.Value.Get(projectile.entity).IsActive) return;
             ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectile.entity);
 
@@ -1210,7 +1223,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             } else {
                 damagePoints = weaponId;
             }
-        } else*/ /*laser*/ /*{
+        } else /*laser*/ {
             float distanceBetween = Vector2.Distance(_carPartComponentsPool.Value.Get(weaponCellEntity).CarPartCellRenderer.transform.position,
                 collisionPoint);
             var gunConfig = _sceneService.Value.GetGunFromCarPart(weaponId);
@@ -1230,51 +1243,81 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         if (damagePoints > 0) {
-            var damagedCarPartCmp = _carPartInfoComponentsPool.Value.Get(damagedEntity);
-
-            if (damagedEntityGridPosition.x >= 0 &&
-                _sceneService.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
-                var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                var damagedCell = carCmpDamaged.CarPartViewsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
-                var armorConfig = _sceneService.Value.GetArmorFromCarPart(damagedCarPartCmp.CarPartId);
-                if (GetBulletDirection(damagedCell.transform, collisionPoint, armorConfig)) {
-                    float defencePercent = armorConfig.DefencePercent * GridUtils.GetArmorLevelMultipliers(damagedCarPartCmp.PartLevel);
-                    damagePoints *= 1f - defencePercent / (defencePercent + 100f);
-                }
-            }
-
-            if (_frozenComponentsPool.Value.Has(damagedEntity)) {
-                damagePoints *= 1f + _frozenComponentsPool.Value.Get(damagedEntity).Duration / 100;
-            }
-
-            if (weaponCellEntity > 0 && _laserComponentsPool.Value.Has(weaponCellEntity)) {
-                if (DataPersistenceManagerSystem._gameData.UseDamageNumbers) {
+            if (DataPersistenceManagerSystem._gameData.UseDamageNumbers) {
+                if (weaponCellEntity > 0 && _laserComponentsPool.Value.Has(weaponCellEntity)) {
                     ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponCellEntity);
 
-                    if (laserCmp.LaserDamageText == null || laserCmp.LastDamagedEntity != damagedEntity ||
-                        !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
+                    if (laserCmp.LaserDamageText == null ||
+                        (laserCmp.LastDamagedEntity != damagedMainEntity || laserCmp.LastDamagedCarPartPosition != damagedEntityGridPosition ||
+                         laserCmp.LastDamagedPlayerId != playerId) || !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
                         laserCmp.DamageCountForLastPart = 0;
-                        laserCmp.LastDamagedEntity = damagedEntity;
-
-                        (laserCmp.LaserDamageText, laserCmp.CurrentSequence) =
+                        laserCmp.LastDamagedEntity = damagedMainEntity;
+                        laserCmp.LastDamagedCarPartPosition = damagedEntityGridPosition;
+                        laserCmp.LastDamagedPlayerId = playerId;
+                        TMP_Text newText;
+                        (newText, laserCmp.CurrentSequence) =
                             _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                        laserCmp.LaserDamageText = newText.gameObject.GetComponent<NetworkObject>();
+
                     } else {
                         laserCmp.CurrentSequence.Kill();
                         laserCmp.CurrentSequence = _sceneService.Value.SetFloatingText(collisionPoint,
-                            laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText, laserCmp.CurrentSequence);
+                            laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText.GetComponent<TMP_Text>(), laserCmp.CurrentSequence);
                         laserCmp.DamageCountForLastPart += damagePoints;
                     }
-                }
-            } else
-                _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                } else
+                    _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+            }
 
             if (isPlayer)
                 DataPersistenceManagerSystem._gameData.PlayerDamage += damagePoints;
 
-            ChangeHealth(damagePoints, damagedEntity);
+          //  ChangeHealth(damagePoints, damagedEntity);
         }
-    }*/
+    }
+
+    private void SetLaserValues(ulong playerId, int damagedMainEntity, Vector2Int damagedEntityGridPosition, int weaponEntity,
+        Vector2 collisionPoint, float damagePoints, bool isPlayer) {
+        if (DataPersistenceManagerSystem._gameData.UseDamageNumbers) {
+            if (weaponEntity > 0 && _laserComponentsPool.Value.Has(weaponEntity)) {
+                ref var laserCmp = ref _laserComponentsPool.Value.Get(weaponEntity);
+
+                if (laserCmp.LaserDamageText == null ||
+                    (laserCmp.LastDamagedEntity != damagedMainEntity || laserCmp.LastDamagedCarPartPosition != damagedEntityGridPosition ||
+                     laserCmp.LastDamagedPlayerId != playerId) || !laserCmp.LaserDamageText.gameObject.activeInHierarchy) {
+                    laserCmp.DamageCountForLastPart = 0;
+                    laserCmp.LastDamagedEntity = damagedMainEntity;
+                    laserCmp.LastDamagedCarPartPosition = damagedEntityGridPosition;
+                    laserCmp.LastDamagedPlayerId = playerId;
+
+                    TMP_Text newText;
+                    (newText, laserCmp.CurrentSequence) =
+                        _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+                    laserCmp.LaserDamageText = newText.gameObject.GetComponent<NetworkObject>();
+                } else {
+                    laserCmp.CurrentSequence.Kill();
+                    laserCmp.CurrentSequence = _sceneService.Value.SetFloatingText(collisionPoint,
+                        laserCmp.DamageCountForLastPart.ToString("F2"), Color.white, laserCmp.LaserDamageText.GetComponent<TMP_Text>(), laserCmp.CurrentSequence);
+                    laserCmp.DamageCountForLastPart += damagePoints;
+                }
+            } else
+                _sceneService.Value.GetFloatingTextPrefab(collisionPoint, damagePoints.ToString("F2"), Color.white);
+        }
+
+        if (isPlayer && playerId == NetworkManager.Singleton.LocalClientId)
+            DataPersistenceManagerSystem._gameData.PlayerDamage += damagePoints;
+    }
+    private void CalculateProjectileDamage() {
+        
+    }
+
+    private void CalculateMeleeDamage() {
+        
+    }
     
+    private void CalculateLaserDamage() {
+        
+    }
     private void ProjectileImpulse(float impulseForce, int damagedEntity, Vector2 collisionPoint) {
         int mainEntity = _carPartComponentsPool.Value.Get(damagedEntity).MainEntity;
         if (mainEntity < 0) return;
