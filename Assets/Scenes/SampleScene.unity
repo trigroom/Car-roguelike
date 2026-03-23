@@ -31088,6 +31088,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  <_hpBarPrefab>k__BackingField: {fileID: 3974467358131833206, guid: bf85613beaf425c41b4c39f1cc809071, type: 3}
+  <_hpBarsContainer>k__BackingField: {fileID: 1129992650}
   <playersContainersTransform>k__BackingField: {fileID: 685733982}
   <clientsMessegeText>k__BackingField: {fileID: 192271051}
   <_carView>k__BackingField: {fileID: 5873621609195199634, guid: 596d0515881a06c429abe7c6439d6264, type: 3}
@@ -31100,6 +31102,36 @@ MonoBehaviour:
   <laserLineRenderer>k__BackingField: {fileID: 1786550604781276581, guid: 25d4e7f5647b5f74d9d80b2da1ddf827, type: 3}
   <meleeCarPartStuffView>k__BackingField: {fileID: 5055266588798338170, guid: b5905cdd0149c9f41920c02fc4fc69ff, type: 3}
   <notUsedNetworkObjectsContainer>k__BackingField: {fileID: 1697414395}
+  <_healthGradient>k__BackingField:
+    serializedVersion: 2
+    key0: {r: 0.8867924, g: 0.25516194, b: 0.25516194, a: 1}
+    key1: {r: 0.8867924, g: 0.885148, b: 0.29699183, a: 1}
+    key2: {r: 0.35312033, g: 0.8018868, b: 0.28368637, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 32768
+    ctime2: 65535
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 3
+    m_NumAlphaKeys: 2
 --- !u!1 &1357007293
 GameObject:
   m_ObjectHideFlags: 0

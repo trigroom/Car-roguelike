@@ -60,6 +60,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<VersusBattleComponent> _versusBattleComponentsPool;
     private EcsPoolInject<FireExtinguisherComponent> _fireExtinguisherComponentsPool;
     private EcsPoolInject<TrainControllerComponent> _trainControllerComponentsPool;
+    private EcsPoolInject<HpBarComponent> _hpBarComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -81,7 +82,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _playerCurrencyComponentsPool.Value.Add(playerEntity);
         _sceneService.Value.PlayerEntity = playerEntity;
         
-      _netcodeSceneService.Value.SetupService(SetupLaserComponent,CarViewSetup,SetupWheelComponents,SetupCarPartSprites);
+      _netcodeSceneService.Value.SetupService(GetHpBar,DeleteHpBarComponent,SetupLaserComponent,CarViewSetup,SetupWheelComponents,SetupCarPartSprites);
       //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         
@@ -359,6 +360,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             SendEnemyCar();
     }
 
+    private void DeleteHpBarComponent(int entity) {
+        if (_hpBarComponentsPool.Value.Has(entity))
+            _hpBarComponentsPool.Value.Del(entity);
+    }
     private void SetupLaserComponent( NetworkObject newText, Sequence needSequence,int entity) {
         ref var laserCmp = ref _laserComponentsPool.Value.Get(entity);
         laserCmp.LaserDamageText = newText;
@@ -383,6 +388,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 curGameCmp.EnemyTargetPosition = Vector2.one * 999;
             });
         });
+    }
+
+    private void GetHpBar(NetworkObject newHpBar, int entity) {
+        _hpBarComponentsPool.Value.Get(entity).hpBarImage = newHpBar;
     }
     private void SpawnTrain() {
         ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);

@@ -8,10 +8,13 @@ using UnityEngine;
 using UnityEngine.Pool;
 using Unity.Netcode.Transports.UTP;
 using Unity.Netcode.Transports.SinglePlayer;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class NetcodeSceneService : NetworkBehaviour
 {
+    [field: SerializeField] public NetworkObject _hpBarPrefab { get; private set; }
+    [field: SerializeField] public Transform _hpBarsContainer{ get; private set; }
    // private UnityTransport unityTransport;
     private SinglePlayerTransport singlePlayerTransport;
    [field:SerializeField] public Transform playersContainersTransform { get; private set; }
@@ -26,7 +29,10 @@ public class NetcodeSceneService : NetworkBehaviour
    [field:SerializeField] public LineRenderer laserLineRenderer { get; private set; }
    [field:SerializeField] public MeleeCarPartStuffView meleeCarPartStuffView { get; private set; }
    [field:SerializeField] public Transform notUsedNetworkObjectsContainer { get; private set; }
+   [field:SerializeField] public Gradient _healthGradient { get; private set; }
    private Action<CarView, int> _carSetupAction;
+   private Action<int> _deleteHpBarComponentAction;
+   private Action<NetworkObject, int> _getHpBarAction;
    private Action<NetworkObject,Sequence, int> _laserTextGetAction;
    private Action<Animator[], int[]> _wheelComponentsSetupAction;
 
@@ -38,6 +44,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private ObjectPool<LineRenderer> _laserLineRenderersPool;
    private ObjectPool<MeleeCarPartStuffView> _meleeCarPartStuffViewsPool;
    private ObjectPool<NetworkObject> _floatingTextsPool;
+   private ObjectPool<NetworkObject> _hpBarsPool;
     private void Awake() {
         NetcodeBetweenScenesService.Instance.NetcodeSceneService = this;
       
@@ -47,6 +54,12 @@ public class NetcodeSceneService : NetworkBehaviour
         base.OnNetworkSpawn();
         _floatingTextsPool = new ObjectPool<NetworkObject>(() => {
             var needObject = Instantiate(floatingTextPrefab);
+         
+            return needObject;
+        });
+        
+        _hpBarsPool = new ObjectPool<NetworkObject>(() => {
+            var needObject = Instantiate(_hpBarPrefab);
          
             return needObject;
         });
@@ -97,13 +110,15 @@ public class NetcodeSceneService : NetworkBehaviour
             containerSizeY, carView,  carpartStuffPositionsX, carpartStuffPositionsY);
     }*/
 
-    public void SetupService(Action<NetworkObject,Sequence, int> laserTextGetAction,Action<CarView, int> carSetupAction, Action<Animator[], int[]> wheelComponentsSetupAction,
+    public void SetupService(Action<NetworkObject, int> getHpBarAction,Action<int> deleteHpBarComponentAction,Action<NetworkObject,Sequence, int> laserTextGetAction,Action<CarView, int> carSetupAction, Action<Animator[], int[]> wheelComponentsSetupAction,
         Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
             carPartSetupAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
         _laserTextGetAction = laserTextGetAction;
+        _deleteHpBarComponentAction = deleteHpBarComponentAction;
+        _getHpBarAction = getHpBarAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -123,6 +138,21 @@ public class NetcodeSceneService : NetworkBehaviour
         }
            
         SetFloatingTextClientRpc(position, text, textColor, floatingText);
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void GetHpBarPrefabServerRpc(Vector2 position, float healthPercent, int cellEntity, float healthPercentBefore,ServerRpcParams rpcParams = default) {
+      
+        var hpBar = _hpBarsPool.Get();
+        if (!hpBar.IsSpawned) {
+            hpBar.Spawn();
+            hpBar.TrySetParent(_hpBarsContainer);
+        }
+        //hpBar.transform.position = position;
+       // hpBar.transform.gameObject.SetActive(true);
+
+       _getHpBarAction.Invoke(hpBar,cellEntity);
+        SetHPBarClientRpc(hpBar, position, healthPercent, cellEntity, rpcParams.Receive.SenderClientId, healthPercentBefore);
     }
     [Rpc(SendTo.ClientsAndHost)]
     private void SetFloatingTextClientRpc(Vector2 position, string text, Color textColor, NetworkObjectReference floatingTextNO,int entity = -1, ulong clientId = 0) {
@@ -146,7 +176,45 @@ public class NetcodeSceneService : NetworkBehaviour
         if(entity != -1 && clientId == NetworkManager.LocalClientId)
             _laserTextGetAction.Invoke(networkObject,sequence, entity);
     }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetHPBarClientRpc(NetworkObjectReference imageNetworkObject,Vector2 position, float healthPercent, int cellEntity, ulong needClientId,
+        float healthPercentBefore = -1) {
+        imageNetworkObject.TryGet(out var networkObject);
+        networkObject.transform.gameObject.SetActive(DataPersistenceManagerSystem._gameData.UseHpBars);
+        var hpBarImage = networkObject.transform.GetChild(0).GetComponent<Image>();
+        networkObject.transform.position = position;
+        var needSequence = networkObject.gameObject.GetComponent<SequenceStoreView>();
+        needSequence.ImageSequence?.Kill();
+        needSequence.ImageSequence = DOTween.Sequence();
+        if (healthPercentBefore != -1) {
+            hpBarImage.fillAmount = healthPercentBefore;
+            hpBarImage.color = _healthGradient.Evaluate(healthPercentBefore);
+        }
+        Debug.Log(hpBarImage + " hpBarImage");
 
+        needSequence.ImageSequence.Append(hpBarImage.DOFillAmount(healthPercent, 0.7f));
+        needSequence.ImageSequence.Join(hpBarImage.DOColor(_healthGradient.Evaluate(healthPercent), 0.7f));
+        // Первая группа завершилась, запускаем вторую
+        // hpBarImage.DOColor(_healthGradient.Evaluate(healthPercent), 0)
+        //   .SetDelay(0.3f); // Мгновенно, так как параллельно с затуханием
+        needSequence.ImageSequence.Append(hpBarImage.transform.parent.GetComponent<Image>().DOFade(0, 0.3f));
+        needSequence.ImageSequence.Join(hpBarImage.DOFade(0, 0.3f)).OnComplete(() => {
+            if (IsServer)
+                ReleaseHpBar(imageNetworkObject);
+            networkObject.gameObject.SetActive(false);
+            if (NetworkManager.Singleton.LocalClientId == needClientId)
+                _deleteHpBarComponentAction.Invoke(cellEntity);
+        });
+        
+       
+    networkObject.GetComponent<Image>().color = new Color(0.22f, 0.22f, 0.22f, 1);
+// Запускаем цвет параллельно с заполнением
+   
+    }
+
+    private void ReleaseHpBar(NetworkObject imageNetworkObject) {
+        _hpBarsPool.Release(imageNetworkObject);
+    }
     public void ReleaseFloatingText(NetworkObjectReference textObject) {
        _floatingTextsPool.Release(textObject);
     }

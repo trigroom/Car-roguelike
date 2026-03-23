@@ -1,8 +1,8 @@
 using DG.Tweening;
+using Unity.Netcode;
 using UnityEngine.UI;
 
 
     struct HpBarComponent {
-        public Image hpBarImage;
-        public Sequence hpBarSequence;
+        public NetworkObject hpBarImage;
     }

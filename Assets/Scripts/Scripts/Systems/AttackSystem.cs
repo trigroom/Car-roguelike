@@ -96,7 +96,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
         foreach (var hpBarEntity in _hpBarComponentsFilter.Value) 
             if(_carPartInfoComponentsPool.Value.Get(hpBarEntity).CurrentHealth > 0)
-                _hpBarComponentsPool.Value.Get(hpBarEntity).hpBarImage.transform.parent.position = _carPartComponentsPool.Value.Get(hpBarEntity).CarPartCellRenderer.transform.position;
+                _hpBarComponentsPool.Value.Get(hpBarEntity).hpBarImage.transform.position = _carPartComponentsPool.Value.Get(hpBarEntity).CarPartCellRenderer.transform.position;
             
         
         foreach (var fireExtinguisherEntity in _fireExtinguisherComponentsFilter.Value) {
@@ -1111,7 +1111,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             if (damagedEntityGridPosition.x >= 0 &&
                 _sceneService.Value.GetCarPartConfig(damagedCarPartCmp.CarPartId).PartType == CarPartType.Armor) {
                 var carCmpDamaged = _carComponentsPool.Value.Get(damagedMainEntity);
-                var damagedCell = carCmpDamaged.CarPartViewsGrid[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
+                var damagedCell =carCmpDamaged.CarView.CarPartStuffViews[damagedEntityGridPosition.x, damagedEntityGridPosition.y];
                 var armorConfig = _sceneService.Value.GetArmorFromCarPart(damagedCarPartCmp.CarPartId);
                 if (GetBulletDirection(damagedCell.transform, collisionPoint, armorConfig)) {
                     float defencePercent = armorConfig.DefencePercent * GridUtils.GetArmorLevelMultipliers(damagedCarPartCmp.PartLevel);
@@ -1401,18 +1401,23 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
         if (DataPersistenceManagerSystem._gameData.UseHpBars) {
             if (!_hpBarComponentsPool.Value.Has(cellEntity)) {
+                _hpBarComponentsPool.Value.Add(cellEntity);
                 var healthPercentBefore = (carPartInfoCmp.CurrentHealth + health) / carPartCmp.MaxHealth;
-                var hpBar = _sceneService.Value.GetHpBar(carPartCmp.CarPartCellRenderer.transform);
-                _hpBarComponentsPool.Value.Add(cellEntity).hpBarImage = hpBar;
-                hpBar.fillAmount = healthPercentBefore;
-                hpBar.color = _sceneService.Value._healthGradient.Evaluate(healthPercentBefore);
+                _netcodeSceneService.Value.GetHpBarPrefabServerRpc(carPartCmp.CarPartCellRenderer.transform.position, healthPercent,cellEntity, healthPercentBefore);
+            //    var hpBar = _sceneService.Value.GetHpBar(carPartCmp.CarPartCellRenderer.transform);
+               // _hpBarComponentsPool.Value.Add(cellEntity).hpBarImage = hpBar;
+             //   hpBar.fillAmount = healthPercentBefore;
+              //  hpBar.color = _sceneService.Value._healthGradient.Evaluate(healthPercentBefore);
                 
+            } else {
+                
+                _netcodeSceneService.Value.SetHPBarClientRpc(_hpBarComponentsPool.Value.Get(cellEntity).hpBarImage,carPartCmp.CarPartCellRenderer.transform.position,healthPercent,
+                    cellEntity, NetworkManager.Singleton.LocalClientId);
             }
-
-            ref var hpBarCmp = ref _hpBarComponentsPool.Value.Get(cellEntity);
-            hpBarCmp.hpBarSequence.Kill();
-            hpBarCmp.hpBarImage.transform.parent.GetComponent<Image>().color = new Color(0.22f, 0.22f, 0.22f, 1);
-            hpBarCmp.hpBarSequence = DOTween.Sequence();
+        //    ref var hpBarCmp = ref _hpBarComponentsPool.Value.Get(cellEntity);
+         //   hpBarCmp.hpBarSequence.Kill();
+       //     hpBarCmp.hpBarImage.transform.parent.GetComponent<Image>().color = new Color(0.22f, 0.22f, 0.22f, 1);
+          /*  hpBarCmp.hpBarSequence = DOTween.Sequence();
             var hpBarImage = hpBarCmp.hpBarImage;
             hpBarCmp.hpBarSequence.Append(hpBarImage.DOFillAmount(healthPercent, 0.7f));
             hpBarCmp.hpBarSequence.Join(hpBarImage.DOColor(_sceneService.Value._healthGradient.Evaluate(healthPercent), 0.7f));
@@ -1422,7 +1427,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 _sceneService.Value.ReleaseHpBar(hpBarImage);
                 if (_hpBarComponentsPool.Value.Has(cellEntity))
                     _hpBarComponentsPool.Value.Del(cellEntity);
-            }));
+            }));*/
         }
        
         

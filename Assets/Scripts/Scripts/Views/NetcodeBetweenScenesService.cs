@@ -16,6 +16,12 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
     public SpriteRenderer GroundSpriteRenderer;
     public MapEventsContentView MapEventsContentView;
     public NetcodeSceneService NetcodeSceneService;
+    
+    private NetworkVariable<bool> _isGameStarted = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
     private void Awake()
     {
         playerReadyStates = new NetworkList<PlayerReadyState>();
@@ -29,6 +35,14 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         {
             Destroy(gameObject);
         }
+    }
+    public bool CanJoin()
+    {
+        return !_isGameStarted.Value;
+    }
+  
+    public void ChangeGameIsStartedStateValue(bool value) {
+        _isGameStarted.Value = value;
     }
     [ServerRpc(RequireOwnership = false)]
     public void AddToPlayerListServerRpc(ulong id, int playerNumber) {

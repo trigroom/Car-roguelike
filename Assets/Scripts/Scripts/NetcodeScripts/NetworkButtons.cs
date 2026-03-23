@@ -24,6 +24,7 @@ public class NetworkButtons : NetworkBehaviour {
     [SerializeField] private SelectMapUiView selectMapUiView;
     [SerializeField] private SelectDifficultyUIView selectDifficultyUIView;
     private bool isPlayerReady = true;
+    
     private void Awake()
     {
      
@@ -124,10 +125,23 @@ public class NetworkButtons : NetworkBehaviour {
                 NetcodeBetweenScenesService.Instance. playerReadyStates.Set(i,state, true);
             }
 
+            NetcodeBetweenScenesService.Instance.ChangeGameIsStartedStateValue(true);
             NetworkManager.Singleton.SceneManager.LoadScene("SampleScene", LoadSceneMode.Single);
         }
     }
-
+   
+   /* [ClientRpc]
+    private void RejectClientClientRpc(ulong targetClientId, string reason)
+    {
+        if (NetworkManager.Singleton.LocalClientId == targetClientId)
+        {
+            Debug.LogWarning($"❌ Отказано в подключении: {reason}");
+            // Показываем сообщение игроку
+            
+            // Отключаемся
+            NetworkManager.Singleton.Shutdown();
+        }
+    }*/
     private async void OnClientButtonClicked()
     {
         if (string.IsNullOrEmpty(joinCodeInput.text))
@@ -208,6 +222,8 @@ public class NetworkButtons : NetworkBehaviour {
     {
         leaveButton.gameObject.SetActive(true);
         disconnectButton.gameObject.SetActive(false);
+        if(clientId == NetworkManager.Singleton.LocalClientId)
+        NetworkManager.Singleton.Shutdown();
         if (!IsServer) return;
         
         // Удаляем игрока из списка

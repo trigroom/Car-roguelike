@@ -142,14 +142,14 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
     public void RequestPushForceServerRpc(Vector2 force)
     {
         // Сервер применяет силу
-        Debug.Log($"Try sent force: {force}");
+      //  Debug.Log($"Try sent force: {force}");
         rb.AddForce(force, ForceMode2D.Force);
     }
     
     [ServerRpc(RequireOwnership = false)]
     public void RequestSetAngularVelocityServerRpc(float angularVelocity, float wheelAngle, ServerRpcParams rpcParams = default)
     {
-        Debug.Log($"{angularVelocity} wheel angle {wheelAngle} ");
+      //  Debug.Log($"{angularVelocity} wheel angle {wheelAngle} ");
         SetWheelsRotateClientRpc(wheelAngle);
      
        rb.angularVelocity = angularVelocity;
@@ -158,7 +158,7 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
     
     [ClientRpc]
     public void SetRotationClientRpc(float angularVelocity, ulong clientId) {
-        Debug.Log($"{angularVelocity} av + need id {clientId} + owner {OwnerClientId}");
+        //Debug.Log($"{angularVelocity} av + need id {clientId} + owner {OwnerClientId}");
        // if (clientId == OwnerClientId)return;
         
        // Debug.Log(angularVelocity);
