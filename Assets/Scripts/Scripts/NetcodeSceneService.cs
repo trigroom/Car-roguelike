@@ -30,14 +30,18 @@ public class NetcodeSceneService : NetworkBehaviour
    [field:SerializeField] public MeleeCarPartStuffView meleeCarPartStuffView { get; private set; }
    [field:SerializeField] public Transform notUsedNetworkObjectsContainer { get; private set; }
    [field:SerializeField] public Gradient _healthGradient { get; private set; }
-   private Action<CarView, int> _carSetupAction;
+   private Action<CarView, int, bool> _carSetupAction;
    private Action<int> _deleteHpBarComponentAction;
    private Action<NetworkObject, int> _getHpBarAction;
    private Action<NetworkObject,Sequence, int> _laserTextGetAction;
    private Action<Animator[], int[]> _wheelComponentsSetupAction;
+   private Action< ulong,Vector2,bool > _setSpeedParametersAction;
+   private Action< CarView > _setCarViewAction;
 
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
        _carPartSetupAction;
+
+   private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
    private ObjectPool<CarPartStuffView> _carPartsPool;
    private ObjectPool<Transform> _gunContainersPool;
    private ObjectPool<SpriteRenderer> _spriteRenderersPool;
@@ -110,15 +114,21 @@ public class NetcodeSceneService : NetworkBehaviour
             containerSizeY, carView,  carpartStuffPositionsX, carpartStuffPositionsY);
     }*/
 
-    public void SetupService(Action<NetworkObject, int> getHpBarAction,Action<int> deleteHpBarComponentAction,Action<NetworkObject,Sequence, int> laserTextGetAction,Action<CarView, int> carSetupAction, Action<Animator[], int[]> wheelComponentsSetupAction,
+    public void SetupService(Action<NetworkObject, int> getHpBarAction, Action<int> deleteHpBarComponentAction,
+        Action<NetworkObject, Sequence, int> laserTextGetAction, Action<CarView, int, bool> carSetupAction,
+        Action<Animator[], int[]> wheelComponentsSetupAction,
         Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
-            carPartSetupAction) {
+            carPartSetupAction, Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong,bool, int, Vector2> setupCarOnServerAction,
+        Action< ulong,Vector2,bool > setSpeedParametersAction,  Action< CarView > setCarViewAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
         _laserTextGetAction = laserTextGetAction;
         _deleteHpBarComponentAction = deleteHpBarComponentAction;
         _getHpBarAction = getHpBarAction;
+        _setupCarOnServerAction = setupCarOnServerAction;
+        _setSpeedParametersAction = setSpeedParametersAction;
+        _setCarViewAction = setCarViewAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -212,6 +222,16 @@ public class NetcodeSceneService : NetworkBehaviour
    
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetupCarViewToClientRpc(NetworkObjectReference carView, ulong clientId) {
+        if (NetworkManager.Singleton.LocalClientId == clientId) {
+            carView.TryGet(out var networkObject);
+            Debug.Log(networkObject.gameObject.name + "     nam 2 : "+networkObject.transform.GetChild(0).gameObject.name);
+            _setCarViewAction.Invoke(networkObject.transform.GetChild(0).GetComponent<CarView>());
+        }
+            
+    }
+
     private void ReleaseHpBar(NetworkObject imageNetworkObject) {
         _hpBarsPool.Release(imageNetworkObject);
     }
@@ -235,18 +255,18 @@ public class NetcodeSceneService : NetworkBehaviour
         clientsMessegeText.transform.parent.gameObject.SetActive(false);
     }
     [ServerRpc(RequireOwnership = false)]
-    public void InstantiateCarViewServerRpc( int entity,ServerRpcParams rpcParams = default)
+    public void InstantiateCarViewServerRpc( int entity,bool isPlayer,ServerRpcParams rpcParams = default)
     {
         ulong clientId = rpcParams.Receive.SenderClientId;
         
         var carTransform = Instantiate(_carView).GetComponent<NetworkObject>();
         carTransform.Spawn();
        // carTransform.SpawnWithOwnership(clientId);
-        SendCarToClientRpc(clientId,carTransform, entity);
+        SendCarToClientRpc(clientId,carTransform, entity, isPlayer);
     }
     
     [Rpc(SendTo.ClientsAndHost)]
-    private void SendCarToClientRpc(ulong targetClientId, NetworkObjectReference carReference, int entity)
+    private void SendCarToClientRpc(ulong targetClientId, NetworkObjectReference carReference, int entity, bool isPlayer)
     {
         // Этот RPC выполнят все клиенты, но нас интересует только целевой
         if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
@@ -254,7 +274,7 @@ public class NetcodeSceneService : NetworkBehaviour
         if (carReference.TryGet(out NetworkObject netObj))
         {    
             var carView = netObj.GetComponentInChildren<CarView>();
-            _carSetupAction.Invoke(carView, entity);
+            _carSetupAction.Invoke(carView, entity, isPlayer);
         }
     }
 
@@ -587,9 +607,62 @@ public class NetcodeSceneService : NetworkBehaviour
             //  _constructMeleeCellEventsPool.Value.Add(cellEntity);
         }
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void SetCarToServerRpc (CarPartDataForRpc[]upParts,CarPartDataForRpc[] downParts, int carLevel, bool isPlayer, int carId, Vector2 carSize, ServerRpcParams rpcParams = default){
+        _setupCarOnServerAction.Invoke(upParts, downParts, carLevel, rpcParams.Receive.SenderClientId, isPlayer, carId,carSize);
+    }
     
+    [ServerRpc(RequireOwnership = false)]
+    public void SetCarMovementServerRpc ( Vector2 targetPosition,bool isSpeedBoost, ServerRpcParams rpcParams = default){
+        _setSpeedParametersAction.Invoke( rpcParams.Receive.SenderClientId, targetPosition, isSpeedBoost);
+    }
     public Transform InstantiateObject(Transform spawnObject, Transform parent, Vector2 spawnPosition = default)
     {
         return Instantiate(spawnObject, spawnPosition, Quaternion.identity, parent).transform;
+    }
+}
+
+[System.Serializable]
+public struct CarPartDataForRpc : INetworkSerializable
+{
+    public Vector2Int EdgePosition;
+    public int RotateAngle;
+    // Массив позиций
+    public int[] Modules; 
+    public int Id;
+    public int Level;
+    public int Durability;
+    public int ClientEntity;
+
+    public CarPartDataForRpc(Vector2Int edgePosition,int rotateAngle, int[] modules,int id,int level, int durability,int clientEntity) {
+        EdgePosition = edgePosition;
+        RotateAngle = rotateAngle;
+        Modules = modules;
+        Id = id;
+        Level = level;
+        Durability = durability;
+        ClientEntity = clientEntity;
+    }
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        // Сериализация массива
+       
+        int modulesLength = Modules?.Length ?? 0;
+        serializer.SerializeValue(ref modulesLength);
+        
+        if (serializer.IsReader)
+            Modules = new int[modulesLength];
+        
+        for (int i = 0; i < modulesLength; i++)
+            serializer.SerializeValue(ref Modules[i]);
+        
+        // Сериализация остальных полей
+        serializer.SerializeValue(ref EdgePosition);
+        serializer.SerializeValue(ref RotateAngle);
+        serializer.SerializeValue(ref Id);
+        serializer.SerializeValue(ref Level);
+        serializer.SerializeValue(ref Durability);
+        serializer.SerializeValue(ref ClientEntity);
     }
 }

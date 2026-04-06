@@ -59,6 +59,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<VersusBattleComponent> _versusBattleComponentsPool;
     private EcsPoolInject<TrainControllerComponent> _trainControllerComponentsPool;
     private EcsPoolInject<HpBarComponent> _hpBarComponentsPool;
+    private EcsPoolInject<PlayerTagComponent> _playerTagComponentsPool;
 
     private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
     private EcsFilterInject<Inc<HpBarComponent>> _hpBarComponentsFilter;
@@ -840,7 +841,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 projectileCmp.CurrentBreakingThroughCount = gunCmp.MaxPiercingCount;
             }
 
-            if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)
+            if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) || !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)
                 currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Enemy",
                     _sceneService.Value._carStuffListsConfig.DefaultMaterial);
             else
@@ -1276,7 +1277,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
     }
 
-    private void SetLaserValues(ulong playerId, int damagedMainEntity, Vector2Int damagedEntityGridPosition, int weaponEntity,
+    private void SetWeaponValuesAfterDealDamage(ulong playerId, int damagedMainEntity, Vector2Int damagedEntityGridPosition, int weaponEntity,
         Vector2 collisionPoint, float damagePoints, bool isPlayer) {
         if (DataPersistenceManagerSystem._gameData.UseDamageNumbers) {
             if (weaponEntity > 0 && _laserComponentsPool.Value.Has(weaponEntity)) {
@@ -1307,8 +1308,23 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (isPlayer && playerId == NetworkManager.Singleton.LocalClientId)
             DataPersistenceManagerSystem._gameData.PlayerDamage += damagePoints;
     }
-    private void CalculateProjectileDamage() {
-        
+    private void CalculateChangedHealth(float mass, float speed, float damage, Vector2 projectilePosition, int damagedEntity, Vector2Int onGridCellPosition) {
+       
+        var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(damagedEntity);
+       if( _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.Armor) {
+            var carCmpDamaged = _carComponentsPool.Value.Get(damagedEntity);
+            var damagedCell =carCmpDamaged.CarView.CarPartStuffViews[onGridCellPosition.x, onGridCellPosition.y];
+            var armorConfig = _sceneService.Value.GetArmorFromCarPart(carPartInfoCmp.CarPartId);
+            if (GetBulletDirection(damagedCell.transform, projectilePosition, armorConfig)) {
+                float defencePercent = armorConfig.DefencePercent * GridUtils.GetArmorLevelMultipliers(carPartInfoCmp.PartLevel);
+                damage *= 1f - defencePercent / (defencePercent + 100f);
+            }
+        }
+
+        if (_frozenComponentsPool.Value.Has(damagedEntity)) {
+            damage *= 1f + _frozenComponentsPool.Value.Get(damagedEntity).Duration / 100;
+        }
+        ChangeHealth(damage, damagedEntity);
     }
 
     private void CalculateMeleeDamage() {

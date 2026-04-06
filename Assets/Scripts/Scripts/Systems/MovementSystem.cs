@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client;
 using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
@@ -19,6 +20,7 @@ public class MovementSystem : IEcsRunSystem {
     private EcsPoolInject<WindComponent> _windComponentsPool;
     private EcsPoolInject<QuicksandComponent> _quicksandComponentsPool;
     private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
+    private EcsPoolInject<PlayerTagComponent> _playerTagComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
     private EcsFilterInject<Inc<EndRoundEvent>> _endRoundEventsFilter;
@@ -144,12 +146,19 @@ public class MovementSystem : IEcsRunSystem {
 
         foreach (var movementEntity in _movementComponentsFilter.Value) {
             ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
-            ref var movementCmp = ref _movementComponentsPool.Value.Get(movementEntity);
-            if (movementCmp.MovableObjectRigidbody == null) continue;
-
-            bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity;
+            Debug.Log(movementEntity + " try move"+carCmp.CarView);
             
-
+            ref var movementCmp = ref _movementComponentsPool.Value.Get(movementEntity);
+           // 
+            if (carCmp.CarView == null) continue;
+            
+            bool isThisPlayer = movementEntity == _sceneData.Value.PlayerEntity;
+            bool isPlayer = movementEntity == _sceneData.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(movementEntity);
+            if (isThisPlayer)
+                UpdateCameraPosition(carCmp.CarView.transform.position);
+            
+            if (movementCmp.MovableObjectRigidbody == null) continue;
+            
             if (_enemyAIComponentsPool.Value.Has(movementEntity)) {
                 ref var enemyAiCmp = ref _enemyAIComponentsPool.Value.Get(movementEntity);
                 if (enemyAiCmp.TargetToMove) {
@@ -210,7 +219,7 @@ public class MovementSystem : IEcsRunSystem {
                 
             var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
             movementCmp.Velocity = ((Vector2)moveObjectTransform.position - movementCmp.PreviousPosition) / deltaTime;
-            if (isPlayer)
+            if (isThisPlayer)
                 DataPersistenceManagerSystem._gameData.DistanceDrived +=
                     Vector2.Distance(movementCmp.PreviousPosition, moveObjectTransform.position);
             movementCmp.PreviousPosition = moveObjectTransform.position;
@@ -318,8 +327,7 @@ public class MovementSystem : IEcsRunSystem {
           //  carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
          //   carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
 
-            if (isPlayer)
-                UpdateCameraPosition(carCmp.CarView.transform.position);
+           
         }
     }
     private bool HasObstacleAtPoint(Vector2 point)
