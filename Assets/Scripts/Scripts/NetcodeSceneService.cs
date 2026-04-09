@@ -37,7 +37,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<Animator[], int[]> _wheelComponentsSetupAction;
    private Action< ulong,Vector2,bool > _setSpeedParametersAction;
    private Action< CarView > _setCarViewAction;
-
+   private Action<float, float, float, float> _setFuelBarsAction;
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
        _carPartSetupAction;
 
@@ -119,7 +119,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<Animator[], int[]> wheelComponentsSetupAction,
         Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
             carPartSetupAction, Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong,bool, int, Vector2> setupCarOnServerAction,
-        Action< ulong,Vector2,bool > setSpeedParametersAction,  Action< CarView > setCarViewAction) {
+        Action< ulong,Vector2,bool > setSpeedParametersAction,  Action< CarView > setCarViewAction,Action<float, float, float, float> setFuelBarsAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -129,6 +129,7 @@ public class NetcodeSceneService : NetworkBehaviour
         _setupCarOnServerAction = setupCarOnServerAction;
         _setSpeedParametersAction = setSpeedParametersAction;
         _setCarViewAction = setCarViewAction;
+        _setFuelBarsAction = setFuelBarsAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -226,11 +227,24 @@ public class NetcodeSceneService : NetworkBehaviour
     public void SetupCarViewToClientRpc(NetworkObjectReference carView, ulong clientId) {
         if (NetworkManager.Singleton.LocalClientId == clientId) {
             carView.TryGet(out var networkObject);
-            Debug.Log(networkObject.gameObject.name + "     nam 2 : "+networkObject.transform.GetChild(0).gameObject.name);
+        
             _setCarViewAction.Invoke(networkObject.transform.GetChild(0).GetComponent<CarView>());
         }
             
     }
+    
+    [Rpc(SendTo.NotOwner)]
+    public void SetFuelValuesClientRpc( FuelDataForRpc[] fuelDataForClients) {
+        for (int i = 0; i < fuelDataForClients.Length; i++) {
+            var fuelData = fuelDataForClients[i];
+            if (NetworkManager.Singleton.LocalClientId == fuelData.UserId) {
+     
+                _setFuelBarsAction.Invoke(fuelData.Fuel, fuelData.MaxFuel, fuelData.Electricity, fuelData.MaxElectricity);
+                break;
+            }
+        }
+    }
+
 
     private void ReleaseHpBar(NetworkObject imageNetworkObject) {
         _hpBarsPool.Release(imageNetworkObject);
@@ -664,5 +678,31 @@ public struct CarPartDataForRpc : INetworkSerializable
         serializer.SerializeValue(ref Level);
         serializer.SerializeValue(ref Durability);
         serializer.SerializeValue(ref ClientEntity);
+    }
+}
+
+[System.Serializable]
+public struct FuelDataForRpc : INetworkSerializable
+{
+   public ulong UserId;
+    public float Electricity;
+    public float MaxElectricity;
+    public float Fuel;
+    public float MaxFuel;
+
+    public FuelDataForRpc(ulong userId, float electricity, float maxElectricity, float fuel, float maxFuel) {
+        UserId = userId;
+        Electricity = electricity;
+        MaxElectricity = maxElectricity;
+        Fuel = fuel;
+        MaxFuel = maxFuel;
+    }
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref UserId);
+        serializer.SerializeValue(ref Electricity);
+        serializer.SerializeValue(ref MaxElectricity);
+        serializer.SerializeValue(ref Fuel);
+        serializer.SerializeValue(ref MaxFuel);
     }
 }

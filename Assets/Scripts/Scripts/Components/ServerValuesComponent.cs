@@ -3,4 +3,6 @@
 
    public struct ServerValuesComponent {
         public Dictionary<ulong,int> ClientsEntities;
+        
+        public float TickFuelServerTime;
     }

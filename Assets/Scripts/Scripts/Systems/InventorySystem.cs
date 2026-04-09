@@ -42,6 +42,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<UpdateCarsStatsInfoEvent> _updateCarsStatsInfoEventsPool;
     private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
     private EcsPoolInject<ModuleInventoryItem> _moduleInventoryItemsPool;
+    private EcsPoolInject<UpdateCarStatsEvent> _updateCarStatsEventsPool;
 
     private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
     private EcsFilterInject<Inc<CarComponent>> _carComponentsFilter;
@@ -52,6 +53,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
     private EcsFilterInject<Inc<AddInventoryItemEvent>> _addInventoryItemEventsFilter;
     private EcsFilterInject<Inc<ModuleInventoryItem>> _moduleInventoryItemsFilter;
+    private EcsFilterInject<Inc<UpdateCarStatsEvent>> _updateCarStatsEventsFilter;
 
     public void Init(IEcsSystems systems) {
         //test
@@ -164,6 +166,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     public void Run(IEcsSystems systems) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        foreach (var updatedStatsCarEntity in _updateCarStatsEventsFilter.Value) {
+            UpdateCarStats(updatedStatsCarEntity);
+            _updateCarStatsEventsPool.Value.Del(updatedStatsCarEntity);
+        }
 
         foreach (var startRound in _startRoundEventsFilter.Value) {
             SetShopCells(false);

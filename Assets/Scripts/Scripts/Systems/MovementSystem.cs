@@ -267,18 +267,19 @@ public class MovementSystem : IEcsRunSystem {
                         movementCmp.CurrentRotateSpeed = Mathf.MoveTowards(movementCmp.CurrentRotateSpeed, 0f,
                             movementCmp.RotateSpeed * Time.fixedDeltaTime);
                     }
+
 //mb move to end
                     RotateWheels(angleToTarget, movementCmp.CurrentRotateSpeed, movementEntity);
                     SetWheelParticleSystemState(movementEntity, true);
-
-                 //   var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
+                    UseFuel(movementEntity);
+                    //   var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
                     float maxSpeed = fuelCmp.UseSpeedBoost
                         ? movementCmp.MaxMoveSpeed + movementCmp.MaxBoostMoveSpeed
                         : movementCmp.MaxMoveSpeed;
-                    
+
                     if (_quicksandComponentsPool.Value.Has(movementEntity))
                         maxSpeed *= 0.35f;
-                    
+
                     if (!isReversing) {
                         movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, maxSpeed, movementCmp.Acceleration * deltaTime);
                     } else {
@@ -286,7 +287,7 @@ public class MovementSystem : IEcsRunSystem {
                             movementCmp.Deceleration * deltaTime);
                     }
 
-                    UseFuel(movementEntity);
+                    
                 } else {
                     SetWheelParticleSystemState(movementEntity, false);
                     movementCmp.CurrentMoveSpeed = Mathf.Lerp(movementCmp.CurrentMoveSpeed, 0f, movementCmp.Deceleration * deltaTime);
@@ -419,9 +420,9 @@ public class MovementSystem : IEcsRunSystem {
     private void UseFuel(int entity) {
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
         bool isPlayer = entity == _sceneData.Value.PlayerEntity;
-        var carConfig = _sceneData.Value.GetCarConfig (_carComponentsPool.Value.Get(entity).CarId);
+     //   var carConfig = _sceneData.Value.GetCarConfig (_carComponentsPool.Value.Get(entity).CarId);
         float curFuelConsumption = fuelCmp.UseSpeedBoost ? fuelCmp.FuelConsumption+fuelCmp.AddedFuelConsumption : fuelCmp.FuelConsumption;
-        
+        Debug.Log("use fuel "+entity + "      "+ " count "+ curFuelConsumption);
         fuelCmp.CurrentFuel -= curFuelConsumption * Time.deltaTime;
 
         if (fuelCmp.CurrentFuel <= 0) {
