@@ -256,7 +256,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             projectileCmp.LifeTime -= deltaTime;
             if (projectileCmp.LifeTime <= 0) {
                 projectileCmp.IsActive = false;
-                _sceneService.Value.ReleaseGunProjectile(projectileCmp.ProjectileView, projectileCmp.ExplosionRadius);
+                _netcodeSceneService.Value.ReleaseGunProjectileClientRpc(projectileCmp.ProjectileView.networkObject, projectileCmp.ExplosionRadius);
             }
 
             if (_sceneService.Value.GetGunFromCarPart(projectileCmp.GunId).ProjectileRotateSpeed  != 0) 
@@ -703,7 +703,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var projectileEntity in _projectileComponentsFilter.Value) {
             ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectileEntity);
             if (!projectileCmp.IsActive) continue;
-            _sceneService.Value.ReleaseGunProjectile(projectileCmp.ProjectileView, 0);
+            _netcodeSceneService.Value.ReleaseGunProjectileClientRpc(projectileCmp.ProjectileView.networkObject, 0);
             projectileCmp.IsActive = false;
         }
     }
@@ -816,7 +816,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             float randomSpread = Random.Range(-gunConfig.SpreadAngle, gunConfig.SpreadAngle);
             direction = Quaternion.Euler(0, 0, randomSpread) * direction;
 
-            ProjectileView currentProjectile = _sceneService.Value.GetGunProjectile(worldFirePoint);
+            ProjectileView currentProjectile = _netcodeSceneService.Value.GetGunProjectile(worldFirePoint);
 
             if (currentProjectile.entity != 0) {
                 ref var projectileCmp = ref _projectileComponentsPool.Value.Get(currentProjectile.entity);
@@ -956,7 +956,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         ref var projectileCmp = ref _projectileComponentsPool.Value.Get(projectile.entity);
 
         projectileCmp.IsActive = false;
-        _sceneService.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius, _sceneService.Value._bulletSprites);
+        _netcodeSceneService.Value.ReleaseGunProjectileClientRpc(projectile.networkObject, projectileCmp.ExplosionRadius, 1);
         projectile.rigidbody2D.linearVelocity = Vector2.zero;
     }
 
@@ -993,7 +993,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             projectileCmp.CurrentBreakingThroughCount--;
             if (projectileCmp.CurrentBreakingThroughCount <= 0) {
                 projectileCmp.IsActive = false;
-                _sceneService.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius, _sceneService.Value._bulletSprites);
+                _netcodeSceneService.Value.ReleaseGunProjectileClientRpc(projectile.networkObject, projectileCmp.ExplosionRadius, 1);
                 projectile.rigidbody2D.linearVelocity = Vector2.zero;
             } else
                 projectileCmp.Damage *= 1 - gunConfig.BreakingThroughDamageFalloff;
@@ -1181,7 +1181,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             projectileCmp.CurrentBreakingThroughCount--;
             if (projectileCmp.CurrentBreakingThroughCount <= 0) {
                 projectileCmp.IsActive = false;
-                _sceneService.Value.ReleaseGunProjectile(projectile, projectileCmp.ExplosionRadius, _sceneService.Value._bulletSprites);
+                _netcodeSceneService.Value.ReleaseGunProjectileClientRpc(projectile.networkObject, projectileCmp.ExplosionRadius, 1);
                 projectile.rigidbody2D.linearVelocity = Vector2.zero;
             } else
                 projectileCmp.Damage *= 1 - gunConfig.BreakingThroughDamageFalloff;
@@ -1593,6 +1593,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             _shockEffectComponentsPool.Value.Del(cellEntity);
 
         if (GridUtils.IsContainerType(carPartConfig)) {
+            Debug.Log(" destroy car part containere");
             for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                 var carPart = carPartCmp.CellCarPartsStuffViews[i];
                 var gridPos = carCmp.CarPartContainerGroupsList[cellEntity][i];
@@ -1632,6 +1633,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             if (isEnemy)
                 carCmp.CarPartContainerGroupsList.Remove(cellEntity);
         } else {
+            Debug.Log(" destroy car part not containere");
             for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                 var carPart = carPartCmp.CellCarPartsStuffViews[i];
                 var gridPos = carCmp.CarPartGroupsList[cellEntity][i];

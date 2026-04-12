@@ -66,7 +66,6 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Gradient _healthGradient { get; private set; }
     [field: SerializeField] public ShopUIView _shopUIView { get; private set; }
     [field: SerializeField] public Sprite[] _bulletSprites { get; private set; }
-    [field: SerializeField] public ProjectileView _projectileView { get; private set; }
     [field: SerializeField] public int _defaultCarConfigId { get; private set; }
     [field: SerializeField] public CarPartInfoUIView _carPartInfoUIView { get; private set; }
     [field: SerializeField] public Sprite _transparentPixel { get; private set; }
@@ -96,7 +95,6 @@ public class SceneService : MonoBehaviour {
     public int PlayerEntity;
     public BuildingInfo buildingInfo;
     public BuildingView buildingViewForTest;
-    private ObjectPool<ProjectileView> _projectilesPool;
     private ObjectPool<CarPartStuffView> _carPartsPool;
     private ObjectPool<TMP_Text> _floatingTextsPool;
     private ObjectPool<LineRenderer> _laserLineRenderersPool;
@@ -137,7 +135,6 @@ public class SceneService : MonoBehaviour {
         _gunContainersPool = new ObjectPool<Transform>(() => Instantiate(_gunContainerPrefab));
         _hpBarsPool = new ObjectPool<Transform>(() => Instantiate(_hpBarPrefab, _hpBarsContainer));
         _laserLineRenderersPool = new ObjectPool<LineRenderer>(() => Instantiate(_laserLineRenderer, _notUsedCarPartsContainer));
-        _projectilesPool = new ObjectPool<ProjectileView>(() => Instantiate(_projectileView));
         _floatingTextsPool = new ObjectPool<TMP_Text>(() => Instantiate(_floatingTextPrefab, _floatingTextContainer));
         _carPartsPool = new ObjectPool<CarPartStuffView>(() => Instantiate(_carStuffListsConfig.CarPartStuffView));
         _meleeCarPartsPool = new ObjectPool<MeleeCarPartStuffView>(() => Instantiate(_carStuffListsConfig.MeleeCarPartStuffView));
@@ -349,29 +346,6 @@ public class SceneService : MonoBehaviour {
         carPart.gameObject.SetActive(false);
         carPart.transform.SetParent(_notUsedCarPartsContainer);
         _meleeCarPartsPool.Release(carPart);
-    }
-    public ProjectileView GetGunProjectile(Vector2 spawnPosition)
-    {
-        var projectile = _projectilesPool.Get();
-        projectile.gameObject.SetActive(true);
-        projectile.transform.position = spawnPosition;
-        return projectile;
-    }
-    public void ReleaseGunProjectile(ProjectileView projectile, float radius ,Sprite[] animation = null) {
-       // if(!projectile.gameObject.activeInHierarchy)return;
-
-        if (animation == null) 
-            RelaseProjectileYourself(projectile);
-        else {
-            
-            projectile.PlayHitAnimation(animation,radius, RelaseProjectileYourself);
-        }
-    }
-
-    public void RelaseProjectileYourself(ProjectileView projectile) {
-        if(!projectile.gameObject.activeInHierarchy)return;
-        projectile.gameObject.SetActive(false);
-                _projectilesPool.Release(projectile);
     }
     
     public CarView InstantiateCarView()

@@ -19552,7 +19552,6 @@ MonoBehaviour:
   - {fileID: 924897923, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
   - {fileID: -331812073, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
   - {fileID: -353052342, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
-  <_projectileView>k__BackingField: {fileID: 4861948939621157317, guid: f94242e099b6c1947a8e3f88ecfbd525, type: 3}
   <_defaultCarConfigId>k__BackingField: 4
   <_carPartInfoUIView>k__BackingField: {fileID: 909077293}
   <_transparentPixel>k__BackingField: {fileID: 21300000, guid: 5edda95e25aad374e8190c6079e836aa, type: 3}
@@ -31132,6 +31131,13 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 3
     m_NumAlphaKeys: 2
+  <_projectileView>k__BackingField: {fileID: 4861948939621157317, guid: f94242e099b6c1947a8e3f88ecfbd525, type: 3}
+  <_bulletSprites>k__BackingField:
+  - {fileID: 423461104, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
+  - {fileID: -572782566, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
+  - {fileID: 924897923, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
+  - {fileID: -331812073, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
+  - {fileID: -353052342, guid: 25f15f6716b4c394bbe9fca53550a8c2, type: 3}
 --- !u!1 &1357007293
 GameObject:
   m_ObjectHideFlags: 0

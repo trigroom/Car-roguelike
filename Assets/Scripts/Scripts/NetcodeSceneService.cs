@@ -30,6 +30,8 @@ public class NetcodeSceneService : NetworkBehaviour
    [field:SerializeField] public MeleeCarPartStuffView meleeCarPartStuffView { get; private set; }
    [field:SerializeField] public Transform notUsedNetworkObjectsContainer { get; private set; }
    [field:SerializeField] public Gradient _healthGradient { get; private set; }
+   [field: SerializeField] public ProjectileView _projectileView { get; private set; }
+   [field: SerializeField] public Sprite[] _bulletSprites { get; private set; }
    private Action<CarView, int, bool> _carSetupAction;
    private Action<int> _deleteHpBarComponentAction;
    private Action<NetworkObject, int> _getHpBarAction;
@@ -48,14 +50,19 @@ public class NetcodeSceneService : NetworkBehaviour
    private ObjectPool<LineRenderer> _laserLineRenderersPool;
    private ObjectPool<MeleeCarPartStuffView> _meleeCarPartStuffViewsPool;
    private ObjectPool<NetworkObject> _floatingTextsPool;
+   private ObjectPool<ProjectileView> _projectilesPool;
    private ObjectPool<NetworkObject> _hpBarsPool;
+  
     private void Awake() {
         NetcodeBetweenScenesService.Instance.NetcodeSceneService = this;
-      
+     
     }
 
     public override void OnNetworkSpawn() {
-        base.OnNetworkSpawn();
+        base.OnNetworkSpawn(); 
+        _projectilesPool = new ObjectPool<ProjectileView>(() => {
+            return Instantiate(_projectileView);
+        });
         _floatingTextsPool = new ObjectPool<NetworkObject>(() => {
             var needObject = Instantiate(floatingTextPrefab);
          
@@ -92,6 +99,42 @@ public class NetcodeSceneService : NetworkBehaviour
           
             return needObject;
         });
+    }
+    
+    public ProjectileView GetGunProjectile(Vector2 spawnPosition)
+    {
+        var projectile = _projectilesPool.Get();
+        if (!projectile.networkObject.IsSpawned) 
+            projectile.networkObject.Spawn();
+        
+        
+        projectile.transform.position = spawnPosition;
+        projectile.gameObject.SetActive(true);
+        return projectile;
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void ReleaseGunProjectileClientRpc(NetworkObjectReference networkObject, float radius ,int projectileSpritesIndex = 0) {
+        // if(!projectile.gameObject.activeInHierarchy)return;
+        networkObject.TryGet(out var projectileNetworkObject);
+        var projectile = projectileNetworkObject.GetComponent<ProjectileView>();
+     //   if (projectileSpritesIndex == 0) 
+     //       RelaseProjectileYourself(projectile);
+      //  else {
+            PlayHitAnimation(projectile, radius, projectileSpritesIndex);
+       // }
+    }
+
+    private void PlayHitAnimation(ProjectileView projectile, float radius ,int projectileSpritesIndex = 0) {
+        Sprite[] animation =projectileSpritesIndex == 0? null: _bulletSprites;
+        projectile.GetComponent<ProjectileView>().PlayHitAnimation(animation,radius, RelaseProjectileYourself);
+    }
+
+    public void RelaseProjectileYourself(ProjectileView projectile) {  
+        projectile.gameObject.SetActive(false);
+        if(!NetworkManager.IsServer)return;
+        if(!projectile.gameObject.activeInHierarchy)return;
+    
+        _projectilesPool.Release(projectile);
     }
     [ServerRpc(RequireOwnership = false)]
     public void GetLaserFloatingTextServerRpc(int entity, Vector2 position,string text, ServerRpcParams rpcParams = default) {
@@ -336,6 +379,7 @@ public class NetcodeSceneService : NetworkBehaviour
             } else {
                 string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
                 var carPartView = carViewCmp.CarPartStuffViews[needGridPosition.x, needGridPosition.y];
+                cellCarPartsStuffViews.Add(carPartView);
                 carPartView.SetupCarPart(needGridPosition, needLayer, mainEntity,clientId);
                 carPartView.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
             }

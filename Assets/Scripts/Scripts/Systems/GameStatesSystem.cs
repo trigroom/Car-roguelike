@@ -2141,6 +2141,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
         var carPartConfig = _sceneService.Value._carStuffListsConfig.CarPartConfigs[carPartInfoCmp.CarPartId];
 
         carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
+        Debug.Log(carStuffViews.Length + "carStuffViews.Length");
         for (int i = 0; i < carStuffViews.Length; i++) {
             carPartCmp.CellCarPartsStuffViews.Add(carStuffViews[i]);
           /*  if (GridUtils.IsContainerType(carPartConfig)) {

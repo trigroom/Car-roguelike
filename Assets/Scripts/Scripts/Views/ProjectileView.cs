@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using Unity.Netcode;
 using UnityEngine;
 
 public class ProjectileView : MonoBehaviour {
@@ -21,7 +22,8 @@ public class ProjectileView : MonoBehaviour {
 
     [SerializeField]
     private Material _defaultMaterial;
-
+    [field: SerializeField]
+    public NetworkObject networkObject { get; private set; }
     public void Construct(Action<AttackType, int, Vector2Int, int, Vector2, ProjectileView, int, string> hitTargetAction, int gunId,
         Sprite sprite, string tag, Material projectileMaterial) {
         this.hitTargetAction = hitTargetAction;
