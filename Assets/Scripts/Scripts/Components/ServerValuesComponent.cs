@@ -5,4 +5,5 @@
         public Dictionary<ulong,int> ClientsEntities;
         
         public float TickFuelServerTime;
+        public float TickCarPartHealthServerTime;
     }

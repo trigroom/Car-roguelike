@@ -1,5 +1,5 @@
-namespace Client {
+using System.Collections.Generic;
+
     struct PlayerTagComponent {
-        // add your data here.
+        public Dictionary<int, float> ChangedCarPartsHp;
     }
-}

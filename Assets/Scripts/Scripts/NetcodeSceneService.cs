@@ -39,6 +39,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<Animator[], int[]> _wheelComponentsSetupAction;
    private Action< ulong,Vector2,bool > _setSpeedParametersAction;
    private Action< CarView > _setCarViewAction;
+   private Action<Vector2Int, float, bool> _setCarPartHealthPointAction;
    private Action<float, float, float, float> _setFuelBarsAction;
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
        _carPartSetupAction;
@@ -162,7 +163,8 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<Animator[], int[]> wheelComponentsSetupAction,
         Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
             carPartSetupAction, Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong,bool, int, Vector2> setupCarOnServerAction,
-        Action< ulong,Vector2,bool > setSpeedParametersAction,  Action< CarView > setCarViewAction,Action<float, float, float, float> setFuelBarsAction) {
+        Action< ulong,Vector2,bool > setSpeedParametersAction,  Action< CarView > setCarViewAction,Action<float, float, float, float> setFuelBarsAction,
+        Action<Vector2Int, float, bool> setCarPartHealthPointAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -173,6 +175,7 @@ public class NetcodeSceneService : NetworkBehaviour
         _setSpeedParametersAction = setSpeedParametersAction;
         _setCarViewAction = setCarViewAction;
         _setFuelBarsAction = setFuelBarsAction;
+        _setCarPartHealthPointAction = setCarPartHealthPointAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -497,6 +500,17 @@ public class NetcodeSceneService : NetworkBehaviour
             _wheelComponentsSetupAction.Invoke(allWheels, wheelComponentEntities);
         }
     }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetCarPartsHpDataClientRpc(CarPartsHpDataForRpc[] carPartsHpData) {
+        Debug.Log(carPartsHpData.Length + "SetCarPartsHpDataClientRpc");
+        foreach (var carPartData in carPartsHpData) {
+            if (NetworkManager.Singleton.LocalClientId == carPartData.ClientId) {
+                _setCarPartHealthPointAction.Invoke(new Vector2Int((int)carPartData.GridPosition.x, (int)carPartData.GridPosition.y),
+                    carPartData.HealthPoints, carPartData.IsUpperPart);
+            }
+        }
+    }
     
     private Animator CreateWheel(int wheelId, CarView carView, Vector2 pos, bool isLeftSide) {
         Debug.Log("wheel id" + wheelId);
@@ -748,5 +762,28 @@ public struct FuelDataForRpc : INetworkSerializable
         serializer.SerializeValue(ref MaxElectricity);
         serializer.SerializeValue(ref Fuel);
         serializer.SerializeValue(ref MaxFuel);
+    }
+}
+
+[System.Serializable]
+public struct CarPartsHpDataForRpc : INetworkSerializable
+{
+    public Vector2 GridPosition;
+    public float HealthPoints;
+    public ulong ClientId;
+    public bool IsUpperPart;
+
+    public CarPartsHpDataForRpc(Vector2 gridPosition, float healthPoints, ulong clientId, bool isUpperPart) {
+        GridPosition = gridPosition;
+        HealthPoints = healthPoints;
+        ClientId = clientId;
+        IsUpperPart = isUpperPart;
+    }
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref GridPosition);
+        serializer.SerializeValue(ref HealthPoints);
+        serializer.SerializeValue(ref ClientId);
+        serializer.SerializeValue(ref IsUpperPart);
     }
 }

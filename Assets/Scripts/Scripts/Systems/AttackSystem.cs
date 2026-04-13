@@ -60,6 +60,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<TrainControllerComponent> _trainControllerComponentsPool;
     private EcsPoolInject<HpBarComponent> _hpBarComponentsPool;
     private EcsPoolInject<PlayerTagComponent> _playerTagComponentsPool;
+    private EcsPoolInject<PlayerComponent> _playerComponentsPool;
 
     private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
     private EcsFilterInject<Inc<HpBarComponent>> _hpBarComponentsFilter;
@@ -1401,6 +1402,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             return;
         }
 
+        if (_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity)) {
+            if (!_playerTagComponentsPool.Value.Get(carPartCmp.MainEntity).ChangedCarPartsHp.TryAdd(cellEntity, carPartInfoCmp.CurrentHealth))
+                _playerTagComponentsPool.Value.Get(carPartCmp.MainEntity).ChangedCarPartsHp[cellEntity] = carPartInfoCmp.CurrentHealth;
+        }
         var healthPercent = carPartInfoCmp.CurrentHealth / carPartCmp.MaxHealth;
         var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
         if (carPartCmp.HealthMaterialIndex == 0 && healthPercent < 0.6f) {
@@ -1415,7 +1420,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             ChangeCarPartMaterial(cellEntity, carPartCmp, needMaterial, carPartConfig);
         }
 
-        if (DataPersistenceManagerSystem._gameData.UseHpBars) {
+        //if (DataPersistenceManagerSystem._gameData.UseHpBars) {
             if (!_hpBarComponentsPool.Value.Has(cellEntity)) {
                 _hpBarComponentsPool.Value.Add(cellEntity);
                 var healthPercentBefore = (carPartInfoCmp.CurrentHealth + health) / carPartCmp.MaxHealth;
@@ -1444,7 +1449,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 if (_hpBarComponentsPool.Value.Has(cellEntity))
                     _hpBarComponentsPool.Value.Del(cellEntity);
             }));*/
-        }
+     //   }
        
         
             

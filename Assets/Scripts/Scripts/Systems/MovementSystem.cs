@@ -146,7 +146,7 @@ public class MovementSystem : IEcsRunSystem {
 
         foreach (var movementEntity in _movementComponentsFilter.Value) {
             ref var carCmp = ref _carComponentsPool.Value.Get(movementEntity);
-            Debug.Log(movementEntity + " try move"+carCmp.CarView);
+     //       Debug.Log(movementEntity + " try move"+carCmp.CarView);
             
             ref var movementCmp = ref _movementComponentsPool.Value.Get(movementEntity);
            // 

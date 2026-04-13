@@ -26,6 +26,7 @@ public class ProjectileView : MonoBehaviour {
     public NetworkObject networkObject { get; private set; }
     public void Construct(Action<AttackType, int, Vector2Int, int, Vector2, ProjectileView, int, string> hitTargetAction, int gunId,
         Sprite sprite, string tag, Material projectileMaterial) {
+    
         this.hitTargetAction = hitTargetAction;
         this.gunId = gunId;
         spriteRenderer.sprite = sprite;
@@ -40,6 +41,7 @@ public class ProjectileView : MonoBehaviour {
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
+        if(!NetworkManager.Singleton.IsServer)return;
         if (other.gameObject.layer == LayerMask.NameToLayer("Obstacle")) {
             if (other.gameObject.TryGetComponent(out CarPartStuffView damagedCarPart))
                 hitTargetAction?.Invoke(AttackType.Projectile, gunId, damagedCarPart._gridPosition, damagedCarPart._mainEntity,
