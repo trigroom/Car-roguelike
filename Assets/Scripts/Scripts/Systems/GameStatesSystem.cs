@@ -89,7 +89,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value.PlayerEntity = playerEntity;
 
         _netcodeSceneService.Value.SetupService(GetHpBar, DeleteHpBarComponent, SetupLaserComponent, CarViewSetup, SetupWheelComponents,
-            SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues);
+            SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues, BrokeCarPartSprite);
         //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         
@@ -325,7 +325,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                   int playerEntity = _playerComponentsPool.Value.Get(clientEntity.Value).PlayerEntity;
 
                   var fuelCmp = _fuelComponentsPool.Value.Get(playerEntity);
-                  Debug.Log("fuel count for client " + fuelCmp.MaxFuel + " "+ fuelCmp.CurrentFuel);
+            //      Debug.Log("fuel count for client " + fuelCmp.MaxFuel + " "+ fuelCmp.CurrentFuel);
                   fuelDataForPlayers[i] = new FuelDataForRpc(clientEntity.Key, fuelCmp.CurrentElectricity, fuelCmp.MaxElectricity,
                       fuelCmp.CurrentFuel, fuelCmp.MaxFuel);
                   i++;
@@ -386,6 +386,18 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
 
+    private void BrokeCarPartSprite(SpriteRenderer carPartSprite) {
+        carPartSprite.sortingOrder -= 5;
+        carPartSprite.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
+        carPartSprite.transform.parent = _sceneService.Value._brokenCarPartsContainer;
+        var sprites = carPartSprite.GetComponentsInChildren<SpriteRenderer>(true);
+    
+        foreach (var sprite in sprites)
+        {
+            sprite.sortingOrder -= 5;
+            sprite.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
+        }
+    }
     private void SetHpUiValues(Vector2Int gridPosition, float health, bool isUpperPart) {
         ref var carCmp = ref _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         int carPartEntity = isUpperPart?carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y]:carCmp.CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];

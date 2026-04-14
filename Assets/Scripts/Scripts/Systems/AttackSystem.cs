@@ -842,13 +842,21 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 projectileCmp.CurrentBreakingThroughCount = gunCmp.MaxPiercingCount;
             }
 
-            if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) || !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)
+            if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) ||
+                !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy) {
                 currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Enemy",
                     _sceneService.Value._carStuffListsConfig.DefaultMaterial);
-            else
+                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, true, gunConfig.Id, Vector2.zero);
+            } else {
                 currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Player",
                     _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial);
+                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, false, gunConfig.Id, Vector2.zero);
+            }
+            
+                
 
+           
+            
             currentProjectile.rigidbody2D.linearVelocity = direction * gunConfig.BulletSpeed;
 
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
@@ -1585,14 +1593,18 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             meleeCmp.MeleeWeaponRenderer.sortingOrder -= 5;
             meleeCmp.MeleeWeaponRenderer.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
         }
-
+        int childIndex =  carPartCmp.CarPartCellRenderer.transform.GetSiblingIndex();
+        ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
+        _netcodeSceneService.Value.BrokeCarPartSpritesClientRpc(carCmp.CarView.transform.parent.gameObject.GetComponent<NetworkObject>(),childIndex);
+        Debug.Log(childIndex + " child destroyed car part");  
+        
         carPartCmp.CarPartCellRenderer.transform.parent = _sceneService.Value._brokenCarPartsContainer;
         carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
         carPartCmp.CarPartCellRenderer.color = _sceneService.Value._carStuffListsConfig.DestroyedCarPartColor;
 
         bool destroyCarAfterCarPart = false;
         bool dontDestroyCarAfterMainPart = !_betweenScenesService.Value.GetMapDifficultyConfig().DestroyEnemyCarsAfterDeath && isEnemy;
-        ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
+     
 
         if (_shockEffectComponentsPool.Value.Has(cellEntity))
             _shockEffectComponentsPool.Value.Del(cellEntity);
@@ -1638,7 +1650,6 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             if (isEnemy)
                 carCmp.CarPartContainerGroupsList.Remove(cellEntity);
         } else {
-            Debug.Log(" destroy car part not containere");
             for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                 var carPart = carPartCmp.CellCarPartsStuffViews[i];
                 var gridPos = carCmp.CarPartGroupsList[cellEntity][i];

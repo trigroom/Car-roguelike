@@ -29,15 +29,24 @@ public class ProjectileView : MonoBehaviour {
     
         this.hitTargetAction = hitTargetAction;
         this.gunId = gunId;
-        spriteRenderer.sprite = sprite;
-        spriteRenderer.material = projectileMaterial;
-        spriteRenderer.color = tag == "Enemy" ? Color.white : projectileMaterial.GetColor("_OffsetColor");
+       // spriteRenderer.sprite = sprite;
+       // spriteRenderer.material = projectileMaterial;
+       // spriteRenderer.color = tag == "Enemy" ? Color.white : projectileMaterial.GetColor("_OffsetColor");
+       SetProjectileVisual(sprite, tag, projectileMaterial);
+       
         needTag = tag;
         collider.enabled = true;
         Bounds spriteBounds = spriteRenderer.bounds;
 
         collider.size = spriteBounds.size -
                         new Vector3(2f / GridUtils.InWorldCellSize, 2f / GridUtils.InWorldCellSize, 2f / GridUtils.InWorldCellSize);
+    }
+
+    public void SetProjectileVisual(Sprite sprite, string tag, Material projectileMaterial) {
+        Debug.Log("Set bullet step 2");
+        spriteRenderer.sprite = sprite;
+        spriteRenderer.material = projectileMaterial;
+        spriteRenderer.color = tag == "Enemy" ? Color.white : projectileMaterial.GetColor("_OffsetColor");
     }
 
     private void OnTriggerEnter2D(Collider2D other) {

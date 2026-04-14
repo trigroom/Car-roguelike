@@ -44,6 +44,8 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
        _carPartSetupAction;
 
+   private Action<SpriteRenderer> _destroyCarPartAction;
+
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
    private ObjectPool<CarPartStuffView> _carPartsPool;
    private ObjectPool<Transform> _gunContainersPool;
@@ -113,6 +115,17 @@ public class NetcodeSceneService : NetworkBehaviour
         projectile.gameObject.SetActive(true);
         return projectile;
     }
+    [Rpc(SendTo.NotServer)]
+    public void SetProjectileVisualClientRpc(NetworkObjectReference networkObject, bool isEnemy, int gunId, Vector2 projectileSpeed) {
+        networkObject.TryGet(out var projectileNetworkObject);
+        Debug.Log("Set bullet step 1");
+        var projectile = projectileNetworkObject.GetComponent<ProjectileView>();
+        if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[gunId] is GunConfig gunConfig)
+            projectile.SetProjectileVisual(gunConfig.MissleSprite, isEnemy ? "Enemy" : "Player",
+                isEnemy
+                    ?BetweenScenesService.Instance._carStuffListsConfig.DefaultMaterial
+                    :  BetweenScenesService.Instance._carStuffListsConfig.EnemyProjectilesMaterial);
+    }
     [Rpc(SendTo.ClientsAndHost)]
     public void ReleaseGunProjectileClientRpc(NetworkObjectReference networkObject, float radius ,int projectileSpritesIndex = 0) {
         // if(!projectile.gameObject.activeInHierarchy)return;
@@ -164,7 +177,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
             carPartSetupAction, Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong,bool, int, Vector2> setupCarOnServerAction,
         Action< ulong,Vector2,bool > setSpeedParametersAction,  Action< CarView > setCarViewAction,Action<float, float, float, float> setFuelBarsAction,
-        Action<Vector2Int, float, bool> setCarPartHealthPointAction) {
+        Action<Vector2Int, float, bool> setCarPartHealthPointAction, Action <SpriteRenderer> destroyCarPartAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -176,6 +189,7 @@ public class NetcodeSceneService : NetworkBehaviour
         _setCarViewAction = setCarViewAction;
         _setFuelBarsAction = setFuelBarsAction;
         _setCarPartHealthPointAction = setCarPartHealthPointAction;
+        _destroyCarPartAction = destroyCarPartAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -291,6 +305,12 @@ public class NetcodeSceneService : NetworkBehaviour
         }
     }
 
+    [Rpc(SendTo.NotOwner)]
+    public void BrokeCarPartSpritesClientRpc(NetworkObjectReference carView, int childIndex) {
+        carView.TryGet(out var networkObject);
+        if (networkObject.transform.GetChild(0).GetComponent<CarView>().CarPartsContainer.GetChild(childIndex).gameObject.TryGetComponent<SpriteRenderer>(out var spriteRenderer)) 
+            _destroyCarPartAction.Invoke(spriteRenderer);
+    }
 
     private void ReleaseHpBar(NetworkObject imageNetworkObject) {
         _hpBarsPool.Release(imageNetworkObject);

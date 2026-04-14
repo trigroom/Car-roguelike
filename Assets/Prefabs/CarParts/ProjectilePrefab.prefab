@@ -229,7 +229,7 @@ MonoBehaviour:
   RotationInterpolationType: 0
   ScaleInterpolationType: 0
   PositionLerpSmoothing: 1
-  PositionMaxInterpolationTime: 0.01
+  PositionMaxInterpolationTime: 0.1
   RotationLerpSmoothing: 1
   RotationMaxInterpolationTime: 0.1
   ScaleLerpSmoothing: 1
@@ -246,8 +246,8 @@ MonoBehaviour:
   SyncScaleX: 0
   SyncScaleY: 0
   SyncScaleZ: 0
-  PositionThreshold: 0.01
-  RotAngleThreshold: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
   ScaleThreshold: 0.01
   UseQuaternionSynchronization: 0
   UseQuaternionCompression: 0
