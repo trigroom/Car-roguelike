@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -26,6 +27,7 @@ public class MapFilledZoneView : MonoBehaviour {
    }
 
    private void OnTriggerEnter2D(Collider2D other) {
+      if(!NetworkManager.Singleton.IsServer)return;
       if (other.CompareTag("Player")) {
          if (collidersCount == 0) {
             _triggerAction.Invoke(true);

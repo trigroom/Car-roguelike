@@ -89,7 +89,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value.PlayerEntity = playerEntity;
 
         _netcodeSceneService.Value.SetupService(GetHpBar, DeleteHpBarComponent, SetupLaserComponent, CarViewSetup, SetupWheelComponents,
-            SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues, BrokeCarPartSprite);
+            SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues, BrokeCarPartSprite,
+            SetFilledZonePositionToClient,SetFilledZoneFillAmountToClient);
         //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         
@@ -274,6 +275,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             
             case RoundType.ZoneDefence:
                 curGameCmp.RoundTime += Time.deltaTime;
+
+                if (NetworkManager.Singleton.IsServer &&
+                    _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TickFuelServerTime == 0) {
+                    var filledZoneCmp = _filledZoneComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                    _netcodeSceneService.Value.SetZoneFillAmountClientRpc(filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime);
+                }
+               
                 break;
             
             case RoundType.VersusBattle:
@@ -1511,12 +1519,28 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
     
     private void SetFilledZoneRound() {
+        if(!NetworkManager.Singleton.IsServer)return;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
         _sceneService.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(true);
         _sceneService.Value._mapFilledZoneView.gameObject.SetActive(true);
        _filledZoneComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).NeedZoneTime = 10+curGameCmp.CurrentRound*3;
-        _sceneService.Value._mapFilledZoneView.ChangeZonePosition(GetRandomPointAround(Vector2.zero, 10));
+       var zonePosition = GetRandomPointAround(Vector2.zero, 10);
+      _netcodeSceneService.Value.SetZonePositionClientRpc(zonePosition);
+        _sceneService.Value._mapFilledZoneView.ChangeZonePosition(zonePosition);
+    }
+
+    private void SetFilledZonePositionToClient(Vector2 zonePosition) {
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.gameObject.SetActive(true);
+        _sceneService.Value._mapFilledZoneView.gameObject.SetActive(true);
+        _sceneService.Value._mapFilledZoneView.ChangeZonePosition(zonePosition);
+    }
+
+    private void SetFilledZoneFillAmountToClient(float fillAmount) {
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.DOKill();
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.DOColor(_sceneService.Value._healthGradient.Evaluate(fillAmount), 0.3f);
+      //  _sceneService.Value._mapFilledZoneView.FilledZoneUI.color = _sceneService.Value._healthGradient.Evaluate(fillAmount);
+        _sceneService.Value._mapFilledZoneView.FilledZoneUI.DOFillAmount(fillAmount, 0.3f);
     }
 
     private void SetNewPointToPointRound() {
