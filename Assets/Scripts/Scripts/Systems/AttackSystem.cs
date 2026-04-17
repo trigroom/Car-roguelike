@@ -61,6 +61,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<HpBarComponent> _hpBarComponentsPool;
     private EcsPoolInject<PlayerTagComponent> _playerTagComponentsPool;
     private EcsPoolInject<PlayerComponent> _playerComponentsPool;
+    private EcsPoolInject<ServerValuesComponent> _serverValuesComponentsPool;
 
     private EcsFilterInject<Inc<ShockEffectComponent>> _shockEffectComponentsFilter;
     private EcsFilterInject<Inc<HpBarComponent>> _hpBarComponentsFilter;
@@ -78,6 +79,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsFilterInject<Inc<ThunderstormComponent>> _thunderstormComponentsFilter;
     private EcsFilterInject<Inc<BomberProjectile>> _bomberProjectilesFilter;
     private EcsFilterInject<Inc<FireExtinguisherComponent>> _fireExtinguisherComponentsFilter;
+    
 
     public void Run(IEcsSystems systems) {
         foreach (var endRoundEntity in _endRoundEventsFilter.Value) {
@@ -621,9 +623,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void LoseGame() {
+       
         _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType = RoundType.None;
-        //   if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None)
-        //      EndRound();
         Time.timeScale = 0;
         int currentRound = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRound;
         int scrapCount = _betweenScenesService.Value._carStuffListsConfig.MapConfigs[_betweenScenesService.Value.CurrentSelectedMap]
@@ -633,6 +634,21 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         CheckCoreAchievements();
         DataPersistenceManagerSystem.SaveGame();
         //go to meta
+    }
+
+    private void CheckLoseGame() {
+        if (_betweenScenesService.Value.IsCoop)
+            _netcodeSceneService.Value.SetDeathPlayersCountServerRpc();
+        else
+            LoseGame();
+    }
+    
+
+    private void CheckDeathPlayersCount() {
+        ref var serverCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        serverCmp.DeathPlayers++;
+        if (serverCmp.DeathPlayers == NetworkManager.Singleton.ConnectedClients.Count)
+            _netcodeSceneService.Value.SetLoseStateForAllClientRpc();
     }
 
     private void CheckCoreAchievements() {
@@ -842,24 +858,27 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 projectileCmp.CurrentBreakingThroughCount = gunCmp.MaxPiercingCount;
             }
 
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) ||
                 !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy) {
                 currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Enemy",
                     _sceneService.Value._carStuffListsConfig.DefaultMaterial);
-                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, true, gunConfig.Id, Vector2.zero);
+                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, true, gunConfig.Id,
+                    direction * gunConfig.BulletSpeed, angle,worldFirePoint);
             } else {
                 currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Player",
                     _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial);
-                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, false, gunConfig.Id, Vector2.zero);
+                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, false, gunConfig.Id,
+                    direction * gunConfig.BulletSpeed, angle,worldFirePoint);
             }
             
                 
 
            
             
-            currentProjectile.rigidbody2D.linearVelocity = direction * gunConfig.BulletSpeed;
+           currentProjectile.rigidbody2D.linearVelocity = direction * gunConfig.BulletSpeed;
 
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            
             currentProjectile.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
 
@@ -1517,7 +1536,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity))
                     DestroyNeedCar(carPartCmp.MainEntity);
                 else if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity)
-                    LoseGame();
+                    CheckLoseGame();
             }
 
             carPartCmp.CellCarPartsStuffViews = null;
@@ -1789,7 +1808,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 DestroyNeedCar(carPartCmp.MainEntity);
 
             if (isPlayer && _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None)
-                LoseGame();
+                CheckLoseGame();
         }
 
         return destroyCarAfterCarPart;
@@ -2015,5 +2034,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (_trainControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
             _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
                 .ConstructMapMelee(ProjectileHit);
+        
+        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame);
     }
 }

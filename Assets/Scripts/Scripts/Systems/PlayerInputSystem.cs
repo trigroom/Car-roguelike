@@ -32,9 +32,10 @@ sealed class PlayerInputSystem : IEcsRunSystem {
             moveCmp.TickServerTime += Time.deltaTime;
             if (moveCmp.TickServerTime > 0.07f) {
                 moveCmp.TickServerTime = 0;
-
+bool IsUseSpeedBoost = Input.GetMouseButton(0);
+Debug.Log(IsUseSpeedBoost + "IsUseSpeedBoostNow");
                 _netcodeSceneService.Value.SetCarMovementServerRpc(_sceneData.Value.mainCamera.ScreenToWorldPoint(Input.mousePosition),
-                    Input.GetMouseButton(0));
+                    IsUseSpeedBoost);
             }
         }
     }

@@ -43,7 +43,6 @@ public class ProjectileView : MonoBehaviour {
     }
 
     public void SetProjectileVisual(Sprite sprite, string tag, Material projectileMaterial) {
-        Debug.Log("Set bullet step 2");
         spriteRenderer.sprite = sprite;
         spriteRenderer.material = projectileMaterial;
         spriteRenderer.color = tag == "Enemy" ? Color.white : projectileMaterial.GetColor("_OffsetColor");

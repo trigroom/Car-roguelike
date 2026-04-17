@@ -44,9 +44,14 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
        _carPartSetupAction;
 
+   private Action<Vector2> _setMapPointForClients;
+
    private Action<SpriteRenderer> _destroyCarPartAction;
    private Action<Vector2> _setZonePositionAction;
    private Action<float> _setZoneFillAmountAction;
+   private Action _endRoundForClientAction;
+   private Action _setDeathPlayersCountAction;
+   private Action _setLoseStateForAllAction;
    
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
    private ObjectPool<CarPartStuffView> _carPartsPool;
@@ -118,15 +123,19 @@ public class NetcodeSceneService : NetworkBehaviour
         return projectile;
     }
     [Rpc(SendTo.NotServer)]
-    public void SetProjectileVisualClientRpc(NetworkObjectReference networkObject, bool isEnemy, int gunId, Vector2 projectileSpeed) {
+    public void SetProjectileVisualClientRpc(NetworkObjectReference networkObject, bool isEnemy, int gunId, Vector2 projectileSpeed,
+        float angle,  Vector2 worldFirePoint) {
         networkObject.TryGet(out var projectileNetworkObject);
-        
+
         var projectile = projectileNetworkObject.GetComponent<ProjectileView>();
+        projectile.rigidbody2D.linearVelocity = projectileSpeed;
+        projectile.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        projectile.transform.position =  worldFirePoint;
         if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[gunId] is GunConfig gunConfig)
             projectile.SetProjectileVisual(gunConfig.MissleSprite, isEnemy ? "Enemy" : "Player",
                 isEnemy
-                    ?BetweenScenesService.Instance._carStuffListsConfig.DefaultMaterial
-                    :  BetweenScenesService.Instance._carStuffListsConfig.EnemyProjectilesMaterial);
+                    ? BetweenScenesService.Instance._carStuffListsConfig.DefaultMaterial
+                    : BetweenScenesService.Instance._carStuffListsConfig.EnemyProjectilesMaterial);
     }
     [Rpc(SendTo.ClientsAndHost)]
     public void ReleaseGunProjectileClientRpc(NetworkObjectReference networkObject, float radius ,int projectileSpritesIndex = 0) {
@@ -136,6 +145,7 @@ public class NetcodeSceneService : NetworkBehaviour
      //   if (projectileSpritesIndex == 0) 
      //       RelaseProjectileYourself(projectile);
       //  else {
+      projectile.rigidbody2D.linearVelocity = Vector2.zero;
             PlayHitAnimation(projectile, radius, projectileSpritesIndex);
        // }
     }
@@ -180,7 +190,8 @@ public class NetcodeSceneService : NetworkBehaviour
             carPartSetupAction, Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> setupCarOnServerAction,
         Action<ulong, Vector2, bool> setSpeedParametersAction, Action<CarView> setCarViewAction,
         Action<float, float, float, float> setFuelBarsAction, Action<Vector2Int, float, bool> setCarPartHealthPointAction,
-        Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction) {
+        Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction,
+        Action<Vector2> setMapPointForClients, Action endRoundForClientAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -195,6 +206,14 @@ public class NetcodeSceneService : NetworkBehaviour
         _destroyCarPartAction = destroyCarPartAction;
         _setZonePositionAction = setZonePositionAction;
         _setZoneFillAmountAction = setZoneFillAmountAction;
+        _setMapPointForClients = setMapPointForClients;
+        _endRoundForClientAction = endRoundForClientAction;
+    }
+    
+    public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction,
+        Action setLoseStateForAllAction) {
+        _setDeathPlayersCountAction = setDeathPlayersCountAction;
+        _setLoseStateForAllAction = setLoseStateForAllAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -214,6 +233,15 @@ public class NetcodeSceneService : NetworkBehaviour
         }
            
         SetFloatingTextClientRpc(position, text, textColor, floatingText);
+    }
+    [ServerRpc(RequireOwnership = false)]
+    public void SetDeathPlayersCountServerRpc() {
+      _setDeathPlayersCountAction.Invoke();
+    }
+    
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetLoseStateForAllClientRpc() {
+        _setLoseStateForAllAction.Invoke();
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -315,6 +343,15 @@ public class NetcodeSceneService : NetworkBehaviour
         carView.TryGet(out var networkObject);
         if (networkObject.transform.GetChild(0).GetComponent<CarView>().CarPartsContainer.GetChild(childIndex).gameObject.TryGetComponent<SpriteRenderer>(out var spriteRenderer)) 
             _destroyCarPartAction.Invoke(spriteRenderer);
+    }
+
+    [Rpc(SendTo.NotOwner)]
+    public void EndRoundClientRpc() {
+        _endRoundForClientAction.Invoke();
+    }
+    [Rpc(SendTo.NotOwner)]
+    public void SetMapPointClientRpc(Vector2 mapPointPosition) {
+            _setMapPointForClients.Invoke(mapPointPosition);
     }
     [Rpc(SendTo.NotOwner)]
     public void SetZoneFillAmountClientRpc(float fillAmount) {

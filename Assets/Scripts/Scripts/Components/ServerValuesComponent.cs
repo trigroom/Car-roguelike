@@ -6,4 +6,6 @@
         
         public float TickFuelServerTime;
         public float TickCarPartHealthServerTime;
-    }
+
+        public int DeathPlayers;
+   }
