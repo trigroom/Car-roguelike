@@ -74,7 +74,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsFilterInject<Inc<CarPartInGameUIComponent>> _carPartInGameUIComponentsFilter;
     private EcsFilterInject<Inc<BossComponent>> _bossComponentsFilter;
     private EcsFilterInject<Inc<DestroyEntityEvent>> _destroyEntityEventsFilter;
-    private EcsFilterInject<Inc<PlayerTagComponent>> _playerTagComponentsFilter;
+    private EcsFilterInject<Inc<PlayerTagComponent>> _playerTagComponentsFilter; 
+    private EcsFilterInject<Inc<PlayerComponent>> _playerComponentsFilter;
 
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
@@ -90,7 +91,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         _netcodeSceneService.Value.SetupService(GetHpBar, DeleteHpBarComponent, SetupLaserComponent, CarViewSetup, SetupWheelComponents,
             SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues, BrokeCarPartSprite,
-            SetFilledZonePositionToClient,SetFilledZoneFillAmountToClient, SetMapPointForClients,EndRound);
+            SetFilledZonePositionToClient,SetFilledZoneFillAmountToClient, SetMapPointForClients,EndRound,SetHealthForCarPartToClient);
         //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         
@@ -203,7 +204,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             {CarPartType.Gun, new List<int>()} ,
             {CarPartType.MeleeWeapon, new List<int>()} ,
             {CarPartType.Armor, new List<int>()} ,
-            {CarPartType.Support, new List<int>()} ,
+            {CarPartType.Support, new List<int>()} 
         };
         if (mapConfig.GameProcessConfig.GameRounds[0].AddedCarPartsToEnemyPool != null)
             foreach (var addedCarPartId in mapConfig.GameProcessConfig.GameRounds[0].AddedCarPartsToEnemyPool) {
@@ -661,19 +662,20 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
     }
 
-    private void SetMovementComponentValues(ulong playerId,Vector2 moveInput,bool isUseSpeedBoost) { 
-    //   Debug.Log(playerId + "playerid move");
+    private void SetMovementComponentValues(ulong playerId, Vector2 moveInput, bool isUseSpeedBoost) {
+        //   Debug.Log(playerId + "playerid move");
+        if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.None) return;
+        
         int playerEntity = _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).ClientsEntities[playerId];
         int needEntity = _playerComponentsPool.Value.Get(playerEntity).PlayerEntity;
-      
-        
+
         if (_enemyAIComponentsPool.Value.Has(needEntity))
             _enemyAIComponentsPool.Value.Del(needEntity);
         ref var moveCmp = ref _movementComponentsPool.Value.Get(needEntity);
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(needEntity);
-        
+
         moveCmp.TargetPosition = moveInput;
-    Debug.Log($" mms {moveCmp.MaxMoveSpeed}, cmt {moveCmp.CantMoveTime}, {moveCmp.CurrentMoveSpeed}, id: {playerId}, isUseSpeedBoost {isUseSpeedBoost}");    
+//    Debug.Log($" mms {moveCmp.MaxMoveSpeed}, cmt {moveCmp.CantMoveTime}, {moveCmp.CurrentMoveSpeed}, id: {playerId}, isUseSpeedBoost {isUseSpeedBoost}");    
         if (isUseSpeedBoost && !fuelCmp.UseSpeedBoost && fuelCmp.CurrentFuel > 0)
             fuelCmp.UseSpeedBoost = true;
 
@@ -790,7 +792,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void UpdateMapPoint() {
-        if(!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))return;
+        if(!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity) || !NetworkManager.Singleton.IsServer)return;
         ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if(pointToPointRound.TimeAfterMarkPoint > 0)return;
         pointToPointRound.PointsToCheck.RemoveAt(0);
@@ -843,6 +845,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void EndRound() {
         
+        if (_serverValuesComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) 
+            EndRoundSetServerValues();
+        
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.ZoneDefence: 
@@ -866,7 +871,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         int currentRound = curGameCmp.CurrentRound - 1;
         _sceneService.Value._mapUIView.RoundDifficltyContainer.gameObject.SetActive(false);
         int moneyCount = (int)(_betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[currentRound].MoneyCount * curGameCmp.RoundMoneyMultiplayer);
-        Debug.Log(curGameCmp.RoundMoneyMultiplayer + " curGameCmp.RoundMoneyMultiplayer"+currentRound);
         curGameCmp.RoundMoneyMultiplayer = 1;
         var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         int allPartCount = 0;
@@ -922,14 +926,71 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._enemyAirplane.gameObject.SetActive(false);
         _sceneService.Value._parachuteSpriteRenderer.gameObject.SetActive(false);
 
-        if (_serverValuesComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
-            ref var servarCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-            servarCmp.DeathPlayers = 0;
-            servarCmp.ClientsEntities = new Dictionary<ulong, int>();
-        }
+       
             
     }
 
+    private void EndRoundSetServerValues() {  
+        ref var serverCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        CarPartHealthDataForRpc[] carPartsHealthDataForRpc = new CarPartHealthDataForRpc[serverCmp.ClientsEntities.Count];
+        int i = 0;
+        foreach (var clientInfo in serverCmp.ClientsEntities) {
+            ref var playerCmp = ref _playerComponentsPool.Value.Get(clientInfo.Value);
+            var carPlayerCmp = _carComponentsPool.Value.Get(playerCmp.PlayerEntity);
+            int[] healthValuesPlayer;
+            int[] healthValuesContainersPlayer;
+            Vector2Int playerGridSize = Vector2Int.zero;
+            int[] healthValuesFirstTeammate = null;
+            int[] healthValuesContainersFirstTeammate = null;
+            Vector2Int firstTeammateGridSize = Vector2Int.zero;
+            int[] healthValuesSecondTeammate = null;
+            int[] healthValuesContainersSecondTeammate = null;
+            Vector2Int secondTeammateGridSize = Vector2Int.zero;
+
+            (healthValuesPlayer, healthValuesContainersPlayer, playerGridSize) = GetCarPartHealthArraysFromCar(playerCmp.PlayerEntity);
+            if (playerCmp.TeammatesEntities.Count == 1 && playerCmp.TeammatesEntities[0] != 0)
+                (healthValuesFirstTeammate, healthValuesContainersFirstTeammate, firstTeammateGridSize) =
+                    GetCarPartHealthArraysFromCar(playerCmp.TeammatesEntities[0]);
+            if (playerCmp.TeammatesEntities.Count == 2 && playerCmp.TeammatesEntities[1] != 0)
+                (healthValuesSecondTeammate, healthValuesContainersSecondTeammate, secondTeammateGridSize) =
+                    GetCarPartHealthArraysFromCar(playerCmp.TeammatesEntities[1]);
+            carPartsHealthDataForRpc[i] = new CarPartHealthDataForRpc(clientInfo.Key, healthValuesPlayer,
+                healthValuesContainersPlayer, playerGridSize, healthValuesFirstTeammate, healthValuesContainersFirstTeammate,
+                firstTeammateGridSize, healthValuesSecondTeammate, healthValuesContainersSecondTeammate, secondTeammateGridSize);
+            i++;
+        }
+
+        _netcodeSceneService.Value.SetEndRoundHealthValuesClientRpc(carPartsHealthDataForRpc);
+        serverCmp.DeathPlayers = 0;
+        serverCmp.ClientsEntities = new Dictionary<ulong, int>();
+    }
+
+    private (int[], int[], Vector2Int) GetCarPartHealthArraysFromCar(int entity) {
+        var carCmp = _carComponentsPool.Value.Get(entity);
+        Vector2Int carSize = new(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1));
+        int[] carPartHealthInfo = new int[carCmp.CarPartContainerGroupsGrid.Length];
+        foreach (var carPartInfo in carCmp.CarPartGroupsList) {
+            int health = (int)_carPartInfoComponentsPool.Value.Get(carPartInfo.Key).CurrentHealth == 0
+                ? -1
+                : (int)_carPartInfoComponentsPool.Value.Get(carPartInfo.Key).CurrentHealth;
+
+            var firstCarPartCellPosition = carPartInfo.Value[0];
+            Debug.Log(firstCarPartCellPosition + " firstCarPartCellPosition" +carSize + " carSize"+ carCmp.CarPartContainerGroupsGrid.Length + "allGridLenght" );
+            carPartHealthInfo[firstCarPartCellPosition.y * carSize.x + firstCarPartCellPosition.x] = health;
+        }
+
+        int[] carPartContainersHealthInfo = new int[carCmp.CarPartContainerGroupsGrid.Length];
+        foreach (var carPartContainerInfo in carCmp.CarPartContainerGroupsList) {
+            var firstCarPartCellPosition = carPartContainerInfo.Value[0];
+
+            int health = (int)_carPartInfoComponentsPool.Value.Get(carPartContainerInfo.Key).CurrentHealth == 0
+                ? -1
+                : (int)_carPartInfoComponentsPool.Value.Get(carPartContainerInfo.Key).CurrentHealth;
+            carPartContainersHealthInfo[firstCarPartCellPosition.y * carSize.x + firstCarPartCellPosition.x] = health;
+        }
+
+        return (carPartHealthInfo, carPartContainersHealthInfo, carSize);
+    }
     private void ReleaseAllCarPartUI() {
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         foreach (var carPartUi in inventoryCmp.CarPartInfoUIViewsGrid) {
@@ -1060,7 +1121,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         return "";
     }
 
-    private void StartCurrentRoundType(RoundType roundType) {
+    private void StartCurrentRoundType(RoundType roundType, float moneyMultiplayer) {
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         _netcodeSceneService.Value.HideMessageClient();
         
@@ -1072,6 +1133,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         shopCmp.IsModulesShop = false;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
+        curGameCmp.RoundMoneyMultiplayer = moneyMultiplayer;
         if (curGameCmp.CurrentRound > 0) {
             if (mapConfig.GameProcessConfig.GameRounds[curGameCmp.CurrentRound].AddedCarPartsToEnemyPool != null)
                 foreach (var addedCarPartId in mapConfig.GameProcessConfig.GameRounds[curGameCmp.CurrentRound].AddedCarPartsToEnemyPool) {
@@ -1173,9 +1235,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void StartCurrentRoundTypeOnClick(RoundType roundType, PointerEventData data) {
         if (!_betweenScenesService.Value.IsCoop)
-            StartCurrentRoundType(roundType);
+            StartCurrentRoundType(roundType,_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer);
         else
-            NetcodeBetweenScenesService.Instance.StartRoundClientRpc(roundType);
+            NetcodeBetweenScenesService.Instance.StartRoundClientRpc(roundType,_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer);
     }
 
     private void SetVersusBattleUI() {
@@ -1404,6 +1466,15 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         versusBattleCmp.LeftOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(), false, new Vector2(-20, 0));
     }
 
+    private void SetHealthForCarPartToClient(Vector2Int gridPosition, float health, bool isUpperPart, int teammateIndex) {
+       int needEntity = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity[teammateIndex] ;
+
+       ref var carCmp = ref _carComponentsPool.Value.Get(needEntity);
+       int carPartEntity = isUpperPart
+           ? carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y]
+           : carCmp.CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
+       _carPartInfoComponentsPool.Value.Get(carPartEntity).CurrentHealth = health;
+    }
     private void SetCarToVersusGrid() {
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
@@ -1570,6 +1641,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetNewPointToPointRound() {
+        if(!NetworkManager.Singleton.IsServer)return;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.FromAToB;
 
@@ -2730,6 +2802,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
 
     
     private void EnterInQuicksand(Vector2Int gridPosition, int mainEntity, int quicksandEntity) {
+        if(!NetworkManager.Singleton.IsServer)return;
         var carPartComponent = _carComponentsPool.Value.Get(mainEntity).CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
         if (_movementComponentsPool.Value.Has(mainEntity) && _carPartInfoComponentsPool.Value.Has(carPartComponent) &&
             _sceneService.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(carPartComponent).CarPartId).PartType ==
@@ -2742,6 +2815,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
     }
 
     private void ExitFromQuicksand(Vector2Int gridPosition, int mainEntity, int quicksandEntity) {
+        if(!NetworkManager.Singleton.IsServer)return;
         var carPartComponent = _carComponentsPool.Value.Get(mainEntity).CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
         if (_movementComponentsPool.Value.Has(mainEntity) && _carPartInfoComponentsPool.Value.Has(carPartComponent) &&
             _sceneService.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(carPartComponent).CarPartId).PartType ==

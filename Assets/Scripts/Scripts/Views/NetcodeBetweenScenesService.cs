@@ -8,7 +8,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
     public NetworkList<PlayerReadyState> playerReadyStates;
     public NetworkVariable<int> readyClientsCount = new NetworkVariable<int>(0);
     public static NetcodeBetweenScenesService Instance { get; private set; }
-    private Action<RoundType> startRoundAction;
+    private Action<RoundType, float> startRoundAction;
     private Action<int[]> updateAction;
     private Action<Transform> quicksandAction;
     private Action<Transform, int> addTrainTrailAction;
@@ -115,8 +115,8 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     [ClientRpc]
-    public void StartRoundClientRpc(RoundType roundType) {
-        startRoundAction.Invoke(roundType);
+    public void StartRoundClientRpc(RoundType roundType, float moneyMultiplayer) {
+        startRoundAction.Invoke(roundType,moneyMultiplayer);
     //    NetcodeSceneService.HideMessageClientRpc();
     }
     [ServerRpc(RequireOwnership = false)]
@@ -161,7 +161,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         return allReady;
     }
     public void SetupService(Action<int[]> updateAction, Action<Transform> quicksandAction, Action<Transform,int> addTrainTrailAction,
-        Action<RoundType> startRoundAction) {
+        Action<RoundType, float> startRoundAction) {
         this.updateAction = updateAction;
         this.quicksandAction = quicksandAction;
         this.addTrainTrailAction = addTrainTrailAction;

@@ -40,6 +40,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action< ulong,Vector2,bool > _setSpeedParametersAction;
    private Action< CarView > _setCarViewAction;
    private Action<Vector2Int, float, bool> _setCarPartHealthPointAction;
+   private Action<Vector2Int, float, bool,int> _setCarPartHealthToClientAction;
    private Action<float, float, float, float> _setFuelBarsAction;
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
        _carPartSetupAction;
@@ -52,6 +53,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action _endRoundForClientAction;
    private Action _setDeathPlayersCountAction;
    private Action _setLoseStateForAllAction;
+   private Action _setMinimumHealthLevelAction;
    
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
    private ObjectPool<CarPartStuffView> _carPartsPool;
@@ -191,7 +193,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<ulong, Vector2, bool> setSpeedParametersAction, Action<CarView> setCarViewAction,
         Action<float, float, float, float> setFuelBarsAction, Action<Vector2Int, float, bool> setCarPartHealthPointAction,
         Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction,
-        Action<Vector2> setMapPointForClients, Action endRoundForClientAction) {
+        Action<Vector2> setMapPointForClients, Action endRoundForClientAction, Action<Vector2Int, float, bool,int> setCarPartHealthToClientAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -208,12 +210,16 @@ public class NetcodeSceneService : NetworkBehaviour
         _setZoneFillAmountAction = setZoneFillAmountAction;
         _setMapPointForClients = setMapPointForClients;
         _endRoundForClientAction = endRoundForClientAction;
+        _setCarPartHealthToClientAction=setCarPartHealthToClientAction;
     }
     
     public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction,
         Action setLoseStateForAllAction) {
         _setDeathPlayersCountAction = setDeathPlayersCountAction;
         _setLoseStateForAllAction = setLoseStateForAllAction;
+    }
+    public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction) {
+        _setMinimumHealthLevelAction = setMinimumHealthLevelAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -584,6 +590,57 @@ public class NetcodeSceneService : NetworkBehaviour
             }
         }
     }
+
+    private void ProcessHealthData(int[] healthValues, Vector2Int gridSize, bool isUpperPart,int teammateIndex) // true - для HealthValues, false - для Containers
+    {
+       // if (healthValues == null) return;
+
+        for (int i = 0; i < healthValues.Length; i++) {
+            float health = healthValues[i];
+            if (health != 0) {
+                Vector2Int gridPosition = ConvertIndexToGridPosition(i, gridSize);
+                _setCarPartHealthToClientAction.Invoke(gridPosition, health == -1 ? 0 : health, isUpperPart,teammateIndex);
+            }
+        }
+    }
+
+    private Vector2Int ConvertIndexToGridPosition(int index, Vector2Int gridSize) {
+        // Исправленная формула: row = index / cols, col = index % cols
+        int cols = gridSize.y; // предполагая, что y - это количество столбцов
+        int row = index / cols;
+        int col = index % cols;
+        return new Vector2Int(row, col);
+    }
+    
+    [Rpc(SendTo.NotServer)]
+    public void SetEndRoundHealthValuesClientRpc(CarPartHealthDataForRpc[] carPartsHpData) {
+        Debug.Log( "Set Car Parts Hp After Round ClientRpc");
+        foreach (var carPartData in carPartsHpData) {
+            if (NetworkManager.Singleton.LocalClientId == carPartData.Id) {
+                // Player
+                ProcessHealthData(carPartData.HealthValuesContainersPlayer, carPartData.PlayerGridSize, false,0);
+                ProcessHealthData(carPartData.HealthValuesPlayer, carPartData.PlayerGridSize, true,0);
+    
+                // First Teammate
+                if (carPartData.FirstTeammateGridSize != Vector2Int.zero)
+                {
+                    ProcessHealthData(carPartData.HealthValuesContainersFirstTeammate, carPartData.FirstTeammateGridSize, false,1);
+                    ProcessHealthData(carPartData.HealthValuesFirstTeammate, carPartData.FirstTeammateGridSize, true,1);
+                }
+    
+                // Second Teammate
+                if (carPartData.SecondTeammateGridSize != Vector2Int.zero)
+                {
+                    ProcessHealthData(carPartData.HealthValuesContainersSecondTeammate, carPartData.SecondTeammateGridSize, false,2);
+                    ProcessHealthData(carPartData.HealthValuesSecondTeammate, carPartData.SecondTeammateGridSize, true,2);
+                }
+                
+                _setMinimumHealthLevelAction.Invoke();
+                break;
+            }
+        }
+    }
+    
     
     private Animator CreateWheel(int wheelId, CarView carView, Vector2 pos, bool isLeftSide) {
         Debug.Log("wheel id" + wheelId);
@@ -809,6 +866,84 @@ public struct CarPartDataForRpc : INetworkSerializable
         serializer.SerializeValue(ref Level);
         serializer.SerializeValue(ref Durability);
         serializer.SerializeValue(ref ClientEntity);
+    }
+}
+
+[System.Serializable]
+public struct CarPartHealthDataForRpc : INetworkSerializable
+{
+    public ulong Id;
+    public int[] HealthValuesPlayer;
+    public int[] HealthValuesContainersPlayer;
+    public Vector2Int PlayerGridSize;
+    public int[] HealthValuesFirstTeammate;
+    public int[] HealthValuesContainersFirstTeammate;
+    public Vector2Int FirstTeammateGridSize;
+    public int[] HealthValuesSecondTeammate;
+     public int[] HealthValuesContainersSecondTeammate;
+    public Vector2Int SecondTeammateGridSize;
+
+    public CarPartHealthDataForRpc(ulong id, int[] healthValuesPlayer, int[] healthValuesContainersPlayer, Vector2Int playerGridSize,
+        int[] healthValuesFirstTeammate, int[] healthValuesContainersFirstTeammate, Vector2Int firstTeammateGridSize,
+        int[] healthValuesSecondTeammate, int[] healthValuesContainersSecondTeammate, Vector2Int secondTeammateGridSize) {
+        Id = id;
+        HealthValuesPlayer = healthValuesPlayer;
+        HealthValuesFirstTeammate = healthValuesFirstTeammate;
+        HealthValuesSecondTeammate = healthValuesSecondTeammate;
+        FirstTeammateGridSize = firstTeammateGridSize;
+        SecondTeammateGridSize = secondTeammateGridSize;
+        PlayerGridSize = playerGridSize;
+        HealthValuesContainersPlayer = healthValuesContainersPlayer;
+        HealthValuesContainersFirstTeammate = healthValuesFirstTeammate;
+        HealthValuesContainersSecondTeammate = healthValuesSecondTeammate;
+    }
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        // Сериализация массива
+       
+        int healthValuesPlayerLength = HealthValuesPlayer?.Length ?? 0;
+        int healthValuesFirstTeammateLength = HealthValuesFirstTeammate?.Length ?? 0;
+        int healthValuesSecondTeammateLength = HealthValuesSecondTeammate?.Length ?? 0;
+        int healthValuesContainersPlayerLength = HealthValuesContainersPlayer?.Length ?? 0;
+        int healthValuesContainersFirstTeammateLength = HealthValuesContainersFirstTeammate?.Length ?? 0;
+        int healthValuesContainersSecondTeammateLength = HealthValuesContainersSecondTeammate?.Length ?? 0;
+        
+        serializer.SerializeValue(ref healthValuesPlayerLength);
+        serializer.SerializeValue(ref healthValuesFirstTeammateLength);
+        serializer.SerializeValue(ref healthValuesSecondTeammateLength);
+        serializer.SerializeValue(ref healthValuesContainersPlayerLength);
+        serializer.SerializeValue(ref healthValuesContainersFirstTeammateLength);
+        serializer.SerializeValue(ref healthValuesContainersSecondTeammateLength);
+
+        if (serializer.IsReader) {
+               HealthValuesContainersPlayer = new int[healthValuesContainersPlayerLength];
+               HealthValuesContainersFirstTeammate = new int[healthValuesContainersFirstTeammateLength];
+               HealthValuesContainersSecondTeammate = new int[healthValuesContainersSecondTeammateLength];
+               HealthValuesPlayer = new int[healthValuesPlayerLength];
+               HealthValuesFirstTeammate = new int[healthValuesFirstTeammateLength];
+               HealthValuesSecondTeammate = new int[healthValuesSecondTeammateLength];
+        }
+         
+        
+        for (int i = 0; i < healthValuesPlayerLength; i++)
+            serializer.SerializeValue(ref HealthValuesPlayer[i]);
+        for (int i = 0; i < healthValuesFirstTeammateLength; i++)
+            serializer.SerializeValue(ref HealthValuesFirstTeammate[i]);
+        for (int i = 0; i < healthValuesSecondTeammateLength; i++)
+            serializer.SerializeValue(ref HealthValuesSecondTeammate[i]);
+        
+        for (int i = 0; i < healthValuesContainersPlayerLength; i++)
+            serializer.SerializeValue(ref HealthValuesContainersPlayer[i]);
+        for (int i = 0; i < healthValuesContainersFirstTeammateLength; i++)
+            serializer.SerializeValue(ref HealthValuesContainersFirstTeammate[i]);
+        for (int i = 0; i < healthValuesContainersSecondTeammateLength; i++)
+            serializer.SerializeValue(ref HealthValuesContainersSecondTeammate[i]);
+        // Сериализация остальных полей
+        serializer.SerializeValue(ref Id);
+        
+        serializer.SerializeValue(ref PlayerGridSize);
+        serializer.SerializeValue(ref FirstTeammateGridSize);
+        serializer.SerializeValue(ref SecondTeammateGridSize);
     }
 }
 

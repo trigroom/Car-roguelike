@@ -9,6 +9,7 @@ using Leopotam.EcsLite.ExtendedSystems;
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using System.Threading.Tasks;
+using Unity.Netcode;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -17,6 +18,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsWorldInject _world;
     private EcsCustomInject<SceneService> _sceneData;
     private EcsCustomInject<BetweenScenesService> _betweenScenesService;
+    private EcsCustomInject<NetcodeSceneService> _netcodeSceneService;
 
     private EcsPoolInject<CarComponent> _carComponentsPool;
     private EcsPoolInject<CarPartCellComponent> _carPartCellComponentsPool;
@@ -156,12 +158,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             /*(data) => { ChangeRoundDescription(randomRounds[newIndex], (PointerEventData)data); }*/
         }
 
+        _netcodeSceneService.Value.SetupServiceFromInventorySystem(SetHealthToMinimumLevel);
         //test
         SetUpAdminButtons();
         
-        AddModuleInventoryItem(6);
-        AddModuleInventoryItem(7);
-        AddModuleInventoryItem(8);
+      //  AddModuleInventoryItem(6);
+      //  AddModuleInventoryItem(7);
+        //AddModuleInventoryItem(8);
+        
+        
     }
 
     public void Run(IEcsSystems systems) {
@@ -195,8 +200,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
         foreach (var endRound in _endRoundEventsFilter.Value) {
-            SetHealthToMinimumLevel();
-            UpdateHealAllCarPartButton();
+            if (NetworkManager.Singleton.IsServer)
+                SetHealthToMinimumLevel();
+      
             _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
             CloseShowInfoPanel();
             //_endRoundEventsPool.Value.Del(endRound);
@@ -3213,12 +3219,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetHealthToMinimumLevel() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         Sequence sequence = DOTween.Sequence();
-        
+
         sequence.AppendCallback(ClearCarUI);
         inventoryCmp.SelectCarButtonsNotInteractable = true;
         sequence.AppendInterval(0.5f);
-       
-      
+
         float minHealthLevel = _betweenScenesService.Value.GetMapDifficultyConfig().HealedHealthPartAfterEndRound;
         List<int> destroyerCars = new List<int>();
         foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
@@ -3245,11 +3250,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (minHealthLevel != 0 && carPartInfoCmp.CurrentHealth / carPartCmp.MaxHealth < minHealthLevel) {
                     carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth * minHealthLevel;
                 } else if (minHealthLevel == 0 && carPartInfoCmp.CurrentHealth <= 0) {
-                    if (DestroyPlayerCarPart(carPartInfo.Key)) {
+                    if (_sceneData.Value.GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.Main)
+                        carPartInfoCmp.CurrentHealth = 1;
+                    else if (DestroyPlayerCarPart(carPartInfo.Key)) {
                         isDestroyCar = true;
                     }
                 }
-                
             }
 
             if (isDestroyCar) {
@@ -3264,16 +3270,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         foreach (var carEntity in destroyerCars) {
-            inventoryCmp.PlayerTeammateCarsEntity.Remove(carEntity); 
+            inventoryCmp.PlayerTeammateCarsEntity.Remove(carEntity);
             _sceneData.Value._inventoryUIView._selectCarButtons[inventoryCmp.PlayerTeammateCarsEntity.Count].gameObject.SetActive(false);
         }
 
-        var needCarIndex = inventoryCmp.PlayerTeammateCarsEntity.IndexOf(inventoryCmp.CurrentRedactedCarEntity) ;
-  sequence.AppendCallback(()=> SetNewCarUI(needCarIndex));
-        
+        var needCarIndex = inventoryCmp.PlayerTeammateCarsEntity.IndexOf(inventoryCmp.CurrentRedactedCarEntity);
+        sequence.AppendCallback(() => SetNewCarUI(needCarIndex));
+
         sequence.Play();
-        //update grid
- 
+
+        UpdateHealAllCarPartButton();
     }
 
     private bool DestroyPlayerCarPart(int cellEntity) {
