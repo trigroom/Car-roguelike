@@ -1429,7 +1429,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             return;
         }
 
-        if (_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity)) {
+        if (_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) && carPartCmp.CellCarPartsStuffViews != null) {
             if (!_playerTagComponentsPool.Value.Get(carPartCmp.MainEntity).ChangedCarPartsHp.TryAdd(cellEntity, carPartInfoCmp.CurrentHealth))
                 _playerTagComponentsPool.Value.Get(carPartCmp.MainEntity).ChangedCarPartsHp[cellEntity] = carPartInfoCmp.CurrentHealth;
         }

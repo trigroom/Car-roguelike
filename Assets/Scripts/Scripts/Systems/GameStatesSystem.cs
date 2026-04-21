@@ -801,7 +801,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
            
             EndRoundForAll();
         } else {
-            _netcodeSceneService.Value.SetMapPointClientRpc(pointToPointRound.PointsToCheck[0]);
+            if (_betweenScenesService.Value.IsCoop)
+                _netcodeSceneService.Value.SetMapPointClientRpc(pointToPointRound.PointsToCheck[0]);
             _sceneService.Value._mapPointPrefab.transform.position = pointToPointRound.PointsToCheck[0];
             //smth particle effect
         }
@@ -1662,7 +1663,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._playerUIView._arrowImageTransform.localPosition = new Vector3(arrowPos, 0, 0);
 
         _sceneService.Value._mapPointPrefab.transform.position = pointToPointRoundCmp.PointsToCheck[0];
-        _netcodeSceneService.Value.SetMapPointClientRpc(pointToPointRoundCmp.PointsToCheck[0]);
+        if (_betweenScenesService.Value.IsCoop)
+            _netcodeSceneService.Value.SetMapPointClientRpc(pointToPointRoundCmp.PointsToCheck[0]);
         _sceneService.Value._mapPointPrefab.gameObject.SetActive(true);
         _sceneService.Value._playerUIView._arrowImageTransform.gameObject.SetActive(true);
     }
