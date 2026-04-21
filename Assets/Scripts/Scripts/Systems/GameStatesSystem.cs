@@ -357,9 +357,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                       var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
                       Debug.Log(" checked car part info"+ carPartConfig.PartName);
                       bool isContainerType = GridUtils.IsContainerType(carPartConfig);
-                      Vector2Int gridPosition = isContainerType
-                          ? _carComponentsPool.Value.Get(playerEntity).CarPartContainerGroupsList[changedCarPartEntity.Key][0]
-                          : _carComponentsPool.Value.Get(playerEntity).CarPartGroupsList[changedCarPartEntity.Key][0];
+                      Vector2Int gridPosition = Vector2Int.zero;
+                      if (isContainerType) {
+                         if(!_carComponentsPool.Value.Get(playerEntity).CarPartContainerGroupsList.TryGetValue(changedCarPartEntity.Key, out var positions)) continue;
+                         gridPosition = positions[0];
+                      } else {
+                          if(!_carComponentsPool.Value.Get(playerEntity).CarPartGroupsList.TryGetValue(changedCarPartEntity.Key, out var positions)) continue;
+                          gridPosition = positions[0];
+                      }
+                     //     ? ?[0]
+                     //     : _carComponentsPool.Value.Get(playerEntity).CarPartGroupsList[changedCarPartEntity.Key][0];
                       healthDataForPlayers.Add(new CarPartsHpDataForRpc(gridPosition, changedCarPartEntity.Value, clientEntity.Key, !isContainerType));
                   }
                   _playerTagComponentsPool.Value.Get(playerEntity).ChangedCarPartsHp.Clear();
@@ -955,6 +962,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             if (playerCmp.TeammatesEntities.Count == 2 && playerCmp.TeammatesEntities[1] != 0)
                 (healthValuesSecondTeammate, healthValuesContainersSecondTeammate, secondTeammateGridSize) =
                     GetCarPartHealthArraysFromCar(playerCmp.TeammatesEntities[1]);
+            Debug.Log(playerCmp.TeammatesEntities.Count+"firstTeammateGridSize" + firstTeammateGridSize);
             carPartsHealthDataForRpc[i] = new CarPartHealthDataForRpc(clientInfo.Key, healthValuesPlayer,
                 healthValuesContainersPlayer, playerGridSize, healthValuesFirstTeammate, healthValuesContainersFirstTeammate,
                 firstTeammateGridSize, healthValuesSecondTeammate, healthValuesContainersSecondTeammate, secondTeammateGridSize);
@@ -1920,7 +1928,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             
         //    SpawnCarPartCellView(carPartCellEntity, carCmp.CarView, !isEnemy, carContainer.rotate);
         }
-        _enemyAIComponentsPool.Value.Add(enemyEntity).IsEnemy = true;
+        _enemyAIComponentsPool.Value.Add(enemyEntity).IsEnemy = isEnemy;
      
 _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
         return enemyEntity;

@@ -44,6 +44,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsPoolInject<UpdateCarsStatsInfoEvent> _updateCarsStatsInfoEventsPool;
     private EcsPoolInject<CarPartInfoComponent> _carPartInfoComponentsPool;
     private EcsPoolInject<ModuleInventoryItem> _moduleInventoryItemsPool;
+    private EcsPoolInject<ServerValuesComponent> _serverValuesComponentsPool;
     private EcsPoolInject<UpdateCarStatsEvent> _updateCarStatsEventsPool;
 
     private EcsFilterInject<Inc<UpdateShopToSaleRoundEvent>> _updateShopToSaleRoundEventsFilter;
@@ -1327,7 +1328,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     
     private void BuyShopCar(int entity) {
         var shopCellCmp = _shopCellCarComponentsPool.Value.Get(entity);
-        if (_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > 4) {
+        int maxTeammatesCount = 4;
+        if (_betweenScenesService.Value.IsCoop)
+            maxTeammatesCount = _serverValuesComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ClientsEntities.Count > 1 ? 1 : 2;
+        if (_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > maxTeammatesCount) {
             _sceneData.Value.PlayWarningAnimation(GetLocalization("No space in garage"), false);
            return; 
         }
