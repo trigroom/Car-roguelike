@@ -54,6 +54,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action _setDeathPlayersCountAction;
    private Action _setLoseStateForAllAction;
    private Action _setMinimumHealthLevelAction;
+   private Action< Vector2 >  _setEnemyAirplanePosition;
    
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
    private ObjectPool<CarPartStuffView> _carPartsPool;
@@ -229,7 +230,8 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<ulong, Vector2, bool> setSpeedParametersAction, Action<CarView> setCarViewAction,
         Action<float, float, float, float> setFuelBarsAction, Action<Vector2Int, float, bool> setCarPartHealthPointAction,
         Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction,
-        Action<Vector2> setMapPointForClients, Action endRoundForClientAction, Action<Vector2Int, float, bool,int> setCarPartHealthToClientAction) {
+        Action<Vector2> setMapPointForClients, Action endRoundForClientAction, Action<Vector2Int, float, bool,int> setCarPartHealthToClientAction,
+    Action< Vector2 >  setEnemyAirplanePosition) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -247,7 +249,9 @@ public class NetcodeSceneService : NetworkBehaviour
         _setMapPointForClients = setMapPointForClients;
         _endRoundForClientAction = endRoundForClientAction;
         _setCarPartHealthToClientAction=setCarPartHealthToClientAction;
+         _setEnemyAirplanePosition=setEnemyAirplanePosition;
     }
+    
     
     public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction,
         Action setLoseStateForAllAction) {
@@ -276,7 +280,11 @@ public class NetcodeSceneService : NetworkBehaviour
 
         SetFloatingTextClientRpc(position, text, textColor, floatingText);
     }
-
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SendEnemyAirplaneClientRpc(Vector2 position) {
+       
+        _setEnemyAirplanePosition.Invoke(position);
+    }
     [Rpc(SendTo.ClientsAndHost)]
     private void SetFloatingTextClientRpc(Vector2 position, string text, Color textColor, NetworkObjectReference floatingTextNO,
         int entity = -1, ulong clientId = 0) {
@@ -314,7 +322,7 @@ public class NetcodeSceneService : NetworkBehaviour
     }
     
     [ServerRpc(RequireOwnership = false)]
-    public void GetHpBarPrefabServerRpc(Vector2 position, float healthPercent, int cellEntity, float healthPercentBefore,ServerRpcParams rpcParams = default) {
+    public void GetHpBarPrefabServerRpc(NetworkObjectReference carNetworkObject,Vector2 position, float healthPercent, int cellEntity, float healthPercentBefore,ServerRpcParams rpcParams = default) {
       
         var hpBar = _hpBarsPool.Get();
         if (!hpBar.IsSpawned) {
@@ -325,11 +333,29 @@ public class NetcodeSceneService : NetworkBehaviour
        // hpBar.transform.gameObject.SetActive(true);
 
        _getHpBarAction.Invoke(hpBar,cellEntity);
-        SetHPBarClientRpc(hpBar, position, healthPercent, cellEntity, rpcParams.Receive.SenderClientId, healthPercentBefore);
+        SetHPBarClientRpc(carNetworkObject,hpBar, position, healthPercent, cellEntity, rpcParams.Receive.SenderClientId, healthPercentBefore);
+    }
+    [Rpc(SendTo.NotServer)]
+    public void SpawnTrainClientRpc(NetworkObjectReference trainTransform) {
+        trainTransform.TryGet(out var networkObject);
+       
+        networkObject.gameObject.SetActive(false);
     }
     
     [Rpc(SendTo.ClientsAndHost)]
-    public void SetHPBarClientRpc(NetworkObjectReference imageNetworkObject,Vector2 position, float healthPercent, int cellEntity, ulong needClientId,
+    public void MoveTrainClientRpc(Vector2 startPosition, Vector2 endPosition, NetworkObjectReference trainTransform,float rotateAngle) {
+        trainTransform.TryGet(out var networkObject);
+        networkObject.transform.localEulerAngles =  new Vector3(0, 0, rotateAngle );
+        networkObject.transform.position =startPosition;
+        if (endPosition.x == 0)
+            networkObject.transform.DOMoveY(endPosition.y, 12);
+        else 
+            networkObject.transform.DOMoveX(endPosition.x, 12);
+        
+        networkObject.gameObject.SetActive(true);
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetHPBarClientRpc(NetworkObjectReference carNetworkObject,NetworkObjectReference imageNetworkObject,Vector2 position, float healthPercent, int cellEntity, ulong needClientId,
         float healthPercentBefore = -1) {
         imageNetworkObject.TryGet(out var networkObject);
         networkObject.transform.gameObject.SetActive(DataPersistenceManagerSystem._gameData.UseHpBars);
@@ -338,6 +364,16 @@ public class NetcodeSceneService : NetworkBehaviour
         var needSequence = networkObject.gameObject.GetComponent<SequenceStoreView>();
         needSequence.ImageSequence?.Kill();
         needSequence.ImageSequence = DOTween.Sequence();
+      
+        if (!IsServer) { 
+            carNetworkObject.TryGet(out var carNetworkObjectTransform);
+            var childTransform =  carNetworkObjectTransform.transform.GetChild(0);
+            needSequence.TargetTransform = childTransform;  
+            Vector3 localOffset = childTransform.InverseTransformPoint(position);
+            needSequence.OffsetPosition =  localOffset;
+          
+            Debug.Log("offset pos" + localOffset);
+        }
         if (healthPercentBefore != -1) {
             hpBarImage.fillAmount = healthPercentBefore;
             hpBarImage.color = _healthGradient.Evaluate(healthPercentBefore);
@@ -353,6 +389,9 @@ public class NetcodeSceneService : NetworkBehaviour
         needSequence.ImageSequence.Join(hpBarImage.DOFade(0, 0.3f)).OnComplete(() => {
             if (IsServer)
                 ReleaseHpBar(imageNetworkObject);
+            else
+                needSequence.TargetTransform = null;
+            
             networkObject.gameObject.SetActive(false);
             if (NetworkManager.Singleton.LocalClientId == needClientId)
                 _deleteHpBarComponentAction.Invoke(cellEntity);
@@ -453,13 +492,14 @@ public class NetcodeSceneService : NetworkBehaviour
     }*/
     
     [ServerRpc(RequireOwnership = false, DeferLocal = true)]
-    public void InstantiateCarViewServerRpc( int entity,bool isPlayer,ServerRpcParams rpcParams = default)
+    public void InstantiateCarViewServerRpc( int entity,bool isPlayer,Vector2 spawnPosition, ServerRpcParams rpcParams = default)
     {
         
         ulong clientId =  rpcParams.Receive.SenderClientId;
         
         var carTransform = Instantiate(_carView).GetComponent<NetworkObject>();
         carTransform.Spawn();
+        carTransform.transform.GetChild(0).transform.position = spawnPosition;
         SendCarToClientRpc(clientId,carTransform, entity, isPlayer);
     }
     
@@ -472,6 +512,7 @@ public class NetcodeSceneService : NetworkBehaviour
         if (carReference.TryGet(out NetworkObject netObj))
         {    
             var carView = netObj.GetComponentInChildren<CarView>();
+        
             _carSetupAction.Invoke(carView, entity, isPlayer);
         }
     }

@@ -647,6 +647,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private void CheckDeathPlayersCount() {
         ref var serverCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         serverCmp.DeathPlayers++;
+        
         if (serverCmp.DeathPlayers == NetworkManager.Singleton.ConnectedClients.Count)
             _netcodeSceneService.Value.SetLoseStateForAllClientRpc();
     }
@@ -1376,6 +1377,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void StayInTornado(Vector2Int gridPosition, int mainEntity, int tornadoEntity) {
+        if (!NetcodeBetweenScenesService.Instance.IsServer)return;
         ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(mainEntity);
         if (_movementComponentsPool.Value.Has(mainEntity)) {
@@ -1447,11 +1449,13 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             ChangeCarPartMaterial(cellEntity, carPartCmp, needMaterial, carPartConfig);
         }
 
+        var carViewNO = _carComponentsPool.Value.Get(carPartCmp.MainEntity).CarView.transform.parent.gameObject
+            .GetComponent<NetworkObject>();
         //if (DataPersistenceManagerSystem._gameData.UseHpBars) {
             if (!_hpBarComponentsPool.Value.Has(cellEntity)) {
                 _hpBarComponentsPool.Value.Add(cellEntity);
                 var healthPercentBefore = (carPartInfoCmp.CurrentHealth + health) / carPartCmp.MaxHealth;
-                _netcodeSceneService.Value.GetHpBarPrefabServerRpc(carPartCmp.CarPartCellRenderer.transform.position, healthPercent,cellEntity, healthPercentBefore);
+                _netcodeSceneService.Value.GetHpBarPrefabServerRpc(carViewNO, carPartCmp.CarPartCellRenderer.transform.position, healthPercent,cellEntity, healthPercentBefore);
             //    var hpBar = _sceneService.Value.GetHpBar(carPartCmp.CarPartCellRenderer.transform);
                // _hpBarComponentsPool.Value.Add(cellEntity).hpBarImage = hpBar;
              //   hpBar.fillAmount = healthPercentBefore;
@@ -1459,7 +1463,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 
             } else {
                 
-                _netcodeSceneService.Value.SetHPBarClientRpc(_hpBarComponentsPool.Value.Get(cellEntity).hpBarImage,carPartCmp.CarPartCellRenderer.transform.position,healthPercent,
+                _netcodeSceneService.Value.SetHPBarClientRpc(carViewNO,_hpBarComponentsPool.Value.Get(cellEntity).hpBarImage,carPartCmp.CarPartCellRenderer.transform.position,healthPercent,
                     cellEntity, NetworkManager.Singleton.LocalClientId);
             }
         //    ref var hpBarCmp = ref _hpBarComponentsPool.Value.Get(cellEntity);
@@ -1533,9 +1537,11 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             DestroyCarPartCell(cellEntity);
 
             if (carPartConfig.PartType == CarPartType.Main) {
-                if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity))
+                if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity) &&
+                    !_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) &&
+                    _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)
                     DestroyNeedCar(carPartCmp.MainEntity);
-                else if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity)
+                else if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity))
                     CheckLoseGame();
             }
 
@@ -1580,8 +1586,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (!carPartCmp.CarPartCellRenderer || !carPartCmp.CarPartCellRenderer.gameObject.activeInHierarchy) return false;
         var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        bool isPlayer = carPartCmp.MainEntity == _sceneService.Value.PlayerEntity;
-        bool isEnemy = !inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity);
+        bool isPlayer = carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity);
+        bool isEnemy = !inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity) &&
+                       !_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) &&
+                       _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy;
 
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
         ClearEffectsFromCarPart(cellEntity);
@@ -1804,11 +1812,13 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         if (destroyCarAfterCarPart) {
+            bool hasCarView = carCmp.CarView != null; 
+            if (isPlayer && _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None && hasCarView)
+                                                                     CheckLoseGame();
             if (!_destroyEntityEventsPool.Value.Has(carPartCmp.MainEntity) || !isEnemy)
                 DestroyNeedCar(carPartCmp.MainEntity);
 
-            if (isPlayer && _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None)
-                CheckLoseGame();
+          
         }
 
         return destroyCarAfterCarPart;
@@ -1954,12 +1964,14 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (currentRoundType == RoundType.None) return;
+       // if (carEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carEntity))
+       //     CheckLoseGame();
         if (dontDestroyEnemyCar && carCmp.CarPartContainerGroupsList.Count == 0 && !_destroyEntityEventsPool.Value.Has(carEntity)) {
             _destroyEntityEventsPool.Value.Add(carEntity);
             carCmp.CarView = null;
         } else if (!dontDestroyEnemyCar && !_destroyEntityEventsPool.Value.Has(carEntity)) {
             carCmp.CarView = null;
-            if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carEntity)) {
+            if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carEntity) && !_playerTagComponentsPool.Value.Has(carEntity) && _enemyAIComponentsPool.Value.Get(carEntity).IsEnemy) {
                 DataPersistenceManagerSystem._gameData.BrokenCars++;
                 if (_bossComponentsPool.Value.Has(carEntity))
                     _bossComponentsPool.Value.Del(carEntity);

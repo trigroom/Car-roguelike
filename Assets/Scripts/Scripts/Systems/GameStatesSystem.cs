@@ -80,6 +80,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
     public void Init(IEcsSystems systems) {
+      Debug.Log(NetworkManager.Singleton.ConnectedClients.Count + " players count");  
        // Application.targetFrameRate = 144;
        int playerEntity = _world.Value.NewEntity();
        ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
@@ -91,7 +92,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         _netcodeSceneService.Value.SetupService(GetHpBar, DeleteHpBarComponent, SetupLaserComponent, CarViewSetup, SetupWheelComponents,
             SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues, BrokeCarPartSprite,
-            SetFilledZonePositionToClient,SetFilledZoneFillAmountToClient, SetMapPointForClients,EndRound,SetHealthForCarPartToClient);
+            SetFilledZonePositionToClient,SetFilledZoneFillAmountToClient, SetMapPointForClients,EndRound,SetHealthForCarPartToClient,SendEnemyAirplane);
         //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         
@@ -266,11 +267,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
             case RoundType.FromAToB:
                 curGameCmp.RoundTime += Time.deltaTime;
-                if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) return;
-                ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-                var moveCmp = _movementComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-                if (moveCmp.MovableObjectRigidbody != null)
-                    UpdateArrowDirection( _sceneService.Value._mapPointPrefab.transform.position, moveCmp.MovableObjectRigidbody.gameObject.transform.position);
+            
+         
+                var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                if (carCmp.CarView != null)
+                    UpdateArrowDirection( _sceneService.Value._mapPointPrefab.transform.position, carCmp.CarView.gameObject.transform.position); 
+                if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) break;
+                       ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
                 if (pointToPointRound.TimeAfterMarkPoint > 0)
                     pointToPointRound.TimeAfterMarkPoint -= Time.deltaTime;
                 break;
@@ -377,11 +380,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
           }
         }
         
-        float timeBetweenEnemiesSpawn = _betweenScenesService.Value.GetMapDifficultyConfig().TimeBetweenInRoundEnemySpawn;
-        if (curGameCmp.RoundTime / timeBetweenEnemiesSpawn > curGameCmp.RoundAddedEnemies) {
+      float timeBetweenEnemiesSpawn = _betweenScenesService.Value.GetMapDifficultyConfig().TimeBetweenInRoundEnemySpawn;
+ 
+        if (NetworkManager.Singleton.IsServer && curGameCmp.RoundTime / timeBetweenEnemiesSpawn > curGameCmp.RoundAddedEnemies) {
             if (curGameCmp.CurrentRoundType != RoundType.BattleDefault ||
-                curGameCmp.RoundTime < (timeBetweenEnemiesSpawn - 5 + curGameCmp.CurrentRound * 3))
-                SendEnemyAirplane();
+                curGameCmp.RoundTime < (timeBetweenEnemiesSpawn - 5 + curGameCmp.CurrentRound * 3)) {
+                Vector2 needPosition = GetPositionAroundPlayer();
+               
+                    _netcodeSceneService.Value.SendEnemyAirplaneClientRpc(needPosition);
+            }
+                
 
             curGameCmp.RoundAddedEnemies++;
         } else if (curGameCmp.EnemySendPhase == 1)
@@ -441,9 +449,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         }
     }
-    private void SendEnemyAirplane() {
+    private void SendEnemyAirplane(Vector2 sendPosition) {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        curGameCmp.EnemyTargetPosition = GetPositionAroundPlayer();
+        curGameCmp.EnemyTargetPosition = sendPosition; 
         curGameCmp.EnemySendPhase = 1;
         _sceneService.Value._enemyAirplane.position = new Vector2 (curGameCmp.EnemyTargetPosition.x,-120);
         _sceneService.Value._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() => 
@@ -462,7 +470,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             fuelLampLight.DOFade(1, 0.25f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InSine);
         }
 
-      Debug.Log("fuel values"+fuelValue + " "+ maxFuelValue);
+     // Debug.Log("fuel values"+fuelValue + " "+ maxFuelValue);
         if(maxFuelValue == 0)return;
         var targetAngle = -65f + 130f * fuelValue / maxFuelValue;
         _sceneService.Value._playerUIView._fuelArrowImage.transform.DORotate(new Vector3(0, 0, targetAngle), 0.3f);
@@ -509,7 +517,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
                 curGameCmp.SupportBoxPhase = 3;
                 parachute.gameObject.SetActive(false);
-                SetEnemiesCars(1, false);
+                Debug.Log(curGameCmp.EnemyTargetPosition + " try spawn on scr");
+                if (NetcodeBetweenScenesService.Instance.IsServer)
+                    SetEnemiesCars(1, false);
                 curGameCmp.EnemyTargetPosition = Vector2.one * 999;
             });
         });
@@ -518,33 +528,40 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private void GetHpBar(NetworkObject newHpBar, int entity) {
         _hpBarComponentsPool.Value.Get(entity).hpBarImage = newHpBar;
     }
+
+   
     private void SpawnTrain() {
         ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var needTrail = trainControllerCmp.TrainRails[Random.Range(0, trainControllerCmp.TrainRails.Count)];
         bool isFirstSide = Random.value > 0.5f;
+        var trainNetworkObject = trainControllerCmp.TrainTransform.GetComponent<NetworkObject>();
         if (needTrail.localEulerAngles.z != 0) {
             if (isFirstSide) {
-                 trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 270 );
-                 trainControllerCmp.TrainTransform.position = new Vector3(needTrail.position.x, 110, 0);
-                 trainControllerCmp.TrainTransform.DOMoveY(-130, 12);
+                _netcodeSceneService.Value.MoveTrainClientRpc(new Vector2(needTrail.position.x, 110),new Vector2(0,-130),trainNetworkObject, 270);
+               // trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 270 );
+              //   trainControllerCmp.TrainTransform.position = new Vector3(needTrail.position.x, 110, 0);
+              //   trainControllerCmp.TrainTransform.DOMoveY(-130, 12);
             } else {
-                trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0,90);
-                trainControllerCmp.TrainTransform.position = new Vector3(needTrail.position.x, -110, 0);
-                trainControllerCmp.TrainTransform.DOMoveY(130, 12);
+                _netcodeSceneService.Value.MoveTrainClientRpc(new Vector2(needTrail.position.x, -110),new Vector2(0,130),trainNetworkObject, 90);
+               // trainControllerCmp.TrainTransform.localEulerAngles =  new Vector3(0, 0, 90 );
+               // trainControllerCmp.TrainTransform.position = new Vector3(needTrail.position.x, -110, 0);
+               // trainControllerCmp.TrainTransform.DOMoveY(130, 12);
             }
            
         } else {
             if (isFirstSide) {
-                trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 180);
-                trainControllerCmp.TrainTransform.position = new Vector3(110, needTrail.position.y, 0);
-                trainControllerCmp.TrainTransform.DOMoveX(-130, 12);
+                _netcodeSceneService.Value.MoveTrainClientRpc(new Vector2(110,needTrail.position.y),new Vector2(-130,0),trainNetworkObject, 180);
+             //   trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 180);
+            //    trainControllerCmp.TrainTransform.position = new Vector3(110, needTrail.position.y, 0);
+              //  trainControllerCmp.TrainTransform.DOMoveX(-130, 12);
             } else {
-                trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 0);
+                _netcodeSceneService.Value.MoveTrainClientRpc(new Vector2(-110,needTrail.position.y),new Vector2(130,0),trainNetworkObject, 0);
+            /*    trainControllerCmp.TrainTransform.localEulerAngles = new Vector3(0, 0, 0);
                 trainControllerCmp.TrainTransform.position = new Vector3(-110, needTrail.position.y, 0);
-                trainControllerCmp.TrainTransform.DOMoveX(130, 12);
+                trainControllerCmp.TrainTransform.DOMoveX(130, 12);*/
             }
         }
-        trainControllerCmp.TrainTransform.gameObject.SetActive(true);
+     //   trainControllerCmp.TrainTransform.gameObject.SetActive(true);
         trainControllerCmp.TimeToNextTrain += 15;
     }
     private void CheckSupportBoxAirPlane() {
@@ -1650,31 +1667,33 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     }
 
     private void SetNewPointToPointRound() {
-        if(!NetworkManager.Singleton.IsServer)return;
+        _sceneService.Value._mapPointPrefab.gameObject.SetActive(true);
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         curGameCmp.CurrentRoundType = RoundType.FromAToB;
-
-        ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
-        pointToPointRoundCmp.PointsToCheck = new List<Vector2>();
-        int pointsCount = 2 + curGameCmp.CurrentRound / 2;
-        Vector2 posToSpawn = Vector2.zero;
-        for (int i = 0; i < pointsCount; i++) {
-            posToSpawn = GetRandomPointAround(posToSpawn, 15+ (float)curGameCmp.CurrentRound / 2);
-            pointToPointRoundCmp.PointsToCheck.Add(posToSpawn);
-        }
-
         var carPartsGrid = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarPartContainerGroupsGrid;
         _sceneService.Value._playerUIView._arrowImageTransform.parent.transform.position =
             _sceneService.Value.mainCamera.WorldToScreenPoint(Vector3.zero);
         float arrowPos = Mathf.Max(carPartsGrid.GetLength(0), carPartsGrid.GetLength(1)) * 20;
 
         _sceneService.Value._playerUIView._arrowImageTransform.localPosition = new Vector3(arrowPos, 0, 0);
+        
+        _sceneService.Value._mapPointPrefab.gameObject.SetActive(true);
+        _sceneService.Value._playerUIView._arrowImageTransform.gameObject.SetActive(true);
+        if (!NetworkManager.Singleton.IsServer) return;
+
+        ref var pointToPointRoundCmp = ref _fromPointToPointRoundComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
+        pointToPointRoundCmp.PointsToCheck = new List<Vector2>();
+        int pointsCount = 2 + curGameCmp.CurrentRound / 2;
+        Vector2 posToSpawn = Vector2.zero;
+        for (int i = 0; i < pointsCount; i++) {
+            posToSpawn = GetRandomPointAround(posToSpawn, 15 + (float)curGameCmp.CurrentRound / 2);
+            pointToPointRoundCmp.PointsToCheck.Add(posToSpawn);
+        }
 
         _sceneService.Value._mapPointPrefab.transform.position = pointToPointRoundCmp.PointsToCheck[0];
         if (_betweenScenesService.Value.IsCoop)
             _netcodeSceneService.Value.SetMapPointClientRpc(pointToPointRoundCmp.PointsToCheck[0]);
-        _sceneService.Value._mapPointPrefab.gameObject.SetActive(true);
-        _sceneService.Value._playerUIView._arrowImageTransform.gameObject.SetActive(true);
+   
     }
 
     private void SetMapPointForClients(Vector2 mapPointPosition) {
@@ -1830,6 +1849,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         for (int i = 0; i < enemiesCount; i++)
             SpawnNpcCar(curGameCmp, GetRandomCarMap(), true,
                 onStartRoundSpawn ? GetPositionAroundPlayer() : curGameCmp.EnemyTargetPosition);
+        
+        if(!onStartRoundSpawn )
+            Debug.Log(curGameCmp.EnemyTargetPosition + " try spawn on");
     }
 
     private void SpawnBossCars() {
@@ -1852,7 +1874,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         SetupEnemyMovementComponent(entity, _sceneService.Value.GetCarConfig(carCmp.CarId));
 
-        _netcodeSceneService.Value.InstantiateCarViewServerRpc(entity, true);
+        _netcodeSceneService.Value.InstantiateCarViewServerRpc(entity, true, GetPositionAroundPlayer());
     }
     private int SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy, Vector2 spawnPosition) {
         int enemyEntity = _world.Value.NewEntity();
@@ -1930,7 +1952,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         }
         _enemyAIComponentsPool.Value.Add(enemyEntity).IsEnemy = isEnemy;
      
-_netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
+_netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spawnPosition);
         return enemyEntity;
     }
 
@@ -1989,7 +2011,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
      
-        _netcodeSceneService.Value.InstantiateCarViewServerRpc(_sceneService.Value.PlayerEntity, true);
+        _netcodeSceneService.Value.InstantiateCarViewServerRpc(_sceneService.Value.PlayerEntity, true,Vector2.zero);
         foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
             if (carEntity != _sceneService.Value.PlayerEntity)
                 SpawnTeammateCar(carEntity);
@@ -2473,7 +2495,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
         carCmp.ForwardWheelsParticles = new List<ParticleSystem>();
         carCmp.CurrentWeight = 0;
 
-        carCmp.CarView.transform.position = GetPositionAroundPlayer();
+     //   carCmp.CarView.transform.position = GetPositionAroundPlayer();
 
         foreach (var carContainer in carCmp.CarPartContainerGroupsList) {
             int carPartCellEntity = carContainer.Key;
@@ -2722,7 +2744,10 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy);
                     trainControllerCmp.TrainTransform =
                         _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._trainPrefab.transform);
                     trainControllerCmp.TrainTransform.gameObject.SetActive(false);
-                    trainControllerCmp.TrainTransform.GetComponent<NetworkObject>().Spawn(true);
+                    var trainNetworkObject = trainControllerCmp.TrainTransform.GetComponent<NetworkObject>();
+                    trainNetworkObject.Spawn(true);
+                    if (_betweenScenesService.Value.IsCoop)
+                        _netcodeSceneService.Value.SpawnTrainClientRpc(trainNetworkObject);
                     trainControllerCmp.TimeToNextTrain = 7f;
                     trainControllerCmp.TrainRails = new List<Transform>();
                     List<int> needPositions = Enumerable.Range(0, 61).ToList();
