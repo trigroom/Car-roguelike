@@ -85,14 +85,20 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        int playerEntity = _world.Value.NewEntity();
        ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
        NetcodeBetweenScenesService.Instance.SetupService(UpdateMapGridClientRpc,SetQuicksandMethods, AddTrainTrailInList, StartCurrentRoundType);
-       if (NetworkManager.Singleton.IsServer)
-           _serverValuesComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).ClientsEntities = new Dictionary<ulong, int>();
+       if (NetworkManager.Singleton.IsServer) {
+               ref var serverValuesCmp = ref  _serverValuesComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
+               serverValuesCmp.ClientsEntities = new Dictionary<ulong, int>();
+               serverValuesCmp.VersusBattleChangedHealth = new HashSet<int>();
+       }
+       
+      
         _playerCurrencyComponentsPool.Value.Add(playerEntity);
         _sceneService.Value.PlayerEntity = playerEntity;
 
         _netcodeSceneService.Value.SetupService(GetHpBar, DeleteHpBarComponent, SetupLaserComponent, CarViewSetup, SetupWheelComponents,
             SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues, BrokeCarPartSprite,
-            SetFilledZonePositionToClient,SetFilledZoneFillAmountToClient, SetMapPointForClients,EndRound,SetHealthForCarPartToClient,SendEnemyAirplane);
+            SetFilledZonePositionToClient,SetFilledZoneFillAmountToClient, SetMapPointForClients,EndRound,SetHealthForCarPartToClient,SendEnemyAirplane,
+            EndVersusBattleToClient,SetUiVersusBattleClientForClient,SetReadyStateForServer);
         //  curGameCmp.RoundTypes = new List<RoundType[]>();
         curGameCmp.CurrentBattleRounds = 2;
         
@@ -214,8 +220,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         
         _shopComponentsPool.Value.Add(_sceneService.Value.PlayerEntity).ShopLevel = -1;
-        UpgradeShop();
-        _sceneService.Value._shopUIView._upgradeShopButton.onClick.AddListener(UpgradeShop);
+        UpgradeShop(false);
+        _sceneService.Value._shopUIView._upgradeShopButton.onClick.AddListener(()=>UpgradeShop(true));
         
         SetColorSliderEnemyProjectilesValues();
         NetcodeBetweenScenesService.Instance.readyClientsCount.OnValueChanged += OnSceneLoadComplete;
@@ -236,7 +242,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         new Vector2(0, 1), new Vector2(-1, 0), new Vector2(0, -1), new Vector2(1, -1), new Vector2(1, 0), new Vector2(1, 1), new Vector2(-1, -1),
         new Vector2(-1, 1)
     };
-    
+
     public void Run(IEcsSystems systems) {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
@@ -247,15 +253,15 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         switch (curGameCmp.CurrentRoundType) {
             case RoundType.BattleDefault:
                 curGameCmp.RoundTime += Time.deltaTime;
-                _sceneService.Value._playerUIView._gameTimerText.text = ((int)(30+curGameCmp.CurrentRound*3 - curGameCmp.RoundTime)).ToString();
-                if (curGameCmp.RoundTime > 30+curGameCmp.CurrentRound*3) {
+                _sceneService.Value._playerUIView._gameTimerText.text =
+                    ((int)(30 + curGameCmp.CurrentRound * 3 - curGameCmp.RoundTime)).ToString();
+                if (curGameCmp.RoundTime > 30 + curGameCmp.CurrentRound * 3) {
                     _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
                     EndRoundForAll();
-                 
                 }
 
                 break;
-            
+
             case RoundType.BossBattle:
                 if (_bossComponentsFilter.Value.GetEntitiesCount() == 0) {
                     _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
@@ -267,17 +273,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
             case RoundType.FromAToB:
                 curGameCmp.RoundTime += Time.deltaTime;
-            
-         
+
                 var carCmp = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
                 if (carCmp.CarView != null)
-                    UpdateArrowDirection( _sceneService.Value._mapPointPrefab.transform.position, carCmp.CarView.gameObject.transform.position); 
+                    UpdateArrowDirection(_sceneService.Value._mapPointPrefab.transform.position, carCmp.CarView.gameObject.transform.position);
                 if (!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) break;
-                       ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+                ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
                 if (pointToPointRound.TimeAfterMarkPoint > 0)
                     pointToPointRound.TimeAfterMarkPoint -= Time.deltaTime;
                 break;
-            
+
             case RoundType.ZoneDefence:
                 curGameCmp.RoundTime += Time.deltaTime;
 
@@ -286,17 +291,18 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     var filledZoneCmp = _filledZoneComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
                     _netcodeSceneService.Value.SetZoneFillAmountClientRpc(filledZoneCmp.CurrentZoneTime / filledZoneCmp.NeedZoneTime);
                 }
-               
+
                 break;
-            
+
             case RoundType.VersusBattle:
                 ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
                 if (versusBattleCmp.IsBattleEnded) {
-                    if (Input.GetMouseButtonDown(0)) 
+                    if (Input.GetMouseButtonDown(0))
                         CompleteVersusBattle();
                     break;
                 }
+
                 foreach (var needEntity in _destroyEntityEventsFilter.Value) {
                     versusBattleCmp.LeftOpponentEntity =
                         versusBattleCmp.LeftOpponentEntity == needEntity ? 0 : versusBattleCmp.LeftOpponentEntity;
@@ -305,10 +311,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 }
 
                 if (versusBattleCmp.LeftOpponentEntity == 0 || versusBattleCmp.RightOpponentEntity == 0) {
+                    if (_betweenScenesService.Value.IsCoop && NetworkManager.Singleton.IsServer)
+                        _netcodeSceneService.Value.EndVersusBattleClientRpc(versusBattleCmp.LeftOpponentEntity == 0);
                     EndVersusBattle();
                     break;
                 }
-                    
 
                 curGameCmp.RoundTime += Time.deltaTime;
                 var versusBattleView = _sceneService.Value._versusBattleView;
@@ -326,58 +333,36 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         if (!RoundUtilits.IsBattleRound(curGameCmp.CurrentRoundType)) return;
 
-        if (_betweenScenesService.Value.IsCoop && _serverValuesComponentsPool.Value.Has(_sceneService.Value.PlayerEntity) ) {
+        if (_betweenScenesService.Value.IsCoop && _serverValuesComponentsPool.Value.Has(_sceneService.Value.PlayerEntity)) {
             ref var serverCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-          serverCmp.TickFuelServerTime+= Time.deltaTime;
-          serverCmp.TickCarPartHealthServerTime += Time.deltaTime;
-          if (serverCmp.TickFuelServerTime >= 0.3f) {
-              serverCmp.TickFuelServerTime = 0;
-              FuelDataForRpc[] fuelDataForPlayers = new FuelDataForRpc[serverCmp.ClientsEntities.Count];
-              int i = 0;
-              foreach (var clientEntity in serverCmp.ClientsEntities) {
-                  int playerEntity = _playerComponentsPool.Value.Get(clientEntity.Value).PlayerEntity;
+            serverCmp.TickFuelServerTime += Time.deltaTime;
+            serverCmp.TickCarPartHealthServerTime += Time.deltaTime;
+            if (serverCmp.TickFuelServerTime >= 0.3f) {
+                serverCmp.TickFuelServerTime = 0;
+                FuelDataForRpc[] fuelDataForPlayers = new FuelDataForRpc[serverCmp.ClientsEntities.Count];
+                int i = 0;
+                foreach (var clientEntity in serverCmp.ClientsEntities) {
+                    int playerEntity = _playerComponentsPool.Value.Get(clientEntity.Value).PlayerEntity;
 
-                  var fuelCmp = _fuelComponentsPool.Value.Get(playerEntity);
-            //      Debug.Log("fuel count for client " + fuelCmp.MaxFuel + " "+ fuelCmp.CurrentFuel);
-                  fuelDataForPlayers[i] = new FuelDataForRpc(clientEntity.Key, fuelCmp.CurrentElectricity, fuelCmp.MaxElectricity,
-                      fuelCmp.CurrentFuel, fuelCmp.MaxFuel);
-                  i++;
-              }
+                    var fuelCmp = _fuelComponentsPool.Value.Get(playerEntity);
+                    //      Debug.Log("fuel count for client " + fuelCmp.MaxFuel + " "+ fuelCmp.CurrentFuel);
+                    fuelDataForPlayers[i] = new FuelDataForRpc(clientEntity.Key, fuelCmp.CurrentElectricity, fuelCmp.MaxElectricity,
+                        fuelCmp.CurrentFuel, fuelCmp.MaxFuel);
+                    i++;
+                }
+
+                _netcodeSceneService.Value.SetFuelValuesClientRpc(fuelDataForPlayers);
+            }
+
+            if (serverCmp.TickCarPartHealthServerTime >= 0.7f) {
+                serverCmp.TickCarPartHealthServerTime = 0;
+                if (curGameCmp.CurrentRoundType != RoundType.VersusBattle)
+                    SendHpDataToClients();
+                else
+                    SendHpDataVersusBattleToClients();
+                
               
-              _netcodeSceneService.Value.SetFuelValuesClientRpc(fuelDataForPlayers);
-          }
-
-          if (serverCmp.TickCarPartHealthServerTime >= 0.7f) {
-              serverCmp.TickCarPartHealthServerTime = 0;
-              List<CarPartsHpDataForRpc> healthDataForPlayers = new List<CarPartsHpDataForRpc>();
-
-               foreach (var clientEntity in serverCmp.ClientsEntities) {
-
-                   int playerEntity = _playerComponentsPool.Value.Get(clientEntity.Value).PlayerEntity;
-                //  ulong clientId = serverCmp.ClientsEntities.FirstOrDefault(x => x.Value == playerEntity).Key;
-                  foreach (var changedCarPartEntity in _playerTagComponentsPool.Value.Get(playerEntity).ChangedCarPartsHp) {
-                      var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(changedCarPartEntity.Key);
-                      var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
-                      Debug.Log(" checked car part info"+ carPartConfig.PartName);
-                      bool isContainerType = GridUtils.IsContainerType(carPartConfig);
-                      Vector2Int gridPosition = Vector2Int.zero;
-                      if (isContainerType) {
-                         if(!_carComponentsPool.Value.Get(playerEntity).CarPartContainerGroupsList.TryGetValue(changedCarPartEntity.Key, out var positions)) continue;
-                         gridPosition = positions[0];
-                      } else {
-                          if(!_carComponentsPool.Value.Get(playerEntity).CarPartGroupsList.TryGetValue(changedCarPartEntity.Key, out var positions)) continue;
-                          gridPosition = positions[0];
-                      }
-                     //     ? ?[0]
-                     //     : _carComponentsPool.Value.Get(playerEntity).CarPartGroupsList[changedCarPartEntity.Key][0];
-                      healthDataForPlayers.Add(new CarPartsHpDataForRpc(gridPosition, changedCarPartEntity.Value, clientEntity.Key, !isContainerType));
-                  }
-                  _playerTagComponentsPool.Value.Get(playerEntity).ChangedCarPartsHp.Clear();
-              
-}
-              if (healthDataForPlayers.Count != 0)
-                  _netcodeSceneService.Value.SetCarPartsHpDataClientRpc(healthDataForPlayers.ToArray());
-          }
+            }
         }
         
       float timeBetweenEnemiesSpawn = _betweenScenesService.Value.GetMapDifficultyConfig().TimeBetweenInRoundEnemySpawn;
@@ -409,6 +394,66 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             if (trainControllerCmp.TimeToNextTrain <= 0)
                 SpawnTrain();
         }
+    }
+
+    private void SendHpDataVersusBattleToClients() {
+        ref ServerValuesComponent serverCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        List<CarPartsHpVersusDataForRpc> healthDataForPlayers = new List<CarPartsHpVersusDataForRpc>();
+
+        foreach (var carPartInfo in serverCmp.VersusBattleChangedHealth) {
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo);
+            var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo);
+            var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
+            Vector2Int[] gridPositions;
+
+            if ( GridUtils.IsContainerType(carPartConfig)) {
+                if (!_carComponentsPool.Value.Get(carPartCmp.MainEntity).CarPartContainerGroupsList
+                        .TryGetValue(carPartInfo, out var positions)) continue;
+                gridPositions = positions.ToArray();
+            } else {
+                if (!_carComponentsPool.Value.Get(carPartCmp.MainEntity).CarPartGroupsList
+                        .TryGetValue(carPartInfo, out var positions)) continue;
+                gridPositions = positions.ToArray();
+            }
+
+            healthDataForPlayers.Add(new CarPartsHpVersusDataForRpc(gridPositions, carPartInfoCmp.CurrentHealth,
+                carPartCmp.MainEntity == _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LeftOpponentEntity,
+                carPartConfig.PartType,  carPartInfoCmp.CurrentHealth/carPartCmp.MaxHealth));
+        }
+        serverCmp.VersusBattleChangedHealth.Clear();
+        if (healthDataForPlayers.Count != 0)
+            _netcodeSceneService.Value.SetCarPartsHpDataVersusBattleClientRpc(healthDataForPlayers.ToArray());
+    }
+    private void SendHpDataToClients() {
+        ServerValuesComponent serverCmp = _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        List<CarPartsHpDataForRpc> healthDataForPlayers = new List<CarPartsHpDataForRpc>();
+
+        foreach (var clientEntity in serverCmp.ClientsEntities) {
+            int playerEntity = _playerComponentsPool.Value.Get(clientEntity.Value).PlayerEntity;
+            foreach (var changedCarPartEntity in _playerTagComponentsPool.Value.Get(playerEntity).ChangedCarPartsHp) {
+                var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(changedCarPartEntity);
+                var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
+                bool isContainerType = GridUtils.IsContainerType(carPartConfig);
+                Vector2Int gridPosition = Vector2Int.zero;
+                if (isContainerType) {
+                    if (!_carComponentsPool.Value.Get(playerEntity).CarPartContainerGroupsList
+                            .TryGetValue(changedCarPartEntity, out var positions)) continue;
+                    gridPosition = positions[0];
+                } else {
+                    if (!_carComponentsPool.Value.Get(playerEntity).CarPartGroupsList
+                            .TryGetValue(changedCarPartEntity, out var positions)) continue;
+                    gridPosition = positions[0];
+                }
+
+                healthDataForPlayers.Add(new CarPartsHpDataForRpc(gridPosition, carPartInfoCmp.CurrentHealth, clientEntity.Key,
+                    !isContainerType));
+            }
+
+            _playerTagComponentsPool.Value.Get(playerEntity).ChangedCarPartsHp.Clear();
+        }
+
+        if (healthDataForPlayers.Count != 0)
+            _netcodeSceneService.Value.SetCarPartsHpDataClientRpc(healthDataForPlayers.ToArray());
     }
 
     private void BrokeCarPartSprite(SpriteRenderer carPartSprite) {
@@ -443,7 +488,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     _sceneService.Value._playerUIView._lampLightImage.DOColor(new Color(1, 0, 0, 0.6f), 0.45f).OnComplete(() =>
                         _sceneService.Value._playerUIView._lampLightImage?.DOColor(new Color(1, 0, 0, 0), 0.45f));
                 }
-                
+
                 inventoryCmp.CarPartInfoUIViewsUpLevelGrid[carPartStuff.x, carPartStuff.y]
                     .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
             }
@@ -1116,6 +1161,22 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._mapUIView.RoundDescriptionText.text = GetRoundDescription(roundType);
     }
 
+    private void SetReadyStateForServer(bool isReady) {
+        int needCount = isReady ? 1 : -1;
+        ref var serverValuesCmp =  ref  _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        serverValuesCmp.ReadyPlayers += needCount;
+
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (curGameCmp.CurrentRoundType == RoundType.VersusBattle) {
+            if (NetworkManager.Singleton.ConnectedClients.Count == serverValuesCmp.ReadyPlayers) {
+              //  StartVersusBattle(_versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).BetOnLeft);
+                _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 1;
+                Time.timeScale = 1;
+                _netcodeSceneService.Value.SetTimeScaleClietRpc(1);
+                serverValuesCmp.ReadyPlayers = 0;
+            }
+        }
+    }
     private string GetRoundDescription(RoundType roundType) {
         switch (roundType) {
             case RoundType.None:
@@ -1254,7 +1315,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         curGameCmp.CurrentRound++;
 
         if (difficultyConfig.AutoUpgradeShopToRoundLevel && shopCmp.ShopLevel < curGameCmp.CurrentRound)
-            UpgradeShop();
+            UpgradeShop(false);
 
         _startRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
@@ -1272,36 +1333,89 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         versusBattleView._versusMapContainer.gameObject.SetActive(true);
         _sceneService.Value._mapContainer.gameObject.SetActive(false);
         versusBattleView._betContainer.gameObject.SetActive(true);
-        versusBattleView._speedGameSpeedBoostText.text = ">";
 
         versusBattleView._rightVersusBattleParticipantInfo.NameText.text =
             $"{GetLocalization(VersusBattlesNames[Random.Range(0, VersusBattlesNames.Length)])} {GetLocalization(VersusBattlesSurnames[Random.Range(0, VersusBattlesSurnames.Length)])}";
         versusBattleView._leftVersusBattleParticipantInfo.NameText.text =
             $"{GetLocalization(VersusBattlesNames[Random.Range(0, VersusBattlesNames.Length)])} {GetLocalization(VersusBattlesSurnames[Random.Range(0, VersusBattlesSurnames.Length)])}";
-        
+ ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         versusBattleView._circularSawLeft.transform.position = new Vector3(-50, 0, 0);
         versusBattleView._circularSawRight.transform.position = new Vector3(50, 0, 0);
-        versusBattleView._timerText.text = "0";
-        SetCarsToVersusBattle();
-        SetCarToVersusGrid();
+        versusBattleView._timerText.text = "0"; 
+        
+        if (NetworkManager.Singleton.IsServer) {
+            versusBattleView._speedGameSpeedBoostText.text = ">";
+            SetCarsToVersusBattle();
+            SetCarToVersusGrid();
         _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 0;
+            if (_betweenScenesService.Value.IsCoop)
+                SetUiVersusBattleInfoFromServer();
+        } else {
+            versusBattleView._speedGameSpeedBoostText.transform.parent.gameObject.SetActive(false);
+            versusBattleCmp.LeftOpponentEntity = -1;
+            versusBattleCmp.RightOpponentEntity = -1;
+        }
+
+        
         Time.timeScale = 0;
-        _sceneService.Value.mainCamera.transform.position = new Vector3(0,0,-10);
-        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        _sceneService.Value.mainCamera.transform.position = new Vector3(0, 0, -10);
+       
         versusBattleCmp.IsCircularSawsSended = false;
         versusBattleCmp.CurrentBet = 0;
-        ChangeBet(5);
+        ChangeBet(Mathf.Min(5, (int)_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount));
     }
 
-    private void UpgradeShop() {
+    private void SetUiVersusBattleInfoFromServer() {
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var leftCarCmp = _carComponentsPool.Value.Get(versusBattleCmp.LeftOpponentEntity);
+        var rightCarCmp = _carComponentsPool.Value.Get(versusBattleCmp.RightOpponentEntity);
+
+        List<CarPartsHpVersusDataForRpc> carPartsInfo = new List<CarPartsHpVersusDataForRpc>();
+        foreach (var carPartInfo in leftCarCmp.CarPartContainerGroupsList) {
+            var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+
+            carPartsInfo.Add(new CarPartsHpVersusDataForRpc(carPartInfo.Value.ToArray(), carPartInfoCmp.CurrentHealth, true,
+                CarPartType.CarStuffContainer,carPartInfoCmp.CurrentHealth/carPartCmp.MaxHealth));
+        }
+        foreach (var carPartInfo in leftCarCmp.CarPartGroupsList) {
+            var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+
+            carPartsInfo.Add(new CarPartsHpVersusDataForRpc(carPartInfo.Value.ToArray(), carPartInfoCmp.CurrentHealth, true,
+                CarPartType.Gun,carPartInfoCmp.CurrentHealth/carPartCmp.MaxHealth));
+        }
+        foreach (var carPartInfo in rightCarCmp.CarPartContainerGroupsList) {
+            var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+
+            carPartsInfo.Add(new CarPartsHpVersusDataForRpc(carPartInfo.Value.ToArray(), carPartInfoCmp.CurrentHealth, false,
+                CarPartType.CarStuffContainer,carPartInfoCmp.CurrentHealth/carPartCmp.MaxHealth));
+        }
+        foreach (var carPartInfo in rightCarCmp.CarPartGroupsList) {
+            var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
+            var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
+
+            carPartsInfo.Add(new CarPartsHpVersusDataForRpc(carPartInfo.Value.ToArray(), carPartInfoCmp.CurrentHealth, false,
+                CarPartType.Gun,carPartInfoCmp.CurrentHealth/carPartCmp.MaxHealth));
+        }
+
+
+        _netcodeSceneService.Value.SetUiVersusBattleClientRpc(carPartsInfo.ToArray(),
+            new Vector2(leftCarCmp.CarPartContainerGroupsGrid.GetLength(0), leftCarCmp.CarPartContainerGroupsGrid.GetLength(1)),
+            new Vector2(rightCarCmp.CarPartContainerGroupsGrid.GetLength(0), rightCarCmp.CarPartContainerGroupsGrid.GetLength(1)));
+    }
+
+    private void UpgradeShop(bool useMoney) {
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         var shopView = _sceneService.Value._shopUIView;
         var shopUpgradeCost = 5 + shopCmp.ShopLevel * 5;
 
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        if (shopUpgradeCost > playerCurrencyCmp.MoneyCount) return;
-        SetMoneyCount(-shopUpgradeCost);
+        if (shopUpgradeCost > playerCurrencyCmp.MoneyCount && useMoney) return;
+        if (useMoney)
+            SetMoneyCount(-shopUpgradeCost);
         shopCmp.ShopLevel++;
         if (shopCmp.ShopLevel == 19) {
             shopView._upgradeShopButton.enabled = false;
@@ -1339,16 +1453,28 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         _sceneService.Value._shopUIView.AddMoneyAnimation();
     }
+
     private void StartVersusBattle(bool isLeft) {
+        _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).BetOnLeft = isLeft;
+
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView._betContainer.gameObject.SetActive(false);
-       
-        _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 1;
-       // _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundTime = 0;
-        Time.timeScale = 1;
-        _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).BetOnLeft = isLeft;
+
+        if (!_betweenScenesService.Value.IsCoop) {
+            _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 1;
+            Time.timeScale = 1;
+        } else
+            _netcodeSceneService.Value.SetReadyActionServerRpc(true);
     }
 
+    private void EndVersusBattleToClient(bool isRightWin) {
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (isRightWin)
+            versusBattleCmp.LeftOpponentEntity = 0;
+        else
+            versusBattleCmp.RightOpponentEntity = 0;
+        EndVersusBattle();
+    }
     private void EndVersusBattle() {
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -1412,11 +1538,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        
         "Crusher", "Claw", "Grip", "Nightmare", "Ghost", "Raven", "Spider", "Hawk", "Thunder", "Reaper"
     };
+
     private void CompleteVersusBattle() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         var versusBattleView = _sceneService.Value._versusBattleView;
-
+Debug.Log(" end vs battle");
         versusBattleView.gameObject.SetActive(false);
         ChangeInventoryState(true);
         versusBattleView._versusMapContainer.gameObject.SetActive(false);
@@ -1424,7 +1551,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         curGameCmp.CurrentRoundType = RoundType.None;
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
-        if (_tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
+        if (NetworkManager.Singleton.IsServer && _tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
             _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextTornado = 0;
 
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -1435,6 +1562,100 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         Time.timeScale = curGameCmp.LocalTimeScale;
     }
 
+    private void SetUiVersusBattleClientForClient(CarPartsHpVersusDataForRpc[] carPartsHpData, Vector2 leftCarSize, Vector2 rightCarSize) {
+        //netcod method callback from original versusBattleUiSetup method
+        int[,] upHpGridLeft = new int[(int)leftCarSize.x, (int)leftCarSize.y]; //x - cur hp, y - hp percent
+        int[,] downHpGridLeft = new int[(int)leftCarSize.x, (int)leftCarSize.y];
+        int[,] upHpGridRight = new int[(int)rightCarSize.x, (int)rightCarSize.y];
+        int[,] downHpGridRight = new int[(int)rightCarSize.x, (int)rightCarSize.y];
+        int curIndex = 1;
+        foreach (var carPartInfo in carPartsHpData) {
+            foreach (var position in carPartInfo.GridPositions) {
+                if (carPartInfo.IsLeft) {
+                    if (GridUtils.IsContainerType(carPartInfo.Type))
+                        downHpGridLeft[position.x, position.y] = curIndex;
+                    else
+                        upHpGridLeft[position.x, position.y] = curIndex;
+                } else {
+                    if (GridUtils.IsContainerType(carPartInfo.Type))
+                        downHpGridRight[position.x, position.y] = curIndex;
+                    else
+                        upHpGridRight[position.x, position.y] = curIndex;
+                }
+            }
+
+            curIndex++;
+        }
+
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        RectTransform parentRect = versusBattleView._leftVersusBattleParticipantInfo.CarPratsDownLevelHealthContainer;
+        float parentWidth = parentRect.rect.width;
+        float parentHeight = parentRect.rect.height;
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int columnsLeft = (int)leftCarSize.y;
+        int rowsLeft = (int)leftCarSize.x;
+        int columnsRight = (int)rightCarSize.y;
+        int rowsRight = (int)rightCarSize.x;
+
+        versusBattleCmp.LeftCarPartInfoUIViewsGrid = new CarPartInGameUIView[rowsLeft, columnsLeft];
+        versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid = new CarPartInGameUIView[rowsLeft, columnsLeft];
+        versusBattleCmp.RightCarPartInfoUIViewsGrid = new CarPartInGameUIView[rowsRight, columnsRight];
+        versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid = new CarPartInGameUIView[rowsRight, columnsRight];
+        // Вычисляем размер каждого квадрата
+        float cellSizeLeft = Mathf.Min(parentHeight / columnsLeft, parentWidth / rowsLeft);
+        float cellSizeRight = Mathf.Min(parentHeight / columnsRight, parentWidth / rowsRight);
+
+        float gridWidthLeft = rowsLeft * cellSizeLeft;
+        float gridHeightLeft = columnsLeft * cellSizeLeft;
+        float gridWidthRight = rowsRight * cellSizeRight;
+        float gridHeightRight = columnsRight * cellSizeRight;
+
+        // Начальная позиция (левый верхний угол)
+        float startXLeft = (cellSizeLeft / 2 - gridWidthLeft / 2);
+        float startYLeft = (cellSizeLeft / 2 - gridHeightLeft / 2);
+        float startXRight = (cellSizeRight / 2 - gridWidthRight / 2);
+        float startYRight = (cellSizeRight / 2 - gridHeightRight / 2);
+
+        foreach (var carPartHp in carPartsHpData) {
+            var medianCell = GridUtils.FindMedianCell(carPartHp.GridPositions.ToList());
+            var needParentRect = parentRect;
+            var needGrid = downHpGridLeft;
+            ref var needUiElementsGrid = ref versusBattleCmp.LeftCarPartInfoUIViewsGrid;
+            if (carPartHp.IsLeft && !GridUtils.IsContainerType(carPartHp.Type)) {
+                needParentRect = versusBattleView._leftVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer;
+                needGrid = upHpGridLeft;
+                needUiElementsGrid = ref versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid;
+            } else if (!carPartHp.IsLeft && GridUtils.IsContainerType(carPartHp.Type)) {
+                needParentRect = versusBattleView._rightVersusBattleParticipantInfo.CarPratsDownLevelHealthContainer;
+                needGrid = downHpGridRight;
+                needUiElementsGrid = ref versusBattleCmp.RightCarPartInfoUIViewsGrid;
+            } else if (!carPartHp.IsLeft) {
+                needParentRect = versusBattleView._rightVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer;
+                needGrid = upHpGridRight;
+                needUiElementsGrid = ref versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid;
+            }
+
+            foreach (var cellPosition in carPartHp.GridPositions) {
+                SetCarPartHealthCell(needGrid, carPartHp.IsLeft ? startXLeft : startXRight, carPartHp.IsLeft ? cellSizeLeft : cellSizeRight,
+                    carPartHp.IsLeft ? startYLeft : startYRight, needParentRect, needUiElementsGrid, cellPosition, carPartHp.HealthPoints,
+                    carPartHp.HealthPercent, medianCell);
+            }
+        }
+        /*  SetCarPartGroupHealthUI(leftCarCmp.CarPartContainerGroupsList, leftCarCmp.CarPartContainerGroupsGrid, startXLeft, cellSizeLeft, startYLeft, parentRect,
+              ref versusBattleCmp.LeftCarPartInfoUIViewsGrid);
+
+          SetCarPartGroupHealthUI(leftCarCmp.CarPartGroupsList, leftCarCmp.CarPartGroupsGrid, startXLeft, cellSizeLeft, startYLeft,
+              versusBattleView._leftVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer,
+              ref versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid);
+
+          SetCarPartGroupHealthUI(rightCarCmp.CarPartContainerGroupsList, rightCarCmp.CarPartContainerGroupsGrid, startXRight, cellSizeLeft, startYRight,
+              versusBattleView._rightVersusBattleParticipantInfo.CarPratsDownLevelHealthContainer,
+              ref versusBattleCmp.RightCarPartInfoUIViewsGrid);
+
+          SetCarPartGroupHealthUI(rightCarCmp.CarPartGroupsList, rightCarCmp.CarPartGroupsGrid, startXRight, cellSizeLeft, startYRight,
+              versusBattleView._rightVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer,
+              ref versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid);*/
+    }
     private void SetupClientCar(CarPartDataForRpc[] upParts, CarPartDataForRpc[] downParts, int carLevel, ulong userId, bool isPlayer,
         int carId, Vector2 carSize) {
         var enemyCarMap = BuildCarMap(upParts, downParts, carId, carLevel, carSize);
@@ -1447,7 +1668,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             ref var playerCmp = ref _playerComponentsPool.Value.Add(playerCmpEntity);
             playerCmp.PlayerEntity = carEntity;
             ref var playerTagCmp = ref _playerTagComponentsPool.Value.Add(carEntity);
-                playerTagCmp.ChangedCarPartsHp = new Dictionary<int, float>();
+                playerTagCmp.ChangedCarPartsHp = new HashSet<int>();
             //    playerTagCmp.ClientId = userId;
 
           //  Debug.Log(carEntity + " setup pl cmp 1");
@@ -1499,6 +1720,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        int carPartEntity = isUpperPart
            ? carCmp.CarPartGroupsGrid[gridPosition.x, gridPosition.y]
            : carCmp.CarPartContainerGroupsGrid[gridPosition.x, gridPosition.y];
+       
        _carPartInfoComponentsPool.Value.Get(carPartEntity).CurrentHealth = health;
     }
     private void SetCarToVersusGrid() {
@@ -1543,16 +1765,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             versusBattleView._leftVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer,
             ref versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid);
 
-        SetCarPartGroupHealthUI(rightCarCmp.CarPartContainerGroupsList, rightCarCmp.CarPartContainerGroupsGrid, startXRight, cellSizeLeft, startYRight,
+        SetCarPartGroupHealthUI(rightCarCmp.CarPartContainerGroupsList, rightCarCmp.CarPartContainerGroupsGrid, startXRight, cellSizeRight, startYRight,
             versusBattleView._rightVersusBattleParticipantInfo.CarPratsDownLevelHealthContainer,
             ref versusBattleCmp.RightCarPartInfoUIViewsGrid);
 
-        SetCarPartGroupHealthUI(rightCarCmp.CarPartGroupsList, rightCarCmp.CarPartGroupsGrid, startXRight, cellSizeLeft, startYRight,
+        SetCarPartGroupHealthUI(rightCarCmp.CarPartGroupsList, rightCarCmp.CarPartGroupsGrid, startXRight, cellSizeRight, startYRight,
             versusBattleView._rightVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer,
             ref versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid);
     }
 
     private void ChangeBet(int count) {
+        Debug.Log("change bet "+count);
         ref var versusBattleComponent = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var playerCurrencyCmp = _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
       
@@ -2122,31 +2345,34 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
 
     private void SetCarPartGroupHealthUI(Dictionary<int, List<Vector2Int>> groupsList, int[,] groupsGrid, float startX, float cellSize,
         float startY, RectTransform parentRect, ref CarPartInGameUIView[,] inventoryCmp) {
-        
         foreach (var carPartInfo in groupsList) {
+            var medianCell = GridUtils.FindMedianCell(carPartInfo.Value);
 
-           var medianCell =  GridUtils.FindMedianCell(carPartInfo.Value);
-            
             foreach (var cell in carPartInfo.Value) {
-                var row = cell.x;
-                var col = cell.y;
-                float posX = startX + row * cellSize;
-                float posY = startY + col * cellSize;
-                var cellUIHealth = _sceneService.Value.GetCarPartInGameUIView();
-                cellUIHealth.transform.SetParent(parentRect);
                 var carPartCmp = _carPartComponentsPool.Value.Get(carPartInfo.Key);
                 var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
-                inventoryCmp[row, col] = cellUIHealth;
-                bool hasText = cell == medianCell;
-                cellUIHealth.gameObject.SetActive(true);
-                cellUIHealth.SetSize(new Vector2(cellSize, cellSize), new Vector2(posX, posY),
-                    _sceneService.Value._carStuffListsConfig.CarPartUIBordersSprites[GridUtils.GetTileSpriteIndex(groupsGrid, cell)],hasText);
-                
-                cellUIHealth.SetHealthCount(_sceneService.Value._healthGradient.Evaluate(carPartInfoCmp.CurrentHealth / carPartCmp.MaxHealth),
-                    (int)carPartInfoCmp.CurrentHealth, true);
-                // }
+                SetCarPartHealthCell(groupsGrid, startX, cellSize, startY, parentRect, inventoryCmp, cell, carPartInfoCmp.CurrentHealth,
+                    carPartInfoCmp.CurrentHealth / carPartCmp.MaxHealth, medianCell);
+              
             }
         }
+    }
+
+    private void SetCarPartHealthCell(int[,] groupsGrid, float startX, float cellSize, float startY, RectTransform parentRect,
+        CarPartInGameUIView[,] carPartUiGrid, Vector2Int cell, float currentHealth, float healthPercent, Vector2Int medianCell) {
+        var row = cell.x;
+        var col = cell.y;
+        float posX = startX + row * cellSize;
+        float posY = startY + col * cellSize;
+        var cellUIHealth = _sceneService.Value.GetCarPartInGameUIView();
+        cellUIHealth.transform.SetParent(parentRect);
+        carPartUiGrid[row, col] = cellUIHealth;
+        bool hasText = cell == medianCell;
+        cellUIHealth.gameObject.SetActive(true);
+        cellUIHealth.SetSize(new Vector2(cellSize, cellSize), new Vector2(posX, posY),
+            _sceneService.Value._carStuffListsConfig.CarPartUIBordersSprites[GridUtils.GetTileSpriteIndex(groupsGrid, cell)], hasText);
+
+        cellUIHealth.SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)currentHealth, true);
     }
 
     private bool CanStartRound() {

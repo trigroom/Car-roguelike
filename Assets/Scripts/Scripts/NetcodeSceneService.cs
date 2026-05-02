@@ -53,9 +53,12 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action _endRoundForClientAction;
    private Action _setDeathPlayersCountAction;
    private Action _setLoseStateForAllAction;
+   private Action<bool> _setIsReadyCountAction;
    private Action _setMinimumHealthLevelAction;
    private Action< Vector2 >  _setEnemyAirplanePosition;
-   
+   private Action<bool> _endVersusBattleAction;
+   private Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2 > _setupVersusBattleUiAction;
+   private Action<Vector2Int[], CarPartType, bool, float, float> _setVersusBattleUiAction;
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
    private ObjectPool<CarPartStuffView> _carPartsPool;
    private ObjectPool<Transform> _gunContainersPool;
@@ -230,8 +233,10 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<ulong, Vector2, bool> setSpeedParametersAction, Action<CarView> setCarViewAction,
         Action<float, float, float, float> setFuelBarsAction, Action<Vector2Int, float, bool> setCarPartHealthPointAction,
         Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction,
-        Action<Vector2> setMapPointForClients, Action endRoundForClientAction, Action<Vector2Int, float, bool,int> setCarPartHealthToClientAction,
-    Action< Vector2 >  setEnemyAirplanePosition) {
+        Action<Vector2> setMapPointForClients, Action endRoundForClientAction,
+        Action<Vector2Int, float, bool, int> setCarPartHealthToClientAction, Action<Vector2> setEnemyAirplanePosition,
+        Action<bool> endVersusBattleAction, Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2> setupVersusBattleUiAction,
+        Action<bool> setIsReadyCountAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -248,15 +253,21 @@ public class NetcodeSceneService : NetworkBehaviour
         _setZoneFillAmountAction = setZoneFillAmountAction;
         _setMapPointForClients = setMapPointForClients;
         _endRoundForClientAction = endRoundForClientAction;
-        _setCarPartHealthToClientAction=setCarPartHealthToClientAction;
-         _setEnemyAirplanePosition=setEnemyAirplanePosition;
+        _setCarPartHealthToClientAction = setCarPartHealthToClientAction;
+        _setEnemyAirplanePosition = setEnemyAirplanePosition;
+        _endVersusBattleAction = endVersusBattleAction;
+        _setupVersusBattleUiAction = setupVersusBattleUiAction;
+        _setIsReadyCountAction = setIsReadyCountAction;
     }
-    
-    
-    public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction,
-        Action setLoseStateForAllAction) {
+    [ServerRpc(RequireOwnership = false)]
+    public void SetReadyActionServerRpc(bool isReady) {
+        _setIsReadyCountAction.Invoke(isReady);
+    }
+    public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction, Action setLoseStateForAllAction,
+        Action<Vector2Int[], CarPartType, bool, float, float> setVersusBattleUiAction) {
         _setDeathPlayersCountAction = setDeathPlayersCountAction;
         _setLoseStateForAllAction = setLoseStateForAllAction;
+        _setVersusBattleUiAction = setVersusBattleUiAction;
     }
     public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction) {
         _setMinimumHealthLevelAction = setMinimumHealthLevelAction;
@@ -502,7 +513,11 @@ public class NetcodeSceneService : NetworkBehaviour
         carTransform.transform.GetChild(0).transform.position = spawnPosition;
         SendCarToClientRpc(clientId,carTransform, entity, isPlayer);
     }
-    
+
+    [Rpc(SendTo.NotServer)]
+    public void EndVersusBattleClientRpc(bool isRightWin) {
+        _endVersusBattleAction.Invoke(isRightWin);
+    }
     [Rpc(SendTo.ClientsAndHost)]
     private void SendCarToClientRpc(ulong targetClientId, NetworkObjectReference carReference, int entity, bool isPlayer)
     {
@@ -860,7 +875,22 @@ public class NetcodeSceneService : NetworkBehaviour
             }
         }
     }
-
+    
+    [Rpc(SendTo.NotServer)]
+    public void SetCarPartsHpDataVersusBattleClientRpc(CarPartsHpVersusDataForRpc[] carPartsHpData) {
+        Debug.Log(carPartsHpData.Length + "SetCarPartsHpDataVersusClientRpc");
+        foreach (var carPartData in carPartsHpData) {
+                _setVersusBattleUiAction.Invoke(carPartData.GridPositions,carPartData.Type,
+                     carPartData.IsLeft, carPartData.HealthPoints, carPartData.HealthPercent);
+        }
+    }
+    
+    [Rpc(SendTo.NotServer)]
+    public void SetUiVersusBattleClientRpc(CarPartsHpVersusDataForRpc[] carPartsHpData, Vector2 leftCarSize, Vector2 rightCarSize) {
+        Debug.Log(carPartsHpData.Length + "SetupVersusBattle");
+      
+        _setupVersusBattleUiAction.Invoke(carPartsHpData,leftCarSize,rightCarSize);
+    }
     private void ProcessHealthData(int[] healthValues, Vector2Int gridSize, bool isUpperPart,int teammateIndex) // true - для HealthValues, false - для Containers
     {
        // if (healthValues == null) return;
@@ -881,7 +911,11 @@ public class NetcodeSceneService : NetworkBehaviour
         int col = index % cols;
         return new Vector2Int(row, col);
     }
-    
+
+    [Rpc(SendTo.NotServer)]
+    public void SetTimeScaleClietRpc(float timeScale) {
+        Time.timeScale = timeScale;
+    }
     [Rpc(SendTo.NotServer)]
     public void SetEndRoundHealthValuesClientRpc(CarPartHealthDataForRpc[] carPartsHpData) {
         Debug.Log( "Set Car Parts Hp After Round ClientRpc");
@@ -1263,5 +1297,39 @@ public struct CarPartsHpDataForRpc : INetworkSerializable
         serializer.SerializeValue(ref HealthPoints);
         serializer.SerializeValue(ref ClientId);
         serializer.SerializeValue(ref IsUpperPart);
+    }
+}
+
+[System.Serializable]
+public struct CarPartsHpVersusDataForRpc : INetworkSerializable {
+    public Vector2Int[] GridPositions;
+    public float HealthPoints;
+    public float HealthPercent;
+    public CarPartType Type;
+    public bool IsLeft;
+
+    public CarPartsHpVersusDataForRpc(Vector2Int[] gridPositions, float healthPoints,bool isLeftPart, CarPartType type,float healthPercent) {
+        GridPositions = gridPositions;
+        HealthPoints = healthPoints;
+        IsLeft = isLeftPart;
+        Type = type;
+        HealthPercent = healthPercent;
+    }
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter {
+        int positionsLength = GridPositions?.Length ?? 0;
+
+        serializer.SerializeValue(ref positionsLength);
+
+        if (serializer.IsReader) {
+            GridPositions = new Vector2Int[positionsLength];
+        }
+
+        for (int i = 0; i < positionsLength; i++)
+            serializer.SerializeValue(ref GridPositions[i]);
+        serializer.SerializeValue(ref Type);
+        serializer.SerializeValue(ref HealthPoints);
+        serializer.SerializeValue(ref IsLeft);
+        serializer.SerializeValue(ref HealthPercent);
     }
 }

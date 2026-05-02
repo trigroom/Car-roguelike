@@ -1407,6 +1407,13 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         //circlecast and set effect or take damage
     }
 
+    public void SetVersusBattleUiToClient(Vector2Int[] partPositions, CarPartType partType, bool isLeft, float healthPercent,
+        float currentHealth) {
+        foreach (var partPosition in partPositions) {
+            SetUiHealthValueToVersusBattle(partType, isLeft, partPosition, healthPercent, currentHealth);
+        }
+    }
+
     private void ChangeHealth(float health, int cellEntity) {
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
         ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(cellEntity);
@@ -1431,10 +1438,15 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             return;
         }
 
-        if (_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) && carPartCmp.CellCarPartsStuffViews != null) {
-            if (!_playerTagComponentsPool.Value.Get(carPartCmp.MainEntity).ChangedCarPartsHp.TryAdd(cellEntity, carPartInfoCmp.CurrentHealth))
-                _playerTagComponentsPool.Value.Get(carPartCmp.MainEntity).ChangedCarPartsHp[cellEntity] = carPartInfoCmp.CurrentHealth;
+        if (BetweenScenesService.Instance.IsCoop) {
+            if (_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) && carPartCmp.CellCarPartsStuffViews != null)
+                _playerTagComponentsPool.Value.Get(carPartCmp.MainEntity).ChangedCarPartsHp.Add(cellEntity);
+            else if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.VersusBattle &&
+                     _enemyAIComponentsPool.Value.Has(carPartCmp.MainEntity))
+                _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).VersusBattleChangedHealth.Add(cellEntity);
         }
+    
+        
         var healthPercent = carPartInfoCmp.CurrentHealth / carPartCmp.MaxHealth;
         var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
         if (carPartCmp.HealthMaterialIndex == 0 && healthPercent < 0.6f) {
@@ -1487,32 +1499,11 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.VersusBattle) {
             ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-            var versusBattleView = _sceneService.Value._versusBattleView;
-
-            var downGrid = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
-                ? versusBattleCmp.LeftCarPartInfoUIViewsGrid
-                : versusBattleCmp.RightCarPartInfoUIViewsGrid;
-
-            var upGrid = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
-                ? versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid
-                : versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid;
+       
 
             foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
-                if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.CarStuffContainer)
-                    downGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
-                        .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
-                else {
-                    if (carPartConfig.PartType == CarPartType.Main) {
-                        var lampImage = versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity
-                            ? versusBattleView._leftVersusBattleParticipantInfo.LampLightImage
-                            : versusBattleView._rightVersusBattleParticipantInfo.LampLightImage;
-                        lampImage.DOKill();
-                        lampImage.DOColor(new Color(1, 0, 0, 0.6f), 0.45f).OnComplete(() => lampImage?.DOColor(new Color(1, 0, 0, 0), 0.45f));
-                    }
-
-                    upGrid[carPartStuff._gridPosition.x, carPartStuff._gridPosition.y]
-                        .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)carPartInfoCmp.CurrentHealth);
-                }
+                SetUiHealthValueToVersusBattle(carPartConfig.PartType, versusBattleCmp.LeftOpponentEntity == carPartCmp.MainEntity,
+                    carPartStuff._gridPosition, healthPercent, carPartInfoCmp.CurrentHealth);
             }
         } else if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity) {
             foreach (var carPartStuff in carPartCmp.CellCarPartsStuffViews) {
@@ -1546,6 +1537,31 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             }
 
             carPartCmp.CellCarPartsStuffViews = null;
+        }
+    }
+
+    private void SetUiHealthValueToVersusBattle(CarPartType partType, bool isLeftOpponent, Vector2Int carPartPositions, float healthPercent,
+        float currentHealth) {
+        var versusBattleView = _sceneService.Value._versusBattleView;
+        var versusBattleCmp = _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (partType == CarPartType.WheelsContainer || partType == CarPartType.CarStuffContainer) {
+            var downGrid = isLeftOpponent ? versusBattleCmp.LeftCarPartInfoUIViewsGrid : versusBattleCmp.RightCarPartInfoUIViewsGrid;
+            downGrid[carPartPositions.x, carPartPositions.y]
+                .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)currentHealth);
+        } else {
+            var upGrid = isLeftOpponent
+                ? versusBattleCmp.LeftCarPartInfoUIViewsUpLevelGrid
+                : versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid;
+            if (partType == CarPartType.Main) {
+                var lampImage = isLeftOpponent
+                    ? versusBattleView._leftVersusBattleParticipantInfo.LampLightImage
+                    : versusBattleView._rightVersusBattleParticipantInfo.LampLightImage;
+                lampImage.DOKill();
+                lampImage.DOColor(new Color(1, 0, 0, 0.6f), 0.45f).OnComplete(() => lampImage?.DOColor(new Color(1, 0, 0, 0), 0.45f));
+            }
+
+            upGrid[carPartPositions.x, carPartPositions.y]
+                .SetHealthCount(_sceneService.Value._healthGradient.Evaluate(healthPercent), (int)currentHealth);
         }
     }
 
@@ -1623,7 +1639,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         int childIndex =  carPartCmp.CarPartCellRenderer.transform.GetSiblingIndex();
         ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
         _netcodeSceneService.Value.BrokeCarPartSpritesClientRpc(carCmp.CarView.transform.parent.gameObject.GetComponent<NetworkObject>(),childIndex);
-        Debug.Log(childIndex + " child destroyed car part");  
+    //    Debug.Log(childIndex + " child destroyed car part");  
         
         carPartCmp.CarPartCellRenderer.transform.parent = _sceneService.Value._brokenCarPartsContainer;
         carPartCmp.CarPartCellRenderer.sortingOrder -= 5;
@@ -1637,7 +1653,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             _shockEffectComponentsPool.Value.Del(cellEntity);
 
         if (GridUtils.IsContainerType(carPartConfig)) {
-            Debug.Log(" destroy car part containere");
+       //     Debug.Log(" destroy car part containere");
             for (int i = 0; i < carPartCmp.CellCarPartsStuffViews.Count; i++) {
                 var carPart = carPartCmp.CellCarPartsStuffViews[i];
                 var gridPos = carCmp.CarPartContainerGroupsList[cellEntity][i];
@@ -2047,6 +2063,6 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
                 .ConstructMapMelee(ProjectileHit);
         
-        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame);
+        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient);
     }
 }

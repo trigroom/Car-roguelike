@@ -1,4 +1,5 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
 public class MapMeleeWeapon : MonoBehaviour
@@ -11,7 +12,7 @@ public class MapMeleeWeapon : MonoBehaviour
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (other.gameObject.TryGetComponent(out CarPartStuffView damagedCarPart)) {
+        if (NetworkManager.Singleton.IsHost && other.gameObject.TryGetComponent(out CarPartStuffView damagedCarPart)) {
             hitTargetAction?.Invoke(AttackType.Melee, damagePoints, damagedCarPart._gridPosition, damagedCarPart._mainEntity,
                 other.transform.position, null,-1,null);
         }

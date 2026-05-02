@@ -8,4 +8,8 @@
         public float TickCarPartHealthServerTime;
 
         public int DeathPlayers;
+        
+        public HashSet<int> VersusBattleChangedHealth;
+
+        public int ReadyPlayers;
    }

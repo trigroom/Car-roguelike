@@ -13,4 +13,5 @@
        
        public CarPartInGameUIView[,] RightCarPartInfoUIViewsGrid;
        public CarPartInGameUIView[,] RightCarPartInfoUIViewsUpLevelGrid;
+       
    }

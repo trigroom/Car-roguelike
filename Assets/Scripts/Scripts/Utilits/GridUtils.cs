@@ -7,6 +7,7 @@ public class GridUtils : MonoBehaviour {
     private static List<CarPartType> _containerPartTypes = new() { CarPartType.CarStuffContainer, CarPartType.WheelsContainer };
     private static List<CarPartType> _weaponPartTypes = new() { CarPartType.MeleeWeapon, CarPartType.Gun };
     public static bool IsContainerType (CarPartConfig carPartConfig) => _containerPartTypes.Contains(carPartConfig.PartType);
+    public static bool IsContainerType (CarPartType carPartType) => _containerPartTypes.Contains(carPartType);
     public static bool IsWeaponType (CarPartConfig carPartConfig) => _weaponPartTypes.Contains(carPartConfig.PartType);
     public static Vector2Int GetEdgePointFromCarPart(List<Vector2Int> carPartPositions) {
     Vector2Int carPartEdgePosition = carPartPositions[0];
@@ -461,38 +462,26 @@ public class GridUtils : MonoBehaviour {
     
     public static Vector2Int FindMedianCell(List<Vector2Int> cells)
     {
-        if (cells == null || cells.Count == 0)
-            return Vector2Int.zero;
-
-        // Сортируем отдельно по X и Y
         var sortedX = cells.OrderBy(c => c.x).ToList();
         var sortedY = cells.OrderBy(c => c.y).ToList();
 
         int medianX, medianY;
 
-        // Находим медиану по X
         if (sortedX.Count % 2 == 0)
         {
-            // Четное количество - берем среднее двух центральных (округляем в меньшую сторону)
             int mid = sortedX.Count / 2;
             medianX = (sortedX[mid - 1].x + sortedX[mid].x) / 2;
         }
         else
-        {
-            // Нечетное количество - берем центральную
             medianX = sortedX[sortedX.Count / 2].x;
-        }
 
-        // Находим медиану по Y
         if (sortedY.Count % 2 == 0)
         {
             int mid = sortedY.Count / 2;
             medianY = (sortedY[mid - 1].y + sortedY[mid].y) / 2;
         }
         else
-        {
             medianY = sortedY[sortedY.Count / 2].y;
-        }
 
         return new Vector2Int(medianX, medianY);
     }
