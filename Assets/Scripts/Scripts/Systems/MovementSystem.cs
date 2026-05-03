@@ -449,7 +449,8 @@ public class MovementSystem : IEcsRunSystem {
         if (rotateSpeed < 0)
             rotateSpeed *= -1;
         ref var carCmp = ref _carComponentsPool.Value.Get(debug);
-        var wheels = carCmp.ForwardWheels;
+        //var wheels = carCmp.ForwardWheels;
+        var wheels = carCmp.CarView.SyncRigidbodyView.ForwardWheels;
         var gridMap = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MapGrid;
         foreach (var wheelParticle in  carCmp.ForwardWheelsParticles) {
             bool showParticles;
@@ -468,7 +469,7 @@ public class MovementSystem : IEcsRunSystem {
                 wheelParticle.Play();
         }
 
-        if (wheels == null||  wheels.Count == 0|| (wheels.Count > 0 && wheels[0] == null)) return;
+        if (wheels == null||  wheels.Length == 0|| (wheels.Length > 0 && wheels[0] == null)) return;
         var currentWheelAngle = wheels[0].transform.localRotation;
 
         targetWheelAngle = Mathf.Clamp(targetWheelAngle, -40, 40);
@@ -476,7 +477,7 @@ public class MovementSystem : IEcsRunSystem {
         currentWheelAngle = Quaternion.Lerp(currentWheelAngle, needRot, rotateSpeed * Time.deltaTime);
         carCmp.WheelsRotateAngle = currentWheelAngle.eulerAngles.z;
       
-      
+      Debug.Log("wheel angle "+ rotateSpeed);
 
       //  foreach (var wheel in wheels)
        //     wheel.transform.localRotation = currentWheelAngle;

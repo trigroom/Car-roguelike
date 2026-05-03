@@ -372,7 +372,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 curGameCmp.RoundTime < (timeBetweenEnemiesSpawn - 5 + curGameCmp.CurrentRound * 3)) {
                 Vector2 needPosition = GetPositionAroundPlayer();
                
-                    _netcodeSceneService.Value.SendEnemyAirplaneClientRpc(needPosition);
+                    _netcodeSceneService.Value.SendAirplaneClientRpc(needPosition,0);
             }
                 
 
@@ -494,16 +494,18 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             }
         }
     }
-    private void SendEnemyAirplane(Vector2 sendPosition) {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        curGameCmp.EnemyTargetPosition = sendPosition; 
-        curGameCmp.EnemySendPhase = 1;
-        _sceneService.Value._enemyAirplane.position = new Vector2 (curGameCmp.EnemyTargetPosition.x,-120);
-        _sceneService.Value._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() => 
-            _sceneService.Value._enemyAirplane.gameObject.SetActive(false)
-        );
-        _sceneService.Value._enemyAirplane.gameObject.SetActive(true);
 
+    private void SendEnemyAirplane(Vector2 sendPosition, int planeNumber) {
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (planeNumber == 0) {
+            curGameCmp.EnemyTargetPosition = sendPosition;
+            curGameCmp.EnemySendPhase = 1;
+            _sceneService.Value._enemyAirplane.position = new Vector2(curGameCmp.EnemyTargetPosition.x, -120);
+            _sceneService.Value._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() =>
+                _sceneService.Value._enemyAirplane.gameObject.SetActive(false));
+            _sceneService.Value._enemyAirplane.gameObject.SetActive(true);
+        } else if (planeNumber is 1 or 2)
+            SendSupportAirplaneToNeedPosition(sendPosition, planeNumber - 1);
     }
 
     private void SetFuelValues(float fuelValue, float maxFuelValue, float electricityValue, float maxElectricity) {
@@ -619,17 +621,37 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     
 
     private void SendSupportAirplane() {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        var supportBoxView = _sceneService.Value._supportBoxStuffView; 
-        curGameCmp.SupportBoxTargetPosition = GetPositionAroundPlayer();
-        curGameCmp.SupportBoxPhase = 1;
-        supportBoxView.supportBoxAirplane.position = new Vector2 (-120,curGameCmp.SupportBoxTargetPosition.y);
-        supportBoxView.supportBoxAirplane.DOMoveX(120, 20).SetEase(Ease.Linear).OnComplete(() => 
-            supportBoxView.supportBoxAirplane.gameObject.SetActive(false)
-        );
-        supportBoxView.supportBoxAirplane.gameObject.SetActive(true);
-        _sceneService.Value.PlayWarningAnimation(GetLocalization("Supply drop")+"!",true);
+       var needPosition = GetPositionAroundPlayer();
+       int supportBoxType = Random.value < 0.75f? 0:1;
+      
+       if(_betweenScenesService.Value.IsCoop)
+           _netcodeSceneService.Value.SendAirplaneClientRpc(needPosition, 1+supportBoxType);
+       SendSupportAirplaneToNeedPosition(needPosition,supportBoxType);
+    }
+
+    private void SendSupportAirplaneToNeedPosition(Vector2 needPosition, int supportBoxType) { 
+        var supportBoxView = _sceneService.Value._supportBoxStuffView;
+        var supportBox = supportBoxView._supportBoxcarPartStuffView;
+        ref var carPartCmp = ref _carPartComponentsPool.Value.Get(supportBox._mainEntity);
+     
+        if (supportBoxType == 0) {
+            carPartCmp.MaxHealth = 100;
+            supportBoxView._supportBoxSprite.sprite = supportBoxView.defaultBoxSprite;
+        } else {
+            carPartCmp.MaxHealth = 300;
+            supportBoxView._supportBoxSprite.sprite = supportBoxView.rareBoxSprite;
+        }
+        _carPartInfoComponentsPool.Value.Get(supportBox._mainEntity).CurrentHealth = carPartCmp.MaxHealth;
         
+        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        curGameCmp.SupportBoxTargetPosition = needPosition;
+   
+        curGameCmp.SupportBoxPhase = 1;
+        supportBoxView.supportBoxAirplane.position = new Vector2(-120, curGameCmp.SupportBoxTargetPosition.y);
+        supportBoxView.supportBoxAirplane.DOMoveX(120, 20).SetEase(Ease.Linear).OnComplete(() =>
+            supportBoxView.supportBoxAirplane.gameObject.SetActive(false));
+        supportBoxView.supportBoxAirplane.gameObject.SetActive(true);
+        _sceneService.Value.PlayWarningAnimation(GetLocalization("Supply drop") + "!", true);
     }
     private void SendSupportBox() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -639,17 +661,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         supportBox._carPartCollider.enabled = false;
         curGameCmp.SupportBoxTargetPosition = Vector2.one * 999;
         supportBox.gameObject.SetActive(true);
-        ref var carPartCmp = ref _carPartComponentsPool.Value.Get(supportBox._mainEntity);
-        float randomValue = Random.value;
-        if (randomValue < 0.75f) {
-            carPartCmp.MaxHealth = 100;
-            supportBoxView._supportBoxSprite.sprite = supportBoxView.defaultBoxSprite;
-        } else {
-            carPartCmp.MaxHealth = 300;
-            supportBoxView._supportBoxSprite.sprite = supportBoxView.rareBoxSprite;
-        }
-        _carPartInfoComponentsPool.Value.Get(supportBox._mainEntity).CurrentHealth = carPartCmp.MaxHealth;
-       
+      
         supportBox.transform.localScale = Vector3.one * 0.5f;
         supportBoxView._supportBoxSprite.color =  new Color(0,0,0,0.3f);
 
@@ -2591,7 +2603,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
         var carPartConfig = _sceneService.Value._carStuffListsConfig.CarPartConfigs[carPartInfoCmp.CarPartId];
 
         carPartCmp.CellCarPartsStuffViews = new List<CarPartStuffView>();
-        Debug.Log(carStuffViews.Length + "carStuffViews.Length");
+//        Debug.Log(carStuffViews.Length + "carStuffViews.Length");
         for (int i = 0; i < carStuffViews.Length; i++) {
             carPartCmp.CellCarPartsStuffViews.Add(carStuffViews[i]);
           /*  if (GridUtils.IsContainerType(carPartConfig)) {
@@ -2634,7 +2646,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
 
             _constructMeleeCellEventsPool.Value.Add(cellEntity);
         } else if (!GridUtils.IsContainerType(carPartConfig) && _carComponentsPool.Value.Get(carPartCmp.MainEntity).CarView.Wheels.Count == 0) {
-            Debug.Log( " wheel setup");
+            Debug.Log( " wheel setup"+carPartCmp.MainEntity);
             SetupWheels(carPartCmp.MainEntity, _carComponentsPool.Value.Get(carPartCmp.MainEntity).CarView);
         }
     
@@ -2681,7 +2693,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
       //  carCmp.CarView.SyncRigidbodyView.SetMassServerRpc(carCmp.CurrentWeight);
         //movementComponent.MovableObjectRigidbody.mass = carCmp.CurrentWeight;
         movementComponent.MaxMoveSpeed += carConfig.DefaultMaxSpeed * (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
-        Debug.Log("max move speed "+movementComponent.MaxMoveSpeed);
+        //Debug.Log("max move speed "+movementComponent.MaxMoveSpeed);
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {
         ref var firstMovementCmp = ref _movementComponentsPool.Value.Get(entityOne);
@@ -2758,15 +2770,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
     private void SetupWheels(int carEntity, CarView carView) {
         float maxYposWheels = -100;
         ref var carCmp  =ref _carComponentsPool.Value.Get(carEntity);
-        foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
-            var carPartConfig = _sceneService.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(carPartContainer.Key).CarPartId);
-            if (carPartConfig.PartType == CarPartType.WheelsContainer) {
-                var carPartCmp = _carPartComponentsPool.Value.Get(carPartContainer.Key);
-                maxYposWheels = maxYposWheels < carPartCmp.CarPartCellRenderer.transform.localPosition.y
-                    ? carPartCmp.CarPartCellRenderer.transform.localPosition.y
-                    : maxYposWheels;
-            }
-        }
+    
 
         List<Vector4> wheelsPositions = new List<Vector4>();
         foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
@@ -2799,6 +2803,10 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
             }
         }
 
+        foreach (var wheelPosition in wheelsPositions) {
+            maxYposWheels = maxYposWheels < wheelPosition.y ? wheelPosition.y : maxYposWheels;
+        }
+Debug.Log("add wheel "+wheelsPositions.Count);
         _netcodeSceneService.Value.SpawnWheelsClientRpc(carView.GetComponentInParent<NetworkObject>(),
             wheelsPositions.Select(v => v.x).ToArray(), wheelsPositions.Select(v => v.y).ToArray(), maxYposWheels,
             wheelsPositions.Select(v => (int)v.z).ToArray(), wheelsPositions.Select(v => (int)v.w).ToArray(),

@@ -55,7 +55,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action _setLoseStateForAllAction;
    private Action<bool> _setIsReadyCountAction;
    private Action _setMinimumHealthLevelAction;
-   private Action< Vector2 >  _setEnemyAirplanePosition;
+   private Action< Vector2 , int>  _setEnemyAirplanePosition;
    private Action<bool> _endVersusBattleAction;
    private Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2 > _setupVersusBattleUiAction;
    private Action<Vector2Int[], CarPartType, bool, float, float> _setVersusBattleUiAction;
@@ -234,7 +234,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<float, float, float, float> setFuelBarsAction, Action<Vector2Int, float, bool> setCarPartHealthPointAction,
         Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction,
         Action<Vector2> setMapPointForClients, Action endRoundForClientAction,
-        Action<Vector2Int, float, bool, int> setCarPartHealthToClientAction, Action<Vector2> setEnemyAirplanePosition,
+        Action<Vector2Int, float, bool, int> setCarPartHealthToClientAction, Action<Vector2, int> setEnemyAirplanePosition,
         Action<bool> endVersusBattleAction, Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2> setupVersusBattleUiAction,
         Action<bool> setIsReadyCountAction) {
         _carSetupAction = carSetupAction;
@@ -292,9 +292,9 @@ public class NetcodeSceneService : NetworkBehaviour
         SetFloatingTextClientRpc(position, text, textColor, floatingText);
     }
     [Rpc(SendTo.ClientsAndHost)]
-    public void SendEnemyAirplaneClientRpc(Vector2 position) {
+    public void SendAirplaneClientRpc(Vector2 position, int needAirplaneIndex) {
        
-        _setEnemyAirplanePosition.Invoke(position);
+        _setEnemyAirplanePosition.Invoke(position, needAirplaneIndex);
     }
     [Rpc(SendTo.ClientsAndHost)]
     private void SetFloatingTextClientRpc(Vector2 position, string text, Color textColor, NetworkObjectReference floatingTextNO,
@@ -838,10 +838,10 @@ public class NetcodeSceneService : NetworkBehaviour
         List<Animator> forwardWheels = new List<Animator>();
         Animator[] allWheels = new Animator[wheelIds.Length];
         ParticleSystem[] wheelParticles = new ParticleSystem[wheelsPositionsX.Length];
-
+Debug.Log("-----------try setup forward Wheels-------------");
         for (int i = 0; i < wheelsPositionsY.Length; i++) {
             var wheel = CreateWheel(wheelIds[i], carView, new Vector2(wheelsPositionsX[i], wheelsPositionsY[i]), wheelsPositionsX[i] > 0);
-
+            Debug.Log("try setup forward Wheels"+Mathf.FloorToInt(wheel.transform.localPosition.y) + " / "+ Mathf.FloorToInt(maxY));
             if ((int)wheel.transform.localPosition.y == (int)maxY)
                 forwardWheels.Add(wheel);
 

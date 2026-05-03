@@ -42,12 +42,13 @@ public class SyncRigidbody2DMassView : NetworkBehaviour {
         rb.mass = newMass;
         networkMass.Value = newMass;
     }
-    [ClientRpc]
+    [Rpc(SendTo.ClientsAndHost)]
     public void SetWheelsRotateClientRpc(float newAngle) {
-        var needRot = Quaternion.Euler(0, 0, newAngle);
-      //  Debug.Log(needRot+ " len "+ForwardWheels.Length);
+     //   rb.angularVelocity = newAngle;
+      //  var needRot = Quaternion.Euler(0, 0, newAngle);
+     // Debug.Log(needRot+ " len "+ForwardWheels.Length);
         foreach (var wheel in ForwardWheels) 
-            wheel.transform.rotation = needRot;
+            wheel.transform.localEulerAngles = new Vector3(0,0,newAngle) ;
     }
 
     private PolygonCollider2D polygonCollider;
