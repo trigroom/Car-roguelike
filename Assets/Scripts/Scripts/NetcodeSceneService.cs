@@ -46,7 +46,7 @@ public class NetcodeSceneService : NetworkBehaviour
        _carPartSetupAction;
 
    private Action<Vector2> _setMapPointForClients;
-
+   private Action _openSupportBoxForClientsAction;
    private Action<SpriteRenderer> _destroyCarPartAction;
    private Action<Vector2> _setZonePositionAction;
    private Action<float> _setZoneFillAmountAction;
@@ -264,11 +264,13 @@ public class NetcodeSceneService : NetworkBehaviour
         _setIsReadyCountAction.Invoke(isReady);
     }
     public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction, Action setLoseStateForAllAction,
-        Action<Vector2Int[], CarPartType, bool, float, float> setVersusBattleUiAction) {
+        Action<Vector2Int[], CarPartType, bool, float, float> setVersusBattleUiAction,Action openSupportBoxForClientsAction) {
         _setDeathPlayersCountAction = setDeathPlayersCountAction;
         _setLoseStateForAllAction = setLoseStateForAllAction;
         _setVersusBattleUiAction = setVersusBattleUiAction;
+        _openSupportBoxForClientsAction = openSupportBoxForClientsAction;
     }
+    
     public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction) {
         _setMinimumHealthLevelAction = setMinimumHealthLevelAction;
     }
@@ -838,10 +840,8 @@ public class NetcodeSceneService : NetworkBehaviour
         List<Animator> forwardWheels = new List<Animator>();
         Animator[] allWheels = new Animator[wheelIds.Length];
         ParticleSystem[] wheelParticles = new ParticleSystem[wheelsPositionsX.Length];
-Debug.Log("-----------try setup forward Wheels-------------");
         for (int i = 0; i < wheelsPositionsY.Length; i++) {
             var wheel = CreateWheel(wheelIds[i], carView, new Vector2(wheelsPositionsX[i], wheelsPositionsY[i]), wheelsPositionsX[i] > 0);
-            Debug.Log("try setup forward Wheels"+Mathf.FloorToInt(wheel.transform.localPosition.y) + " / "+ Mathf.FloorToInt(maxY));
             if ((int)wheel.transform.localPosition.y == (int)maxY)
                 forwardWheels.Add(wheel);
 
@@ -863,8 +863,11 @@ Debug.Log("-----------try setup forward Wheels-------------");
         }
     }
 
- 
-
+    [Rpc(SendTo.NotServer)]
+    public void OpenSupportBoxClientRpc() {
+        _openSupportBoxForClientsAction.Invoke();
+    }
+    
     [Rpc(SendTo.ClientsAndHost)]
     public void SetCarPartsHpDataClientRpc(CarPartsHpDataForRpc[] carPartsHpData) {
         Debug.Log(carPartsHpData.Length + "SetCarPartsHpDataClientRpc");

@@ -645,9 +645,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     
 
     private void CheckDeathPlayersCount() {
+  
         ref var serverCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         serverCmp.DeathPlayers++;
-        
+              Debug.Log("deathPlayers count"+serverCmp.DeathPlayers);
         if (serverCmp.DeathPlayers == NetworkManager.Singleton.ConnectedClients.Count)
             _netcodeSceneService.Value.SetLoseStateForAllClientRpc();
     }
@@ -1528,12 +1529,14 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             DestroyCarPartCell(cellEntity);
 
             if (carPartConfig.PartType == CarPartType.Main) {
-                if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity) &&
+             /*   if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carPartCmp.MainEntity) &&
                     !_playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) &&
-                    _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)
+                    _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy)*/
+             
                     DestroyNeedCar(carPartCmp.MainEntity);
-                else if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity))
-                    CheckLoseGame();
+                    
+           //     else if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity))
+            //        CheckLoseGame();
             }
 
             carPartCmp.CellCarPartsStuffViews = null;
@@ -1568,6 +1571,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
     private void OpenSupportBox() {
+        if (NetworkManager.Singleton.IsServer)
+            _netcodeSceneService.Value.OpenSupportBoxClientRpc();
         _sceneService.Value.PlayWarningAnimation(GetLocalization("Supplies received") + "!", true);
         _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.SetActive(false);
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -1828,9 +1833,9 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         if (destroyCarAfterCarPart) {
-            bool hasCarView = carCmp.CarView != null; 
-            if (isPlayer && _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None && hasCarView)
-                                                                     CheckLoseGame();
+           // bool hasCarView = carCmp.CarView != null; 
+          //  if (isPlayer && _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.None && hasCarView)
+              //                                                       CheckLoseGame();
             if (!_destroyEntityEventsPool.Value.Has(carPartCmp.MainEntity) || !isEnemy)
                 DestroyNeedCar(carPartCmp.MainEntity);
 
@@ -1956,7 +1961,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         ref var carCmp = ref _carComponentsPool.Value.Get(carEntity);
         if (!carCmp.CarView) return;
         carCmp.ForwardWheels = new List<Animator>();
-        bool isEnemy = !_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Contains(carEntity);
+        bool isEnemy = !_inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).PlayerTeammateCarsEntity.Contains(carEntity) &&
+                       !_playerTagComponentsPool.Value.Has(carEntity) && _enemyAIComponentsPool.Value.Get(carEntity).IsEnemy;
         var containersList = new Dictionary<int, List<Vector2Int>>(carCmp.CarPartContainerGroupsList);
         var currentRoundType = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType;
         var dontDestroyEnemyCar = currentRoundType != RoundType.None && currentRoundType != RoundType.VersusBattle &&
@@ -1980,8 +1986,12 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (currentRoundType == RoundType.None) return;
-       // if (carEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carEntity))
-       //     CheckLoseGame();
+        if (carEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carEntity)) {
+            if (carCmp.CarView)
+                CheckLoseGame();
+            carCmp.CarView = null;
+        }
+          
         if (dontDestroyEnemyCar && carCmp.CarPartContainerGroupsList.Count == 0 && !_destroyEntityEventsPool.Value.Has(carEntity)) {
             _destroyEntityEventsPool.Value.Add(carEntity);
             carCmp.CarView = null;
@@ -2063,6 +2073,6 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
                 .ConstructMapMelee(ProjectileHit);
         
-        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient);
+        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient,OpenSupportBox);
     }
 }

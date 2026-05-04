@@ -477,7 +477,7 @@ public class MovementSystem : IEcsRunSystem {
         currentWheelAngle = Quaternion.Lerp(currentWheelAngle, needRot, rotateSpeed * Time.deltaTime);
         carCmp.WheelsRotateAngle = currentWheelAngle.eulerAngles.z;
       
-      Debug.Log("wheel angle "+ rotateSpeed);
+      //Debug.Log("wheel angle "+ rotateSpeed);
 
       //  foreach (var wheel in wheels)
        //     wheel.transform.localRotation = currentWheelAngle;

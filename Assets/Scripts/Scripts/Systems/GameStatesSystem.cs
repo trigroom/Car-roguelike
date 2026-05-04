@@ -89,6 +89,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                ref var serverValuesCmp = ref  _serverValuesComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
                serverValuesCmp.ClientsEntities = new Dictionary<ulong, int>();
                serverValuesCmp.VersusBattleChangedHealth = new HashSet<int>();
+               _sceneService.Value._supportBoxStuffView._supportBoxcarPartStuffView.gameObject.GetComponent<NetworkObject>().Spawn();
        }
        
       
