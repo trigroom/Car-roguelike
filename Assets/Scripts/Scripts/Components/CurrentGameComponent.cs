@@ -44,7 +44,7 @@
      Shop,
      Chest,
      TeammateForSupport,
-     Transfer,
+     SlotMachine,
      BattleDefault,
      ZoneDefence,
      FromAToB,

@@ -65,6 +65,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private EcsPoolInject<PlayerTagComponent> _playerTagComponentsPool;
     private EcsPoolInject<ServerValuesComponent> _serverValuesComponentsPool;
     private EcsPoolInject<UpdateCarStatsEvent> _updateCarStatsEventsPool;
+    private EcsPoolInject<SlotMachineComponent> _slotMachineComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -105,7 +106,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         
         _versusBattleComponentsPool.Value.Add(playerEntity);
         SetupVersusBattleUI();
-        
+        _slotMachineComponentsPool.Value.Add(playerEntity);
         if (!DataPersistenceManagerSystem._gameData.TutorialIsCompleted)
             _betweenScenesService.Value.CurrentSelectedMap = _betweenScenesService.Value._carStuffListsConfig.MapConfigs.Length-1;
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
@@ -186,8 +187,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             _sceneService.Value._inventoryUIView._playButton.onClick.AddListener(ChangeRoundInfo);
             _sceneService.Value._inventoryUIView._playButtonText.text = GetLocalization("Start game") + "!";
         }
-            
-        
+
+        SetupSlotMachineUI();
+       
         _sceneService.Value._mapPointPrefab.SetupPoint(UpdateMapPoint);
         _sceneService.Value._mapFilledZoneView.SetupFilledZone(SetFeelingZoneState);
         _sceneService.Value._mapFilledZoneView.FilledZoneGround.color = mapConfig.MapVisualInfoConfigs[0].WheelParticlesColor;
@@ -327,6 +329,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                     versusBattleCmp.IsCircularSawsSended = true;
                 }
 
+                break;
+            case RoundType.SlotMachine:
+                RollSlotMachine();
                 break;
         }
 
@@ -1110,8 +1115,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         var currentSupportRoundTypes = RoundUtilits.SupportRoundsTypes.Distinct().ToList();
         if (TaskCount() == 5)
             currentSupportRoundTypes.Remove(RoundType.Task);
-        if (_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount < 5) 
+        if (_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount < 5) {
             currentSupportRoundTypes.Remove(RoundType.VersusBattle);
+            currentSupportRoundTypes.Remove(RoundType.SlotMachine);
+        }
+            
         
         (var randomRounds, int moneyMultiplayerRound) =
             curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount - 1
@@ -1206,8 +1214,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 return GetLocalization("RoundShop");
             case RoundType.ModulesShop:
                 return GetLocalization("RoundModulesShop");
-            case RoundType.Transfer:
-                return GetLocalization("RoundTransfer");
+            case RoundType.SlotMachine:
+                return GetLocalization("RoundSlotMachine");
             case RoundType.ZoneDefence:
                 return GetLocalization("RoundZoneDefence");
             case RoundType.BossBattle:
@@ -1297,8 +1305,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 SetSaleShopRound();
                 ChangeInventoryState(true);
                 break;
-            case RoundType.Transfer:
-                ChangeInventoryState(true);
+            case RoundType.SlotMachine:
+                SetSlotMachineRound();
                 break;
             case RoundType.TeammateForSupport:
                 _addTeammateEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
@@ -1340,6 +1348,161 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             NetcodeBetweenScenesService.Instance.StartRoundClientRpc(roundType,_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer);
     }
 
+    private void SetSlotMachineRound() {
+        ref var slotMachineCmp = ref _slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var slotMachineView = _sceneService.Value._slotMachineUiView;
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        slotMachineView._leaveRoundButton.gameObject.SetActive(playerCurrencyCmp.MoneyCount < 5);
+        slotMachineView.gameObject.SetActive(true);
+        List<int> defaultSlotItemsArray = new List<int>();
+        foreach (var itemConfig in slotMachineView._slotItemConfigs) {
+            for (int i = 0; i < itemConfig.Count; i++)
+                defaultSlotItemsArray.Add(itemConfig.Id);
+        } //0,ShuffleArray(defaultSlotItemsArray.ToArray()),
+
+        slotMachineCmp.CurrentPositionItemIndexValues = new int[3];
+        slotMachineCmp.CurrentSlotValues = new SlotValues[3];
+        slotMachineCmp.CurrentPositionValues = new float[3];
+        for (int i = 0; i < slotMachineCmp.CurrentSlotValues.Length; i++)
+            slotMachineCmp.CurrentSlotValues[i] = new SlotValues(ShuffleArray(defaultSlotItemsArray.ToArray()),
+                ((Random.value+1.5f)*2.5f+i));
+
+        for (int i = 0; i < slotMachineView._firstSlotColumnIcons.Length; i++) {
+            slotMachineView._firstSlotColumnIcons[i].sprite =
+                slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[0].ItemsId[i]].Icon;
+        }
+        for (int i = 0; i < slotMachineView._secondSlotColumnIcons.Length; i++) {
+            slotMachineView._secondSlotColumnIcons[i].sprite =
+                slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[1].ItemsId[i]].Icon;
+        }
+        for (int i = 0; i < slotMachineView._thirdSlotColumnIcons.Length; i++) {
+            slotMachineView._thirdSlotColumnIcons[i].sprite =
+                slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[2].ItemsId[i]].Icon;
+        }
+
+        slotMachineCmp.CurrentBet = 5;
+        slotMachineView._currentBetText.text =
+            $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
+            $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}$";
+        slotMachineCmp.TryCount = 10;
+        slotMachineView._tryLeftText.text =$"{GetLocalization("Trys left")}: {slotMachineCmp.TryCount}";
+        ChangeInventoryState(false);
+    }
+
+    private void EndSlotMachineRound() {
+        _sceneService.Value._slotMachineUiView.gameObject.SetActive(false);
+        ChangeInventoryState(true);
+    }
+
+    private void StartRollMachine() {
+        ref var slotMachineCmp = ref _slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var slotMachineView = _sceneService.Value._slotMachineUiView;  
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        if (slotMachineCmp.SwitchDelay > 0 || ((slotMachineCmp.TryCount <= 0 || playerCurrencyCmp.MoneyCount < 5) && !slotMachineCmp.IsStarted)) return;
+        slotMachineCmp.IsStarted = !slotMachineCmp.IsStarted;
+        slotMachineCmp.SwitchDelay = 1;
+        slotMachineView._leaveRoundButton.gameObject.SetActive(true);
+
+        if (!slotMachineCmp.IsStarted) {
+            for (int i = 0; i < slotMachineCmp.CurrentPositionValues.Length; i++) {
+                slotMachineView._slotColumnsContainers[i].DOLocalMoveY(1.5f, 0.4f);
+                slotMachineCmp.CurrentPositionValues[i] = 0.2262f;
+            }
+
+        
+            bool allSame = true;
+            int itemIndex = slotMachineCmp.CurrentSlotValues[0].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[0]];
+            for (int i = 1; i < slotMachineCmp.CurrentPositionItemIndexValues.Length; i++) {
+                if (slotMachineCmp.CurrentSlotValues[i].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[i]] != itemIndex)
+                    allSame = false;
+            }
+
+            if (allSame)
+                playerCurrencyCmp.MoneyCount += slotMachineView._slotItemConfigs[itemIndex].TripleMultiplayer * slotMachineCmp.CurrentBet;
+            else
+                playerCurrencyCmp.MoneyCount -= slotMachineCmp.CurrentBet;
+            
+            playerCurrencyCmp.VisibleMoneyCount = playerCurrencyCmp.MoneyCount;
+            slotMachineCmp.CurrentRollTime = 0;
+            slotMachineView._switchImage.sprite = slotMachineView._switchUpSprite;
+            slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
+            slotMachineView._currentBetText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
+                                                   $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}$";
+        } else {
+            slotMachineCmp.TryCount--;
+            slotMachineView._tryLeftText.text = $"{GetLocalization("Trys left")}: {slotMachineCmp.TryCount}";
+            slotMachineView._switchImage.sprite = slotMachineView._switchDownSprite;
+        }
+    }
+    private void RollSlotMachine() {
+        ref var slotMachineCmp = ref _slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        float deltaTime = Time.deltaTime;
+        if (slotMachineCmp.SwitchDelay > 0)
+            slotMachineCmp.SwitchDelay -= deltaTime;
+        if (slotMachineCmp.IsStarted) {
+            slotMachineCmp.CurrentRollTime += deltaTime;
+            if (slotMachineCmp.CurrentRollTime > 10) {
+                StartRollMachine();
+                return;
+            }
+                
+            var slotMachineView = _sceneService.Value._slotMachineUiView;
+            for (int i = 0; i < slotMachineCmp.CurrentPositionValues.Length; i++) {
+                slotMachineCmp.CurrentPositionValues[i] += deltaTime * slotMachineCmp.CurrentSlotValues[i].RollSpeed;
+                if (slotMachineCmp.CurrentPositionValues[i] >= 1) {
+                    slotMachineCmp.CurrentPositionValues[i]--;
+                    slotMachineCmp.CurrentPositionItemIndexValues[i]++;
+                    if (slotMachineCmp.CurrentPositionItemIndexValues[i] == slotMachineCmp.CurrentSlotValues[i].ItemsId.Length)
+                        slotMachineCmp.CurrentPositionItemIndexValues[i] = 0;
+
+                    int currentItemIndex = slotMachineCmp.CurrentPositionItemIndexValues[i];
+                    if (i == 0) {
+                        slotMachineView._firstSlotColumnIcons[0].sprite = slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex]].Icon;
+                        slotMachineView._firstSlotColumnIcons[1].sprite =
+                            currentItemIndex + 1 == slotMachineCmp.CurrentSlotValues[i].ItemsId.Length
+                                ? slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[0]].Icon
+                                : slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex+1]].Icon;
+                        slotMachineView._firstSlotColumnIcons[2].sprite = currentItemIndex == 0
+                            ? slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[^1]].Icon
+                            : slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex - 1]].Icon;
+                    } else if (i == 1) {
+                        slotMachineView._secondSlotColumnIcons[0].sprite = slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex]].Icon;
+                        slotMachineView._secondSlotColumnIcons[1].sprite =
+                            currentItemIndex + 1 == slotMachineCmp.CurrentSlotValues[i].ItemsId.Length
+                                ? slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[0]].Icon
+                                : slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex+1]].Icon;
+                        slotMachineView._secondSlotColumnIcons[2].sprite = currentItemIndex == 0
+                            ? slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[^1]].Icon
+                            : slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex - 1]].Icon;
+                    } else if (i == 2) {
+                        slotMachineView._thirdSlotColumnIcons[0].sprite = slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex]].Icon;
+                        Debug.Log(currentItemIndex + "currentItemIndex");
+                        slotMachineView._thirdSlotColumnIcons[1].sprite =
+                            currentItemIndex + 1 == slotMachineCmp.CurrentSlotValues[i].ItemsId.Length
+                                ? slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[0]].Icon
+                                : slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex+1]].Icon;
+                        slotMachineView._thirdSlotColumnIcons[2].sprite = currentItemIndex == 0
+                            ? slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[^1]].Icon
+                            : slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex - 1]].Icon;
+                    }
+
+                    //116.1y - start val
+                    //-38.6y - last value
+                }
+
+                slotMachineView._slotColumnsContainers[i].localPosition = new Vector3(slotMachineView._slotColumnsContainers[i].localPosition.x,
+                    154.7f * slotMachineCmp.CurrentPositionValues[i] - 72.1f, 0);
+            }
+        }
+    }
+    private T[] ShuffleArray<T>(T[] array) {
+        for (int i = array.Length - 1; i > 0; i--) {
+            int randomIndex = Random.Range(0, i + 1);
+            (array[i], array[randomIndex]) = (array[randomIndex], array[i]);
+        }
+
+        return array;
+    }
     private void SetVersusBattleUI() {
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView.gameObject.SetActive(true);
@@ -1788,15 +1951,25 @@ Debug.Log(" end vs battle");
     }
 
     private void ChangeBet(int count) {
-        Debug.Log("change bet "+count);
-        ref var versusBattleComponent = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var playerCurrencyCmp = _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-      
-        versusBattleComponent.CurrentBet += count;
 
-        versusBattleComponent.CurrentBet = Mathf.Clamp(versusBattleComponent.CurrentBet, 5, (int)playerCurrencyCmp.MoneyCount);
-        _sceneService.Value._versusBattleView._betText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
-                                                              $"{GetLocalization("Bet")}: {versusBattleComponent.CurrentBet}$";       
+        if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.SlotMachine) {
+            ref var slotMachineCmp = ref _slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            slotMachineCmp.CurrentBet += count;
+
+            slotMachineCmp.CurrentBet = playerCurrencyCmp.MoneyCount < 5?5:Mathf.Clamp(slotMachineCmp.CurrentBet, 5, (int)playerCurrencyCmp.MoneyCount);
+
+            _sceneService.Value._slotMachineUiView._currentBetText.text =
+                $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
+                $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}$";
+        } else {
+            ref var versusBattleComponent = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            versusBattleComponent.CurrentBet += count;
+
+            versusBattleComponent.CurrentBet = Mathf.Clamp(versusBattleComponent.CurrentBet, 5, (int)playerCurrencyCmp.MoneyCount);
+            _sceneService.Value._versusBattleView._betText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
+                                                                  $"{GetLocalization("Bet")}: {versusBattleComponent.CurrentBet}$";
+        }
     }
 
     private void SetupVersusBattleUI() {
@@ -1814,6 +1987,21 @@ Debug.Log(" end vs battle");
         versusBattleView._rightVersusBattleParticipantInfo.BetButton.onClick.AddListener(()=>StartVersusBattle(false));
         
         versusBattleView._speedGameSpeedBoostButton.onClick.AddListener(ChangeGameSpeedVersusBattles);
+    }
+
+    private void SetupSlotMachineUI() {
+        var slotMachineView = _sceneService.Value._slotMachineUiView;
+        
+        slotMachineView._startMachineButton.onClick.AddListener(StartRollMachine);
+        slotMachineView._leaveRoundButton.onClick.AddListener(EndSlotMachineRound);
+        
+        slotMachineView._bet1Button.onClick.AddListener(()=>ChangeBet(1));
+        slotMachineView._bet10Button.onClick.AddListener(()=>ChangeBet(10));
+        slotMachineView._bet100Button.onClick.AddListener(()=>ChangeBet(100));
+        
+        slotMachineView._betRemove1Button.onClick.AddListener(()=>ChangeBet(-1));
+        slotMachineView._betRemove10Button.onClick.AddListener(()=>ChangeBet(-10));
+        slotMachineView._betRemove100Button.onClick.AddListener(()=>ChangeBet(-100));
     }
 
     private void ChangeGameSpeedVersusBattles() {

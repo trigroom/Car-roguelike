@@ -390,3 +390,6 @@ Connect menu,Connect Menu,Меню подключения,Verbindungsmenü,Menú
 Lobby,Lobby,Лобби,Lobby,Lobby,Lobby
 Not ready,Not Ready,Не готов,Nicht bereit,No listo,Pas prêt
 Host select round,Host selects next round,Хост выбирает следующий раунд,Host wählt nächste Runde,Anfitrión selecciona siguiente ronda,Hôte sélectionne prochain round
+Trys left,Attempts left,Осталось попыток,Verbleibende Versuche,Intentos restantes,Tentatives restantes
+RoundSlotMachine,Test your luck and stay with the money,Попытай свою удачу и останься с деньгами,Teste dein Glück und bleib bei dem Geld,Pon a prueba tu suerte y quédate con el dinero,Tente ta chance et repars avec l'argent
+RoundModulesShop,Stock up on modules to upgrade your car,Закупись модулями чтобы улучшить свою машину,Besorge dir Module um dein Auto zu verbessern,Abastécete de módulos para mejorar tu coche,Fais le plein de modules pour améliorer ta voiture

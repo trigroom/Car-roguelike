@@ -12,6 +12,7 @@ using UnityEngine.UI;
 
 public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
+    [field: SerializeField] public SlotMachineUiView _slotMachineUiView { get; private set; }
     [field: SerializeField] public Transform _hpBarPrefab { get; private set; }
         [field: SerializeField] public Transform _hpBarsContainer{ get; private set; }
     [field: SerializeField] public SpriteRenderer _parachuteSpriteRenderer { get; private set; }

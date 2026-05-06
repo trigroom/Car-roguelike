@@ -327,13 +327,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (Input.GetMouseButtonUp(0)) {
                     _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(false);
                     if (inventoryCmp.IsCarPartsRedactorMode) {
-                        if (_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRoundType ==
-                            RoundType.Transfer) { } else {
-                            if (CanPlacedOnCarCell())
-                                PlaceCarPartInCell(ref inventoryCmp /*, ref carPartCellCmp*/);
-                            else
-                                CancelCarPartPlace(ref inventoryCmp);
-                        }
+                        if (CanPlacedOnCarCell())
+                            PlaceCarPartInCell(ref inventoryCmp /*, ref carPartCellCmp*/);
+                        else
+                            CancelCarPartPlace(ref inventoryCmp);
                     } else {
                         if (inventoryCmp.CurrentDraggedCellEntity != -1) {
                             if (inventoryCmp.CurrentCellCarPart != null &&
