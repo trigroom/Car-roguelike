@@ -57,6 +57,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action _setMinimumHealthLevelAction;
    private Action< Vector2 , int>  _setEnemyAirplanePosition;
    private Action<bool> _endVersusBattleAction;
+   private Action<float> _endRoundExpAddAction;
    private Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2 > _setupVersusBattleUiAction;
    private Action<Vector2Int[], CarPartType, bool, float, float> _setVersusBattleUiAction;
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
@@ -271,8 +272,9 @@ public class NetcodeSceneService : NetworkBehaviour
         _openSupportBoxForClientsAction = openSupportBoxForClientsAction;
     }
     
-    public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction) {
+    public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction) {
         _setMinimumHealthLevelAction = setMinimumHealthLevelAction;
+        _endRoundExpAddAction = endRoundExpAddAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -297,6 +299,11 @@ public class NetcodeSceneService : NetworkBehaviour
     public void SendAirplaneClientRpc(Vector2 position, int needAirplaneIndex) {
        
         _setEnemyAirplanePosition.Invoke(position, needAirplaneIndex);
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void EndRoundExpAddClientRpc(float addedExp) {
+       
+        _endRoundExpAddAction.Invoke(addedExp);
     }
     [Rpc(SendTo.ClientsAndHost)]
     private void SetFloatingTextClientRpc(Vector2 position, string text, Color textColor, NetworkObjectReference floatingTextNO,

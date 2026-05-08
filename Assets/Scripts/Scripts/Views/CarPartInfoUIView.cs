@@ -32,6 +32,8 @@ public class CarPartInfoUIView : MonoBehaviour
     [field: SerializeField] public Image _carPartIcon { get; private set; }
     [field: SerializeField] public Image _carPartIconUpLevel { get; private set; }
     [field: SerializeField] public TMP_Text _sellCarPartText { get; private set; }
+    [field: SerializeField] public TMP_Text _expBarText { get; private set; }
+    [field: SerializeField] public Slider _expSlider { get; private set; }
     public int _level;
     public float CurrentMarkedCarPartHealth;
 
@@ -125,7 +127,7 @@ public class CarPartInfoUIView : MonoBehaviour
     }
 
     public void SetPanelForNeededPart(CarPartConfig carPartConfig, bool showDestroyButton, bool showMoveButton, int carPartLevel,
-        float currentHealth, float healCost, bool isShop, int[] moduleIds) {
+        float currentHealth, float healCost, bool isShop, int[] moduleIds,float currentExp) {
         _destroyButton.gameObject.SetActive(showDestroyButton);
         _moveToInventoryButton.gameObject.SetActive(showMoveButton);
         _level = carPartLevel;
@@ -136,12 +138,17 @@ public class CarPartInfoUIView : MonoBehaviour
 
         if (!isShop) {
             if (GridUtils._maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
+                float upgradeCost = GridUtils.GetUpgradeCost(carPartLevel, carPartConfig, moduleIds);
                 _upgradeButtonText.text =
-                    $"{GridUtils.GetUpgradeCost(carPartLevel, carPartConfig, moduleIds).ToString()}$ {GetLocalization("to upgrade")}";
+                    $"{upgradeCost} exp {GetLocalization("to upgrade")}";
                 _upgradeButton.enabled = true;
+                _expSlider.value = Mathf.Max(currentExp / upgradeCost, 0.093f) ;
+                _expBarText.text = $"{currentExp:F2} / {upgradeCost:F2} exp";
             } else {
                 _upgradeButton.enabled = false;
                 _upgradeButtonText.text = GetLocalization("Max level");
+                _expSlider.value = 1;
+                _expBarText.text  = GetLocalization("Max level");
             }
 
             _nameText.text += $"\n{carPartLevel + 1} {GetLocalization("lvl")}.";

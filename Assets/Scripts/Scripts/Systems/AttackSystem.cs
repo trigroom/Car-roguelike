@@ -1759,12 +1759,15 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
             if (isEnemy) {
                 var roundType = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType;
-                if (roundType != RoundType.None && roundType != RoundType.VersusBattle && carPartConfig.PartType != CarPartType.Main) {
+                if (roundType != RoundType.None && roundType != RoundType.VersusBattle ) {
                     float randomChance = Random.value;
-                    if (randomChance > (0.90f + inventoryCmp.CurrentGivenItems.Count * 0.02f)) {
+                    if (randomChance > 0.90f + inventoryCmp.CurrentGivenItems.Count * 0.02f&& carPartConfig.PartType != CarPartType.Main) {
                         inventoryCmp.CurrentGivenItems.Add(carPartConfig.Id);
                         //in game reward text
                     }
+
+                    _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).EarnedExpInRound += carPartConfig.MoneyCost +
+                        GridUtils.GetUpgradeCost(carPartInfoCmp.PartLevel, carPartConfig, carPartInfoCmp.ModuleIds);
                 }
 
                 carCmp.CarPartGroupsList.Remove(cellEntity);

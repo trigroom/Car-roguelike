@@ -28,6 +28,8 @@ public class ShopUIView : MonoBehaviour
     [field:SerializeField]
     public TMP_Text _moneyCountText { get; private set; }
     [field:SerializeField]
+    public TMP_Text _expCountText { get; private set; }
+    [field:SerializeField]
     public TMP_Text _updateItemsText { get; private set; }
      [field:SerializeField]
         public Sprite _lockSprite { get; private set; }
@@ -37,14 +39,25 @@ public class ShopUIView : MonoBehaviour
         public TMP_Text _inflationText { get; private set; }
 
     public void AddMoneyAnimation() {
-        _moneyCountText.transform.DOKill();
-        _moneyCountText.transform.DOScale(0.8f, 0.2f).SetEase(Ease.InBack).OnComplete(() =>
-        _moneyCountText.transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack));
+        PopAnimation(_moneyCountText.transform);
     }
-    
+    public void AddExpAnimation() {
+        PopAnimation(_expCountText.transform);
+    }
+    private void PopAnimation(Transform needObject) {
+        needObject.DOKill();
+        needObject.DOScale(0.8f, 0.2f).SetEase(Ease.InBack).OnComplete(() =>
+            needObject.DOScale(1f, 0.2f).SetEase(Ease.OutBack));
+    }
+    private void NotEnoughAnimation(Transform needObject) {
+        needObject.DOKill();
+        needObject.DOScale(1.2f, 0.2f).SetEase(Ease.OutBack).OnComplete(() =>
+            needObject.DOScale(1f, 0.2f).SetEase(Ease.InBack));
+    }
     public void NotEnoughMoneyAnimation() {
-        _moneyCountText.transform.DOKill();
-        _moneyCountText.transform.DOScale(1.2f, 0.2f).SetEase(Ease.OutBack).OnComplete(() =>
-            _moneyCountText.transform.DOScale(1f, 0.2f).SetEase(Ease.InBack));
+        NotEnoughAnimation(_moneyCountText.transform);
+    }
+    public void NotEnoughExpAnimation() {
+        NotEnoughAnimation(_expCountText.transform);
     }
 }

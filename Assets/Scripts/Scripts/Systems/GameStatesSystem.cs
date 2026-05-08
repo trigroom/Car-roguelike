@@ -1052,6 +1052,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _netcodeSceneService.Value.SetEndRoundHealthValuesClientRpc(carPartsHealthDataForRpc);
         serverCmp.DeathPlayers = 0;
         serverCmp.ClientsEntities = new Dictionary<ulong, int>();
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        _netcodeSceneService.Value.EndRoundExpAddClientRpc(playerCurrencyCmp.EarnedExpInRound);
+        playerCurrencyCmp.EarnedExpInRound = 0;
     }
 
     private (int[], int[], Vector2Int) GetCarPartHealthArraysFromCar(int entity) {

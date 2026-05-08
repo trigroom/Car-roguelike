@@ -25,6 +25,7 @@
         public CarPartInGameUIView[,] CarPartInfoUIViewsUpLevelGrid;
         public Vector2 StartOffsetFromCell;
         public Tween CurrentMoneyTween;
+        public Tween CurrentExpTween;
         public Sequence CurrentCarPartContainersTween;
         
         public Vector2Int LastCheckedGridCellPosition;
