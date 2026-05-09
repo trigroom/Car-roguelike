@@ -187,7 +187,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
 
             ActivateGiveCarPartsWindow();
-            _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)}$";
+            _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)} <sprite name=\"CogIcon\">";
             _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentUpdateCountInRound = 0;
             //     _endRoundEventsPool.Value.Del(endRound);
         }
@@ -666,7 +666,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             shopCell.Construct(shopCellEntity, BuyShopCar, SetCarPartInfoPanel, TakeItemFromInventory,LockShopItemToggleAction);
         }
 
-        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)}$";
+        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)} <sprite name=\"CogIcon\">";
         SetShopCells(false);
         SetCarShopCells();
         
@@ -710,7 +710,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         } else {
             _sceneData.Value._shopUIView.NotEnoughMoneyAnimation();
         }
-        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound)}$";
+        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound)} <sprite name=\"CogIcon\">";
     }
 
     private void SetCarContainersContainerSize() {
@@ -920,7 +920,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var carPart in carCmp.CarPartContainerGroupsList) {
             var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
             if (GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.CarStuffContainer) {
-                Debug.Log("add cells to check");
+              
                 needCells.AddRange(carPart.Value);
             }
         }
@@ -1283,7 +1283,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         for (int i = 0; i < _sceneData.Value._inventoryUIView._selectCarButtons.Length; i++) {
             if (i < inventoryCmp.PlayerTeammateCarsEntity.Count && i != 0) {
                 _sceneData.Value._inventoryUIView._selectCarButtons[i].sellCarText.text =
-                    GetCarCost(inventoryCmp.PlayerTeammateCarsEntity[i]) + "$";
+                    GetCarCost(inventoryCmp.PlayerTeammateCarsEntity[i]) + "<sprite name=\"CogIcon\">";
             }
         }
     }
@@ -1327,9 +1327,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     
     private void BuyShopCar(int entity) {
         var shopCellCmp = _shopCellCarComponentsPool.Value.Get(entity);
-        int maxTeammatesCount = 4;
-        if (_betweenScenesService.Value.IsCoop)
-            maxTeammatesCount = _serverValuesComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ClientsEntities.Count > 1 ? 1 : 2;
+        int maxTeammatesCount = 2;
+      //  if (_betweenScenesService.Value.IsCoop)
+         //   maxTeammatesCount = _serverValuesComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ClientsEntities.Count > 1 ? 1 : 2;
         if (_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > maxTeammatesCount) {
             _sceneData.Value.PlayWarningAnimation(GetLocalization("No space in garage"), false);
            return; 
@@ -2061,7 +2061,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float visibleMoney = playerCurrency.VisibleMoneyCount;
         inventoryCmp.CurrentMoneyTween = DOTween.To(() => visibleMoney, x => visibleMoney = x, playerCurrency.MoneyCount, 1f)
             .SetEase(Ease.OutCubic).OnUpdate(() => {
-                _sceneData.Value._shopUIView._moneyCountText.text = visibleMoney.ToString("N0") + "$";
+                _sceneData.Value._shopUIView._moneyCountText.text = visibleMoney.ToString("N0") + "<sprite name=\"CogIcon\">";
                 SetVisibleMoneyCount(visibleMoney);
             });
 
@@ -2079,7 +2079,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float visibleMoney = playerCurrency.VisibleExpPointsCount;
         inventoryCmp.CurrentExpTween = DOTween.To(() => visibleMoney, x => visibleMoney = x, playerCurrency.ExpPointsCount, 1f)
             .SetEase(Ease.OutCubic).OnUpdate(() => {
-                _sceneData.Value._shopUIView._expCountText.text = visibleMoney.ToString("N0") + " exp";
+                _sceneData.Value._shopUIView._expCountText.text = $"{visibleMoney:N0} <sprite name=\"ExpIcon\">";
                 SetVisibleExpCount(visibleMoney);
             });
 
@@ -3400,7 +3400,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void UpdateHealAllCarPartButton() {
         float healCost = GetHealAllCarPartCost();
         _sceneData.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost>0);
-        _sceneData.Value._inventoryUIView._healCarText.text = $"{GetLocalization("Heal all car for")} {healCost}$";
+        _sceneData.Value._inventoryUIView._healCarText.text = $"{GetLocalization("Heal all car for")} {healCost} <sprite name=\"CogIcon\">";
     }
 
     private float GetHealAllCarPartCost() {

@@ -22,12 +22,12 @@ public class EndGameScreenView : MonoBehaviour
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     public void SetEndScreenInfo(int moneyCount, int roundNumber) {
-        _moneyCountText.text = $"{GetLocalization("You earned")} {moneyCount.ToString()} $";
+        _moneyCountText.text = $"{GetLocalization("You earned")} {moneyCount.ToString()} <sprite name=\"CogIcon\">";
         _mainEndSreenTitle.text = $"{GetLocalization("Round")} {roundNumber+1} {GetLocalization("is completed")}";
         gameObject.SetActive(true);
     }
     public void SetLoseScreenInfo(int roundNumber, int scrapCount) {
-        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount} {GetLocalization("Scrap")}" +
+        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount} <sprite name=\"ScrapIcon\"> " +
                                $"\n{GetLocalization("Click to restart")}";
         _mainEndSreenTitle.text = $"{GetLocalization("You lose on round")} {roundNumber+1}";
         foreach (var endGameButton in closeEndGameMenuButtons) {
@@ -38,7 +38,7 @@ public class EndGameScreenView : MonoBehaviour
     }
     
     public void SetWinScreenInfo(int scrapCount) {
-        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount} {GetLocalization("Scrap")}!";
+        _moneyCountText.text = $"{GetLocalization("You earned")} {scrapCount} <sprite name=\"ScrapIcon\">!";
         _mainEndSreenTitle.text = $"{GetLocalization("You complete all rounds")}!";
         foreach (var endGameButton in closeEndGameMenuButtons) {
             endGameButton.onClick.RemoveAllListeners();

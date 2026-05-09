@@ -922,7 +922,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
     private void SetMoneyText() {
         _sceneService.Value._shopUIView._moneyCountText.text =
-            _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount + "$";
+          $"{_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount} <sprite name=\"CogIcon\">";
     }
 
     private void EndRoundForAll() {
@@ -1042,7 +1042,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             if (playerCmp.TeammatesEntities.Count == 2 && playerCmp.TeammatesEntities[1] != 0)
                 (healthValuesSecondTeammate, healthValuesContainersSecondTeammate, secondTeammateGridSize) =
                     GetCarPartHealthArraysFromCar(playerCmp.TeammatesEntities[1]);
-            Debug.Log(playerCmp.TeammatesEntities.Count+"firstTeammateGridSize" + firstTeammateGridSize);
+            
             carPartsHealthDataForRpc[i] = new CarPartHealthDataForRpc(clientInfo.Key, healthValuesPlayer,
                 healthValuesContainersPlayer, playerGridSize, healthValuesFirstTeammate, healthValuesContainersFirstTeammate,
                 firstTeammateGridSize, healthValuesSecondTeammate, healthValuesContainersSecondTeammate, secondTeammateGridSize);
@@ -1116,7 +1116,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
       
         var currentSupportRoundTypes = RoundUtilits.SupportRoundsTypes.Distinct().ToList();
-        if (TaskCount() == 5)
+        if (TaskCount() == 3)
             currentSupportRoundTypes.Remove(RoundType.Task);
         if (_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount < 5) {
             currentSupportRoundTypes.Remove(RoundType.VersusBattle);
@@ -1141,14 +1141,22 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             var roundButton = _sceneService.Value.InstantiateRoundButton();
             int newIndex = i;
             roundButton.GetComponent<Image>().sprite = _sceneService.Value._mapUIView.RoundSprites[randomRounds[i]];
-
+            float moneyMult = 1;
+            if (moneyMultiplayerRound == i) {
+                moneyMultPosition = roundButton.transform;
+                float currentMultiplayer = Random.Range(12, 20) * 0.1f;
+                _sceneService.Value._mapUIView.SetMoneyMultiplayerText(currentMultiplayer);
+                curGameCmp.RoundWithMoneyMultiplayer = moneyMultiplayerRound;
+                moneyMult = currentMultiplayer;
+                curGameCmp.RoundMoneyMultiplayer = currentMultiplayer;
+            }
             EventTrigger.Entry clickEntry = new EventTrigger.Entry();
             clickEntry.eventID = EventTriggerType.PointerClick;
-            clickEntry.callback.AddListener((data) => { StartCurrentRoundTypeOnClick(randomRounds[newIndex], (PointerEventData)data); });
+            clickEntry.callback.AddListener((data) => { StartCurrentRoundTypeOnClick(randomRounds[newIndex],moneyMult, (PointerEventData)data); });
 
             EventTrigger.Entry enterEntry = new EventTrigger.Entry();
             enterEntry.eventID = EventTriggerType.PointerEnter;
-            enterEntry.callback.AddListener((data) => { ChangeRoundDescription(randomRounds[newIndex], (PointerEventData)data); });
+            enterEntry.callback.AddListener((data) => { ChangeRoundDescription(randomRounds[newIndex],moneyMult, (PointerEventData)data); });
 
             roundButton.triggers.Add(clickEntry);
             roundButton.triggers.Add(enterEntry);
@@ -1157,17 +1165,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             roundButton.transform.localPosition = new Vector2(posX, posY);
             curGameCmp.RoundButtons[i] = roundButton;
 
-            if (moneyMultiplayerRound == i) {
-                moneyMultPosition = roundButton.transform;
-                float currentMultiplayer = Random.Range(12, 20) * 0.1f;
-                _sceneService.Value._mapUIView.SetMoneyMultiplayerText(currentMultiplayer);
-                curGameCmp.RoundMoneyMultiplayer = currentMultiplayer;
-            }
+        
         }
 
         _sceneService.Value._mapUIView.MapImage.transform.DOLocalMoveY(-posY, 0.5f)
             .SetEase(Ease.InOutBack).OnComplete(() => {
                 if (moneyMultPosition) {
+                    Debug.Log(moneyMultPosition + "  i = " + _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundWithMoneyMultiplayer);
                     _sceneService.Value._mapUIView.RoundDifficltyContainer.position =
                         new Vector2(moneyMultPosition.position.x, moneyMultPosition.position.y - 70);
 
@@ -1178,11 +1182,19 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _sceneService.Value._mapUIView.RoundNumberText.text = GetLocalization("Round") + (curGameCmp.CurrentRound + 1);
         ChangeInventoryState(false);
 
-        ChangeRoundDescription(RoundType.None);
+        ChangeRoundDescription(RoundType.None,0);
     }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
-    private void ChangeRoundDescription(RoundType roundType, PointerEventData data = null) {
+    private void ChangeRoundDescription(RoundType roundType, float multiplayer, PointerEventData data = null) {
+
         _sceneService.Value._mapUIView.RoundDescriptionText.text = GetRoundDescription(roundType);
+        if (RoundUtilits.IsBattleRound(roundType)) {
+            var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            float moneyCount = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[curGameCmp.CurrentRound].MoneyCount * multiplayer;
+            _sceneService.Value._mapUIView.RoundDescriptionText.text +=
+                $"\n{GetLocalization("Round reward")}: {(int)moneyCount} <sprite name=\"CogIcon\">";
+        }
+        
     }
 
     private void SetReadyStateForServer(bool isReady) {
@@ -1344,11 +1356,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         _startRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
     }
 
-    private void StartCurrentRoundTypeOnClick(RoundType roundType, PointerEventData data) {
+    private void StartCurrentRoundTypeOnClick(RoundType roundType,float roundMultiplayer, PointerEventData data) {
         if (!_betweenScenesService.Value.IsCoop)
-            StartCurrentRoundType(roundType,_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer);
+            StartCurrentRoundType(roundType,roundMultiplayer);
         else
-            NetcodeBetweenScenesService.Instance.StartRoundClientRpc(roundType,_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RoundMoneyMultiplayer);
+            NetcodeBetweenScenesService.Instance.StartRoundClientRpc(roundType,roundMultiplayer);
     }
 
     private void SetSlotMachineRound() {
@@ -1385,14 +1397,15 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
 
         slotMachineCmp.CurrentBet = 5;
         slotMachineView._currentBetText.text =
-            $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
-            $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}$";
+            $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}<sprite name=\"CogIconForScreen\">\n" +
+            $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}<sprite name=\"CogIconForScreen\">";
         slotMachineCmp.TryCount = 10;
         slotMachineView._tryLeftText.text =$"{GetLocalization("Trys left")}: {slotMachineCmp.TryCount}";
         ChangeInventoryState(false);
     }
 
     private void EndSlotMachineRound() {
+        if(_slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).IsStarted)return;
         _sceneService.Value._slotMachineUiView.gameObject.SetActive(false);
         ChangeInventoryState(true);
     }
@@ -1428,9 +1441,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             playerCurrencyCmp.VisibleMoneyCount = playerCurrencyCmp.MoneyCount;
             slotMachineCmp.CurrentRollTime = 0;
             slotMachineView._switchImage.sprite = slotMachineView._switchUpSprite;
-            slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
-            slotMachineView._currentBetText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
-                                                   $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}$";
+            if (slotMachineCmp.CurrentBet > playerCurrencyCmp.MoneyCount)
+                slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
+            slotMachineView._currentBetText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}<sprite name=\"CogIconForScreen\">\n" +
+                                                   $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}<sprite name=\"CogIconForScreen\">";
         } else {
             slotMachineCmp.TryCount--;
             slotMachineView._tryLeftText.text = $"{GetLocalization("Trys left")}: {slotMachineCmp.TryCount}";
@@ -1479,7 +1493,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                             : slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex - 1]].Icon;
                     } else if (i == 2) {
                         slotMachineView._thirdSlotColumnIcons[0].sprite = slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[currentItemIndex]].Icon;
-                        Debug.Log(currentItemIndex + "currentItemIndex");
+                      
                         slotMachineView._thirdSlotColumnIcons[1].sprite =
                             currentItemIndex + 1 == slotMachineCmp.CurrentSlotValues[i].ItemsId.Length
                                 ? slotMachineView._slotItemConfigs[slotMachineCmp.CurrentSlotValues[i].ItemsId[0]].Icon
@@ -1600,7 +1614,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
             shopView._upgradeShopButton.enabled = false;
             shopView._upgradeShopButtonText.text = GetLocalization("Max level");
         } else
-            shopView._upgradeShopButtonText.text = $"{GetLocalization("Upgrade shop")} {5 + shopUpgradeCost}$";
+            shopView._upgradeShopButtonText.text = $"{GetLocalization("Upgrade shop")} {5 + shopUpgradeCost}<sprite name=\"CogIcon\">";
 
         shopCmp.CurrentShopItemsChances = _sceneService.Value._carStuffListsConfig.RoundShopChances[shopCmp.ShopLevel].Chances;
         float sumChances = shopCmp.CurrentShopItemsChances.Sum() / 100f;
@@ -1626,7 +1640,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
         float visibleMoney = playerCurrency.VisibleMoneyCount;
         inventoryCmp.CurrentMoneyTween = DOTween.To(() => visibleMoney, x => visibleMoney = x, playerCurrency.MoneyCount, 1f)
             .SetEase(Ease.OutCubic).OnUpdate(() => {
-                _sceneService.Value._shopUIView._moneyCountText.text = visibleMoney.ToString("N0") + "$";
+                _sceneService.Value._shopUIView._moneyCountText.text = $"{visibleMoney:N0}<sprite name=\"CogIcon\">";
                 SetVisibleMoneyCount(visibleMoney);
             });
 
@@ -1958,20 +1972,21 @@ Debug.Log(" end vs battle");
 
         if (_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType == RoundType.SlotMachine) {
             ref var slotMachineCmp = ref _slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+            if(slotMachineCmp.IsStarted)return;
             slotMachineCmp.CurrentBet += count;
 
             slotMachineCmp.CurrentBet = playerCurrencyCmp.MoneyCount < 5?5:Mathf.Clamp(slotMachineCmp.CurrentBet, 5, (int)playerCurrencyCmp.MoneyCount);
 
             _sceneService.Value._slotMachineUiView._currentBetText.text =
-                $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
-                $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}$";
+                $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}<sprite name=\"CogIconForScreen\"> \n" +
+                $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}<sprite name=\"CogIconForScreen\">";
         } else {
             ref var versusBattleComponent = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
             versusBattleComponent.CurrentBet += count;
 
             versusBattleComponent.CurrentBet = Mathf.Clamp(versusBattleComponent.CurrentBet, 5, (int)playerCurrencyCmp.MoneyCount);
-            _sceneService.Value._versusBattleView._betText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}$ \n" +
-                                                                  $"{GetLocalization("Bet")}: {versusBattleComponent.CurrentBet}$";
+            _sceneService.Value._versusBattleView._betText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}<sprite name=\"CogIcon\"> \n" +
+                                                                  $"{GetLocalization("Bet")}: {versusBattleComponent.CurrentBet}<sprite name=\"CogIcon\">";
         }
     }
 
@@ -2343,7 +2358,7 @@ Debug.Log(" end vs battle");
           //  SpawnCarPartCellView(carPartCellEntity, carCmp.CarView, !isEnemy, carContainer.rotate);
 
             if (curGameCmp.CurrentRoundType != RoundType.VersusBattle && isEnemy) {
-                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
+                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer * NetworkManager.Singleton.ConnectedClientsList.Count;
                             carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
             }
             
@@ -2371,7 +2386,7 @@ Debug.Log(" end vs battle");
             carPartInfoCmp.CarPartId = carContainer.partId;
             carPartCmp.RotateDegrees = carContainer.rotate;
             if (curGameCmp.CurrentRoundType != RoundType.VersusBattle && isEnemy) {
-                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer;
+                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer* NetworkManager.Singleton.ConnectedClientsList.Count;
                 carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
             }
             

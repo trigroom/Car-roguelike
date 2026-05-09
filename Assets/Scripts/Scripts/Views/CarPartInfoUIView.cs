@@ -140,10 +140,10 @@ public class CarPartInfoUIView : MonoBehaviour
             if (GridUtils._maxLevelsForRare[carPartConfig.RartRare] > carPartLevel) {
                 float upgradeCost = GridUtils.GetUpgradeCost(carPartLevel, carPartConfig, moduleIds);
                 _upgradeButtonText.text =
-                    $"{upgradeCost} exp {GetLocalization("to upgrade")}";
+                    $"{upgradeCost} <sprite name=\"ExpIcon\"> {GetLocalization("to upgrade")}";
                 _upgradeButton.enabled = true;
                 _expSlider.value = Mathf.Max(currentExp / upgradeCost, 0.093f) ;
-                _expBarText.text = $"{currentExp:F2} / {upgradeCost:F2} exp";
+                _expBarText.text = $"{currentExp:F2} / {upgradeCost:F2} <sprite name=\"ExpIcon\">";
             } else {
                 _upgradeButton.enabled = false;
                 _upgradeButtonText.text = GetLocalization("Max level");
@@ -165,7 +165,7 @@ public class CarPartInfoUIView : MonoBehaviour
 
         _healCarPartButton.gameObject.SetActive(healCost > 0.01f);
         if (healCost > 0.01f) {
-            _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost}$";
+            _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost} <sprite name=\"CogIcon\">";
             _healCarPartText.color = Color.clear;
         }
 
@@ -175,7 +175,7 @@ public class CarPartInfoUIView : MonoBehaviour
 
         SetDescriptionInfo(false, moduleIds);
 
-        _sellCarPartText.text = $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(carPartConfig, carPartLevel, moduleIds)}$";
+        _sellCarPartText.text = $"{GetLocalization("Sell for")} {GridUtils.GetSellValueForCarPart(carPartConfig, carPartLevel, moduleIds)} <sprite name=\"CogIcon\">";
     }
 
     public void SetDescriptionInfo(bool isUpdate, int[] moduleIds) {

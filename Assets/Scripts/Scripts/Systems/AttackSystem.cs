@@ -515,7 +515,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private void UpdateHealAllCarPartButton() {
         float healCost = GetHealAllCarPartCost();
         _sceneService.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost > 0);
-        _sceneService.Value._inventoryUIView._healCarText.text = $"Heal all car for {healCost}$";
+        _sceneService.Value._inventoryUIView._healCarText.text = $"Heal all car for {healCost} <sprite name=\"CogIcon\">";
     }
 
     private float GetHealAllCarPartCost() {

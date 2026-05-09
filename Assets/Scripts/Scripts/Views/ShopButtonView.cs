@@ -45,7 +45,7 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     }
 
     public void SetPriceText(int price) {
-        ItemPriceText.text = price + "$";
+        ItemPriceText.text = price + "<sprite name=\"CogIcon\">";
         BuyButton.enabled = true;
     }
 
@@ -65,7 +65,6 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
     }
 
     public void OnPointerDown(PointerEventData eventData) {
-        Debug.Log("OnPointerDown");
         if (!ItemSprite) return;
         if (BuyButton.enabled && Input.GetMouseButtonDown(0))
             TakeItemFromInventory?.Invoke(Entity);
