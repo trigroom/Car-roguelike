@@ -63,6 +63,13 @@ public class NetcodeBetweenScenesService : NetworkBehaviour
         readyClientsCount.Value++;
         Debug.Log($"📥 Client reported scene loaded. Total ready: {readyClientsCount.Value}");
     }
+    [ServerRpc(RequireOwnership = false)]
+    public void SetReadyCountToZeroServerRpc()
+    {
+        
+        readyClientsCount.Value = 0;
+        Debug.Log($"📥 Client reported scene loaded. Total ready: {readyClientsCount.Value}");
+    }
     [ClientRpc]
     public void ChangeMapClientRpc(int[] mapGrid)
     {

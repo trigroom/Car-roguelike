@@ -388,21 +388,40 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void CheckTornadoController() {
+        if(!NetworkManager.Singleton.IsServer)return;
         ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         tornadoControllerCmp.TimeToNextTornado -= Time.deltaTime;
         if (tornadoControllerCmp.TimeToNextTornado <= 0) {
             tornadoControllerCmp.TimeToNextTornado = Random.Range(10f, 15f);
             int tornadoEntity = _world.Value.NewEntity();
-            ref var tornadoCmp = ref _tornadoComponentsPool.Value.Add(tornadoEntity);
-            tornadoCmp.LifeTime = Random.Range(20f, 30f);
-
+            float lifeTime =  Random.Range(20f, 30f);
             int tornadoIndex = tornadoControllerCmp.TornadoToSpawn[Random.Range(0, tornadoControllerCmp.TornadoToSpawn.Count)];
-            tornadoCmp.TornadoAnimator = _sceneService.Value
-                .InstantiateObject(_sceneService.Value._mapEventsContentView._tornadoPrefabs[tornadoIndex], Random.insideUnitCircle * 80)
-                .GetComponent<Animator>();
-            tornadoCmp.TornadoAnimator.gameObject.GetComponent<TornadoView>().Construct(StayInTornado, tornadoEntity);
-            tornadoCmp.EffectType = (EffectType)tornadoIndex;
+            Vector2 spawnPosition = Random.insideUnitCircle * 80;
+            SpawnNewTornado(tornadoEntity,lifeTime, spawnPosition,tornadoIndex);
+            if (_betweenScenesService.Value.IsCoop)
+                _netcodeSceneService.Value.SpawnTornadoClientRpc(tornadoEntity,lifeTime, spawnPosition,tornadoIndex );
         }
+    }
+
+    private void SpawnNewTornado(int tornadoEntity, float lifeTime, Vector2 spawnPosition, int tornadoIndex) {
+        ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        int currentTornadoEntity;
+        if (NetworkManager.Singleton.IsHost)
+            currentTornadoEntity = tornadoEntity;
+        else {
+            currentTornadoEntity = _world.Value.NewEntity();
+            tornadoControllerCmp.TornadoHostAndLocalEnities.Add(tornadoEntity, currentTornadoEntity);
+        }
+        
+        ref var tornadoCmp = ref _tornadoComponentsPool.Value.Add(currentTornadoEntity);
+        tornadoCmp.LifeTime = lifeTime;
+
+     
+        tornadoCmp.TornadoAnimator = _sceneService.Value
+            .InstantiateObject(_sceneService.Value._mapEventsContentView._tornadoPrefabs[tornadoIndex], spawnPosition)
+            .GetComponent<Animator>();
+        tornadoCmp.TornadoAnimator.gameObject.GetComponent<TornadoView>().Construct(StayInTornado, currentTornadoEntity);
+        tornadoCmp.EffectType = (EffectType)tornadoIndex;
     }
 
     private void CheckBomberController() {
@@ -2076,6 +2095,6 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
                 .ConstructMapMelee(ProjectileHit);
         
-        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient,OpenSupportBox);
+        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient,OpenSupportBox, SpawnNewTornado);
     }
 }

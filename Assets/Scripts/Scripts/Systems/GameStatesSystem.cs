@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
-public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
+public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySystem {
     private EcsWorldInject _world;
     private EcsCustomInject<SceneService> _sceneService;
     private EcsCustomInject<NetcodeSceneService> _netcodeSceneService;
@@ -81,10 +81,13 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
     public void Init(IEcsSystems systems) {
-      Debug.Log(NetworkManager.Singleton.ConnectedClients.Count + " players count");  
+    
        // Application.targetFrameRate = 144;
        int playerEntity = _world.Value.NewEntity();
-       ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity);
+       _sceneService.Value.PlayerEntity = playerEntity;
+       ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity); 
+       Debug.Log(NetworkManager.Singleton.ConnectedClients.Count + " players count"+_currentGameComponentsPool.Value.Has(_sceneService.Value.PlayerEntity));  
+       
        NetcodeBetweenScenesService.Instance.SetupService(UpdateMapGridClientRpc,SetQuicksandMethods, AddTrainTrailInList, StartCurrentRoundType);
        if (NetworkManager.Singleton.IsServer) {
                ref var serverValuesCmp = ref  _serverValuesComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
@@ -95,7 +98,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
        
       
         _playerCurrencyComponentsPool.Value.Add(playerEntity);
-        _sceneService.Value.PlayerEntity = playerEntity;
+        
 
         _netcodeSceneService.Value.SetupService(GetHpBar, DeleteHpBarComponent, SetupLaserComponent, CarViewSetup, SetupWheelComponents,
             SetupCarPartSprites, SetupClientCar, SetMovementComponentValues, SetClientCarView, SetFuelValues,SetHpUiValues, BrokeCarPartSprite,
@@ -147,9 +150,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem {
                 } else if (mapEvent.MapEventType == MapEventsType.Tornado) {
                     if (_tornadoSpawnControllerComponentsPool.Value.Has(playerEntity))
                         _tornadoSpawnControllerComponentsPool.Value.Get(playerEntity).TornadoToSpawn.Add((int)mapEvent.MapEventFirstCount);
-                    else
-                        _tornadoSpawnControllerComponentsPool.Value.Add(playerEntity).TornadoToSpawn =
-                            new List<int>() { (int)mapEvent.MapEventFirstCount };
+                    else {
+                        ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Add(playerEntity);
+                        tornadoControllerCmp.TornadoHostAndLocalEnities = new Dictionary<int, int>();
+                        tornadoControllerCmp.TornadoToSpawn = new List<int>() { (int)mapEvent.MapEventFirstCount };
+                    }
+             
                 }
                 else if (mapEvent.MapEventType == MapEventsType.Bomber) {
                     ref var bomberController = ref _bomberPlaneControllerComponentsPool.Value.Add(playerEntity);
@@ -3084,9 +3090,7 @@ Debug.Log("add wheel "+wheelsPositions.Count);
     }
    
     private void UpdateMapVisual() {
-        if (!_currentGameComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
-            _currentGameComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
-        _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MapGrid = new int[40, 40];
+        
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
         var mapVisualConfig = mapConfig.MapVisualInfoConfigs[0];
         _sceneService.Value._behindMapGroundSpriteRenderer.material = mapVisualConfig.BehindMapGroundMaterial;
@@ -3120,6 +3124,11 @@ Debug.Log("add wheel "+wheelsPositions.Count);
 
     private void GenerateMap() {
         UpdateMapVisual();
+        
+     //   if (!_currentGameComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
+   //         _currentGameComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
+        _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MapGrid = new int[40, 40];
+        
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
         if (!_betweenScenesService.Value.IsCoop || NetcodeBetweenScenesService.Instance.IsHost) {
         //    _netcodeSceneService.Value.GetComponent<NetworkObject>().Spawn();
@@ -3461,4 +3470,9 @@ Debug.Log("add wheel "+wheelsPositions.Count);
     }
     private void ChangeInventoryState(bool state) => _sceneService.Value._inventoryUIView.gameObject.SetActive(state);
     private void ChangePlayerUIState(bool state) => _sceneService.Value._playerUIView.gameObject.SetActive(state);
+    public void Destroy(IEcsSystems systems) {
+        NetcodeBetweenScenesService.Instance.readyClientsCount.OnValueChanged -= OnSceneLoadComplete;
+        if (NetworkManager.Singleton.IsServer)
+            NetcodeBetweenScenesService.Instance.SetReadyCountToZeroServerRpc();
+    }
 }

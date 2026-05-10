@@ -353,7 +353,7 @@ MonoBehaviour:
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: f5addc02bdc18c04abca9afe7402937f, type: 2}
-    TickRate: 30
+    TickRate: 25
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0
     ConnectionData: 
@@ -848,6 +848,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  readyClientsCount:
+    m_InternalValue: 0
+  MapContainer: {fileID: 0}
+  GroundSpriteRenderer: {fileID: 0}
+  MapEventsContentView: {fileID: 0}
+  NetcodeSceneService: {fileID: 0}
 --- !u!4 &1460828820
 Transform:
   m_ObjectHideFlags: 0

@@ -61,6 +61,9 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2 > _setupVersusBattleUiAction;
    private Action<Vector2Int[], CarPartType, bool, float, float> _setVersusBattleUiAction;
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
+   private Action< float, float,Vector2, int> _setMovementToTornadoAction;
+   private Action<int ,float ,Vector2 ,int> _spawnTornadoAction;
+   
    private ObjectPool<CarPartStuffView> _carPartsPool;
    private ObjectPool<Transform> _gunContainersPool;
    private ObjectPool<SpriteRenderer> _spriteRenderersPool;
@@ -265,16 +268,21 @@ public class NetcodeSceneService : NetworkBehaviour
         _setIsReadyCountAction.Invoke(isReady);
     }
     public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction, Action setLoseStateForAllAction,
-        Action<Vector2Int[], CarPartType, bool, float, float> setVersusBattleUiAction,Action openSupportBoxForClientsAction) {
+        Action<Vector2Int[], CarPartType, bool, float, float> setVersusBattleUiAction,Action openSupportBoxForClientsAction,
+        Action<int,float ,Vector2 ,int> spawnTornadoAction) {
         _setDeathPlayersCountAction = setDeathPlayersCountAction;
         _setLoseStateForAllAction = setLoseStateForAllAction;
         _setVersusBattleUiAction = setVersusBattleUiAction;
         _openSupportBoxForClientsAction = openSupportBoxForClientsAction;
+        _spawnTornadoAction = spawnTornadoAction;
     }
     
     public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction) {
         _setMinimumHealthLevelAction = setMinimumHealthLevelAction;
         _endRoundExpAddAction = endRoundExpAddAction;
+    }
+    public void SetupServiceFromMovementSystem(Action <float, float,Vector2, int> setMovementToTornadoAction) {
+        _setMovementToTornadoAction = setMovementToTornadoAction;
     }
     public NetworkObject InstantiateObject(bool isSpawn,NetworkObject spawnObject, Vector2 spawnPosition = default,
         Quaternion rotation = default) {
@@ -300,11 +308,21 @@ public class NetcodeSceneService : NetworkBehaviour
        
         _setEnemyAirplanePosition.Invoke(position, needAirplaneIndex);
     }
+
+    [Rpc(SendTo.NotServer)]
+    public void SetTornadoMovementValuesClientRpc(Vector2 targetPosition, float targetSpeed, float timeToChangeDirection, int hostEntity) {
+        _setMovementToTornadoAction.Invoke(targetSpeed, timeToChangeDirection, targetPosition, hostEntity);
+    }
+    [Rpc(SendTo.NotServer)]
+    public void SpawnTornadoClientRpc(int tornadoEntity, float lifeTime, Vector2 spawnPosition, int tornadoIndex) {
+        _spawnTornadoAction.Invoke(tornadoEntity,lifeTime, spawnPosition, tornadoIndex);
+    }
     [Rpc(SendTo.ClientsAndHost)]
     public void EndRoundExpAddClientRpc(float addedExp) {
        
         _endRoundExpAddAction.Invoke(addedExp);
     }
+    
     [Rpc(SendTo.ClientsAndHost)]
     private void SetFloatingTextClientRpc(Vector2 position, string text, Color textColor, NetworkObjectReference floatingTextNO,
         int entity = -1, ulong clientId = 0) {

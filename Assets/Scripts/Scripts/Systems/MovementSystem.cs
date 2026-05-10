@@ -4,11 +4,13 @@ using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
+using Unity.Netcode;
 using UnityEngine;
 
-public class MovementSystem : IEcsRunSystem {
+public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsWorldInject _world;
     private EcsCustomInject<SceneService> _sceneData;
+    private EcsCustomInject<NetcodeSceneService> _netcodeSceneService;
 
     private EcsPoolInject<MovementComponent> _movementComponentsPool;
     private EcsPoolInject<FuelComponent> _fuelComponentsPool;
@@ -20,6 +22,7 @@ public class MovementSystem : IEcsRunSystem {
     private EcsPoolInject<WindComponent> _windComponentsPool;
     private EcsPoolInject<QuicksandComponent> _quicksandComponentsPool;
     private EcsPoolInject<TornadoComponent> _tornadoComponentsPool;
+    private EcsPoolInject<TornadoSpawnControllerComponent> _tornadoSpawnControllerComponentsPool;
     private EcsPoolInject<PlayerTagComponent> _playerTagComponentsPool;
 
     private EcsFilterInject<Inc<MovementComponent>> _movementComponentsFilter;
@@ -45,6 +48,8 @@ public class MovementSystem : IEcsRunSystem {
         foreach (var tornadoEntity in _tornadoComponentsFilter.Value) {
             ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
             tornadoCmp.LifeTime -= deltaTime;
+            bool isHost = NetworkManager.Singleton.IsHost;
+
             tornadoCmp.TimeToChangeDirection -= deltaTime;
             if (tornadoCmp.LifeTime <= 0) {
                 _sceneData.Value.DestroyGameobject(tornadoCmp.TornadoAnimator.transform);
@@ -62,21 +67,25 @@ public class MovementSystem : IEcsRunSystem {
                     .SetEase(Ease.InOutQuad);
             }
             var tornadoPos = tornadoCmp.TornadoAnimator.transform.position;
-            if (tornadoCmp.TimeToChangeDirection <= 0 || tornadoPos.x > 110 || tornadoPos.x < -110 || tornadoPos.y > 110 ||
-                tornadoPos.y < -110) {
+            if ((tornadoCmp.TimeToChangeDirection <= 0 || tornadoPos.x > 110 || tornadoPos.x < -110 || tornadoPos.y > 110 ||
+                 tornadoPos.y < -110) && isHost) {
+              
                 var movementArray = _movementComponentsFilter.Value;
-                var randomMovementEntity = movementArray.GetRawEntities()[Random.Range(1, movementArray.GetEntitiesCount()+1)];
-                
-              //  Debug.Log(" move target tornado "+ randomMovementEntity);
+                var randomMovementEntity = movementArray.GetRawEntities()[Random.Range(1, movementArray.GetEntitiesCount() + 1)];
+
+                //  Debug.Log(" move target tornado "+ randomMovementEntity);
                 var moveCmp = _movementComponentsPool.Value.Get(randomMovementEntity);
                 tornadoCmp.TornadoDirection = (moveCmp.PreviousPosition - (Vector2)tornadoPos).normalized;
                 tornadoCmp.TimeToChangeDirection = Random.Range(3f, 9f);
 
                 tornadoCmp.TornadoTargetSpeed = Random.Range(3f, 6f);
                 tornadoCmp.CounterTween.Kill();
-                tornadoCmp.CounterTween= DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
+                tornadoCmp.CounterTween = DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
                         x => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed = x, tornadoCmp.TornadoTargetSpeed, 1)
                     .SetEase(Ease.InOutQuad);
+                if (BetweenScenesService.Instance.IsCoop)
+                    _netcodeSceneService.Value.SetTornadoMovementValuesClientRpc(tornadoCmp.TornadoDirection, tornadoCmp.TornadoTargetSpeed,
+                        tornadoCmp.TimeToChangeDirection, tornadoEntity);
                 tornadoCmp.TargetSpeedIsChanged = false;
             }
             else if (tornadoCmp.TimeToChangeDirection <= 1 && !tornadoCmp.TargetSpeedIsChanged) {
@@ -331,6 +340,21 @@ public class MovementSystem : IEcsRunSystem {
            
         }
     }
+
+    private void ChangeTornadoMovementValuesToClient(float targetSpeed,float timeToChangeDirection, Vector2 targetDirection, int hostTornadoEntity) {
+        ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        int tornadoEntity = tornadoControllerCmp.TornadoHostAndLocalEnities[hostTornadoEntity];
+        ref var tornadoCmp = ref _tornadoComponentsPool.Value.Get(tornadoEntity);
+        tornadoCmp.TornadoTargetSpeed = targetSpeed;
+        tornadoCmp.TornadoDirection = targetDirection;
+        tornadoCmp.TimeToChangeDirection = timeToChangeDirection;
+        
+        tornadoCmp.CounterTween.Kill();
+        tornadoCmp.CounterTween= DOTween.To(() => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed,
+                x => _tornadoComponentsPool.Value.Get(tornadoEntity).TornadoSpeed = x, tornadoCmp.TornadoTargetSpeed, 1)
+            .SetEase(Ease.InOutQuad);
+        tornadoCmp.TargetSpeedIsChanged = false;
+    }
     private bool HasObstacleAtPoint(Vector2 point)
     {
         int obstacleLayerMask = 1 << LayerMask.NameToLayer("Obstacle");
@@ -505,6 +529,10 @@ public class MovementSystem : IEcsRunSystem {
                     particles.Stop();
             }
         }
+    }
+
+    public void Init(IEcsSystems systems) {
+        _netcodeSceneService.Value.SetupServiceFromMovementSystem(ChangeTornadoMovementValuesToClient);
     }
 }
 
