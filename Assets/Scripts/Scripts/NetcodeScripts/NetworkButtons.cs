@@ -7,10 +7,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class NetworkButtons : NetworkBehaviour {
+public class NetworkButtons : MonoBehaviour {
     [Header("UI Elements")]
     [SerializeField]
-    private CoopLobbyUIManager _lobbyManager;
+    public CoopLobbyUIManager _lobbyManager;
     [SerializeField] private Button copyButton;
     [SerializeField] private Button hostButton;
     [SerializeField] private Button clientButton;
@@ -21,15 +21,12 @@ public class NetworkButtons : NetworkBehaviour {
     [SerializeField] private Button leaveButton;
     [SerializeField] private Button disconnectButton;
     [SerializeField] private Transform joinCodeContainer;
-    [SerializeField] private SelectMapUiView selectMapUiView;
-    [SerializeField] private SelectDifficultyUIView selectDifficultyUIView;
+    [SerializeField] public SelectMapUiView selectMapUiView;
+    [SerializeField] public SelectDifficultyUIView selectDifficultyUIView;
     private bool isPlayerReady = true;
     
-    private void Awake()
-    {
-     
-    }
-    private void Start() {
+    public void SetupNetworkButtons() {
+        Debug.Log("Start NetworkButtons");
         nicknameInput.text = DataPersistenceManagerSystem._gameData.CoopPlayerName;
         // Назначаем обработчики
         copyButton.onClick.AddListener(CopyJoinCode);
@@ -69,13 +66,13 @@ public class NetworkButtons : NetworkBehaviour {
        //     isPlayerReady ? "✅ Я ГОТОВ" : "Готов";
         
         // Отправляем статус на сервер
-        SetPlayerReadyServerRpc(NetworkManager.Singleton.LocalClientId, isPlayerReady);
+        NetcodeBetweenScenesService.Instance.SetPlayerReadyServerRpc(NetworkManager.Singleton.LocalClientId, isPlayerReady);
     }
     public void OnReadyButtonClicked(int carId)
     {
         isPlayerReady = !isPlayerReady;
        
-        SetPlayerCarIdServerRpc(NetworkManager.Singleton.LocalClientId, carId);
+        NetcodeBetweenScenesService.Instance.SetPlayerCarIdServerRpc(NetworkManager.Singleton.LocalClientId, carId);
     }
     
     private void OnPlayerReadyStatesChanged(NetworkListEvent<PlayerReadyState> changeEvent)
@@ -85,7 +82,7 @@ public class NetworkButtons : NetworkBehaviour {
         UpdateLobbyUI();
     }
 
-    private void UpdateLobbyUI() {
+    public void UpdateLobbyUI() {
         foreach (var slot in _lobbyManager._lobbyPlayerUIViews)
             slot.gameObject.SetActive(false);
 
@@ -116,19 +113,7 @@ public class NetworkButtons : NetworkBehaviour {
         }
     }
     
-    [ClientRpc]
-    private void StartGameForAllClientRpc() {
-        if (IsServer) {
-            for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++) {
-                var state = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
-                state.IsReady = false;
-                NetcodeBetweenScenesService.Instance. playerReadyStates.Set(i,state, true);
-            }
-
-            NetcodeBetweenScenesService.Instance.ChangeGameIsStartedStateValue(true);
-            NetworkManager.Singleton.SceneManager.LoadScene("SampleScene", LoadSceneMode.Single);
-        }
-    }
+  
    
    /* [ClientRpc]
     private void RejectClientClientRpc(ulong targetClientId, string reason)
@@ -159,9 +144,7 @@ public class NetworkButtons : NetworkBehaviour {
            // leaveButton.gameObject.SetActive(true);
         }
         else
-        {
             EnableMenuButtons();
-        }
     }
 
     private void CopyJoinCode() {
@@ -178,31 +161,20 @@ public class NetworkButtons : NetworkBehaviour {
     }
     public void OnChangeDifficultyDescription(int difficultyIndex)
     {
-        UpdateDifficultyForAllClientRpc(difficultyIndex);
+       NetcodeBetweenScenesService.Instance. UpdateDifficultyForAllClientRpc(difficultyIndex);
     }
     
     public void OnChangeMap(int mapIndex)
     {
-        UpdateMapForAllClientRpc(mapIndex);
+        NetcodeBetweenScenesService.Instance.UpdateMapForAllClientRpc(mapIndex);
     }
    
-    [ClientRpc]
-    private void UpdateMapForAllClientRpc(int mapId)
-    { 
-        BetweenScenesService.Instance.CurrentSelectedMap = mapId;
-        selectMapUiView._groundFieldSpriteRenderer.material = BetweenScenesService.Instance._carStuffListsConfig.MapConfigs[mapId].MapVisualInfoConfigs[0].BehindMapGroundMaterial;
-       
-    }
-    [ClientRpc]
-    private void UpdateDifficultyForAllClientRpc(int difficultyIndex) {
-        BetweenScenesService.Instance.CurrentSelectedMapDifficlty = difficultyIndex;
-       _lobbyManager._difficultyDescriptionText.text = selectDifficultyUIView.GetDifficultyDescription(BetweenScenesService.Instance.GetMapDifficultyConfig());
-    }
+    
     private void OnClientConnected(ulong clientId)
     {
         leaveButton.gameObject.SetActive(false);
         disconnectButton.gameObject.SetActive(true);
-        if (!IsServer/*&& clientId != NetworkManager.Singleton.LocalClientId*/) return;
+        if (!NetworkManager.Singleton.IsServer/*&& clientId != NetworkManager.Singleton.LocalClientId*/) return;
         
         // Новый клиент подключился - добавляем в список
         int playerNumber = NetcodeBetweenScenesService.Instance.playerReadyStates.Count + 1;
@@ -224,7 +196,7 @@ public class NetworkButtons : NetworkBehaviour {
         disconnectButton.gameObject.SetActive(false);
         if(clientId == NetworkManager.Singleton.LocalClientId)
         NetworkManager.Singleton.Shutdown();
-        if (!IsServer) return;
+        if (!NetworkManager.Singleton.IsServer) return;
         
         // Удаляем игрока из списка
         for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++)
@@ -255,42 +227,7 @@ public class NetworkButtons : NetworkBehaviour {
         disconnectButton.gameObject.SetActive(false);
     }
     
-    [ServerRpc(RequireOwnership = false)]
-    private void SetPlayerReadyServerRpc(ulong clientId, bool isReady)
-    {
-        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++)
-        {
-            if (NetcodeBetweenScenesService.Instance.playerReadyStates[i].ClientId == clientId)
-            {
-                var state = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
-                state.IsReady = isReady;
-                NetcodeBetweenScenesService.Instance. playerReadyStates.Set(i,state, true);
-                break;
-            }
-        }
-
-        if (NetcodeBetweenScenesService.Instance.CheckAllPlayersReady())
-            StartGameForAllClientRpc();
-    }
-    
-    [ServerRpc(RequireOwnership = false)]
-    private void SetPlayerCarIdServerRpc(ulong clientId, int carId)
-    {
-        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++)
-        {
-            if (NetcodeBetweenScenesService.Instance.playerReadyStates[i].ClientId == clientId)
-            {
-                var state = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
-                state.PlayerCarId = carId;
-                   
-                NetcodeBetweenScenesService.Instance. playerReadyStates.Set(i,state, true);
-            
-             
-                break;
-            }
-        }
-        
-    }
+  
 
 }
 

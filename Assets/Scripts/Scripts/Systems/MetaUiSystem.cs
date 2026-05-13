@@ -95,6 +95,15 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
 
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+            
+            NetcodeBetweenScenesService.Instance._networkButtonsView = _metaSceneService.Value._networkButtonsUIView;
+            _metaSceneService.Value._networkButtonsUIView.SetupNetworkButtons();
+            if (_betweenSceneService.Value.IsCoop) {
+                _metaSceneService.Value._networkButtonsUIView.gameObject.SetActive(true);
+
+                SetupMenuToCoopAfterCoreGame();
+            }
+                
         }
 
 
@@ -116,6 +125,24 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
                 metaUiComponent.CurrentRewardedAchievementIds.RemoveAt(0);
                 _metaSceneService.Value._achievementsUIView.SetRewardAchievementInfoPanel(achievementConfig);
             }
+        }
+
+        private void SetupMenuToCoopAfterCoreGame() {
+            OpenNewWindow(_metaSceneService.Value._lobbyUIView.transform);
+            var mapConfig = _betweenSceneService.Value.GetMapConfig();
+
+            _metaSceneService.Value.selectMapDifficultyUIView.SetupDifficultyScreen(mapConfig);
+            _metaSceneService.Value._selectMapUiView._groundFieldSpriteRenderer.material =
+                mapConfig.MapVisualInfoConfigs[0].BehindMapGroundMaterial;
+
+            _metaSceneService.Value.selectMapDifficultyUIView.SetDifficultyDescription(_betweenSceneService.Value.GetMapDifficultyConfig());
+            _metaSceneService.Value._networkButtonsUIView.UpdateLobbyUI();
+            _metaSceneService.Value._networkButtonsUIView._lobbyManager._difficultyDescriptionText.text =
+                _metaSceneService.Value._networkButtonsUIView.selectDifficultyUIView.GetDifficultyDescription(BetweenScenesService.Instance
+                    .GetMapDifficultyConfig());
+            _metaSceneService.Value._networkButtonsUIView.gameObject.SetActive(false);
+            //  SelectMapDifficulty(_betweenSceneService.Value.CurrentSelectedMapDifficlty);
+            //   _metaSceneService.Value._networkButtonsUIView._difficultyDescriptionText.text = selectDifficultyUIView.GetDifficultyDescription(BetweenScenesService.Instance.GetMapDifficultyConfig());
         }
 
         private void SetupShopButtons() {

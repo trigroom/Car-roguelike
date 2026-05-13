@@ -410,13 +410,13 @@ public class NetcodeSceneService : NetworkBehaviour
             Vector3 localOffset = childTransform.InverseTransformPoint(position);
             needSequence.OffsetPosition =  localOffset;
           
-            Debug.Log("offset pos" + localOffset);
+        //    Debug.Log("offset pos" + localOffset);
         }
         if (healthPercentBefore != -1) {
             hpBarImage.fillAmount = healthPercentBefore;
             hpBarImage.color = _healthGradient.Evaluate(healthPercentBefore);
         }
-        Debug.Log(hpBarImage + " hpBarImage");
+//        Debug.Log(hpBarImage + " hpBarImage");
 
         needSequence.ImageSequence.Append(hpBarImage.DOFillAmount(healthPercent, 0.7f));
         needSequence.ImageSequence.Join(hpBarImage.DOColor(_healthGradient.Evaluate(healthPercent), 0.7f));

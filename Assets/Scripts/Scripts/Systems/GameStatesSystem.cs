@@ -66,6 +66,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
     private EcsPoolInject<ServerValuesComponent> _serverValuesComponentsPool;
     private EcsPoolInject<UpdateCarStatsEvent> _updateCarStatsEventsPool;
     private EcsPoolInject<SlotMachineComponent> _slotMachineComponentsPool;
+    private EcsPoolInject<EnemyAirplaneComponent> _enemyAirplaneComponentsPool;
 
     private EcsFilterInject<Inc<CarPartCellComponent>> _cellComponentsFilter;
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
@@ -77,6 +78,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
     private EcsFilterInject<Inc<DestroyEntityEvent>> _destroyEntityEventsFilter;
     private EcsFilterInject<Inc<PlayerTagComponent>> _playerTagComponentsFilter; 
     private EcsFilterInject<Inc<PlayerComponent>> _playerComponentsFilter;
+    private EcsFilterInject<Inc<EnemyAirplaneComponent>> _enemyAirplaneComponentsFilter;
 
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
@@ -389,8 +391,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 
 
             curGameCmp.RoundAddedEnemies++;
-        } else if (curGameCmp.EnemySendPhase == 1)
-            CheckEnemyAirplane();
+        }
+
+        foreach (var enemyAirplaneEntity in _enemyAirplaneComponentsFilter.Value) {
+            CheckEnemyAirplane(enemyAirplaneEntity);
+        }
+            
                      
 
         if (curGameCmp.CurrentRound > 3 && curGameCmp.CurrentRound % 2 == 0 && curGameCmp.RoundTime > 20 && curGameCmp.SupportBoxPhase < 2) {
@@ -508,14 +514,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
     }
 
     private void SendEnemyAirplane(Vector2 sendPosition, int planeNumber) {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+     //   ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (planeNumber == 0) {
-            curGameCmp.EnemyTargetPosition = sendPosition;
-            curGameCmp.EnemySendPhase = 1;
-            _sceneService.Value._enemyAirplane.position = new Vector2(curGameCmp.EnemyTargetPosition.x, -120);
-            _sceneService.Value._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() =>
-                _sceneService.Value._enemyAirplane.gameObject.SetActive(false));
-            _sceneService.Value._enemyAirplane.gameObject.SetActive(true);
+            int enemyAirplaneEntity = _world.Value.NewEntity();
+          ref var enemyArplaneCmp = ref  _enemyAirplaneComponentsPool.Value.Add(enemyAirplaneEntity);
+          enemyArplaneCmp.EnemyTargetPosition = sendPosition;
+          enemyArplaneCmp.EnemySendPhase = 1;
+          enemyArplaneCmp.EnemyAirplane = _sceneService.Value.GetEnemyAirplaneView();
+          enemyArplaneCmp.EnemyAirplane._enemyAirplane.position = new Vector2(enemyArplaneCmp.EnemyTargetPosition.x, -120);
+          enemyArplaneCmp.EnemyAirplane._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() =>
+              _enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity).EnemyAirplane._enemyAirplane.gameObject.SetActive(false));
+          enemyArplaneCmp.EnemyAirplane._enemyAirplane.gameObject.SetActive(true);
         } else if (planeNumber is 1 or 2)
             SendSupportAirplaneToNeedPosition(sendPosition, planeNumber - 1);
     }
@@ -546,10 +555,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             }
         }
     }
-    private void CheckEnemyAirplane() {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        if (_sceneService.Value._enemyAirplane.position.y > curGameCmp.EnemyTargetPosition.y)
-            SendEnemyCar();
+    private void CheckEnemyAirplane(int airplaneEntity) {
+        ref var enemyAirplaneCmp = ref  _enemyAirplaneComponentsPool.Value.Get(airplaneEntity);
+        if (enemyAirplaneCmp.EnemyAirplane._enemyAirplane.position.y > enemyAirplaneCmp.EnemyTargetPosition.y && enemyAirplaneCmp.EnemySendPhase == 1)
+            SendEnemyCar(airplaneEntity);
     }
 
     private void DeleteHpBarComponent(int entity) {
@@ -561,25 +570,24 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         laserCmp.LaserDamageText = newText;
         laserCmp.CurrentSequence = needSequence;
     }
-    private void SendEnemyCar() {
-        ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        curGameCmp.EnemySendPhase = 2;
-        var parachute = _sceneService.Value._parachuteSpriteRenderer;
+
+    private void SendEnemyCar(int enemyAirplaneEntity) {
+        ref var enemyAirplaneCmp = ref _enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity);
+        enemyAirplaneCmp.EnemySendPhase = 2;
+        Vector2 enemyPosition = enemyAirplaneCmp.EnemyTargetPosition;
+        var parachute = enemyAirplaneCmp.EnemyAirplane._parachuteSpriteRenderer;
         parachute.transform.localScale = Vector3.one * 2f;
         parachute.color = new Color(0, 0, 0, 0.3f);
-        parachute.transform.position = curGameCmp.EnemyTargetPosition;
+        parachute.transform.position = enemyPosition;
         parachute.gameObject.SetActive(true);
         parachute.transform.DOScale(4, 2f).OnComplete(() => {
             parachute.transform.localScale = Vector3.one * 12;
             parachute.color = Color.white;
             parachute.transform.DOScale(4, 2f).OnComplete(() => {
-                ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-                curGameCmp.SupportBoxPhase = 3;
-                parachute.gameObject.SetActive(false);
-                Debug.Log(curGameCmp.EnemyTargetPosition + " try spawn on scr");
+                _sceneService.Value.ReleaseEnemyAirplane(_enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity).EnemyAirplane);
+                _enemyAirplaneComponentsPool.Value.Del(enemyAirplaneEntity);
                 if (NetcodeBetweenScenesService.Instance.IsServer)
-                    SetEnemiesCars(1, false);
-                curGameCmp.EnemyTargetPosition = Vector2.one * 999;
+                    SetEnemiesCars(1, enemyPosition);
             });
         });
     }
@@ -800,10 +808,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
 
         return maxModules;
     }
+
     private void SetSettingsState() {
         bool isPause = !_sceneService.Value._settingsView._settingsContainer.gameObject.activeInHierarchy;
         _sceneService.Value._settingsView._settingsContainer.gameObject.SetActive(isPause);
-        Time.timeScale = isPause ? 0 : _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale;
+        if (!_betweenScenesService.Value.IsCoop)
+            Time.timeScale = isPause ? 0 : _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale;
     }
 
     private void GoToDesktop() {
@@ -1014,11 +1024,15 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             trainControllerCmp.TrainTransform.gameObject.SetActive(false);
         }
 
-        curGameCmp.EnemyTargetPosition = Vector2.one * 999; 
-        _sceneService.Value._parachuteSpriteRenderer.DOKill();
-        _sceneService.Value._enemyAirplane.DOKill();
-        _sceneService.Value._enemyAirplane.gameObject.SetActive(false);
-        _sceneService.Value._parachuteSpriteRenderer.gameObject.SetActive(false);
+        foreach (var enemyAirplaneEntity in _enemyAirplaneComponentsFilter.Value) {
+            var airplane = _enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity).EnemyAirplane;
+        
+            airplane._parachuteSpriteRenderer.DOKill();
+            airplane._enemyAirplane.DOKill();
+            _sceneService.Value.ReleaseEnemyAirplane(airplane);
+            _enemyAirplaneComponentsPool.Value.Del(enemyAirplaneEntity);
+        }
+        
 
        
             
@@ -1706,6 +1720,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
 
             needBetText += $" {GetLocalization("lose")}!\n";
         } else {
+            versusBattleCmp.CurrentBet = (int)(versusBattleCmp.CurrentBet * 1.5f);
             DataPersistenceManagerSystem._gameData.MoneyEarnedInGame += versusBattleCmp.CurrentBet;
             needBetText += $" {GetLocalization("win")}!\n";
         }
@@ -2290,16 +2305,20 @@ Debug.Log(" end vs battle");
 
         return carMap;
     }
-    private void SetEnemiesCars(int enemiesCount, bool onStartRoundSpawn = true) {
-        if(_betweenScenesService.Value.IsCoop && !NetcodeBetweenScenesService.Instance.IsHost)return;
-        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
-        for (int i = 0; i < enemiesCount; i++)
-            SpawnNpcCar(curGameCmp, GetRandomCarMap(), true,
-                onStartRoundSpawn ? GetPositionAroundPlayer() : curGameCmp.EnemyTargetPosition);
-        
-        if(!onStartRoundSpawn )
-            Debug.Log(curGameCmp.EnemyTargetPosition + " try spawn on");
+    private void SetEnemiesCars(int enemiesCount, Vector2 spawnPosition = new Vector2()) {
+        if (_betweenScenesService.Value.IsCoop && !NetcodeBetweenScenesService.Instance.IsHost) return;
+        var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+     
+        for (int i = 0; i < enemiesCount; i++) {
+               if (spawnPosition == Vector2.zero)
+                        spawnPosition = GetPositionAroundPlayer();  
+               SpawnNpcCar(curGameCmp, GetRandomCarMap(), true, spawnPosition);
+
+        }
+          
+        //  if(!onStartRoundSpawn )
+        //       Debug.Log(curGameCmp.EnemyTargetPosition + " try spawn on");
     }
 
     private void SpawnBossCars() {
@@ -3472,6 +3491,7 @@ Debug.Log("add wheel "+wheelsPositions.Count);
     private void ChangePlayerUIState(bool state) => _sceneService.Value._playerUIView.gameObject.SetActive(state);
     public void Destroy(IEcsSystems systems) {
         NetcodeBetweenScenesService.Instance.readyClientsCount.OnValueChanged -= OnSceneLoadComplete;
+        NetcodeBetweenScenesService.Instance.playerReadyStates.OnListChanged -= OnPlayerReadyStatesChanged;
         if (NetworkManager.Singleton.IsServer)
             NetcodeBetweenScenesService.Instance.SetReadyCountToZeroServerRpc();
     }

@@ -20,7 +20,7 @@ public class SelectDifficultyUIView : MonoBehaviour
    private Image _difficultyColorGradient;
 
    public void SetupDifficultyScreen(MapConfig currentMapConfig) {
-      gameObject.SetActive(true);
+     // gameObject.SetActive(true);
       SetLocalizationText(currentMapConfig);
       int maxUnlockedLevel = DataPersistenceManagerSystem._gameData.LevelRounds[BetweenScenesService.Instance.CurrentSelectedMap];
       for (int i = 0; i < DifficultyButtons.Length; i++) {

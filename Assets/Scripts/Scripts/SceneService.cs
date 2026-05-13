@@ -14,9 +14,7 @@ public class SceneService : MonoBehaviour {
     private Sequence _warningSequence;
     [field: SerializeField] public SlotMachineUiView _slotMachineUiView { get; private set; }
     [field: SerializeField] public Transform _hpBarPrefab { get; private set; }
-        [field: SerializeField] public Transform _hpBarsContainer{ get; private set; }
-    [field: SerializeField] public SpriteRenderer _parachuteSpriteRenderer { get; private set; }
-    [field: SerializeField] public Transform _enemyAirplane{ get; private set; }
+    [field: SerializeField] public Transform _hpBarsContainer{ get; private set; }
     [field: SerializeField] public MapEventsContentView _mapEventsContentView{ get; private set; }
     [field: SerializeField] public VersusBattleView _versusBattleView{ get; private set; }
     [field: SerializeField] public Material _defaultMaterial{ get; private set; }
@@ -90,6 +88,7 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public TMP_Text moneyText { get; private set; }
     [field: SerializeField] public Light2D globalLight { get; set; }
     [field: SerializeField] public Camera mainCamera { get; private set; }
+    [field: SerializeField] public EnemyAirplaneView enemyAirplaneView { get; set; }
     public float aspectRatio;
    // public InputSystem_Actions gameInput;
 
@@ -98,6 +97,7 @@ public class SceneService : MonoBehaviour {
     public BuildingView buildingViewForTest;
     private ObjectPool<CarPartStuffView> _carPartsPool;
     private ObjectPool<TMP_Text> _floatingTextsPool;
+    private ObjectPool<EnemyAirplaneView> _enemyAirplanesPool;
     private ObjectPool<LineRenderer> _laserLineRenderersPool;
     private ObjectPool<MeleeCarPartStuffView> _meleeCarPartsPool;
     private ObjectPool<CarPartInGameUIView> _сarPartInGameUIViewsPool;
@@ -142,9 +142,10 @@ public class SceneService : MonoBehaviour {
         _spriteRenderersPool = new ObjectPool<SpriteRenderer>(() => Instantiate(_carPartSpriteRenderer));
         _carPartsParticleSystemPool = new ObjectPool<ParticleSystem>(() => Instantiate(_carPartsParticleSystemPrefab,_notUsedCarPartsContainer));
         _imagesPool = new ObjectPool<Image>(() => Instantiate(_carPartUIImage));
+        _enemyAirplanesPool = new ObjectPool<EnemyAirplaneView>(() => Instantiate(enemyAirplaneView));
         _сarPartInGameUIViewsPool =
             new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsDownLevelHealthContainer));
-
+        
         _pixelEffectsLayerTexture.width = Screen.width;
         _pixelEffectsLayerTexture.height = Screen.height;
         _pixelEffectsUnderCarLayerTexture.width = Screen.width;
@@ -156,7 +157,15 @@ public class SceneService : MonoBehaviour {
         projectile.gameObject.SetActive(true);
         return projectile;
     }
-
+    public EnemyAirplaneView GetEnemyAirplaneView() {
+        var airplane = _enemyAirplanesPool.Get();
+        airplane.gameObject.SetActive(true);
+        return airplane;
+    }
+    public void ReleaseEnemyAirplane(EnemyAirplaneView airplane) {
+        _enemyAirplanesPool.Release(airplane);
+        airplane.gameObject.SetActive(false);
+    }
   /*  public SpriteRenderer GetCarPartSpriteRenderer(Transform parent = null) {
         return parent ? Instantiate(_carPartSpriteRenderer, parent) : Instantiate(_carPartSpriteRenderer);
     }*/

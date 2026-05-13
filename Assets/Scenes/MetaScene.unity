@@ -16282,6 +16282,8 @@ MonoBehaviour:
   - {fileID: 2005644923}
   - {fileID: 1529935977}
   - {fileID: 1403236713}
+  - {fileID: 1403236713}
+  - {fileID: 446484901}
   <_shopUIContainer>k__BackingField: {fileID: 1922315253}
   <_mainMenuView>k__BackingField: {fileID: 678359446}
   <_localizationButtons>k__BackingField:
