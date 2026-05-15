@@ -139,13 +139,15 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
         foreach (var thunderEntity in _thunderstormComponentsFilter.Value) {
             ref var thunderstormCmp = ref _thunderstormComponentsPool.Value.Get(thunderEntity);
-            thunderstormCmp.TimeToNextThunder -= deltaTime;
+           
+                thunderstormCmp.TimeToNextThunder -= deltaTime;
             if (thunderstormCmp.TimeToNextThunder <= 0) {
                 if (thunderstormCmp.ThunderTransform) {
                     _sceneService.Value.DestroyGameobject(thunderstormCmp.ThunderTransform);
                     thunderstormCmp.ThunderTransform = null;
                     thunderstormCmp.TimeToNextThunder = Random.Range(5, 15);
-                } else {
+                } else  if(NetworkManager.Singleton.IsServer){
+                  
                     thunderstormCmp.ExplosionIsSpawned = false;
                     Vector3 needPosition;
                     if (curGameCmp.CurrentRoundType == RoundType.VersusBattle) {
@@ -154,8 +156,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                             : _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).RightOpponentEntity;
                         needPosition = _carComponentsPool.Value.Get(needEntity).CarView.transform.position;
                     } else
-                        needPosition = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.transform
-                            .position;
+                        needPosition = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.transform.position;
 
                     Vector2 randomCircle = Random.insideUnitCircle * 15f;
 
@@ -166,9 +167,12 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                     thunderstormCmp.TimeToNextThunder = 1;
                     thunderstormCmp.ThunderTransform =
                         _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._thunderPrefab, needPosition);
+                    _netcodeSceneService.Value.SpawnThunderClientRpc(needPosition);
                 }
             } else if (thunderstormCmp.ThunderTransform && !thunderstormCmp.ExplosionIsSpawned && thunderstormCmp.TimeToNextThunder <= 0.5f) {
                 thunderstormCmp.ExplosionIsSpawned = true;
+                if (!NetworkManager.Singleton.IsServer)
+                    continue;
 
                 LayerMask layerMask = LayerMask.GetMask(new string[] { "CarBase", "UpCarPart", "CarBaseEnemy", "UpCarPartEnemy" });
 
@@ -387,6 +391,14 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
     }
 
+    private void SpawnThunderToClient(Vector2 spawnPosition) {
+        ref var thunderstormCmp = ref _thunderstormComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        thunderstormCmp.ExplosionIsSpawned = false;
+      
+        thunderstormCmp.TimeToNextThunder = 1;
+        thunderstormCmp.ThunderTransform =
+            _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._thunderPrefab, spawnPosition);
+    }
     private void CheckTornadoController() {
         if(!NetworkManager.Singleton.IsServer)return;
         ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -2095,6 +2107,6 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
                 .ConstructMapMelee(ProjectileHit);
         
-        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient,OpenSupportBox, SpawnNewTornado);
+        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient,OpenSupportBox, SpawnNewTornado, SpawnThunderToClient);
     }
 }

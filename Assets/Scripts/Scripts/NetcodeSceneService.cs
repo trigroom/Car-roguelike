@@ -63,6 +63,8 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
    private Action< float, float,Vector2, int> _setMovementToTornadoAction;
    private Action<int ,float ,Vector2 ,int> _spawnTornadoAction;
+   private Action _endMapGenerateAction;
+   private Action<Vector2> _spawnThunderAction;
    
    private ObjectPool<CarPartStuffView> _carPartsPool;
    private ObjectPool<Transform> _gunContainersPool;
@@ -240,7 +242,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<Vector2> setMapPointForClients, Action endRoundForClientAction,
         Action<Vector2Int, float, bool, int> setCarPartHealthToClientAction, Action<Vector2, int> setEnemyAirplanePosition,
         Action<bool> endVersusBattleAction, Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2> setupVersusBattleUiAction,
-        Action<bool> setIsReadyCountAction) {
+        Action<bool> setIsReadyCountAction,Action endMapGenerateAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -262,6 +264,7 @@ public class NetcodeSceneService : NetworkBehaviour
         _endVersusBattleAction = endVersusBattleAction;
         _setupVersusBattleUiAction = setupVersusBattleUiAction;
         _setIsReadyCountAction = setIsReadyCountAction;
+        _endMapGenerateAction = endMapGenerateAction;
     }
     [ServerRpc(RequireOwnership = false)]
     public void SetReadyActionServerRpc(bool isReady) {
@@ -269,12 +272,13 @@ public class NetcodeSceneService : NetworkBehaviour
     }
     public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction, Action setLoseStateForAllAction,
         Action<Vector2Int[], CarPartType, bool, float, float> setVersusBattleUiAction,Action openSupportBoxForClientsAction,
-        Action<int,float ,Vector2 ,int> spawnTornadoAction) {
+        Action<int,float ,Vector2 ,int> spawnTornadoAction,Action<Vector2> spawnThunderAction) {
         _setDeathPlayersCountAction = setDeathPlayersCountAction;
         _setLoseStateForAllAction = setLoseStateForAllAction;
         _setVersusBattleUiAction = setVersusBattleUiAction;
         _openSupportBoxForClientsAction = openSupportBoxForClientsAction;
         _spawnTornadoAction = spawnTornadoAction;
+        _spawnThunderAction = spawnThunderAction;
     }
     
     public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction) {
@@ -309,9 +313,18 @@ public class NetcodeSceneService : NetworkBehaviour
         _setEnemyAirplanePosition.Invoke(position, needAirplaneIndex);
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    public void EndGenerateMapClientRpc() {
+        _endMapGenerateAction.Invoke();
+    }
+
     [Rpc(SendTo.NotServer)]
     public void SetTornadoMovementValuesClientRpc(Vector2 targetPosition, float targetSpeed, float timeToChangeDirection, int hostEntity) {
         _setMovementToTornadoAction.Invoke(targetSpeed, timeToChangeDirection, targetPosition, hostEntity);
+    }
+    [Rpc(SendTo.NotServer)]
+    public void SpawnThunderClientRpc(Vector2 targetPosition) {
+        _spawnThunderAction.Invoke(targetPosition);
     }
     [Rpc(SendTo.NotServer)]
     public void SpawnTornadoClientRpc(int tornadoEntity, float lifeTime, Vector2 spawnPosition, int tornadoIndex) {
@@ -975,7 +988,7 @@ public class NetcodeSceneService : NetworkBehaviour
     
     
     private Animator CreateWheel(int wheelId, CarView carView, Vector2 pos, bool isLeftSide) {
-        Debug.Log("wheel id" + wheelId);
+      //  Debug.Log("wheel id" + wheelId);
         var wheelTransform =Instantiate(BetweenScenesService.Instance._carStuffListsConfig.Wheels[wheelId].WheelAnimator,
             carView.ForwardWheelsContainer.transform);
         AnimatorClipInfo[] clipInfo = wheelTransform.GetCurrentAnimatorClipInfo(0);

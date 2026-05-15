@@ -44,7 +44,7 @@ MonoBehaviour:
   ExplosionDamage: 0
   ImpulseForce: 450
   EffectType: 0
-  EffectDuration: 0
+  EffectDuration: 2
   BreakingThroughCount: 2
   BreakingThroughDamageFalloff: 0.3
   CarRecoil: 200

@@ -39,7 +39,7 @@ MonoBehaviour:
   MissleSprite: {fileID: 21300000, guid: 309b1da767078604ca81c571f51e3202, type: 3}
   FirePointPosition: {x: 0, y: 0}
   GunContainerPosition: {x: 0, y: 0}
-  SpreadAngle: 2
+  SpreadAngle: 4
   ExplosionRadius: 2.5
   ExplosionDamage: 30
   ImpulseForce: 500

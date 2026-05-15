@@ -8,7 +8,6 @@
  public struct CurrentGameComponent {
         public int CurrentRound;
         public RoundType CurrentRoundType;
-       // public List<RoundType[]> RoundTypes;
 
         public int CurrentBattleRounds;
         

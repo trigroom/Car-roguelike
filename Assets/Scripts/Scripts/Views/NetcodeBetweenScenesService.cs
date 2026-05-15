@@ -12,6 +12,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
     private Action<int[]> updateAction;
     private Action<Transform> quicksandAction;
     private Action<Transform, int> addTrainTrailAction;
+
     public Transform MapContainer;
     public SpriteRenderer GroundSpriteRenderer;
     public MapEventsContentView MapEventsContentView;
@@ -70,10 +71,15 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
     }
 
     [ClientRpc]
-    public void SpawnMapObstacleClientRpc(int index, int rotationIndex, Vector3 spawnPosition = default) {
+    public void SpawnMapObstacleClientRpc(int index, int rotationIndex, bool isCollideObstacle, Vector3 spawnPosition = default) {
+        if (isCollideObstacle) rotationIndex = 0;
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, rotationIndex * 90);
-        var mapObject = Instantiate(BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].MapObstacles[index], spawnPosition,
-            Quaternion.identity, MapContainer);
+        var mapObject =
+            Instantiate(
+                isCollideObstacle
+                    ? BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].MapObstacles[index]
+                    : BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].MapGroundPatterns[index], spawnPosition,
+                Quaternion.identity, MapContainer);
         // mapObject.GetComponent<NetworkObject>()?.TrySetParent(MapContainer);
         mapObject.rotation = randomRotation;
     }

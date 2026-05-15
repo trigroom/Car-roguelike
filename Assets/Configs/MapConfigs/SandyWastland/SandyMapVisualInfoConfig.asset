@@ -16,6 +16,9 @@ MonoBehaviour:
   - {fileID: 5901465273616574507, guid: af4bbf3d1d6987c45825741c8465d97a, type: 3}
   - {fileID: 999178926518854591, guid: a14e24d95fd835942a06df223cbb5ce1, type: 3}
   - {fileID: 8773321095680263310, guid: 7f417daf3d26a6f479aa8db6a2c873c9, type: 3}
+  MapGroundPatterns:
+  - {fileID: 3731961221257482313, guid: 377b84e5f82da1448bc25dee15c73c15, type: 3}
+  - {fileID: 7755226370957386700, guid: 81ba18095238f9f4788efd8ba0a53fbd, type: 3}
   GroundMaterial: {fileID: 2100000, guid: 565f04876332e2e4b94d1f256e81f251, type: 2}
   BehindMapGroundMaterial: {fileID: 2100000, guid: 26bd6cbfe5602f7479b14ca75f53fc31, type: 2}
   NoiseObstaclesCountChances:

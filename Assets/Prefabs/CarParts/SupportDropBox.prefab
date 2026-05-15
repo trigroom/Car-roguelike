@@ -95,6 +95,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <_carPartCollider>k__BackingField: {fileID: 2691728331417854324}
   <_mainEntity>k__BackingField: 0
+  <_clientId>k__BackingField: 0
 --- !u!212 &7245686766473792499
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -118,7 +119,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 45d7c5bfc4c6c374a98d9716f17ccf4d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -166,3 +167,4 @@ MonoBehaviour:
   <_supportBoxcarPartStuffView>k__BackingField: {fileID: -6712694133279507477}
   <defaultBoxSprite>k__BackingField: {fileID: 21300000, guid: 44cddd5113d31d54c8f901dc6d6bb4e7, type: 3}
   <rareBoxSprite>k__BackingField: {fileID: 21300000, guid: 2c1faa4aebe3ffd4c89ad14f897e72d9, type: 3}
+  <supportBoxAirplane>k__BackingField: {fileID: 0}
