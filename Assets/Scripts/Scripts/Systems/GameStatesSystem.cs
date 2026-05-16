@@ -519,12 +519,24 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             int enemyAirplaneEntity = _world.Value.NewEntity();
           ref var enemyArplaneCmp = ref  _enemyAirplaneComponentsPool.Value.Add(enemyAirplaneEntity);
           enemyArplaneCmp.EnemyTargetPosition = sendPosition;
-          enemyArplaneCmp.EnemySendPhase = 1;
+         
           enemyArplaneCmp.EnemyAirplane = _sceneService.Value.GetEnemyAirplaneView();
           enemyArplaneCmp.EnemyAirplane._enemyAirplane.position = new Vector2(enemyArplaneCmp.EnemyTargetPosition.x, -120);
-          enemyArplaneCmp.EnemyAirplane._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() =>
-              _enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity).EnemyAirplane._enemyAirplane.gameObject.SetActive(false));
+          enemyArplaneCmp.EnemyAirplane.gameObject.SetActive(true);
           enemyArplaneCmp.EnemyAirplane._enemyAirplane.gameObject.SetActive(true);
+          enemyArplaneCmp.EnemyAirplane.DOKill();
+          enemyArplaneCmp.EnemyAirplane._enemyAirplane.DOMoveY(120, 20).SetEase(Ease.Linear).OnComplete(() => {
+              var enemyAirplaneCmp = _enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity);
+              if (!enemyAirplaneCmp.EnemyAirplane._parachuteSpriteRenderer.gameObject.activeInHierarchy) {
+                  _sceneService.Value.ReleaseEnemyAirplane(enemyAirplaneCmp.EnemyAirplane);
+                  _enemyAirplaneComponentsPool.Value.Del(enemyAirplaneEntity);
+              }
+
+              enemyAirplaneCmp.EnemyAirplane._enemyAirplane.gameObject.SetActive(false);
+          });
+          
+              
+           enemyArplaneCmp.EnemySendPhase = 1;
         } else if (planeNumber is 1 or 2)
             SendSupportAirplaneToNeedPosition(sendPosition, planeNumber - 1);
     }
@@ -584,8 +596,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             parachute.transform.localScale = Vector3.one * 12;
             parachute.color = Color.white;
             parachute.transform.DOScale(4, 2f).OnComplete(() => {
-                _sceneService.Value.ReleaseEnemyAirplane(_enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity).EnemyAirplane);
-                _enemyAirplaneComponentsPool.Value.Del(enemyAirplaneEntity);
+                var enemyAirplaneCmp = _enemyAirplaneComponentsPool.Value.Get(enemyAirplaneEntity);
+                if (!enemyAirplaneCmp.EnemyAirplane._enemyAirplane.gameObject.activeInHierarchy) {
+                    _sceneService.Value.ReleaseEnemyAirplane(enemyAirplaneCmp.EnemyAirplane);
+                   _enemyAirplaneComponentsPool.Value.Del(enemyAirplaneEntity);
+                }
+                parachute.gameObject.SetActive(false);
+             
+                
                 if (NetcodeBetweenScenesService.Instance.IsServer)
                     SetEnemiesCars(1, enemyPosition);
             });

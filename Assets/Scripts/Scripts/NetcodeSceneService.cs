@@ -65,6 +65,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<int ,float ,Vector2 ,int> _spawnTornadoAction;
    private Action _endMapGenerateAction;
    private Action<Vector2> _spawnThunderAction;
+   private Action<Vector2> _sendBomberPlaneAction;
    
    private ObjectPool<CarPartStuffView> _carPartsPool;
    private ObjectPool<Transform> _gunContainersPool;
@@ -272,13 +273,14 @@ public class NetcodeSceneService : NetworkBehaviour
     }
     public void SetupServiceFromAttackSystem(Action setDeathPlayersCountAction, Action setLoseStateForAllAction,
         Action<Vector2Int[], CarPartType, bool, float, float> setVersusBattleUiAction,Action openSupportBoxForClientsAction,
-        Action<int,float ,Vector2 ,int> spawnTornadoAction,Action<Vector2> spawnThunderAction) {
+        Action<int,float ,Vector2 ,int> spawnTornadoAction,Action<Vector2> spawnThunderAction,Action<Vector2> sendBomberPlaneAction) {
         _setDeathPlayersCountAction = setDeathPlayersCountAction;
         _setLoseStateForAllAction = setLoseStateForAllAction;
         _setVersusBattleUiAction = setVersusBattleUiAction;
         _openSupportBoxForClientsAction = openSupportBoxForClientsAction;
         _spawnTornadoAction = spawnTornadoAction;
         _spawnThunderAction = spawnThunderAction;
+        _sendBomberPlaneAction = sendBomberPlaneAction;
     }
     
     public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction) {
@@ -951,6 +953,10 @@ public class NetcodeSceneService : NetworkBehaviour
         int row = index / cols;
         int col = index % cols;
         return new Vector2Int(row, col);
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetBomberPlaneClientRpc(Vector2 finalPosition ) {
+        _sendBomberPlaneAction.Invoke(finalPosition);
     }
 
     [Rpc(SendTo.NotServer)]

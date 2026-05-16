@@ -439,7 +439,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private void CheckBomberController() {
         ref var bomberControllerCmp = ref _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var bomberShadow = bomberControllerCmp.BomberShadowTransform;
-        if (!bomberShadow.gameObject.activeInHierarchy)
+        if (!bomberShadow.gameObject.activeInHierarchy && NetworkManager.Singleton.IsServer)
             bomberControllerCmp.TimeToNextBomber -= Time.deltaTime;
         if (bomberControllerCmp.TimeToNextBomber <= 0) {
             if (!bomberShadow.gameObject.activeInHierarchy) {
@@ -463,11 +463,12 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 bomberControllerCmp.FinalPosition = new Vector2(xPos, yPos);
                 bomberShadow.gameObject.SetActive(true);
 
-                bomberShadow.DOKill();
+              /*  bomberShadow.DOKill();
                 bomberShadow.DOMove(bomberControllerCmp.FinalPosition, 20).SetEase(Ease.Linear).OnComplete(() => {
                     bomberShadow.gameObject.SetActive(false);
                     _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextBomber = Random.Range(8f, 15f);
-                });
+                });*/
+               _netcodeSceneService.Value.SetBomberPlaneClientRpc(new Vector2(xPos, yPos));
             } else {
                 bomberControllerCmp.TimeToNextBomb -= Time.deltaTime;
                 if (bomberControllerCmp.TimeToNextBomb <= 0) {
@@ -509,8 +510,9 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private void ExplodeBomberProjectile(int bombEntity) {
         var bombCmp = _bomberProjectilesPool.Value.Get(bombEntity);
         var bomberControllerCmp = _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        CalculateExplodeDamage((EffectType)bomberControllerCmp.BombIndex, bomberControllerCmp.BombIndex == 0 ? 250 : 15, 5,
-            bombCmp.BombSpriteRenderer.transform.position);
+        if (NetworkManager.Singleton.IsServer)
+            CalculateExplodeDamage((EffectType)bomberControllerCmp.BombIndex, bomberControllerCmp.BombIndex == 0 ? 250 : 15, 5,
+                bombCmp.BombSpriteRenderer.transform.position);
         CreateExplosionEffect(5f, bombCmp.BombSpriteRenderer.transform.position, (EffectType)bomberControllerCmp.BombIndex);
 
         _sceneService.Value.ReleaseSpriteRenderer(bombCmp.BombSpriteRenderer);
@@ -549,6 +551,33 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         _sceneService.Value._inventoryUIView._healCarText.text = $"Heal all car for {healCost} <sprite name=\"CogIcon\">";
     }
 
+    private void SendBomberPlane(Vector2 finalPosition) {
+        
+        ref var bomberControllerCmp = ref _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        var bomberShadow = bomberControllerCmp.BomberShadowTransform;
+
+       // if (!bomberShadow.gameObject.activeInHierarchy) {
+            float xPos = finalPosition.x;
+            float yPos = finalPosition.y;
+            if (xPos == 140 || xPos == -140) {
+                bomberShadow.position = new Vector2(-xPos, yPos);
+                bomberShadow.localEulerAngles = new Vector3(0, 0, -90 * xPos / 140);
+            } else {
+                bomberShadow.position = new Vector2(xPos, -yPos);
+                bomberShadow.localEulerAngles = new Vector3(0, 0, yPos < 0 ? 180 : 0);
+            }
+
+            bomberControllerCmp.TimeToNextBomb = 3f;
+            bomberControllerCmp.FinalPosition = new Vector2(xPos, yPos);
+            bomberShadow.gameObject.SetActive(true);
+Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.FinalPosition );
+            bomberShadow.DOKill();
+            bomberShadow.DOMove(bomberControllerCmp.FinalPosition, 20).SetEase(Ease.Linear).OnComplete(() => {
+                bomberShadow.gameObject.SetActive(false);
+                _bomberPlaneControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TimeToNextBomber = Random.Range(8f, 15f);
+            });
+       // }
+    }
     private float GetHealAllCarPartCost() {
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(inventoryCmp.CurrentRedactedCarEntity);
@@ -2106,7 +2135,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (_trainControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
             _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
                 .ConstructMapMelee(ProjectileHit);
-        
-        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame,SetVersusBattleUiToClient,OpenSupportBox, SpawnNewTornado, SpawnThunderToClient);
+
+        _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame, SetVersusBattleUiToClient, OpenSupportBox,
+            SpawnNewTornado, SpawnThunderToClient,SendBomberPlane);
     }
 }
