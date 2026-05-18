@@ -11,7 +11,7 @@ public class RoundUtilits
     
     public static bool IsNotBattleRound(RoundType type) => SupportRoundsTypes.Contains(type) || type == RoundType.None;
 
-   public static readonly List<RoundType> SupportRoundsTypes = new List<RoundType> {
+   public static List<RoundType> SupportRoundsTypes = new List<RoundType> {
        RoundType.Chest, RoundType.Shop, RoundType.Task, RoundType.SlotMachine, RoundType.ModulesShop, RoundType.VersusBattle
     };
     /*public static readonly List<RoundType> SupportRoundsTypes = new List<RoundType> {

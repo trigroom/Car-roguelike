@@ -163,9 +163,9 @@ public class CarPartInfoUIView : MonoBehaviour
                 _moduleViews[i].ModuleIcon.color = Color.clear;
         }
 
-        _healCarPartButton.gameObject.SetActive(healCost > 0.01f);
-        if (healCost > 0.01f) {
-            _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost} <sprite name=\"CogIcon\">";
+        _healCarPartButton.gameObject.SetActive(healCost > 0.001f);
+        if (healCost > 0.001f) {
+            _healCarPartText.text = $"{GetLocalization("Heal car part for")} {healCost:F3} <sprite name=\"CogIcon\">";
             _healCarPartText.color = Color.clear;
         }
 

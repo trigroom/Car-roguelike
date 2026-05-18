@@ -1055,13 +1055,16 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
        
             
     }
-
     private void EndRoundSetServerValues() {  
         ref var serverCmp = ref _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         CarPartHealthDataForRpc[] carPartsHealthDataForRpc = new CarPartHealthDataForRpc[serverCmp.ClientsEntities.Count];
+        Dictionary<ulong, float> movedDistance = new Dictionary<ulong, float>();
         int i = 0;
         foreach (var clientInfo in serverCmp.ClientsEntities) {
             ref var playerCmp = ref _playerComponentsPool.Value.Get(clientInfo.Value);
+            ref var playerTagCmp = ref _playerTagComponentsPool.Value.Get(playerCmp.PlayerEntity);
+            movedDistance.Add(clientInfo.Key , playerTagCmp.drivedDistance );
+            playerTagCmp.drivedDistance = 0;
             var carPlayerCmp = _carComponentsPool.Value.Get(playerCmp.PlayerEntity);
             int[] healthValuesPlayer;
             int[] healthValuesContainersPlayer;
@@ -1086,13 +1089,19 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 firstTeammateGridSize, healthValuesSecondTeammate, healthValuesContainersSecondTeammate, secondTeammateGridSize);
             i++;
         }
-
+    
+    /*    foreach (var playerEntity in _playerTagComponentsFilter.Value) {
+            ref var playerTagCmp = ref _playerTagComponentsPool.Value.Get(playerEntity);
+            playerTagCmp.drivedDistance = 0;
+        }*/
         _netcodeSceneService.Value.SetEndRoundHealthValuesClientRpc(carPartsHealthDataForRpc);
         serverCmp.DeathPlayers = 0;
         serverCmp.ClientsEntities = new Dictionary<ulong, int>();
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         _netcodeSceneService.Value.EndRoundExpAddClientRpc(playerCurrencyCmp.EarnedExpInRound);
         playerCurrencyCmp.EarnedExpInRound = 0;
+        _netcodeSceneService.Value.SetEndRoundMovementValuesClientRpc(movedDistance.Values.ToArray(),movedDistance.Keys.ToArray());
+
     }
 
     private (int[], int[], Vector2Int) GetCarPartHealthArraysFromCar(int entity) {

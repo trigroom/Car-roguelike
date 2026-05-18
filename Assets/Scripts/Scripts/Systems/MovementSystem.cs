@@ -231,6 +231,9 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             if (isThisPlayer)
                 DataPersistenceManagerSystem._gameData.DistanceDrived +=
                     Vector2.Distance(movementCmp.PreviousPosition, moveObjectTransform.position);
+            else if(_playerTagComponentsPool.Value.Has(movementEntity))
+                _playerTagComponentsPool.Value.Get(movementEntity).drivedDistance+=
+                    Vector2.Distance(movementCmp.PreviousPosition, moveObjectTransform.position);
             movementCmp.PreviousPosition = moveObjectTransform.position;
             if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0 && movementCmp.MaxMoveSpeed > 0) {
                 Vector3 directionToTarget = (movementCmp.TargetPosition - movementCmp.MovableObjectRigidbody.position).normalized;

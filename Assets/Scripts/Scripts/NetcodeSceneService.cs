@@ -991,7 +991,15 @@ public class NetcodeSceneService : NetworkBehaviour
             }
         }
     }
-    
+
+    [Rpc(SendTo.NotServer)]
+    public void SetEndRoundMovementValuesClientRpc(float[] carMoveDistances, ulong[] playerIds) {
+        Debug.Log("Set move distance ClientRpc");
+        for (int i = 0; i < playerIds.Length; i++) {
+            if (NetworkManager.Singleton.LocalClientId == playerIds[i])
+                DataPersistenceManagerSystem._gameData.DistanceDrived += carMoveDistances[i];
+        }
+    }
     
     private Animator CreateWheel(int wheelId, CarView carView, Vector2 pos, bool isLeftSide) {
       //  Debug.Log("wheel id" + wheelId);

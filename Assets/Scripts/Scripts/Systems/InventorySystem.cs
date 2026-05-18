@@ -10,9 +10,12 @@ using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.VisualScripting;
+using UnityEngine.Analytics;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using Sequence = DG.Tweening.Sequence;
 
 public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsWorldInject _world;
@@ -60,12 +63,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     public void Init(IEcsSystems systems) {
         //test
-        
-        int playerEntity =_sceneData.Value.PlayerEntity;
+
+        int playerEntity = _sceneData.Value.PlayerEntity;
 
         ref var carCmp = ref _carComponentsPool.Value.Add(playerEntity);
         carCmp.CarId = _sceneData.Value._defaultCarConfigId;
-        
+
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
         _sceneData.Value._inventoryUIView._carIconImage.sprite = carConfig.CarIcon;
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Add(playerEntity);
@@ -74,21 +77,21 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         inventoryCmp.CurrentCellCarPart = null;
         inventoryCmp.CurrentGivenItems = new List<int>();
         _fuelComponentsPool.Value.Add(playerEntity);
-       
+
         ref var movementComponent = ref _movementComponentsPool.Value.Add(playerEntity);
         //movementComponent.MaxMoveSpeed = carConfig.DefaultMaxSpeed;
         movementComponent.RotateSpeed = carConfig.RotateSpeed;
         movementComponent.Acceleration = carConfig.Acceleration;
         movementComponent.Deceleration = carConfig.Deceleration;
         SetCarUpgradeButtonInfo();
-        
+
         SortCarParts(CarPartType.None, false);
         SortCarParts(CarPartType.CarStuffContainer, false);
         SortCarParts(CarPartType.WheelsContainer, false);
-        
-        foreach (var statIcon in _sceneData.Value._inventoryUIView._carStatIcons) 
-            statIcon.Construction(SetCarStatInfo,HideCarStatInfo  );
-        
+
+        foreach (var statIcon in _sceneData.Value._inventoryUIView._carStatIcons)
+            statIcon.Construction(SetCarStatInfo, HideCarStatInfo);
+
         SetCarGrid();
 
         SetSortButtons();
@@ -100,17 +103,18 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         SetupShopCells();
 
         UpdateCarDescription(playerEntity);
-        
-         SetMoneyCount(_betweenScenesService.Value.GetMapDifficultyConfig().StartMoney);
-        
-         foreach (var endGameButton in _sceneData.Value._endGameScreenView.closeEndGameMenuButtons) {
-             endGameButton.onClick.AddListener(ActivateGiveCarPartsWindow);
-         }
-         _sceneData.Value._givingCarPartsUIView._getAllButton.onClick.AddListener(GetAllCarParts);
-         _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
-         _sceneData.Value._givingCarPartsUIView._destroyCarPartButton .onClick.AddListener(SellCarPartAndActiveNext);
-        _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(()=>SaveEnemyCarConfig(false));
-        _sceneData.Value._enemiesCarBuilderView.CreateCarBaseConfigButton.onClick.AddListener(()=>SaveEnemyCarConfig(true));
+
+        SetMoneyCount(_betweenScenesService.Value.GetMapDifficultyConfig().StartMoney);
+
+        foreach (var endGameButton in _sceneData.Value._endGameScreenView.closeEndGameMenuButtons) {
+            endGameButton.onClick.AddListener(ActivateGiveCarPartsWindow);
+        }
+
+        _sceneData.Value._givingCarPartsUIView._getAllButton.onClick.AddListener(GetAllCarParts);
+        _sceneData.Value._givingCarPartsUIView._getCarPartButton.onClick.AddListener(GetCarPartAndActiveNext);
+        _sceneData.Value._givingCarPartsUIView._destroyCarPartButton.onClick.AddListener(SellCarPartAndActiveNext);
+        _sceneData.Value._enemiesCarBuilderView.CreateEnemyConfigButton.onClick.AddListener(() => SaveEnemyCarConfig(false));
+        _sceneData.Value._enemiesCarBuilderView.CreateCarBaseConfigButton.onClick.AddListener(() => SaveEnemyCarConfig(true));
         _sceneData.Value._inventoryUIView._upgradeCarButton.onClick.AddListener(IncriseCarLevel);
         _sceneData.Value._inventoryUIView._healCarButton.onClick.AddListener(HealAllCarPart);
 
@@ -140,34 +144,32 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         for (int i = 0; i < _sceneData.Value._carPartInfoUIView._moduleViews.Length; i++) {
             int index = i;
             var moduleStuff = _sceneData.Value._carPartInfoUIView._moduleViews[i];
-            
+
             EventTrigger.Entry clickEntry = new EventTrigger.Entry();
             clickEntry.eventID = EventTriggerType.PointerClick;
             clickEntry.callback.AddListener((data) => { SelectModuleCell(index); });
 
             EventTrigger.Entry enterEntry = new EventTrigger.Entry();
             enterEntry.eventID = EventTriggerType.PointerEnter;
-            enterEntry.callback.AddListener((data) => { SetModuleWindowInfo(false, index);});
-            
+            enterEntry.callback.AddListener((data) => { SetModuleWindowInfo(false, index); });
+
             EventTrigger.Entry exitEntry = new EventTrigger.Entry();
             exitEntry.eventID = EventTriggerType.PointerExit;
-            exitEntry.callback.AddListener((data) => { SetModuleWindowInfo(true, index);});
-            
+            exitEntry.callback.AddListener((data) => { SetModuleWindowInfo(true, index); });
+
             moduleStuff.ModuleButton.triggers.Add(clickEntry);
             moduleStuff.ModuleButton.triggers.Add(enterEntry);
             moduleStuff.ModuleButton.triggers.Add(exitEntry);
             /*(data) => { ChangeRoundDescription(randomRounds[newIndex], (PointerEventData)data); }*/
         }
 
-        _netcodeSceneService.Value.SetupServiceFromInventorySystem(SetHealthToMinimumLevel,UpgradeCarPartsAfterRoundCarPart);
+        _netcodeSceneService.Value.SetupServiceFromInventorySystem(SetHealthToMinimumLevel, UpgradeCarPartsAfterRoundCarPart);
         //test
         SetUpAdminButtons();
-        
-      //  AddModuleInventoryItem(6);
-      //  AddModuleInventoryItem(7);
+
+        //  AddModuleInventoryItem(6);
+        //  AddModuleInventoryItem(7);
         //AddModuleInventoryItem(8);
-        
-        
     }
 
     public void Run(IEcsSystems systems) {
@@ -187,7 +189,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
 
             ActivateGiveCarPartsWindow();
-            _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)} <sprite name=\"CogIcon\">";
+            _sceneData.Value._shopUIView._updateItemsText.text =
+                $"{GetLocalization("Update for")} {GetShopUpdateCost(0)} <sprite name=\"CogIcon\">";
             _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentUpdateCountInRound = 0;
             //     _endRoundEventsPool.Value.Del(endRound);
         }
@@ -200,10 +203,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     UpdateCarStats(carEntity);
             }
         }
+
         foreach (var endRound in _endRoundEventsFilter.Value) {
             if (NetworkManager.Singleton.IsServer)
                 SetHealthToMinimumLevel();
-      
+
             _sceneData.Value._playerUIView._fuelLampLightImage.DOKill();
             CloseShowInfoPanel();
             //_endRoundEventsPool.Value.Del(endRound);
@@ -223,15 +227,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         if (_addTeammateEventsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
-          /*  _addTeammateEventsPool.Value.Del(_sceneData.Value.PlayerEntity);
-            var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            var currentRoundCarStuff = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[gameCmp.CurrentRound];
+            /*  _addTeammateEventsPool.Value.Del(_sceneData.Value.PlayerEntity);
+              var gameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+              var currentRoundCarStuff = _betweenScenesService.Value.GetMapConfig().GameProcessConfig.GameRounds[gameCmp.CurrentRound];
 
-            int i = GridUtils.GetRandomIndexFromChancesList(currentRoundCarStuff.EnemyCarChances);
-            var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs[i].CarMapsList;
-            var enemyCar = carsList[Random.Range(0, carsList.Count)];
+              int i = GridUtils.GetRandomIndexFromChancesList(currentRoundCarStuff.EnemyCarChances);
+              var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs[i].CarMapsList;
+              var enemyCar = carsList[Random.Range(0, carsList.Count)];
 
-            AddNewTeammateCarToPlayer(enemyCar);*/
+              AddNewTeammateCarToPlayer(enemyCar);*/
         }
 
         if (Input.GetMouseButtonDown(0))
@@ -241,18 +245,17 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         if ((inventoryCmp.PressedButtonTime > 0.5f || Vector3.Distance(inventoryCmp.StartMouseInputPosition, Input.mousePosition) > 10f) &&
             inventoryCmp.IsTryDraggedCell) {
-            if (/*inventoryCmp.CurrentDraggedCellEntity != -1 && */!inventoryCmp.CellIsSetup) {
+            if ( /*inventoryCmp.CurrentDraggedCellEntity != -1 && */!inventoryCmp.CellIsSetup) {
                 if (_inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentDraggedCellEntity))
                     StartDragInventoryCell(ref inventoryCmp);
                 else {
-                    if(_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsModulesShop)
+                    if (_shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsModulesShop)
                         return;
                     StartDragShopCell(ref inventoryCmp);
                 }
 
                 _sceneData.Value._inventoryUIView._draggedInventoryCell.transform.position = (Vector2)Input.mousePosition +
                     _sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.sizeDelta - inventoryCmp.OnCarCellSize;
-               
             }
 
             inventoryCmp.CellIsSetup = true;
@@ -270,8 +273,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 var carSizeY = (carCmp.CarPartContainerGroupsGrid.GetLength(1));
                 var carPartSize = GridUtils.GetCarPartSize(GetCurrentDraggedCellCarPart());
                 if (inventoryCmp.IsCarPartsRedactorMode && (carSizeX % 2 == 1 && carSizeY % 2 == 1 ||
-                    ((carSizeX % 2 == 1 && carSizeY % 2 == 0) && carSizeX > carSizeY) ||
-                    (carSizeX % 2 == 0 && carSizeY % 2 == 1) && carSizeX < carSizeY)) {
+                                                            ((carSizeX % 2 == 1 && carSizeY % 2 == 0) && carSizeX > carSizeY) ||
+                                                            (carSizeX % 2 == 0 && carSizeY % 2 == 1) && carSizeX < carSizeY)) {
                     subGridNewPosition += (Vector3)currentCellSize * _sceneData.Value.mainCanvas.localScale.x / 2;
                 }
 
@@ -360,17 +363,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             inventoryCmp.PressedButtonTime = 0;
             inventoryCmp.IsTryDraggedCell = false;
         }
-
     }
+
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
     string[] languages = { "en", "ru", "de", "es", "fr" };
+
     private void SetupLocalizationButtons() {
         for (int i = 0; i < _sceneData.Value._settingsView._selectLocalizationButtons.Length; i++) {
             int langIndex = i;
-            _sceneData.Value._settingsView._selectLocalizationButtons[langIndex].onClick
-                .AddListener(()=> {
-                    ChangeLocalization(langIndex);
-                });
+            _sceneData.Value._settingsView._selectLocalizationButtons[langIndex].onClick.AddListener(() => { ChangeLocalization(langIndex); });
         }
     }
 
@@ -378,6 +379,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _betweenScenesService.Value.CsvLocalization.ChangeLanguage(languages[langIndex]);
         _sceneData.Value._staticTextsView.SetTextLanguage();
     }
+
     private void UpdateButtonEnter() {
         int currentMarkedEntity = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo;
         int[] moduleIds = _carPartInfoComponentsPool.Value.Has(currentMarkedEntity)
@@ -385,12 +387,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             : null;
         _sceneData.Value._carPartInfoUIView.SetDescriptionInfo(true, moduleIds);
     }
+
     private void UpdateButtonExit() {
         int currentMarkedEntity = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo;
         int[] moduleIds = _carPartInfoComponentsPool.Value.Has(currentMarkedEntity)
             ? _carPartInfoComponentsPool.Value.Get(currentMarkedEntity).ModuleIds
             : null;
-        _sceneData.Value._carPartInfoUIView.SetDescriptionInfo(false,moduleIds);
+        _sceneData.Value._carPartInfoUIView.SetDescriptionInfo(false, moduleIds);
     }
 
     private void SetCarPartRedactorMode() {
@@ -461,48 +464,47 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             return;
         }
 
-      
         inventoryCmp.StartOffsetFromCell = GridUtils.GetNormalizedMouseOffset(_sceneData.Value._shopUIView
             ._buttonsShop[_shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).ShopButtonIndex].ItemSprite.rectTransform);
-        SetDraggedCell(ref inventoryCmp, inventoryPartIndex, inventoryView);  
+        SetDraggedCell(ref inventoryCmp, inventoryPartIndex, inventoryView);
         SetCarPartInfoPanel(inventoryCmp.CurrentDraggedCellEntity, false);
         _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(!GridUtils.IsContainerType(partInfo));
     }
 
     private void StartDragInventoryCell(ref InventoryComponent inventoryCmp) {
         var inventoryView = _sceneData.Value._inventoryUIView;
-       
-         
-      // int cellEntity =
-    //        GetSortedCarPartList()[
+
+        // int cellEntity =
+        //        GetSortedCarPartList()[
         //        inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length + inventoryCellIndex];
-       var inventoryCellCmp = _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity); 
-       var inventoryCellInfoCmp = _carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity); 
-       int inventoryCellIndex = inventoryCellCmp.CellId;
+        var inventoryCellCmp = _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity);
+        var inventoryCellInfoCmp = _carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity);
+        int inventoryCellIndex = inventoryCellCmp.CellId;
         var partInfo = _sceneData.Value._carStuffListsConfig.CarPartConfigs[inventoryCellInfoCmp.CarPartId];
         if ((partInfo.PartType == CarPartType.CarStuffContainer || partInfo.PartType == CarPartType.WheelsContainer) ==
             inventoryCmp.IsCarPartsRedactorMode) {
             AnimateChangeModeButton();
             return;
         }
-      
+
         inventoryCmp.StartOffsetFromCell =
             GridUtils.GetNormalizedMouseOffset(inventoryView._inventoryCellViews[inventoryCellIndex]._inventoryCellImage.rectTransform);
         SetDraggedCell(ref inventoryCmp, inventoryCellInfoCmp.CarPartId, inventoryView);
         _sceneData.Value._inventoryUIView._rotateCarPartIconContainer.gameObject.SetActive(!GridUtils.IsContainerType(partInfo));
- 
-        inventoryView._inventoryCellViews[inventoryCellIndex].gameObject.SetActive(false);  
+
+        inventoryView._inventoryCellViews[inventoryCellIndex].gameObject.SetActive(false);
         SetCarPartInfoPanel(inventoryCmp.CurrentDraggedCellEntity, false);
     }
 
     private void AnimateChangeModeButton() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         inventoryCmp.CurrentTweenChangeModeButton = DOTween.Sequence();
-        inventoryCmp.CurrentTweenChangeModeButton.Append(_sceneData.Value._inventoryUIView._changeToRedactModeImage.transform.DOScale(1.3f, 0.3f)
-            .SetEase(Ease.InOutSine));
+        inventoryCmp.CurrentTweenChangeModeButton.Append(_sceneData.Value._inventoryUIView._changeToRedactModeImage.transform
+            .DOScale(1.3f, 0.3f).SetEase(Ease.InOutSine));
         inventoryCmp.CurrentTweenChangeModeButton.Append(_sceneData.Value._inventoryUIView._changeToRedactModeImage.transform.DOScale(1, 0.3f)
             .SetEase(Ease.InOutSine));
     }
+
     private void MoveToInventoryCell() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carPartConfig = GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo).CarPartId);
@@ -514,11 +516,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
     }
 
-    private void MoveToInventoryCellNeededCarPart(int currentPartEntity) {    
+    private void MoveToInventoryCellNeededCarPart(int currentPartEntity) {
         var currentPartCmp = _carPartInfoComponentsPool.Value.Get(currentPartEntity);
-        
+
         SellNeededCarPart(currentPartEntity, false);
-         AddInventoryItem(currentPartCmp.CarPartId,currentPartCmp.PartLevel , currentPartCmp.CurrentHealth,currentPartCmp.ModuleIds,currentPartCmp.CurrentExp);
+        AddInventoryItem(currentPartCmp.CarPartId, currentPartCmp.PartLevel, currentPartCmp.CurrentHealth, currentPartCmp.ModuleIds,
+            currentPartCmp.CurrentExp);
     }
 
     private void SetDraggedCell(ref InventoryComponent inventoryCmp, int inventoryPartIndex, InventoryUIView inventoryView) {
@@ -537,16 +540,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         _sceneData.Value._subGridTransform.gameObject.SetActive(true);
         _sceneData.Value._gridMaskRect.gameObject.SetActive(true);
-        _sceneData.Value._subGridTransform.SetSubGridSize(Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
-            carCmp.CarPartContainerGroupsGrid.GetLength(1)) * 8/ _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x);
-        
-            inventoryCmp.CurrentTween = DOTween.Sequence();
+        _sceneData.Value._subGridTransform.SetSubGridSize(
+            Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)) * 8 /
+            _sceneData.Value._inventoryUIView._carPartsContainer.transform.localScale.x);
+
+        inventoryCmp.CurrentTween = DOTween.Sequence();
 
         inventoryCmp.CurrentTween.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform.DOSizeDelta(cellSize, 0.3f)
             .SetEase(Ease.OutBack));
         if (partInfo.PartType == CarPartType.Gun || partInfo.PartType == CarPartType.MeleeWeapon) {
-            (Sprite upSprite, Vector2 size, Vector2 position) =
-                GetUpperPartSizesForUI(cellSize, partInfo);
+            (Sprite upSprite, Vector2 size, Vector2 position) = GetUpperPartSizesForUI(cellSize, partInfo);
 
             var upDragCell = _sceneData.Value._inventoryUIView._draggedInventoryCellUp;
             upDragCell.sprite = upSprite;
@@ -557,7 +560,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (gunConfig.UpPartSprite != null) {
                     var needPosition = cellSize / Math.Max(partSize.x, partSize.y) * gunConfig.UpPartPosition;
 
-                    inventoryCmp.CurrentTween.Join(upDragCell.rectTransform.DOSizeDelta(currentCellSize / GridUtils.InWorldCellSize * gunConfig.UpPartSprite.rect.size, 0.3f).SetEase(Ease.OutBack));
+                    inventoryCmp.CurrentTween.Join(upDragCell.rectTransform
+                        .DOSizeDelta(currentCellSize / GridUtils.InWorldCellSize * gunConfig.UpPartSprite.rect.size, 0.3f)
+                        .SetEase(Ease.OutBack));
                     inventoryCmp.CurrentTween.Join(upDragCell.transform.DOLocalMove(position, 0.3f).SetEase(Ease.OutBack));
                 }
             } else {
@@ -617,28 +622,28 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             inventoryComponent.CurrentRotateDegrees = 0;
 
         var cellView = _sceneData.Value._inventoryUIView._draggedInventoryCell;
-        
-        _sceneData.Value._gridMaskRect.sizeDelta = new Vector2(_sceneData.Value._gridMaskRect.sizeDelta.y, _sceneData.Value._gridMaskRect.sizeDelta.x);
+
+        _sceneData.Value._gridMaskRect.sizeDelta =
+            new Vector2(_sceneData.Value._gridMaskRect.sizeDelta.y, _sceneData.Value._gridMaskRect.sizeDelta.x);
         // Создаем новую анимацию от текущего положения к целевому
         inventoryComponent.CurrentTween = DOTween.Sequence();
         inventoryComponent.CurrentTween.Append(cellView.transform
-                                                           .DORotate(new Vector3(0, 0, inventoryComponent.CurrentRotateDegrees), 0.3f, RotateMode.Fast).SetEase(Ease.OutBack));
+            .DORotate(new Vector3(0, 0, inventoryComponent.CurrentRotateDegrees), 0.3f, RotateMode.Fast).SetEase(Ease.OutBack));
         inventoryComponent.LastCheckedGridCellPosition = -Vector2Int.one;
     }
 
     private void SetupShopCells() {
         _sceneData.Value._shopUIView._shopModeText.text = GetLocalization("Car parts shop");
-        
+
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        shopCmp.ListShopItemsForRares = new List<List<int>>(){new List<int>(),new List<int>(),new List<int>(),new List<int>()};
+        shopCmp.ListShopItemsForRares = new List<List<int>>() { new List<int>(), new List<int>(), new List<int>(), new List<int>() };
         shopCmp.CurrentShopItemsChances = new List<float>(4);
         shopCmp.ShopModulesIds = new List<int>();
         foreach (var shopItem in _sceneData.Value._carStuffListsConfig.ShopItems) {
-            
-            if(!DataPersistenceManagerSystem._gameData.CarPartsUnlocked[shopItem])continue;
-            
+            if (!DataPersistenceManagerSystem._gameData.CarPartsUnlocked[shopItem]) continue;
+
             var partRare = (int)GetCarPartConfig(shopItem).RartRare;
-           
+
             shopCmp.ListShopItemsForRares[partRare].Add(shopItem);
         }
 
@@ -654,28 +659,30 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             int shopCellEntity = _world.Value.NewEntity();
             ref var shopCellCmp = ref _shopCellComponentsPool.Value.Add(shopCellEntity);
             shopCellCmp.ShopButtonIndex = i;
-            shopCell.Construct(shopCellEntity, BuyShopItem, SetCarPartInfoPanel, TakeItemFromInventory,LockShopItemToggleAction);
+            shopCell.Construct(shopCellEntity, BuyShopItem, SetCarPartInfoPanel, TakeItemFromInventory, LockShopItemToggleAction);
         }
-        
+
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsCarShop.Length; i++) {
             var shopCell = _sceneData.Value._shopUIView._buttonsCarShop[i];
             int shopCellEntity = _world.Value.NewEntity();
             ref var shopCellCarCmp = ref _shopCellCarComponentsPool.Value.Add(shopCellEntity);
             shopCellCarCmp.ShopCarButtonIndex = i;
             shopCellCarCmp.CarPartsImages = new List<Image>();
-            shopCell.Construct(shopCellEntity, BuyShopCar, SetCarPartInfoPanel, TakeItemFromInventory,LockShopItemToggleAction);
+            shopCell.Construct(shopCellEntity, BuyShopCar, SetCarPartInfoPanel, TakeItemFromInventory, LockShopItemToggleAction);
         }
 
-        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(0)} <sprite name=\"CogIcon\">";
+        _sceneData.Value._shopUIView._updateItemsText.text =
+            $"{GetLocalization("Update for")} {GetShopUpdateCost(0)} <sprite name=\"CogIcon\">";
         SetShopCells(false);
         SetCarShopCells();
-        
-       _sceneData.Value._shopUIView._shopModeButton.onClick.AddListener(ChangeShopMode); 
+
+        _sceneData.Value._shopUIView._shopModeButton.onClick.AddListener(ChangeShopMode);
     }
 
     private void LockShopItemToggleAction(bool locked, Image toggleImage) {
-        toggleImage.sprite = locked? _sceneData.Value._shopUIView._lockSprite:_sceneData.Value._shopUIView._unlockSprite;
+        toggleImage.sprite = locked ? _sceneData.Value._shopUIView._lockSprite : _sceneData.Value._shopUIView._unlockSprite;
     }
+
     private float GetShopUpdateCost(int curUpdateCount) {
         return curUpdateCount + _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
     }
@@ -683,34 +690,36 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void ChangeShopMode() {
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         shopCmp.IsCarShopMode = !shopCmp.IsCarShopMode;
-        
-        _sceneData.Value._shopUIView._shopModeText.text = shopCmp.IsCarShopMode ? GetLocalization("Car shop") : GetLocalization("Car parts shop");
+
+        _sceneData.Value._shopUIView._shopModeText.text =
+            shopCmp.IsCarShopMode ? GetLocalization("Car shop") : GetLocalization("Car parts shop");
         _sceneData.Value._shopUIView._shopCarContainer.gameObject.SetActive(shopCmp.IsCarShopMode);
         _sceneData.Value._shopUIView._shopCarPartsContainer.gameObject.SetActive(!shopCmp.IsCarShopMode);
     }
+
     private void UpdateShopItems() {
-        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);   
+        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         ref var shopCmp = ref _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        
+
         float updateCost = GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound);
-     
+
         if (playerCurrencyCmp.MoneyCount >= updateCost) {
-            
             _sceneData.Value._shopUIView._buttonUpdateShop.transform.localEulerAngles = Vector3.zero;
             shopCmp.CurrentUpdateCountInRound++;
             // Анимация вращения на 360 градусов
             _sceneData.Value._shopUIView._buttonUpdateShop.transform.DORotate(
                 new Vector3(0, 0, -360f), // Отрицательное значение для вращения по часовой стрелке
                 0.7f, RotateMode.LocalAxisAdd).SetEase(Ease.OutBack);
-            
+
             SetShopCells(false);
             SetCarShopCells();
             SetMoneyCount(-updateCost);
-            
         } else {
             _sceneData.Value._shopUIView.NotEnoughMoneyAnimation();
         }
-        _sceneData.Value._shopUIView._updateItemsText.text = $"{GetLocalization("Update for")} {GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound)} <sprite name=\"CogIcon\">";
+
+        _sceneData.Value._shopUIView._updateItemsText.text =
+            $"{GetLocalization("Update for")} {GetShopUpdateCost(shopCmp.CurrentUpdateCountInRound)} <sprite name=\"CogIcon\">";
     }
 
     private void SetCarContainersContainerSize() {
@@ -736,48 +745,51 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._inventoryUIView._carPartsContainer.DOScale(startScale * 0.98f, 0.11f).SetEase(Ease.InQuad).OnComplete(() =>
             _sceneData.Value._inventoryUIView._carPartsContainer.DOScale(startScale, 0.11f).SetEase(Ease.OutQuad));
     }
+
     private void SetFirstCarPartContainer() {
-        (var carPartConfig,int level, float health, int[] moduleIds, float currentExp) = GetCurrentDraggedCellCarPartWithLevel();
-       
-        if (carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer) { 
+        (var carPartConfig, int level, float health, int[] moduleIds, float currentExp) = GetCurrentDraggedCellCarPartWithLevel();
+
+        if (carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer) {
             RemoveCurrentCarPart();
             _sceneData.Value._inventoryUIView._carPartsDownContainer.GetComponent<CellView>()._gridPosition = -Vector2Int.one;
-            ref var carCmp = ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
+            ref var carCmp =
+                ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
             var partSize = GridUtils.GetCarPartSize(carPartConfig);
             int carPartEntity = _world.Value.NewEntity();
-            ref var carPartCmp  = ref _carPartComponentsPool.Value.Add(carPartEntity);
-            ref var carPartInfoCmp  = ref _carPartInfoComponentsPool.Value.Add(carPartEntity);
+            ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartEntity);
+            ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Add(carPartEntity);
             carPartInfoCmp.CurrentExp = currentExp;
-           /* if (carPartConfig is WheelsContainerConfig wheelConfig) {
-                carCmp.CurrentMaxWeight += wheelConfig.MaxWeight;
-                Debug.Log(carCmp.CurrentMaxWeight);
-            }*/
-           carPartInfoCmp.ModuleIds = new int[moduleIds.Length];
-           Array.Copy(moduleIds,carPartInfoCmp.ModuleIds,moduleIds.Length);
-           
-           carPartInfoCmp.PartLevel = level;
-           carPartCmp.MaxHealth = carPartConfig.MaxHealth*GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
-           carPartInfoCmp.CurrentHealth = health;
+            /* if (carPartConfig is WheelsContainerConfig wheelConfig) {
+                 carCmp.CurrentMaxWeight += wheelConfig.MaxWeight;
+                 Debug.Log(carCmp.CurrentMaxWeight);
+             }*/
+            carPartInfoCmp.ModuleIds = new int[moduleIds.Length];
+            Array.Copy(moduleIds, carPartInfoCmp.ModuleIds, moduleIds.Length);
+
+            carPartInfoCmp.PartLevel = level;
+            carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
+            carPartInfoCmp.CurrentHealth = health;
             carPartCmp.CarPartCellImage = _sceneData.Value.GetCarPartUIImage(_sceneData.Value._inventoryUIView._carPartsDownContainer,
                 _sceneData.Value._inventoryUIView._carPartsDownContainer.position);
-            carPartCmp.CarPartCellImage.transform.localPosition = new Vector2(_sceneData.Value._inventoryUIView._carPartsDownContainer.sizeDelta.x / 2,
-               _sceneData.Value._inventoryUIView._carPartsDownContainer.sizeDelta.y / 2);
+            carPartCmp.CarPartCellImage.transform.localPosition = new Vector2(
+                _sceneData.Value._inventoryUIView._carPartsDownContainer.sizeDelta.x / 2,
+                _sceneData.Value._inventoryUIView._carPartsDownContainer.sizeDelta.y / 2);
             carPartCmp.CarPartCellImage.rectTransform.sizeDelta = _sceneData.Value._inventoryUIView._carPartsDownContainer.sizeDelta;
             carPartCmp.CarPartCellImage.sprite = carPartConfig.PartSprite;
             carCmp.CarPartContainerGroupsGrid = new int[partSize.x, partSize.y];
             carCmp.CarPartGroupsGrid = new int[partSize.x, partSize.y];
-            for (int i = 0; i < carCmp.CarPartContainerGroupsGrid.GetLength(0); i++)
-            {
+            for (int i = 0; i < carCmp.CarPartContainerGroupsGrid.GetLength(0); i++) {
                 for (int j = 0; j < carCmp.CarPartContainerGroupsGrid.GetLength(1); j++)
                     carCmp.CarPartContainerGroupsGrid[i, j] = carPartEntity;
             }
+
             SetCarContainersContainerSize();
-            carCmp.CarPartContainerGroupsList.Add(carPartEntity,carPartConfig.PartForm.ToList());
+            carCmp.CarPartContainerGroupsList.Add(carPartEntity, carPartConfig.PartForm.ToList());
             carPartInfoCmp.CarPartId = carPartConfig.Id;
             _sceneData.Value._inventoryUIView._placeFirstCarPartText.gameObject.SetActive(false);
             UpdateCarDescription(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
         } else {
-               CancelCarPartPlace(ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity));
+            CancelCarPartPlace(ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity));
         }
 
         CheckAllCarContainersForStability();
@@ -789,7 +801,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void RemoveCurrentCarPart() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         bool isBuyCell = _shopCellComponentsPool.Value.Has(inventoryCmp.CurrentDraggedCellEntity);
-      //  int partIndex;
+        //  int partIndex;
         if (!isBuyCell) {
             int cellId = _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).CellId;
 
@@ -798,10 +810,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
             int partsInInventoryIndex = inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length +
                                         cellId;
-           
+
             int cellEntity = GetSortedCarPartList()[partsInInventoryIndex];
-           _inventoryCellComponentsPool.Value.Del(cellEntity);
-           _carPartInfoComponentsPool.Value.Del(cellEntity);
+            _inventoryCellComponentsPool.Value.Del(cellEntity);
+            _carPartInfoComponentsPool.Value.Del(cellEntity);
             if (inventoryCmp.CurrentInventoryPage != 0 &&
                 !_sceneData.Value._inventoryUIView._inventoryCellViews[1].gameObject.activeInHierarchy)
                 inventoryCmp.CurrentInventoryPage--;
@@ -814,44 +826,48 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 return;
             }
 
-         //   partIndex = shopCellCmp.CurrentBuyItemId;
+            //   partIndex = shopCellCmp.CurrentBuyItemId;
         }
     }
-    private void SetCarPartContainer(Vector2 edgePosition) { 
-        (var carPartConfig, int level, float health, int[] moduleIds, float currentExp) =GetCurrentDraggedCellCarPartWithLevel();
 
-        if (carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer) {  
-            RemoveCurrentCarPart();   
+    private void SetCarPartContainer(Vector2 edgePosition) {
+        (var carPartConfig, int level, float health, int[] moduleIds, float currentExp) = GetCurrentDraggedCellCarPartWithLevel();
+
+        if (carPartConfig.PartType == CarPartType.CarStuffContainer || carPartConfig.PartType == CarPartType.WheelsContainer) {
+            RemoveCurrentCarPart();
             int carPartEntity = _world.Value.NewEntity();
             Vector2Int currentGridPosition = GetCurrentDragCarPartContainerGridPosition(edgePosition);
-           
-            var newFormCellPositions = GridUtils.GetCellsFromField(currentGridPosition, carPartConfig,0);
+
+            var newFormCellPositions = GridUtils.GetCellsFromField(currentGridPosition, carPartConfig, 0);
             int xOffsetUp = 0;
             int xOffsetDown = 0;
             int yOffsetUp = 0;
             int yOffsetDown = 0;
             Vector2Int carPartSize = GridUtils.GetCarPartSize(carPartConfig);
-            ref var carCmp = ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
-            Vector2Int carPartContainerGridSize = new (carCmp.CarPartContainerGroupsGrid.GetLength(0),
+            ref var carCmp =
+                ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
+            Vector2Int carPartContainerGridSize = new(carCmp.CarPartContainerGroupsGrid.GetLength(0),
                 carCmp.CarPartContainerGroupsGrid.GetLength(1));
-            
+
             if (currentGridPosition.x < 0)
-                xOffsetDown =currentGridPosition.x;
-            if (currentGridPosition.x + (carPartSize.x)> carPartContainerGridSize.x )
-                xOffsetUp = Mathf.Abs(currentGridPosition.x  + (carPartSize.x)- carPartContainerGridSize.x) ;
+                xOffsetDown = currentGridPosition.x;
+            if (currentGridPosition.x + (carPartSize.x) > carPartContainerGridSize.x)
+                xOffsetUp = Mathf.Abs(currentGridPosition.x + (carPartSize.x) - carPartContainerGridSize.x);
 
             if (currentGridPosition.y < 0)
-                yOffsetDown =currentGridPosition.y;
-            if (currentGridPosition.y + (carPartSize.y)> carPartContainerGridSize.y )
-                yOffsetUp =Mathf.Abs( currentGridPosition.y + (carPartSize.y) - carPartContainerGridSize.y);
-            
-            if (xOffsetUp != 0 || yOffsetUp != 0 || xOffsetDown != 0 || yOffsetDown != 0 )
+                yOffsetDown = currentGridPosition.y;
+            if (currentGridPosition.y + (carPartSize.y) > carPartContainerGridSize.y)
+                yOffsetUp = Mathf.Abs(currentGridPosition.y + (carPartSize.y) - carPartContainerGridSize.y);
+
+            if (xOffsetUp != 0 || yOffsetUp != 0 || xOffsetDown != 0 || yOffsetDown != 0)
                 carCmp.CarPartContainerGroupsGrid = new int[carPartContainerGridSize.x + Mathf.Abs(xOffsetUp) + Mathf.Abs(xOffsetDown),
-                    carPartContainerGridSize.y + Mathf.Abs(yOffsetUp)+ Mathf.Abs(yOffsetDown)];
+                    carPartContainerGridSize.y + Mathf.Abs(yOffsetUp) + Mathf.Abs(yOffsetDown)];
             if (carPartConfig is WheelsContainerConfig wheelConfig) {
-                carCmp.CurrentMaxWeight += wheelConfig.MaxWeight* GridUtils.GetMaxWeightLevelMultiplier(level)* GridUtils.GetModulesMultipliers(moduleIds).maxWeightMultiplier;
-             //   Debug.Log(carCmp.CurrentMaxWeight);
+                carCmp.CurrentMaxWeight += wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(level) *
+                                           GridUtils.GetModulesMultipliers(moduleIds).maxWeightMultiplier;
+                //   Debug.Log(carCmp.CurrentMaxWeight);
             }
+
             carPartContainerGridSize = new(carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1));
             carCmp.CarPartGroupsGrid = new int[carPartContainerGridSize.x, carPartContainerGridSize.y];
             if (xOffsetDown < 0)
@@ -859,7 +875,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             if (yOffsetDown < 0)
                 currentGridPosition.y -= yOffsetDown;
 
-            
             SetCarContainersContainerSize();
             Vector2 gridCellNewSize = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).OnCarCellSize;
             SetNewGridsFromLists(xOffsetDown, yOffsetDown, gridCellNewSize);
@@ -871,24 +886,21 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 if (yOffsetDown < 0)
                     newCell.y -= yOffsetDown;
 
-                if(!carCmp.CarPartContainerGroupsList.TryAdd(carPartEntity, new List<Vector2Int>{newCell}))
+                if (!carCmp.CarPartContainerGroupsList.TryAdd(carPartEntity, new List<Vector2Int> { newCell }))
                     carCmp.CarPartContainerGroupsList[carPartEntity].Add(newCell);
                 carCmp.CarPartContainerGroupsGrid[newCell.x, newCell.y] = carPartEntity;
-                
             }
-            
-            
-            
+
             ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartEntity);
             ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Add(carPartEntity);
             carPartInfoCmp.ModuleIds = new int[moduleIds.Length];
-            Array.Copy(moduleIds,carPartInfoCmp.ModuleIds,moduleIds.Length);
+            Array.Copy(moduleIds, carPartInfoCmp.ModuleIds, moduleIds.Length);
             carPartInfoCmp.CurrentHealth = health;
             carPartInfoCmp.CurrentExp = currentExp;
-           carPartCmp.MaxHealth = carPartConfig.MaxHealth*GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
+            carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
             Vector2 offset = (carPartSize - Vector2Int.one) * gridCellNewSize;
             if (carPartSize != Vector2Int.one)
-                offset = new Vector2(carPartSize.x - 1, carPartSize.y - 1)/2 * gridCellNewSize * _sceneData.Value.mainCanvas.localScale.x;
+                offset = new Vector2(carPartSize.x - 1, carPartSize.y - 1) / 2 * gridCellNewSize * _sceneData.Value.mainCanvas.localScale.x;
             Vector3 finalPosition = GetWorldPositionFromGrid(currentGridPosition) + offset;
             Sequence carPartSequence = DOTween.Sequence();
             carPartSequence.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform.DOMove(finalPosition, 0.2f)
@@ -896,12 +908,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             carPartSequence.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform
                 .DOSizeDelta(gridCellNewSize * carPartSize, 0.2f).SetEase(Ease.InOutQuad));
             carPartSequence.OnComplete(() => {
-                CreateCarPartContainerOnComplete(carPartEntity, finalPosition, carPartConfig, gridCellNewSize, carPartSize,level); 
+                CreateCarPartContainerOnComplete(carPartEntity, finalPosition, carPartConfig, gridCellNewSize, carPartSize, level);
                 CheckAllCarContainersForStability();
             });
-            
-          
-          //  carPartSequence.Play();
+
+            //  carPartSequence.Play();
         } else {
             CancelCarPartPlace(ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity));
         }
@@ -911,7 +922,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo);
         _sceneData.Value._subGridTransform.gameObject.SetActive(false);
         _sceneData.Value._gridMaskRect.gameObject.SetActive(false);
-        
     }
 
     private bool CheckAllCarContainersForStability(bool changeColor = true) {
@@ -920,11 +930,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var carPart in carCmp.CarPartContainerGroupsList) {
             var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPart.Key);
             if (GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.CarStuffContainer) {
-              
                 needCells.AddRange(carPart.Value);
             }
         }
-        
+
         return CheckCellsForStability(needCells, changeColor);
     }
 
@@ -939,7 +948,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     for (int i = 0; i < cellsToCheck.Count; i++) {
                         if (Mathf.Abs(wheelCell.x - cellsToCheck[i].x) <= checkRadius &&
                             Mathf.Abs(wheelCell.y - cellsToCheck[i].y) <= checkRadius) {
-                            
                             cellsToCheck.RemoveAt(i);
                             if (cellsToCheck.Count == 0) {
                                 if (changeColor) {
@@ -976,6 +984,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         return false;
     }
+
     private void SetNewGridsFromLists(int xOffsetDown, int yOffsetDown, Vector2 gridCellNewSize) {
         ref var carCmp =
             ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
@@ -1018,6 +1027,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 carCmp.CarPartGroupsList[carParts.Key][i] = newPos;
                 carCmp.CarPartGroupsGrid[newPos.x, newPos.y] = carParts.Key;
             }
+
             ref var carPartInfoOldCmp = ref _carPartInfoComponentsPool.Value.Get(carParts.Key);
             ref var carPartOldCmp = ref _carPartComponentsPool.Value.Get(carParts.Key);
             var oldCarPartConfig = GetCarPartConfig(carPartInfoOldCmp.CarPartId);
@@ -1065,21 +1075,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartCmp.CarPartCellImage.rectTransform.sizeDelta = gridCellNewSize * carPartSize;
         carPartCmp.CarPartCellImage.sprite = carPartConfig.PartSprite;
         UpdateCarDescription(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
-        
-        if(GetSortedCarPartList().Count == 0 && CanUseThisCarPartContainers())
+
+        if (GetSortedCarPartList().Count == 0 && CanUseThisCarPartContainers())
             SetCarPartRedactorMode();
 
-        
         // else 
         //    PlaceAnimationCarPartContainers();
-
     }
 
-    private CarPartType[] _firstCarPartTypesForShop = new[] {
-        CarPartType.Armor,
-        CarPartType.Gun,
-        CarPartType.MeleeWeapon
-    };
+    private CarPartType[] _firstCarPartTypesForShop = new[] { CarPartType.Armor, CarPartType.Gun, CarPartType.MeleeWeapon };
 
     private void SetShopCells(bool isShopSaleRound) {
         var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -1124,10 +1128,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var carPartConfig = isModulesMode ? null : GetCarPartConfig(randomItem);
             var moduleConfig = isModulesMode ? _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[randomItem] : null;
             int price = isModulesMode ? (int)moduleConfig.Cost : (int)carPartConfig.MoneyCost; //maybe mult cost for smth round pow 
-            price =Mathf.CeilToInt(price *inflationMultiplayer);
+            price = Mathf.CeilToInt(price * inflationMultiplayer);
             if (i == saleIndex || isShopSaleRound) {
                 float saleSize = isShopSaleRound ? Random.Range(2, 15) * 5 : Random.Range(1, 7) * 5;
-                
+
                 price = Mathf.Max(1, Mathf.FloorToInt(price * (1f - saleSize / 100f)));
                 shopButton.SetShopSaleInfo((int)saleSize);
             } else
@@ -1158,8 +1162,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsCarShop.Length; i++) {
             if (_sceneData.Value._shopUIView._buttonsCarShop[i].LockToggle.isOn) continue;
             //var carMapsList = carsList[GridUtils.GetRandomIndexFromChancesList(roundEnemyStuff.EnemyCarChances)].CarMapsList;
-          //  var carMap = carMapsList[Random.Range(0, carMapsList.Count)];
-          var carMap = GetRandomCarMap();
+            //  var carMap = carMapsList[Random.Range(0, carMapsList.Count)];
+            var carMap = GetRandomCarMap();
             var shopButton = _sceneData.Value._shopUIView._buttonsCarShop[i];
 
             ref var shopCellCmp = ref _shopCellCarComponentsPool.Value.Get(shopButton.Entity);
@@ -1184,18 +1188,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             SetCarUIForShopButton(shopButton.Entity);
         }
     }
-     
+
     private void SetShopCarContainersContainerSize(Image container, Vector2Int gridSize) {
-        float containerSizeX = gridSize.x > gridSize.y
-            ? 200f
-            : 200f * ((float)gridSize.x / gridSize.y);
-        float containerSizeY = gridSize.x < gridSize.y
-            ? 200f
-            : 200f * ((float)gridSize.y / gridSize.x);
+        float containerSizeX = gridSize.x > gridSize.y ? 200f : 200f * ((float)gridSize.x / gridSize.y);
+        float containerSizeY = gridSize.x < gridSize.y ? 200f : 200f * ((float)gridSize.y / gridSize.x);
         container.rectTransform.sizeDelta = new Vector2(containerSizeX, containerSizeY);
-        container.transform.localPosition = new Vector2(
-            (200 - containerSizeX)  / 2 - 101.1f,
-            (200 - containerSizeY)  / 2 -101.1f);
+        container.transform.localPosition = new Vector2((200 - containerSizeX) / 2 - 101.1f, (200 - containerSizeY) / 2 - 101.1f);
     }
 
     private void SetCarUIForShopButton(int cellEntity) {
@@ -1225,6 +1223,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
                                         carPartConfig.UpgradedPartCost * 0.3f * carPartInfo.level * (carPartInfo.level + 1) / 2);
         }
+
         foreach (var carPartInfo in carMap.CarPartUpLevelGrid) {
             var carPartConfig = GetCarPartConfig(carPartInfo.partId);
             carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
@@ -1239,7 +1238,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private async void SellCar(int carEntity) {
-        
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (inventoryCmp.CurrentRedactedCarEntity == carEntity) {
             if (!CanUseThisCarPartContainers()) {
@@ -1287,10 +1285,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
     }
+
     private float GetCarCost(int carEntity) {
         float carCost = 0;
         ref var carCmp = ref _carComponentsPool.Value.Get(carEntity);
-       // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        // ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
         carCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * 0.3f * carCmp.CarLevel * (carCmp.CarLevel + 1) / 2);
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
@@ -1307,7 +1306,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                                         carPartConfig.UpgradedPartCost * 0.3f * carPartCmp.PartLevel * (carPartCmp.PartLevel + 1) / 2);
         }
 
-        return carCost*0.5f;
+        return carCost * 0.5f;
     }
 
     private void BuyShopItem(int entity) {
@@ -1321,21 +1320,30 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var carPartConfig = GetCarPartConfig(shopCellCmp.CurrentBuyItemId);
             var moduleIds = new int[(int)carPartConfig.RartRare + 1];
             Array.Fill(moduleIds, -1);
-            AddInventoryItem(shopCellCmp.CurrentBuyItemId, 0, carPartConfig.MaxHealth, moduleIds,0);
+
+            Analytics.CustomEvent("item_buy",
+                new Dictionary<string, object> {
+                    { "carPartId", shopCellCmp.CurrentBuyItemId },
+                    { "round_number", _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound }
+                });
+         
+            Debug.Log($"Отправлено в аналитику: выбран предмет {shopCellCmp.CurrentBuyItemId}");
+
+            AddInventoryItem(shopCellCmp.CurrentBuyItemId, 0, carPartConfig.MaxHealth, moduleIds, 0);
         }
     }
-    
+
     private void BuyShopCar(int entity) {
         var shopCellCmp = _shopCellCarComponentsPool.Value.Get(entity);
         int maxTeammatesCount = 2;
-      //  if (_betweenScenesService.Value.IsCoop)
-         //   maxTeammatesCount = _serverValuesComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ClientsEntities.Count > 1 ? 1 : 2;
+        //  if (_betweenScenesService.Value.IsCoop)
+        //   maxTeammatesCount = _serverValuesComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ClientsEntities.Count > 1 ? 1 : 2;
         if (_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > maxTeammatesCount) {
             _sceneData.Value.PlayWarningAnimation(GetLocalization("No space in garage"), false);
-           return; 
+            return;
         }
-            
-        if (RemoveMoneyForBuy(shopCellCmp)) 
+
+        if (RemoveMoneyForBuy(shopCellCmp))
             return;
 
         AddNewTeammateCarToPlayer(shopCellCmp.CarMap);
@@ -1394,7 +1402,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
             ref var carInfoPartCmp = ref _carPartInfoComponentsPool.Value.Get(carPartEntity);
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
-            float upgradeCost = GridUtils.GetUpgradeCost(carInfoPartCmp.PartLevel, carPartConfig, carInfoPartCmp.ModuleIds)-carInfoPartCmp.CurrentExp;
+            float upgradeCost = GridUtils.GetUpgradeCost(carInfoPartCmp.PartLevel, carPartConfig, carInfoPartCmp.ModuleIds) -
+                                carInfoPartCmp.CurrentExp;
             if (playerCurrencyCmp.ExpPointsCount < upgradeCost) {
                 _sceneData.Value._shopUIView.NotEnoughExpAnimation();
                 return;
@@ -1407,31 +1416,32 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                                 GridUtils.GetModulesMultipliers(carInfoPartCmp.ModuleIds).healthMultiplayer;
             carInfoPartCmp.PartLevel++;
             carInfoPartCmp.CurrentHealth += addedHealth;
-            carPartCmp.MaxHealth = carPartConfig.MaxHealth *GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel);
+            carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel);
             SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
             carInfoPartCmp.CurrentExp = 0;
             SetExpCount(-upgradeCost);
             UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
         } else if (_inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
             ref var invCellCmp = ref _carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo);
-            
+
             var carPartConfig = _sceneData.Value.GetCarPartConfig(invCellCmp.CarPartId);
-            float upgradeCost = GridUtils.GetUpgradeCost( _sceneData.Value._carPartInfoUIView._level, carPartConfig,invCellCmp.ModuleIds)-invCellCmp.CurrentExp;
+            float upgradeCost = GridUtils.GetUpgradeCost(_sceneData.Value._carPartInfoUIView._level, carPartConfig, invCellCmp.ModuleIds) -
+                                invCellCmp.CurrentExp;
             if (playerCurrencyCmp.ExpPointsCount < upgradeCost) {
                 _sceneData.Value._shopUIView.NotEnoughExpAnimation();
                 return;
             }
-            
+
             SetExpCount(-upgradeCost);
-            float addedHealth = carPartConfig.MaxHealth *
-                                (GridUtils.GetHealthLevelMultiplier(invCellCmp.PartLevel+ 1) - GridUtils.GetHealthLevelMultiplier(invCellCmp.PartLevel ));
+            float addedHealth = carPartConfig.MaxHealth * (GridUtils.GetHealthLevelMultiplier(invCellCmp.PartLevel + 1) -
+                                                           GridUtils.GetHealthLevelMultiplier(invCellCmp.PartLevel));
             invCellCmp.PartLevel++;
             invCellCmp.CurrentHealth += addedHealth;
             _sceneData.Value._carPartInfoUIView._level = invCellCmp.PartLevel;
             invCellCmp.CurrentExp = 0;
             SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
             SetInventoryCells();
-        }  
+        }
     }
 
     private void UpgradeCarPartsAfterRoundCarPart(float addedXp) {
@@ -1456,7 +1466,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     carPartInfoCmp.PartLevel++;
                     carPartInfoCmp.CurrentHealth += addedHealth;
                     carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
-             //       SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
+                    //       SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
                 }
             }
 
@@ -1478,59 +1488,59 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     carPartInfoCmp.PartLevel++;
                     carPartInfoCmp.CurrentHealth += addedHealth;
                     carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
-                 //   SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
+                    //   SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
                 }
             }
         }
 
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
     }
-  /*  private void UpgradeMarkedCarPart() {
-        ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        // made -999 entity when tap on field grid
-        Debug.Log("Upgrade"+inventoryCmp.CurrentMarkedCellForPanelInfo);
-        if ( _carPartComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
-            var carPartConfig = _sceneData.Value.GetCarPartConfig(_sceneData.Value._carPartInfoUIView._currentPartInfoId);
-            var upgradedPartConfig = _sceneData.Value.GetCarPartConfig(carPartConfig.UpgradedPartId);
+    /*  private void UpgradeMarkedCarPart() {
+          ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+          ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+          // made -999 entity when tap on field grid
+          Debug.Log("Upgrade"+inventoryCmp.CurrentMarkedCellForPanelInfo);
+          if ( _carPartComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
+              var carPartConfig = _sceneData.Value.GetCarPartConfig(_sceneData.Value._carPartInfoUIView._currentPartInfoId);
+              var upgradedPartConfig = _sceneData.Value.GetCarPartConfig(carPartConfig.UpgradedPartId);
 
-            int carPartEntity = inventoryCmp.CurrentMarkedCellForPanelInfo;
-            if (carPartEntity == 0) return;
+              int carPartEntity = inventoryCmp.CurrentMarkedCellForPanelInfo;
+              if (carPartEntity == 0) return;
 
-            ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
-            carPartCmp.CarPartId = upgradedPartConfig.Id;
-            carPartCmp.carPartCellImage.sprite = upgradedPartConfig.PartSprite;
+              ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
+              carPartCmp.CarPartId = upgradedPartConfig.Id;
+              carPartCmp.carPartCellImage.sprite = upgradedPartConfig.PartSprite;
 
-            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(GetCarPartConfig(upgradedPartConfig.Id).UpgradedPartId !=
-                                                                                    0);
-            _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
-                GetCarPartConfig(upgradedPartConfig.Id).UpgradedPartCost <= playerCurrencyCmp.moneyCount;
-            SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo);
-            playerCurrencyCmp.moneyCount -= carPartConfig.UpgradedPartCost;
-            SetMoneyText();
-            UpdateCarDescription();
-        } else if (_inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
-            var invCellCmp = _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo);
- 
-            (int needCarPartId,int level )=
-                GetSortedCarPartList()[
-                    inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length + invCellCmp.CellId];
-            var carPartConfig = _sceneData.Value.GetCarPartConfig(needCarPartId);
-            playerCurrencyCmp.moneyCount -= carPartConfig.UpgradedPartCost;
-            SetMoneyText();
+              _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(GetCarPartConfig(upgradedPartConfig.Id).UpgradedPartId !=
+                                                                                      0);
+              _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
+                  GetCarPartConfig(upgradedPartConfig.Id).UpgradedPartCost <= playerCurrencyCmp.moneyCount;
+              SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo);
+              playerCurrencyCmp.moneyCount -= carPartConfig.UpgradedPartCost;
+              SetMoneyText();
+              UpdateCarDescription();
+          } else if (_inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
+              var invCellCmp = _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo);
 
-            var upgradedCarPartConfig = _sceneData.Value.GetCarPartConfig(carPartConfig.UpgradedPartId);
-            int newLevel = Mathf.Max(Mathf.CeilToInt(level * ((float)carPartConfig.UpgradedPartCost / upgradedCarPartConfig.UpgradedPartCost)),
-                1);
-            if (newLevel != 1)
-                //refund some money
-                inventoryCmp.PartsInInventory[inventoryCmp.PartsInInventory.IndexOf((needCarPartId, level))] =
-                    (upgradedCarPartConfig.Id, newLevel);
+              (int needCarPartId,int level )=
+                  GetSortedCarPartList()[
+                      inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length + invCellCmp.CellId];
+              var carPartConfig = _sceneData.Value.GetCarPartConfig(needCarPartId);
+              playerCurrencyCmp.moneyCount -= carPartConfig.UpgradedPartCost;
+              SetMoneyText();
 
-            SetInventoryCells();
-            CloseShowInfoPanel();
-        }  
-    }*/
+              var upgradedCarPartConfig = _sceneData.Value.GetCarPartConfig(carPartConfig.UpgradedPartId);
+              int newLevel = Mathf.Max(Mathf.CeilToInt(level * ((float)carPartConfig.UpgradedPartCost / upgradedCarPartConfig.UpgradedPartCost)),
+                  1);
+              if (newLevel != 1)
+                  //refund some money
+                  inventoryCmp.PartsInInventory[inventoryCmp.PartsInInventory.IndexOf((needCarPartId, level))] =
+                      (upgradedCarPartConfig.Id, newLevel);
+
+              SetInventoryCells();
+              CloseShowInfoPanel();
+          }
+      }*/
 
     private void SellMarkedCarPart() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -1542,7 +1552,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void SellModule(int entity) {
-       var moduleCmp = _moduleInventoryItemsPool.Value.Get(entity);
+        var moduleCmp = _moduleInventoryItemsPool.Value.Get(entity);
         SetMoneyCount(_betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleCmp.ModuleId].Cost);
         _moduleInventoryItemsPool.Value.Del(entity);
         CloseShowInfoPanel();
@@ -1581,7 +1591,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 carCmp.CarPartContainerGroupsList.Remove(carPartEntity);
 
                 if (carPartConfig is WheelsContainerConfig wheelConfig)
-                    carCmp.CurrentMaxWeight -= wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCmp.PartLevel)* GridUtils.GetModulesMultipliers(carPartCmp.ModuleIds).maxWeightMultiplier;
+                    carCmp.CurrentMaxWeight -= wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCmp.PartLevel) *
+                                               GridUtils.GetModulesMultipliers(carPartCmp.ModuleIds).maxWeightMultiplier;
             } else {
                 foreach (var carPartCellPosition in carCmp.CarPartGroupsList[carPartEntity]) {
                     carCmp.CarPartGroupsGrid[carPartCellPosition.x, carPartCellPosition.y] = 0;
@@ -1630,8 +1641,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         CloseShowInfoPanel();
     }
 
-    public (int upOffsetX, int upOffsetY, int downOffsetX, int downOffsetY) GetNonZeroOffsets(int[,] grid)
-    {
+    public (int upOffsetX, int upOffsetY, int downOffsetX, int downOffsetY) GetNonZeroOffsets(int[,] grid) {
         int rows = grid.GetLength(0);
         int cols = grid.GetLength(1);
         for (int i = 0; i < grid.GetLength(0); i++) {
@@ -1639,83 +1649,74 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             for (int j = 0; j < grid.GetLength(1); j++) {
                 debug += grid[i, j] + " ";
             }
+
             Debug.Log(debug);
         }
-        
-        
-        return (
-            CountZeroColumnsFromLeft(grid, rows, cols),
-            CountZeroRowsFromTop(grid, rows, cols),
-            CountZeroColumnsFromRight(grid, rows, cols),
-            CountZeroRowsFromBottom(grid, rows, cols)
-        );
+
+        return (CountZeroColumnsFromLeft(grid, rows, cols), CountZeroRowsFromTop(grid, rows, cols), CountZeroColumnsFromRight(grid, rows, cols),
+            CountZeroRowsFromBottom(grid, rows, cols));
     }
 
-    private int CountZeroRowsFromTop(int[,] grid, int rows, int cols)
-    {
-        for (int i = 0; i < rows; i++)
-        {
+    private int CountZeroRowsFromTop(int[,] grid, int rows, int cols) {
+        for (int i = 0; i < rows; i++) {
             if (!IsRowAllZero(grid, i, cols))
                 return i;
         }
+
         return rows;
     }
 
-    private int CountZeroRowsFromBottom(int[,] grid, int rows, int cols)
-    {
-        for (int i = rows - 1; i >= 0; i--)
-        {
+    private int CountZeroRowsFromBottom(int[,] grid, int rows, int cols) {
+        for (int i = rows - 1; i >= 0; i--) {
             if (!IsRowAllZero(grid, i, cols))
                 return rows - 1 - i;
         }
+
         return rows;
     }
 
-    private int CountZeroColumnsFromLeft(int[,] grid, int rows, int cols)
-    {
-        for (int j = 0; j < cols; j++)
-        {
+    private int CountZeroColumnsFromLeft(int[,] grid, int rows, int cols) {
+        for (int j = 0; j < cols; j++) {
             if (!IsColumnAllZero(grid, j, rows))
                 return j;
         }
+
         return cols;
     }
 
-    private int CountZeroColumnsFromRight(int[,] grid, int rows, int cols)
-    {
-        for (int j = cols - 1; j >= 0; j--)
-        {
+    private int CountZeroColumnsFromRight(int[,] grid, int rows, int cols) {
+        for (int j = cols - 1; j >= 0; j--) {
             if (!IsColumnAllZero(grid, j, rows))
                 return cols - 1 - j;
         }
+
         return cols;
     }
 
-    private bool IsRowAllZero(int[,] grid, int rowIndex, int cols)
-    {
-        for (int j = 0; j < cols; j++)
-        {
+    private bool IsRowAllZero(int[,] grid, int rowIndex, int cols) {
+        for (int j = 0; j < cols; j++) {
             if (grid[rowIndex, j] != 0)
                 return false;
         }
+
         return true;
     }
 
-    private bool IsColumnAllZero(int[,] grid, int colIndex, int rows)
-    {
-        for (int i = 0; i < rows; i++)
-        {
+    private bool IsColumnAllZero(int[,] grid, int colIndex, int rows) {
+        for (int i = 0; i < rows; i++) {
             if (grid[i, colIndex] != 0)
                 return false;
         }
+
         return true;
     }
+
     private void BackCarPartInPanelInfo() {
-       // NextCarPartInPanelInfo();
+        // NextCarPartInPanelInfo();
     }
 
     private void UpdateCarStats(int entity) {
-          ref var carCmp = ref _carComponentsPool.Value.Get(entity);
+        ref var carCmp = ref _carComponentsPool.Value.Get(entity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
 
         (float baseSpeedMultiplier, float baseRotateSpeedMultiplier, float baseAccelerationMultiplier, float baseMaxFuelMultiplier) =
@@ -1725,12 +1726,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float carRotateSpeed = carConfig.RotateSpeed * baseRotateSpeedMultiplier;
         float carWeight = 0;
         float carMaxWeight = 0;
-        
+
         ref var moveCmp = ref _movementComponentsPool.Value.Get(entity);
-        
+
         float maxFuel = carConfig.DefaultMaxFuel * baseMaxFuelMultiplier;
         moveCmp.MaxBoostMoveSpeed = carConfig.BoostSpeedMultiplayer * baseAccelerationMultiplier;
-        float defaultFuelConsumption = carConfig.FuelСonsumption; 
+        float defaultFuelConsumption = carConfig.FuelСonsumption;
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
         fuelCmp.MaxElectricity = carConfig.DefaultMaxElectricity;
         fuelCmp.ElectricityConsumption = 0;
@@ -1748,32 +1749,27 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             carWeight += carPartConfig.Weight;
             if (carPartConfig.PartType == CarPartType.Support) {
                 var supportPartConfig = _sceneData.Value.GetSupportModuleFromCarPart(carPartId);
-                (float firstMultiplayer,float secondMultiplayer)= GridUtils.GetSupportLevelMultipliers(carPartCellCmp.PartLevel, supportPartConfig.ModuleType);
+                (float firstMultiplayer, float secondMultiplayer) =
+                    GridUtils.GetSupportLevelMultipliers(carPartCellCmp.PartLevel, supportPartConfig.ModuleType);
                 if (supportPartConfig.ModuleType == SupportModuleType.Fuel)
-                    maxFuel += supportPartConfig.FirstCount*firstMultiplayer;
+                    maxFuel += supportPartConfig.FirstCount * firstMultiplayer;
                 else if (supportPartConfig.ModuleType == SupportModuleType.Turbine) {
-                    moveCmp.MaxBoostMoveSpeed += supportPartConfig.SecondCount*secondMultiplayer;
-                    fuelCmp.AddedFuelConsumption += supportPartConfig.FirstCount*firstMultiplayer;
-                }
-                else if(supportPartConfig.ModuleType == SupportModuleType.Battery)
-                    fuelCmp.MaxElectricity += supportPartConfig.FirstCount*firstMultiplayer;
+                    moveCmp.MaxBoostMoveSpeed += supportPartConfig.SecondCount * secondMultiplayer;
+                    fuelCmp.AddedFuelConsumption += supportPartConfig.FirstCount * firstMultiplayer;
+                } else if (supportPartConfig.ModuleType == SupportModuleType.Battery)
+                    fuelCmp.MaxElectricity += supportPartConfig.FirstCount * firstMultiplayer;
                 else if (supportPartConfig.ModuleType == SupportModuleType.Heater) {
-                    var consumption = supportPartConfig.SecondCount*supportPartConfig.FirstCount*firstMultiplayer/25f;
+                    var consumption = supportPartConfig.SecondCount * supportPartConfig.FirstCount * firstMultiplayer / 25f;
                     fuelCmp.ElectricityConsumption += consumption;
-                    fuelCmp.ConstantElectricityConsumption+= consumption;
-                }
-                    
-                else if (supportPartConfig.ModuleType == SupportModuleType.ElectricGenerator) {
+                    fuelCmp.ConstantElectricityConsumption += consumption;
+                } else if (supportPartConfig.ModuleType == SupportModuleType.ElectricGenerator) {
                     if (supportPartConfig.SecondCount != 0) {
                         fuelCmp.ConstantFuelElectricityReplenishment += supportPartConfig.FirstCount * firstMultiplayer;
                         fuelCmp.ConstantFuelToElectricityConsumption += supportPartConfig.SecondCount * secondMultiplayer;
                     } else
                         fuelCmp.ConstantElectricityReplenishment += supportPartConfig.FirstCount * firstMultiplayer;
                 }
-                
-                   
-            }
-            else if (carPartConfig.PartType == CarPartType.Gun) {
+            } else if (carPartConfig.PartType == CarPartType.Gun) {
                 var gunConfig = _sceneData.Value.GetGunFromCarPart(carPartId);
                 (float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount,
                         float reloadSpeedMultiplayer, float maxWeightMultiplier, float wheelRotateSpeedMultiplier, float magSizeMultiplier) =
@@ -1798,13 +1794,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     fuelCmp.ElectricityConsumption += gunConfig.RotateSpeed / 20f;
                     fuelCmp.ConstantElectricityConsumption += gunConfig.RotateSpeed / 20f;
                 }
-            }
-            else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
+            } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
                 var meleeConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(carPartId);
                 fuelCmp.ConstantFuelConsumption += meleeConfig.FuelConsumption;
             }
         }
-     
+
         fuelCmp.MaxFuel = maxFuel;
         fuelCmp.FuelConsumption = defaultFuelConsumption;
         float rotateSpeedMultiplier = 1;
@@ -1818,7 +1813,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                                 GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds).maxWeightMultiplier;
                 rotateSpeedMultiplier += GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds).wheelRotateSpeedMultiplier - 1;
             }
-              
         }
 
         carCmp.CurrentWeight = carWeight;
@@ -1828,10 +1822,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carRotateSpeed *= 1 - weightFactor;
         defaultMaxCarSpeed = Mathf.Max(defaultMaxCarSpeed, 0);
         moveCmp.MaxBoostMoveSpeed += defaultMaxCarSpeed;
-        moveCmp.Acceleration = carConfig.Acceleration*baseAccelerationMultiplier;
-        moveCmp.Deceleration = carConfig.Deceleration*baseAccelerationMultiplier;
+        moveCmp.Acceleration = carConfig.Acceleration * baseAccelerationMultiplier;
+        moveCmp.Deceleration = carConfig.Deceleration * baseAccelerationMultiplier;
         moveCmp.MaxMoveSpeed = defaultMaxCarSpeed;
-        moveCmp.RotateSpeed = carRotateSpeed*rotateSpeedMultiplier;
+        moveCmp.RotateSpeed = carRotateSpeed * rotateSpeedMultiplier;
     }
 
     private void UpdateCarDescription(int entity) {
@@ -1842,27 +1836,27 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         var fuelCmp = _fuelComponentsPool.Value.Get(entity);
         var carStatTexts = _sceneData.Value._inventoryUIView._carStatTexts;
         carStatTexts[0].text = $"{fuelCmp.MaxFuel} {GetLocalization("L")}";
-        carStatTexts[1].text = $"{fuelCmp.ConstantFuelConsumption+fuelCmp.ConstantFuelToElectricityConsumption} {GetLocalization("L/s")}";
+        carStatTexts[1].text = $"{fuelCmp.ConstantFuelConsumption + fuelCmp.ConstantFuelToElectricityConsumption} {GetLocalization("L/s")}";
         carStatTexts[2].text = $"{carCmp.CurrentWeight:F1}/\n{carCmp.CurrentMaxWeight} {GetLocalization("kg")}";
         carStatTexts[3].text = $" {moveCmp.MaxMoveSpeed:F1} {GetLocalization("m/s")} ";
         carStatTexts[4].text = $" {moveCmp.MaxBoostMoveSpeed:F1} {GetLocalization("m/s")} ";
         carStatTexts[5].text = $" {moveCmp.Acceleration:F1}";
         carStatTexts[6].text = $" {moveCmp.RotateSpeed:F1}";
         carStatTexts[7].text = $" {moveCmp.Deceleration:F1}";
-        carStatTexts[8].text =
-            $" {fuelCmp.FuelConsumption:F1}\n(+{fuelCmp.AddedFuelConsumption})\n{GetLocalization("L/s")}";
+        carStatTexts[8].text = $" {fuelCmp.FuelConsumption:F1}\n(+{fuelCmp.AddedFuelConsumption})\n{GetLocalization("L/s")}";
         carStatTexts[9].text = $" {fuelCmp.MaxElectricity:F1} {GetLocalization("w")} ";
-        carStatTexts[10].text = $" {fuelCmp.ConstantElectricityReplenishment+fuelCmp.ConstantFuelElectricityReplenishment:F1} {GetLocalization("w/s")} ";
+        carStatTexts[10].text =
+            $" {fuelCmp.ConstantElectricityReplenishment + fuelCmp.ConstantFuelElectricityReplenishment:F1} {GetLocalization("w/s")} ";
         carStatTexts[11].text = $" {fuelCmp.ElectricityConsumption:F1} {GetLocalization("w/s")} ";
-       
-      //  _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =$"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel} {GetLocalization("lvl")}"  ;
-           /* {GetLocalization("Max move speed")}:
-            $"\n {GetLocalization("Added boosted speed")}: {moveCmp.MaxBoostMoveSpeed:F1} " +
-            $"{GetLocalization("m/s")} (+ {fuelCmp.FuelConsumption - carConfig.FuelСonsumption + carConfig.AccelerationFuelСonsumption} {GetLocalization("fuel consumption")})" +
-            $" \n {GetLocalization("Default fuel consumption")} {fuelCmp.FuelConsumption} \n {GetLocalization("Constant fuel consumption")} {fuelCmp.ConstantFuelConsumption}" +
-            $" \n {GetLocalization("Rotate speed")}: {moveCmp.RotateSpeed} {GetLocalization("m/s")} " +
-            $"\n {GetLocalization("Weight")}: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} {GetLocalization("kg")} \n {GetLocalization("Fuel")}: {fuelCmp.MaxFuel}" +
-            $"\n {GetLocalization("Electricity consumption")}: {fuelCmp.ElectricityConsumption:F1}w/{GetLocalization("s")}\n {GetLocalization("Max electricity")}: {fuelCmp.MaxElectricity:F1}w";*/
+
+        //  _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =$"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel} {GetLocalization("lvl")}"  ;
+        /* {GetLocalization("Max move speed")}:
+         $"\n {GetLocalization("Added boosted speed")}: {moveCmp.MaxBoostMoveSpeed:F1} " +
+         $"{GetLocalization("m/s")} (+ {fuelCmp.FuelConsumption - carConfig.FuelСonsumption + carConfig.AccelerationFuelСonsumption} {GetLocalization("fuel consumption")})" +
+         $" \n {GetLocalization("Default fuel consumption")} {fuelCmp.FuelConsumption} \n {GetLocalization("Constant fuel consumption")} {fuelCmp.ConstantFuelConsumption}" +
+         $" \n {GetLocalization("Rotate speed")}: {moveCmp.RotateSpeed} {GetLocalization("m/s")} " +
+         $"\n {GetLocalization("Weight")}: {carCmp.CurrentWeight:F1}/{carCmp.CurrentMaxWeight} {GetLocalization("kg")} \n {GetLocalization("Fuel")}: {fuelCmp.MaxFuel}" +
+         $"\n {GetLocalization("Electricity consumption")}: {fuelCmp.ElectricityConsumption:F1}w/{GetLocalization("s")}\n {GetLocalization("Max electricity")}: {fuelCmp.MaxElectricity:F1}w";*/
     }
 
     private void HideCarStatInfo() {
@@ -1870,6 +1864,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.DOScale(0, 0.3f).OnComplete(() =>
             _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.gameObject.SetActive(false));
     }
+
     private void SetCarStatInfo(string needText, Vector2 needPosition) {
         _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.position = needPosition;
         _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.localScale = Vector3.zero;
@@ -1887,10 +1882,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         var carId = mapConfig.GameProcessConfig.EnemyCarIndexes[Random.Range(0, mapConfig.GameProcessConfig.EnemyCarIndexes.Length)];
         EnemyCarPartsMaps carMap = ScriptableObject.CreateInstance<EnemyCarPartsMaps>();
         var carBaseList = _sceneData.Value._carStuffListsConfig.CarBasesForCars[carId].CarPartBasesForLevel;
-       
+
         List<CarBaseMapConfig> carBases;
         if (!carBaseList.TryGetValue(roundNumber, out carBases)) {
-            for (int i = roundNumber-1; i >= 0; i--) {
+            for (int i = roundNumber - 1; i >= 0; i--) {
                 if (carBaseList.TryGetValue(i, out carBases))
                     break;
             }
@@ -1914,6 +1909,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         return carMap;
     }
+
     private void SetCarPartInfoPanel(int entity, bool isCanClose = true) {
         int needCarPartId = 0;
         bool showDestroyButton = false;
@@ -1945,25 +1941,26 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             currentHealth = cellCmp.CurrentHealth;
             needCarPartId = cellCmp.CarPartId;
             currentExp = cellCmp.CurrentExp;
-            
+            level = cellCmp.PartLevel;
             var currentCarPartConfig = GetCarPartConfig(needCarPartId);
-            healCost = GetHealCostForCarPart(_carPartComponentsPool.Value.Get(carPartEntity).MaxHealth, currentHealth, currentCarPartConfig);
+            healCost = GetHealCostForCarPart(_carPartComponentsPool.Value.Get(carPartEntity).MaxHealth, currentHealth, level,
+                currentCarPartConfig);
             bool isContainer = GridUtils.IsContainerType(currentCarPartConfig);
             if (currentCarPartConfig.PartType != CarPartType.Main && !isContainer)
                 showDestroyButton = true;
             showMoveButton = !isContainer || AreNonZeroAndNonDeletedConnected(
                 _carComponentsPool.Value.Get(inventoryCmp.CurrentRedactedCarEntity).CarPartContainerGroupsGrid, carPartEntity);
-            level = cellCmp.PartLevel;
+
             _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(currentCarPartConfig.PartType != CarPartType.Main);
             _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
-                GridUtils.GetUpgradeCost(level, currentCarPartConfig,moduleIds) <= playerCurrencyCmp.ExpPointsCount;
+                GridUtils.GetUpgradeCost(level, currentCarPartConfig, moduleIds) <= playerCurrencyCmp.ExpPointsCount;
             inventoryCmp.CurrentMarkedCellForPanelInfo = carPartEntity;
-        } 
-        else if (_moduleInventoryItemsPool.Value.Has(entity)) {
+        } else if (_moduleInventoryItemsPool.Value.Has(entity)) {
             if (inventoryCmp.CurrentSelectedModuleCellId != -1) {
                 EquipModuleToCarPart(entity);
                 return;
             }
+
             if (inventoryCmp.CurrentMarkedCellForPanelInfo == entity && isCanClose) {
                 CloseShowInfoPanel();
                 return;
@@ -1971,17 +1968,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
             SetModuleInfoPanel(entity);
             return;
-        }
-        else if (_inventoryCellComponentsPool.Value.Has(entity)) {
-           
+        } else if (_inventoryCellComponentsPool.Value.Has(entity)) {
             if (inventoryCmp.CurrentMarkedCellForPanelInfo == entity && isCanClose) {
                 CloseShowInfoPanel();
                 return;
             }
 
-          //  int cellEntity =
-         //       GetSortedCarPartList()[
-              //      inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length + invCellCmp.CellId];
+            //  int cellEntity =
+            //       GetSortedCarPartList()[
+            //      inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length + invCellCmp.CellId];
             var inventoryCellCmp = _carPartInfoComponentsPool.Value.Get(entity);
             needCarPartId = inventoryCellCmp.CarPartId;
             moduleIds = inventoryCellCmp.ModuleIds;
@@ -1990,12 +1985,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             currentExp = inventoryCellCmp.CurrentExp;
             var currentCarPartConfig = GetCarPartConfig(needCarPartId);
             _sceneData.Value._carPartInfoUIView._switchButtonsContainer.gameObject.SetActive(false);
-            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(
-                currentCarPartConfig.PartType != CarPartType.Main);
+            _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(currentCarPartConfig.PartType != CarPartType.Main);
             _sceneData.Value._carPartInfoUIView._upgradeButton.enabled =
-                GridUtils.GetUpgradeCost(level, currentCarPartConfig,moduleIds) <= playerCurrencyCmp.ExpPointsCount;
+                GridUtils.GetUpgradeCost(level, currentCarPartConfig, moduleIds) <= playerCurrencyCmp.ExpPointsCount;
             inventoryCmp.CurrentMarkedCellForPanelInfo = entity;
-            healCost = GetHealCostForCarPart(currentCarPartConfig.MaxHealth, currentHealth, currentCarPartConfig);
+            healCost = GetHealCostForCarPart(currentCarPartConfig.MaxHealth, currentHealth, level, currentCarPartConfig);
             if (currentCarPartConfig.PartType != CarPartType.Main && !GridUtils.IsContainerType(currentCarPartConfig))
                 showDestroyButton = true;
         } else if (_shopCellComponentsPool.Value.Has(entity)) {
@@ -2008,6 +2002,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 SetModuleInfoPanel(entity);
                 return;
             }
+
             var shopCellCmp = _shopCellComponentsPool.Value.Get(entity);
 
             needCarPartId = shopCellCmp.CurrentBuyItemId;
@@ -2016,36 +2011,36 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             inventoryCmp.CurrentMarkedCellForPanelInfo = entity;
             currentHealth = GetCarPartConfig(shopCellCmp.CurrentBuyItemId).MaxHealth;
         }
-        
+
         _sceneData.Value._carPartInfoUIView.gameObject.SetActive(true);
         _sceneData.Value._carPartInfoUIView.SetPanelForNeededPart(GetCarPartConfig(needCarPartId), showDestroyButton, showMoveButton, level,
-            currentHealth, healCost, entity >= 0 && _shopCellComponentsPool.Value.Has(entity),moduleIds,currentExp );
+            currentHealth, healCost, entity >= 0 && _shopCellComponentsPool.Value.Has(entity), moduleIds, currentExp);
     }
 
     private void SetModuleInfoPanel(int entity) {
         var moduleId = _moduleInventoryItemsPool.Value.Has(entity)
             ? _moduleInventoryItemsPool.Value.Get(entity).ModuleId
             : _shopCellComponentsPool.Value.Get(entity).CurrentBuyItemId;
-        
+
         _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo = entity;
         _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
         _sceneData.Value._carPartInfoUIView.gameObject.SetActive(true);
-        _sceneData.Value._carPartInfoUIView.SetPanelForModuleInfo(
-            _betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleId]);
+        _sceneData.Value._carPartInfoUIView.SetPanelForModuleInfo(_betweenScenesService.Value._carStuffListsConfig.ModuleConfigs[moduleId]);
     }
 
     private void CloseShowInfoPanel() {
         _sceneData.Value._carPartInfoUIView.gameObject.SetActive(false);
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         inventoryCmp.CurrentMarkedCellForPanelInfo = 0;
-        
-        if(inventoryCmp.CurrentSelectedModuleCellId != -1)
+
+        if (inventoryCmp.CurrentSelectedModuleCellId != -1)
             CancelModuleSelect();
     }
-    
+
     private void SetVisibleMoneyCount(float needCount) {
         _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).VisibleMoneyCount = needCount;
     }
+
     private void SetVisibleExpCount(float needCount) {
         _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).VisibleExpPointsCount = needCount;
     }
@@ -2068,6 +2063,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         // Анимация иконки
         _sceneData.Value._shopUIView.AddMoneyAnimation();
     }
+
     private void SetExpCount(float count) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         ref var playerCurrency = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
@@ -2091,8 +2087,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         bool isInventoryCell = _inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentDraggedCellEntity);
         if (isInventoryCell) {
             int curDraggedInventoryCell = _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).CellId;
-         
-                inventoryCmp.CurrentTween = DOTween.Sequence();
+
+            inventoryCmp.CurrentTween = DOTween.Sequence();
             // Sequence returnSequence = DOTween.Sequence();
             inventoryCmp.CurrentTween.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform
                 .DOSizeDelta(new Vector2(80, 80), 0.3f).SetEase(Ease.InBack));
@@ -2107,8 +2103,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             });
         } else {
             int curDraggedShopCell = _shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).ShopButtonIndex;
-           
-                inventoryCmp.CurrentTween = DOTween.Sequence();
+
+            inventoryCmp.CurrentTween = DOTween.Sequence();
             //   Sequence returnSequence = DOTween.Sequence();
             inventoryCmp.CurrentTween.Join(_sceneData.Value._inventoryUIView._draggedInventoryCell.rectTransform
                 .DOSizeDelta(new Vector2(80, 80), 0.3f).SetEase(Ease.InBack));
@@ -2123,9 +2119,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         _sceneData.Value._subGridTransform.gameObject.SetActive(false);
-        
-       // inventoryCmp.CurrentDraggedCellEntity = -1;
-        
+
+        // inventoryCmp.CurrentDraggedCellEntity = -1;
+
         inventoryCmp.CurrentCellCarPart = null;
     }
 
@@ -2134,12 +2130,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private bool CanPlacedOnCarCell() {
-        var carDraggedCell = GetCurrentDraggedCellCarPart()/*.PartType*/;
+        var carDraggedCell = GetCurrentDraggedCellCarPart() /*.PartType*/;
         if (carDraggedCell.PartType == CarPartType.CarStuffContainer || carDraggedCell.PartType == CarPartType.WheelsContainer) return false;
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         var carCmp = _carComponentsPool.Value.Get(inventoryCmp.CurrentRedactedCarEntity);
 
-       
         return CanPlaceCarPartOnField(carDraggedCell, /*inventoryCmp.CurrentCellCarPart._gridPosition*/
             inventoryCmp.LastCheckedGridCellPosition, carCmp.CarPartGroupsGrid, carCmp.CarPartContainerGroupsGrid);
     }
@@ -2156,7 +2151,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         return true;
     }
 
-    private (CarPartConfig, int level, float health, int[] , float currentExp) GetCurrentDraggedCellCarPartWithLevel() {
+    private (CarPartConfig, int level, float health, int[], float currentExp) GetCurrentDraggedCellCarPartWithLevel() {
         int playerEntity = _sceneData.Value.PlayerEntity;
 
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(playerEntity);
@@ -2166,15 +2161,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                                         cellId;
             var inventoryPartIndex = GetSortedCarPartList()[partsInInventoryIndex];
             var inventoryCellCmp = _carPartInfoComponentsPool.Value.Get(inventoryPartIndex);
-            return (GetCarPartConfig(inventoryCellCmp.CarPartId),inventoryCellCmp.PartLevel, inventoryCellCmp.CurrentHealth, inventoryCellCmp.ModuleIds, inventoryCellCmp.CurrentExp);
+            return (GetCarPartConfig(inventoryCellCmp.CarPartId), inventoryCellCmp.PartLevel, inventoryCellCmp.CurrentHealth,
+                inventoryCellCmp.ModuleIds, inventoryCellCmp.CurrentExp);
         } else {
             int cellId = _shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).CurrentBuyItemId;
             var carPartConfig = GetCarPartConfig(cellId);
             var moduleIds = new int[(int)carPartConfig.RartRare + 1];
             Array.Fill(moduleIds, -1);
-            return (carPartConfig, 1,carPartConfig.MaxHealth, moduleIds,0);
+            return (carPartConfig, 1, carPartConfig.MaxHealth, moduleIds, 0);
         }
-        
     }
 
     private CarPartConfig GetCurrentDraggedCellCarPart() {
@@ -2192,41 +2187,39 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             return GetCarPartConfig(cellId);
         }
     }
-    public Vector2Int GetGridPosition(Vector2 localPosition)
-    {
+
+    public Vector2Int GetGridPosition(Vector2 localPosition) {
         Vector2 adjustedPosition = localPosition;
-        
-        var carCmp  =_carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
-     
-        Vector2 effectiveCellSize = new Vector2(200,200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
-            carCmp.CarPartContainerGroupsGrid.GetLength(1)) ;
+
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
+
+        Vector2 effectiveCellSize = new Vector2(200, 200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
+            carCmp.CarPartContainerGroupsGrid.GetLength(1));
         effectiveCellSize *= _sceneData.Value._inventoryUIView._carPartsContainer.localScale;
-        int gridX = Mathf.FloorToInt((adjustedPosition.x) / effectiveCellSize.x  );
+        int gridX = Mathf.FloorToInt((adjustedPosition.x) / effectiveCellSize.x);
         int gridY = Mathf.FloorToInt((adjustedPosition.y) / effectiveCellSize.y);
-        
+
         return new Vector2Int(gridX, gridY);
     }
-    
-    public Vector2 GetWorldPositionFromGrid(Vector2Int gridPosition, Transform container = null,Vector2 effectiveCellSize = new Vector2())
-    {
-        var carCmp  =_carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
+
+    public Vector2 GetWorldPositionFromGrid(Vector2Int gridPosition, Transform container = null, Vector2 effectiveCellSize = new Vector2()) {
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
 
         if (effectiveCellSize == Vector2.zero)
             effectiveCellSize = new Vector2(200, 200) / Mathf.Max(carCmp.CarPartContainerGroupsGrid.GetLength(0),
                 carCmp.CarPartContainerGroupsGrid.GetLength(1));
         float posX = (gridPosition.x * effectiveCellSize.x) + (effectiveCellSize.x / 2);
         float posY = (gridPosition.y * effectiveCellSize.y) + (effectiveCellSize.y / 2);
-        Vector2 localPosition = new (posX, posY);
+        Vector2 localPosition = new(posX, posY);
         if (!container)
             container = _sceneData.Value._inventoryUIView._carPartsDownContainer;
-        Vector3 worldPosition =  container.TransformPoint(localPosition);
-        
+        Vector3 worldPosition = container.TransformPoint(localPosition);
+
         return worldPosition;
     }
 
     private Vector2Int GetCurrentDragCarPartContainerGridPosition(Vector2 needPos) {
-        
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_sceneData.Value._inventoryUIView._carPartsDownContainer,needPos, null,
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_sceneData.Value._inventoryUIView._carPartsDownContainer, needPos, null,
             out Vector2 localPosition);
         localPosition *= _sceneData.Value._inventoryUIView._carPartsContainer.localScale;
         Vector2Int gridPos = GetGridPosition(localPosition);
@@ -2244,8 +2237,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         if (!isBuyCell) {
             ref var invCellCmp = ref _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity);
             int cellId = invCellCmp.CellId;
-           // if (inventoryCmp.CurrentMarkedCellForPanelInfo == _sceneData.Value._inventoryUIView._inventoryCellViews[cellId]._entity)
-               
+            // if (inventoryCmp.CurrentMarkedCellForPanelInfo == _sceneData.Value._inventoryUIView._inventoryCellViews[cellId]._entity)
 
             int partsInInventoryIndex = inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length +
                                         cellId;
@@ -2256,7 +2248,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             currentExp = cellCmp.CurrentExp;
             currentHealth = cellCmp.CurrentHealth;
             moduleIds = new int[cellCmp.ModuleIds.Length];
-            Array.Copy(cellCmp.ModuleIds,moduleIds,cellCmp.ModuleIds.Length);
+            Array.Copy(cellCmp.ModuleIds, moduleIds, cellCmp.ModuleIds.Length);
             _inventoryCellComponentsPool.Value.Del(cellEntity);
             if (inventoryCmp.CurrentInventoryPage != 0 &&
                 !_sceneData.Value._inventoryUIView._inventoryCellViews[1].gameObject.activeInHierarchy)
@@ -2271,7 +2263,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
 
             var carPartConfig = GetCarPartConfig(shopCellCmp.CurrentBuyItemId);
-            moduleIds = new int[(int)carPartConfig.RartRare +1];
+            moduleIds = new int[(int)carPartConfig.RartRare + 1];
             Array.Fill(moduleIds, -1);
             level = 0;
             currentHealth = GetCarPartConfig(shopCellCmp.CurrentBuyItemId).MaxHealth;
@@ -2285,18 +2277,18 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartInfoCmp.CarPartId = partIndex;
         carPartInfoCmp.PartLevel = level;
         carPartInfoCmp.CurrentExp = currentExp;
-        carPartInfoCmp.ModuleIds =new int[moduleIds.Length];
-        Array.Copy(moduleIds,carPartInfoCmp.ModuleIds,moduleIds.Length);
+        carPartInfoCmp.ModuleIds = new int[moduleIds.Length];
+        Array.Copy(moduleIds, carPartInfoCmp.ModuleIds, moduleIds.Length);
         carPartInfoCmp.CurrentHealth = currentHealth;
         var partInfo = GetCarPartConfig(partIndex);
-        carPartCmp.MaxHealth = partInfo.MaxHealth*GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
-        
+        carPartCmp.MaxHealth = partInfo.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
+
         Vector2Int carPartSize = GridUtils.GetCarPartSize(partInfo);
         Sequence returnSequence = DOTween.Sequence();
-        
-        if (inventoryCmp.CurrentRotateDegrees == 90 || inventoryCmp.CurrentRotateDegrees == 270) 
+
+        if (inventoryCmp.CurrentRotateDegrees == 90 || inventoryCmp.CurrentRotateDegrees == 270)
             carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
-        
+
         Vector2 offset = carPartSize * inventoryCmp.OnCarCellSize - inventoryCmp.OnCarCellSize;
         if (carPartSize != Vector2Int.one) {
             offset = new Vector2(carPartSize.x - 1, carPartSize.y - 1) / 2 * inventoryCmp.OnCarCellSize *
@@ -2307,7 +2299,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         var worldPos = GetWorldPositionFromGrid(gridPos);
         returnSequence.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform.DOMove(worldPos + offset, 0.1f)
             .SetEase(Ease.InOutQuad)).OnComplete(() => { SetCarPartInfo(worldPos, partInfo, carPartEntity, gridPos, offset); });
-      
+
         inventoryCmp.CurrentDraggedCellEntity = -1;
         inventoryCmp.CurrentCellCarPart = null;
     }
@@ -2323,21 +2315,21 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
         carCmp.CarPartContainerGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
         carCmp.CarPartGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
-        
+
         ref var moveCmp = ref _movementComponentsPool.Value.Add(teammateEntity);
         ref var fuelCmp = ref _fuelComponentsPool.Value.Add(teammateEntity);
         _enemyAIComponentsPool.Value.Add(teammateEntity);
-        foreach (var carContainer in carMap.CarPartDownLevelGrid) 
+        foreach (var carContainer in carMap.CarPartDownLevelGrid)
             SetCarPartFromCarMap(teammateEntity, carContainer);
-        
-        foreach (var carContainer in carMap.CarPartUpLevelGrid) 
+
+        foreach (var carContainer in carMap.CarPartUpLevelGrid)
             SetCarPartFromCarMap(teammateEntity, carContainer);
-        
+
         for (int i = 0; i < _sceneData.Value._inventoryUIView._selectCarButtons.Length; i++) {
             var selectCarButton = _sceneData.Value._inventoryUIView._selectCarButtons[i];
             selectCarButton.gameObject.SetActive(i < inventoryCmp.PlayerTeammateCarsEntity.Count);
             if (i < inventoryCmp.PlayerTeammateCarsEntity.Count) {
-              //  Debug.Log(inventoryCmp.PlayerTeammateCarsEntity.Count + " deb int");
+                //  Debug.Log(inventoryCmp.PlayerTeammateCarsEntity.Count + " deb int");
                 _sceneData.Value._inventoryUIView._selectCarButtons[i].sellCarText.text =
                     GetCarCost(inventoryCmp.PlayerTeammateCarsEntity[i]) + "$";
             }
@@ -2374,7 +2366,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
             if (carPartConfig.PartType == CarPartType.Gun)
                 _gunComponentsPool.Value.Add(carPartCellEntity);
-            else if(carPartConfig.PartType == CarPartType.MeleeWeapon)
+            else if (carPartConfig.PartType == CarPartType.MeleeWeapon)
                 _meleeWeaponComponentsPool.Value.Add(carPartCellEntity);
         }
 
@@ -2389,10 +2381,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartInfoCmp.CarPartId = carPartsInfo.partId;
         carPartCmp.RotateDegrees = carPartsInfo.rotate;
     }
-    private void ClearAndSetNewCarUI(int newCarIndex) { 
+
+    private void ClearAndSetNewCarUI(int newCarIndex) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        
-        if(inventoryCmp.SelectCarButtonsNotInteractable ||inventoryCmp.PlayerTeammateCarsEntity[newCarIndex] == inventoryCmp.CurrentRedactedCarEntity  )return;
+
+        if (inventoryCmp.SelectCarButtonsNotInteractable ||
+            inventoryCmp.PlayerTeammateCarsEntity[newCarIndex] == inventoryCmp.CurrentRedactedCarEntity) return;
         if (!CanUseThisCarPartContainers()) {
             _sceneData.Value.PlayWarningAnimation(GetLocalization("The car is unstable and needs wheels") + "!", false);
             return;
@@ -2402,14 +2396,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value.PlayWarningAnimation(GetLocalization("Place the engine and driver's cabin on the car") + "!", false);
             return;
         }
+
         Sequence sequence = DOTween.Sequence();
-        
+
         sequence.AppendCallback(ClearCarUI);
         inventoryCmp.SelectCarButtonsNotInteractable = true;
         sequence.AppendInterval(0.5f);
-       
-        sequence.AppendCallback(()=> SetNewCarUI(newCarIndex));
-        
+
+        sequence.AppendCallback(() => SetNewCarUI(newCarIndex));
+
         sequence.Play();
     }
 
@@ -2420,6 +2415,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
             ClearNeededCarPartUi(carPartInfo.Key);
         }
+
         foreach (var carPartInfo in carCmp.CarPartGroupsList) {
             ClearNeededCarPartUi(carPartInfo.Key);
         }
@@ -2476,6 +2472,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._inventoryUIView._carIconImage.sprite = _sceneData.Value.GetCarConfig(carCmp.CarId).CarIcon;
         inventoryCmp.SelectCarButtonsNotInteractable = false;
     }
+
     private bool MainPartIsPlaced() {
         foreach (var cellEntity in _inventoryCellComponentsFilter.Value) {
             if (_sceneData.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(cellEntity).CarPartId).PartType == CarPartType.Main)
@@ -2534,6 +2531,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
     }
+
     private void SetCarPartInfo(Vector2 worldPosition, CarPartConfig partInfo, int carPartCmpEntity, Vector2Int gridPosition,
         Vector2 imageOffset) {
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartCmpEntity);
@@ -2558,7 +2556,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartCmp.RotateDegrees = inventoryCmp.CurrentRotateDegrees;
         carPartCmp.CarPartCellImage.transform.eulerAngles = new Vector3(0, 0, inventoryCmp.CurrentRotateDegrees);
         carPartCmp.MainEntity = inventoryCmp.CurrentRedactedCarEntity;
-        carPartCmp.MaxHealth = partInfo.MaxHealth*GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
+        carPartCmp.MaxHealth = partInfo.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
         carPartCmp.CarPartCellImage.rectTransform.sizeDelta = inventoryCmp.OnCarCellSize * carPartSize;
         if (partInfo.PartType == CarPartType.Gun) {
             ref var gunCmp = ref _gunComponentsPool.Value.Add(carPartCmpEntity);
@@ -2585,78 +2583,68 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         PlaceAnimationCarPartContainers();
-       
+
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
     }
-    public bool AreNonZeroAndNonDeletedConnected(int[,] grid, int deletedInt)
-    {
+
+    public bool AreNonZeroAndNonDeletedConnected(int[,] grid, int deletedInt) {
         int rows = grid.GetLength(0);
         int cols = grid.GetLength(1);
-    
+
         // Находим первую ячейку, которая не 0 и не deletedInt
         int startRow = -1, startCol = -1;
         bool foundStart = false;
-    
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                if (grid[i, j] != 0 && grid[i, j] != deletedInt)
-                {
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i, j] != 0 && grid[i, j] != deletedInt) {
                     startRow = i;
                     startCol = j;
                     foundStart = true;
                     break;
                 }
             }
+
             if (foundStart) break;
         }
-    
+
         // Если не нашли ни одной подходящей ячейки, считаем что все "связаны"
         if (!foundStart) return true;
-    
+
         // Обход в ширину (BFS) для поиска всех связанных ячеек
         bool[,] visited = new bool[rows, cols];
         Queue<(int, int)> queue = new Queue<(int, int)>();
-    
+
         queue.Enqueue((startRow, startCol));
         visited[startRow, startCol] = true;
-    
+
         // Направления: вверх, вправо, вниз, влево
-        int[] dr = {-1, 0, 1, 0};
-        int[] dc = {0, 1, 0, -1};
-    
-        while (queue.Count > 0)
-        {
+        int[] dr = { -1, 0, 1, 0 };
+        int[] dc = { 0, 1, 0, -1 };
+
+        while (queue.Count > 0) {
             var (r, c) = queue.Dequeue();
-        
-            for (int i = 0; i < 4; i++)
-            {
+
+            for (int i = 0; i < 4; i++) {
                 int nr = r + dr[i];
                 int nc = c + dc[i];
-            
-                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && 
-                    !visited[nr, nc] && 
-                    grid[nr, nc] != 0 && grid[nr, nc] != deletedInt)
-                {
+
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr, nc] && grid[nr, nc] != 0 && grid[nr, nc] != deletedInt) {
                     visited[nr, nc] = true;
                     queue.Enqueue((nr, nc));
                 }
             }
         }
-    
+
         // Проверяем, все ли подходящие ячейки были посещены
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                if (grid[i, j] != 0 && grid[i, j] != deletedInt && !visited[i, j])
-                {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i, j] != 0 && grid[i, j] != deletedInt && !visited[i, j]) {
                     return false; // Нашли непосещенную подходящую ячейку
                 }
             }
         }
-    
+
         return true;
     }
 
@@ -2665,8 +2653,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         Vector2Int lastWheelMinMaxY = Vector2Int.zero;
 
         if (!CheckAllCarContainersForStability(false)) return false;
-        
-        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
+
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
         foreach (var carPartContainer in carCmp.CarPartContainerGroupsList) {
             var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPartContainer.Key);
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartCmp.CarPartId);
@@ -2674,11 +2662,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 wheelsCount++;
                 Vector2Int edgePoint = GridUtils.GetEdgePointFromCarPart(carPartContainer.Value);
                 Vector2Int partSize = GridUtils.GetCarPartSize(carPartConfig);
-                if(_sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).CanBeMonoWheel)
+                if (_sceneData.Value.GetWheelContainerFromCarPart(carPartCmp.CarPartId).CanBeMonoWheel)
                     return true;
                 if (wheelsCount == 1) {
                     lastWheelMinMaxY = new Vector2Int(edgePoint.y, edgePoint.y + partSize.y - 1);
-                } else if( lastWheelMinMaxY.x > (edgePoint.y + partSize.y - 1) || lastWheelMinMaxY.y < edgePoint.y) {
+                } else if (lastWheelMinMaxY.x > (edgePoint.y + partSize.y - 1) || lastWheelMinMaxY.y < edgePoint.y) {
                     return true;
                 }
             }
@@ -2686,11 +2674,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         return false;
     }
+
     private bool CanPlaceCarPartsContainerOnField(Vector2Int position) {
         var partInfo = GetCurrentDraggedCellCarPart();
         if (!GridUtils.IsContainerType(partInfo)) return false;
-        var needCells = GridUtils.GetCellsFromField(position, partInfo,0);
-        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
+        var needCells = GridUtils.GetCellsFromField(position, partInfo, 0);
+        var carCmp = _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
         foreach (var cell in needCells) {
             if (GridUtils.IsPositionInGrid(cell, carCmp.CarPartContainerGroupsGrid) && carCmp.CarPartContainerGroupsGrid[cell.x, cell.y] != 0)
                 return false;
@@ -2722,8 +2711,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
 
-        
-
         return hasCarPartContainersAround;
     }
 
@@ -2735,7 +2722,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartInfoCmp.PartLevel = level;
         carPartInfoCmp.ModuleIds = new int[moduleIds.Length];
         carPartInfoCmp.CurrentExp = currentExp;
-        Array.Copy(moduleIds,carPartInfoCmp.ModuleIds,moduleIds.Length);
+        Array.Copy(moduleIds, carPartInfoCmp.ModuleIds, moduleIds.Length);
         carPartInfoCmp.CurrentHealth = currentHealth;
         SetInventoryCells();
     }
@@ -2743,15 +2730,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetInventoryCell(int cellEntity, int cellNumber) {
         var inventoryCell = _sceneData.Value._inventoryUIView._inventoryCellViews[cellNumber];
         inventoryCell.gameObject.SetActive(true);
-           ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(cellEntity);
-        var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[carPartInfoCmp.CarPartId]; 
-    
+        ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(cellEntity);
+        var carPartConfig = _sceneData.Value._carStuffListsConfig.CarPartConfigs[carPartInfoCmp.CarPartId];
+
         if (GridUtils.IsWeaponType(carPartConfig)) {
             (Sprite upSprite, Vector2 size, Vector2 position) =
                 GetUpperPartSizesForUI(inventoryCell._inventoryCellImage.rectTransform.sizeDelta, carPartConfig);
-            inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, upSprite, size, position,cellEntity);
-        } else 
-            inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero,cellEntity);
+            inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, upSprite, size, position, cellEntity);
+        } else
+            inventoryCell.SetInventoryCellSprite(carPartConfig.PartSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero,
+                cellEntity);
     }
 
     private void SetModuleInventoryCell(int cellEntity, int cellNumber) {
@@ -2772,35 +2760,36 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             if (gunConfig.UpPartSprite != null) {
                 var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
                 cellSizeDelta = new Vector2(Math.Max(cellSizeDelta.x, cellSizeDelta.y), Math.Max(cellSizeDelta.x, cellSizeDelta.y));
-                cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * GridUtils.InWorldCellSize) * gunConfig.UpPartSprite.rect.size;
+                cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * GridUtils.InWorldCellSize) *
+                           gunConfig.UpPartSprite.rect.size;
                 needPosition = cellSizeDelta / Math.Max(carPartSize.x, carPartSize.y) * gunConfig.UpPartPosition;
-                upSprite = gunConfig.UpPartSprite != null? gunConfig.UpPartSprite : _sceneData.Value._transparentPixel;
+                upSprite = gunConfig.UpPartSprite != null ? gunConfig.UpPartSprite : _sceneData.Value._transparentPixel;
             }
         }
+
         if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
             var meleeConfig = _sceneData.Value.GetMeleeWeaponFromCarPart(carPartConfig.Id);
             if (meleeConfig.UpSprite != null) {
                 var carPartSize = GridUtils.GetCarPartSize(carPartConfig);
                 cellSizeDelta = new Vector2(Math.Max(cellSizeDelta.x, cellSizeDelta.y), Math.Max(cellSizeDelta.x, cellSizeDelta.y));
-                cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * GridUtils.InWorldCellSize) * meleeConfig.UpSprite.rect.size;
+                cellSize = cellSizeDelta / (Math.Max(carPartSize.x, carPartSize.y) * GridUtils.InWorldCellSize) *
+                           meleeConfig.UpSprite.rect.size;
                 needPosition = cellSizeDelta / Math.Max(carPartSize.x, carPartSize.y) * meleeConfig.UpSpritePosition;
-                upSprite = meleeConfig.UpSprite != null? meleeConfig.UpSprite : _sceneData.Value._transparentPixel;
+                upSprite = meleeConfig.UpSprite != null ? meleeConfig.UpSprite : _sceneData.Value._transparentPixel;
             }
         }
 
         return (upSprite, cellSize, needPosition);
     }
-    
 
     private void SetupInventoryCells() {
         int i = 0;
         foreach (var inventoryCell in _sceneData.Value._inventoryUIView._inventoryCellViews) {
-          
             int cellId = i;
             inventoryCell.Construct( /*_world.Value,*/ TakeItemFromInventory, cellId, SetCarPartInfoPanel);
             i++;
         }
-        
+
         _sceneData.Value._inventoryUIView._inventoryModeButton.onClick.AddListener(ChangeInventoryModeForButton);
         _sceneData.Value._inventoryUIView._inventoryModeText.text = GetLocalization("Car");
         _sceneData.Value._inventoryUIView._changeToRedactModeText.text = GetLocalization("Redact down level");
@@ -2808,10 +2797,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void TakeItemFromInventory(int cellEntity) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        Debug.Log("Try take item"+inventoryCmp.CurrentDraggedCellEntity + " but need "+cellEntity);
+        Debug.Log("Try take item" + inventoryCmp.CurrentDraggedCellEntity + " but need " + cellEntity);
         if ((_shopCellComponentsPool.Value.Has(cellEntity) && _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsModulesShop) ||
             _moduleInventoryItemsPool.Value.Has(cellEntity) || inventoryCmp.CurrentDraggedCellEntity != -1) return;
-       
+
         inventoryCmp.IsTryDraggedCell = true;
         inventoryCmp.CurrentCellCarPart = null;
         inventoryCmp.CurrentDraggedCellEntity = cellEntity;
@@ -2820,7 +2809,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetSortButtons() {
         for (int i = 0; i < _sceneData.Value._inventoryUIView._sortButtons.Length; i++) {
             CarPartType sortType = (CarPartType)i;
-            
+
             var sortButton = _sceneData.Value._inventoryUIView._sortButtons[i];
             EventTrigger.Entry clickEntry = new EventTrigger.Entry();
             clickEntry.eventID = EventTriggerType.PointerClick;
@@ -2853,7 +2842,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             else
                 animateButton.DOLocalMoveY(63, 0.3f);
         } else {
-            if (inventoryCmp.SortedCarPartType.Contains(sortType)||
+            if (inventoryCmp.SortedCarPartType.Contains(sortType) ||
                 (sortType == CarPartType.All && inventoryCmp.SortedCarPartType.Count == 7) ||
                 (sortType == CarPartType.None && inventoryCmp.SortedCarPartType.Count == 0))
                 animateButton.DOLocalMoveY(67, 0.3f);
@@ -2861,11 +2850,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 animateButton.DOLocalMoveY(60, 0.3f);
         }
     }
+
     private void SortCarParts(CarPartType carPartType, bool isInteractWithMouse = true) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         if (carPartType == CarPartType.None) {
             inventoryCmp.SortedCarPartType = new List<CarPartType>();
-            
+
             int index = 0;
             foreach (var sortButton in _sceneData.Value._inventoryUIView._sortButtons) {
                 if (index == 0) {
@@ -2875,11 +2865,10 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     sortButton.buttonImage.sprite = sortButton.unactiveSprite;
                     sortButton.transform.DOLocalMoveY(60, 0.3f);
                 }
-               
+
                 index++;
             }
-        } 
-        else if (carPartType == CarPartType.All) {
+        } else if (carPartType == CarPartType.All) {
             inventoryCmp.SortedCarPartType = new List<CarPartType>() {
                 CarPartType.Armor,
                 CarPartType.CarStuffContainer,
@@ -2901,6 +2890,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     sortButton.buttonImage.sprite = sortButton.unactiveSprite;
                     sortButton.transform.DOLocalMoveY(60, 0.3f);
                 }
+
                 index++;
             }
         } else {
@@ -2940,7 +2930,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 allButton.transform.DOLocalMoveY(60, 0.3f);
             }
         }
-     
+
         inventoryCmp.CurrentInventoryPage = 0;
 
         SetInventoryCells();
@@ -2974,22 +2964,23 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float itemsCount = inventoryCmp.IsModuleInventoryMode ? GetModulesList().Count : (float)GetSortedCarPartList().Count;
         inventoryCmp.CurrentInventoryPage--;
         if (inventoryCmp.CurrentInventoryPage < 0)
-            inventoryCmp.CurrentInventoryPage = Mathf.FloorToInt(itemsCount /
-                                                                 _sceneData.Value._inventoryUIView._inventoryCellViews.Length);
+            inventoryCmp.CurrentInventoryPage = Mathf.FloorToInt(itemsCount / _sceneData.Value._inventoryUIView._inventoryCellViews.Length);
 
         SetInventoryCells();
     }
 
     private void SetCarGrid() {
-        ref var carCmp = ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity );
-      
-        _sceneData.Value._inventoryUIView._carPartsDownContainer.GetComponent<CellView>().Construct(-Vector2Int.one*999, SetCurrentCarCell, -999, SetCarPartInfoPanel);
-        
+        ref var carCmp =
+            ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
+
+        _sceneData.Value._inventoryUIView._carPartsDownContainer.GetComponent<CellView>()
+            .Construct(-Vector2Int.one * 999, SetCurrentCarCell, -999, SetCarPartInfoPanel);
+
         carCmp.CarPartGroupsGrid = new int[0, 0];
         carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
-        carCmp.CarPartContainerGroupsGrid= new int[3,3];
+        carCmp.CarPartContainerGroupsGrid = new int[3, 3];
         carCmp.CarPartContainerGroupsList = new Dictionary<int, List<Vector2Int>>();
-        AddMainCarParts(_sceneData.Value.GetCarConfig(_sceneData.Value._defaultCarConfigId)); 
+        AddMainCarParts(_sceneData.Value.GetCarConfig(_sceneData.Value._defaultCarConfigId));
     }
 
     private void AddMainCarParts(CarConfig carConfig) {
@@ -2997,7 +2988,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var carPartConfig = GetCarPartConfig(carPartId);
             var moduleIds = new int[(int)carPartConfig.RartRare + 1];
             Array.Fill(moduleIds, -1);
-            AddInventoryItem(carPartId,0, carPartConfig.MaxHealth,moduleIds,0);
+            AddInventoryItem(carPartId, 0, carPartConfig.MaxHealth, moduleIds, 0);
         }
     }
 
@@ -3008,9 +2999,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
     private void SetInventoryCells() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        int inventoryItemsCount = inventoryCmp.IsModuleInventoryMode
-            ? GetModulesList().Count
-            : GetSortedCarPartList().Count;
+        int inventoryItemsCount = inventoryCmp.IsModuleInventoryMode ? GetModulesList().Count : GetSortedCarPartList().Count;
         if ((float)inventoryItemsCount / _sceneData.Value._inventoryUIView._inventoryCellViews.Length > 1.03f) {
             _sceneData.Value._inventoryUIView._inventoryArrowsContainer.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._pageNumberText.text = inventoryCmp.CurrentInventoryPage + "/" +
@@ -3061,6 +3050,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             ChangeInventoryMode();
         }
     }
+
     private void ChangeInventoryMode() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         inventoryCmp.IsModuleInventoryMode = !inventoryCmp.IsModuleInventoryMode;
@@ -3070,7 +3060,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._inventoryModeText.text = GetLocalization("Car");
 
         inventoryCmp.CurrentInventoryPage = 0;
-        
+
         SetInventoryCells();
     }
 
@@ -3078,23 +3068,24 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         int moduleEntity = _world.Value.NewEntity();
         _moduleInventoryItemsPool.Value.Add(moduleEntity).ModuleId = moduleId;
-        if(inventoryCmp.IsModuleInventoryMode)
+        if (inventoryCmp.IsModuleInventoryMode)
             SetInventoryCells();
-        
     }
+
     private void SelectModuleCell(int cellId) {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-        if(_carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo).ModuleIds[cellId] != -1)return;
+        if (_carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo).ModuleIds[cellId] != -1) return;
         if (inventoryCmp.CurrentSelectedModuleCellId == cellId) {
             CancelModuleSelect();
             return;
         }
+
         inventoryCmp.CurrentSelectedModuleCellId = cellId;
         if (!inventoryCmp.IsModuleInventoryMode)
             ChangeInventoryMode();
         else
             SetInventoryCells();
-        if(GetModulesList().Count == 0)
+        if (GetModulesList().Count == 0)
             _sceneData.Value._inventoryUIView._noModulesTextInventory.gameObject.SetActive(true);
 
         _sceneData.Value._inventoryUIView._cancelModuleTextPanelInfo.position =
@@ -3103,7 +3094,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void SetModuleWindowInfo(bool isHide, int index) {
-        if(!_carPartInfoComponentsPool.Value.Has(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo))return;
+        if (!_carPartInfoComponentsPool.Value.Has(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity)
+                .CurrentMarkedCellForPanelInfo)) return;
         int moduleId = _carPartInfoComponentsPool.Value
             .Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentMarkedCellForPanelInfo).ModuleIds[index];
 
@@ -3133,7 +3125,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._carPartInfoUIView._moduleWindow.DOScale(0, 0.3f)
                 .OnComplete(() => _sceneData.Value._carPartInfoUIView._moduleWindow.gameObject.SetActive(false));
         }
-        
     }
 
     private void CancelModuleSelect() {
@@ -3163,13 +3154,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         carPartInfoCmp.ModuleIds[inventoryCmp.CurrentSelectedModuleCellId] = moduleCmp.ModuleId;
 
-       CancelModuleSelect();
-       SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
-       if (GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.WheelsContainer)
-           UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
-       _moduleInventoryItemsPool.Value.Del(moduleEntity);
+        CancelModuleSelect();
+        SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
+        if (GetCarPartConfig(carPartInfoCmp.CarPartId).PartType == CarPartType.WheelsContainer)
+            UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
+        _moduleInventoryItemsPool.Value.Del(moduleEntity);
     }
-    
+
     private void ActivateGiveCarPartsWindow() {
         var giveCarPartsUiView = _sceneData.Value._givingCarPartsUIView;
         giveCarPartsUiView._getAllButton.gameObject.SetActive(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity)
@@ -3182,7 +3173,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         var carPartConfig = GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]);
         var moduleIds = new int[(int)carPartConfig.RartRare + 1];
         Array.Fill(moduleIds, -1);
-        AddInventoryItem(inventoryCmp.CurrentGivenItems[0], 0,carPartConfig.MaxHealth,moduleIds,0);
+        AddInventoryItem(inventoryCmp.CurrentGivenItems[0], 0, carPartConfig.MaxHealth, moduleIds, 0);
         inventoryCmp.CurrentGivenItems.RemoveAt(0);
         ActivateGiveCarPartsWindow();
     }
@@ -3193,13 +3184,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var carPartConfig = GetCarPartConfig(givenItemId);
             var moduleIds = new int[(int)carPartConfig.RartRare + 1];
             Array.Fill(moduleIds, -1);
-            AddInventoryItem(givenItemId, 0, carPartConfig.MaxHealth, moduleIds,0);
+            AddInventoryItem(givenItemId, 0, carPartConfig.MaxHealth, moduleIds, 0);
         }
 
         inventoryCmp.CurrentGivenItems = new List<int>();
         ActivateGiveCarPartsWindow();
     }
-    
+
     private void SellCarPartAndActiveNext() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         SetMoneyCount(GridUtils.GetSellValueForCarPart(_sceneData.Value.GetCarPartConfig(inventoryCmp.CurrentGivenItems[0]), 1, null));
@@ -3245,17 +3236,16 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             ref _carComponentsPool.Value.Get(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
         var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
         _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
-            $"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel+1} {GetLocalization("lvl")}";
-        
+            $"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel + 1} {GetLocalization("lvl")}";
+
         if (carCmp.CarLevel > 15) {
             _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = false;
             _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Max level")}";
         } else {
             _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = true;
             var upgradeCost = Mathf.FloorToInt(carConfig.CarUpgradeCost * (1 + carCmp.CarLevel * 0.3f));
-            _sceneData.Value._inventoryUIView._upgradeCarButtonText.text =/*{GetLocalization("Upgrade car")}*/ $"{upgradeCost}$";
+            _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = /*{GetLocalization("Upgrade car")}*/ $"{upgradeCost}$";
         }
-      
     }
 
     private void IncriseCarLevel() {
@@ -3368,7 +3358,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(cellEntity);
         var carPartConfig = GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(cellEntity).CarPartId);
         ref var carCmp = ref _carComponentsPool.Value.Get(carPartCmp.MainEntity);
-    
+
         foreach (var cellPos in carCmp.CarPartGroupsList[cellEntity]) {
             carCmp.CarPartGroupsGrid[cellPos.x, cellPos.y] = 0;
         }
@@ -3379,6 +3369,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         return carPartConfig.PartType == CarPartType.Main;
     }
+
     private void HealAllCarPart() {
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(inventoryCmp.CurrentRedactedCarEntity);
@@ -3387,20 +3378,21 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._shopUIView.NotEnoughMoneyAnimation();
             return;
         }
+
         SetMoneyCount(-healCost);
         foreach (var carPartEntity in carCmp.CarPartContainerGroupsList)
             HealCarPart(carPartEntity.Key);
 
         foreach (var carPartEntity in carCmp.CarPartGroupsList)
             HealCarPart(carPartEntity.Key);
-        
+
         _sceneData.Value._inventoryUIView._healCarButton.gameObject.SetActive(false);
     }
 
     private void UpdateHealAllCarPartButton() {
         float healCost = GetHealAllCarPartCost();
-        _sceneData.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost>0);
-        _sceneData.Value._inventoryUIView._healCarText.text = $"{GetLocalization("Heal all car for")} {healCost} <sprite name=\"CogIcon\">";
+        _sceneData.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost > 0);
+        _sceneData.Value._inventoryUIView._healCarText.text = $"{GetLocalization("Heal all car for")} {healCost:F2} <sprite name=\"CogIcon\">";
     }
 
     private float GetHealAllCarPartCost() {
@@ -3410,20 +3402,20 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var carPartEntity in carCmp.CarPartContainerGroupsList) {
             var carPartCmp = _carPartComponentsPool.Value.Get(carPartEntity.Key);
             var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartEntity.Key);
-            healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth, GetCarPartConfig(carPartInfoCmp.CarPartId));
+            healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth,carPartInfoCmp.PartLevel, GetCarPartConfig(carPartInfoCmp.CarPartId));
         }
 
         foreach (var carPartEntity in carCmp.CarPartGroupsList) {
             var carPartCmp = _carPartComponentsPool.Value.Get(carPartEntity.Key);
             var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartEntity.Key);
-            healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth, GetCarPartConfig(carPartInfoCmp.CarPartId));
+            healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth,carPartInfoCmp.PartLevel, GetCarPartConfig(carPartInfoCmp.CarPartId));
         }
 
         return healCost;
     }
 
-    private float GetHealCostForCarPart(float maxHp,float currentHp, CarPartConfig carPartConfig) {
-        return carPartConfig.MoneyCost * (1f-currentHp / maxHp) / 4;
+    private float GetHealCostForCarPart(float maxHp, float currentHp, int carPartLevel, CarPartConfig carPartConfig) {
+        return carPartConfig.MoneyCost * (1f - currentHp / maxHp) / 4 * (0.2f * carPartLevel);
     }
 
     private void HealMarkedCarPart() {
@@ -3432,17 +3424,18 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         if (_carPartComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
             ref var carPartCmp = ref _carPartComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo);
             ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo);
-            cost = GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth, GetCarPartConfig(carPartInfoCmp.CarPartId));
+            cost = GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth,carPartInfoCmp.PartLevel, GetCarPartConfig(carPartInfoCmp.CarPartId));
         } else if (_inventoryCellComponentsPool.Value.Has(inventoryCmp.CurrentMarkedCellForPanelInfo)) {
             ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(inventoryCmp.CurrentMarkedCellForPanelInfo);
             var carPartConfig = GetCarPartConfig(carPartInfoCmp.CarPartId);
-            cost = GetHealCostForCarPart(carPartConfig.MaxHealth, carPartInfoCmp.CurrentHealth, carPartConfig);
+            cost = GetHealCostForCarPart(carPartConfig.MaxHealth, carPartInfoCmp.CurrentHealth,carPartInfoCmp.PartLevel, carPartConfig);
         }
 
         if (cost > _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).MoneyCount) {
             _sceneData.Value._shopUIView.NotEnoughMoneyAnimation();
             return;
         }
+
         HealCarPart(inventoryCmp.CurrentMarkedCellForPanelInfo);
         SetMoneyCount(-cost);
         _sceneData.Value._carPartInfoUIView._healCarPartButton.gameObject.SetActive(false);
@@ -3454,20 +3447,24 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carPartInfoCmp.CurrentHealth = GetCarPartConfig(carPartInfoCmp.CarPartId).MaxHealth *
                                        GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel) *
                                        GridUtils.GetModulesMultipliers(carPartInfoCmp.ModuleIds).healthMultiplayer;
-        
+
         UpdateHealAllCarPartButton();
     }
-    
+
     //for admin 
 
     private void SetUpAdminButtons() {
         _sceneData.Value._enemiesCarBuilderView.GetCarPartIdButton.onClick.AddListener(GetCarPartForAdmin);
         _sceneData.Value._enemiesCarBuilderView.GetMoneyButton.onClick.AddListener(GetMoneyForAdmin);
         _sceneData.Value._enemiesCarBuilderView.UnlockAllLevelButton.onClick.AddListener(UnlockAllLevels);
-        _sceneData.Value._enemiesCarBuilderView.GetMediumButton.onClick.AddListener((() => SetShopChancesToNeeded(new List<float>(){0,1,0,0})));
-        _sceneData.Value._enemiesCarBuilderView.GetHighButton.onClick.AddListener((() => SetShopChancesToNeeded(new List<float>(){0,0,1,0})));
-        _sceneData.Value._enemiesCarBuilderView.GetVeryHighButton.onClick.AddListener((() => SetShopChancesToNeeded(new List<float>(){0,0,0,1})));
+        _sceneData.Value._enemiesCarBuilderView.GetMediumButton.onClick.AddListener((() =>
+            SetShopChancesToNeeded(new List<float>() { 0, 1, 0, 0 })));
+        _sceneData.Value._enemiesCarBuilderView.GetHighButton.onClick.AddListener((() =>
+            SetShopChancesToNeeded(new List<float>() { 0, 0, 1, 0 })));
+        _sceneData.Value._enemiesCarBuilderView.GetVeryHighButton.onClick.AddListener((() =>
+            SetShopChancesToNeeded(new List<float>() { 0, 0, 0, 1 })));
     }
+
     private void GetMoneyForAdmin() {
         int.TryParse(_sceneData.Value._enemiesCarBuilderView.MoneyInputField.text, out int money);
         SetMoneyCount(money);

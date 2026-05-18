@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.UI;
 
 sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
@@ -73,12 +75,15 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private int _tutorialStep;
+    private float _tutorialStepTime;
 
     public void Run(IEcsSystems systems) {
+        _tutorialStepTime += Time.deltaTime;
         var curGameCmp = _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         int currentRound = curGameCmp.CurrentRound;
         if (_tutorialStep == 0 && _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsCarPartsRedactorMode) {
             _tutorialStep = 1;
+            CompleteStepSendAnlyticEvent();
             var textPos = new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
                 _sceneData.Value._inventoryUIView._carPartsContainer.position.y + 200 * _sceneData.Value.mainCanvas.localScale.x);
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("SecondTutorialStep"), textPos, 30);
@@ -91,6 +96,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._tutorialStuffView._shopContainer.gameObject.SetActive(true);
             _sceneData.Value._tutorialStuffView._sortButtonsContainer.gameObject.SetActive(true);
             _tutorialStep = 2;
+            CompleteStepSendAnlyticEvent();
             _sceneData.Value._tutorialStuffView.HideText(false);
             var shopTextPosition = _sceneData.Value._tutorialStuffView._shopText.position;
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Buy car part in shop"),
@@ -100,6 +106,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
                 if (!buttonShop.BuyButton.enabled) {
                     _tutorialStep = 3;
+                    CompleteStepSendAnlyticEvent();
                     if (_inventoryCellComponentsFilter.Value.GetEntitiesCount() != 0) {
                         _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Place car parts to car"),
                             new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
@@ -113,6 +120,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             }
         } else if (_inventoryCellComponentsFilter.Value.GetEntitiesCount() == 0 && _tutorialStep == 3) {
             _tutorialStep = 4;
+            CompleteStepSendAnlyticEvent();
             _sceneData.Value._shopUIView._upgradeShopButton.gameObject.SetActive(true);
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Go play and select round type"),
                 new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
@@ -120,6 +128,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
         } else if (_tutorialStep == 5 && curGameCmp.CurrentRoundType == RoundType.None && currentRound == 1) {
             _tutorialStep = 6;
+            CompleteStepSendAnlyticEvent();
             var textPos = new Vector2(
                 _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.x + 250*_sceneData.Value.mainCanvas.localScale.x,
                 _sceneData.Value._inventoryUIView._upgradeCarButton.transform.position.y);
@@ -131,6 +140,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
                 if (_sceneData.Value.GetCarPartConfig(_carPartInfoComponentsPool.Value.Get(inventoryCellEntity).CarPartId).PartType ==
                     CarPartType.CarStuffContainer) {
                     _tutorialStep = 7;
+                    CompleteStepSendAnlyticEvent();
                     var carPartRedactModeButtonPosition = _sceneData.Value._inventoryUIView._changeToRedactModeButton.transform.position;
                     _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Change redacted car level"),
                         new Vector2(carPartRedactModeButtonPosition.x,
@@ -143,6 +153,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             //place car parts and click change mode button
         } else if (_tutorialStep == 7 && !_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).IsCarPartsRedactorMode) {
             _tutorialStep = 8;
+            CompleteStepSendAnlyticEvent();
             _sceneData.Value._inventoryUIView._changeToRedactModeButton.interactable = false;
             _sceneData.Value._tutorialStuffView.AnimateTMPWithEffects(GetLocalization("Place new car parts"),
                 new Vector2(_sceneData.Value._inventoryUIView._carPartsContainer.position.x,
@@ -151,10 +162,12 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._tutorialStuffView._shopContainer.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(true);
             _tutorialStep = 9;
+            CompleteStepSendAnlyticEvent();
             _sceneData.Value._inventoryUIView._changeToRedactModeButton.interactable = true;
             _sceneData.Value._tutorialStuffView.HideText(true);
         } else if (_tutorialStep == 10 && _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).PlayerTeammateCarsEntity.Count > 1) {
             _tutorialStep = 11;
+            CompleteStepSendAnlyticEvent();
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
                 buttonShop.BuyButton.interactable = true;
                 buttonShop.enabled = true;
@@ -182,18 +195,20 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         int currentRound = _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
 
         if (currentRound > 1) {
-            RoundUtilits.SupportRoundsTypes.Add(RoundType.ModulesShop);
+            RoundUtilits.SupportRoundsTypes = new List<RoundType> { RoundType.Chest }; //.Add(RoundType.ModulesShop);
+
             DataPersistenceManagerSystem._gameData.TutorialIsCompleted = true;
             DataPersistenceManagerSystem.SaveGame();
         } else if (currentRound == 0) {
             _sceneData.Value._inventoryUIView._upgradeCarButton.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(false);
             _tutorialStep = 5;
+            CompleteStepSendAnlyticEvent();
             _sceneData.Value._tutorialStuffView._shopContainer.gameObject.SetActive(false);
             _sceneData.Value._shopUIView._updateItemsText.gameObject.SetActive(true);
             ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             playerCurrencyCmp.MoneyCount += 30;
-            _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "$";
+            _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "<sprite name=\"CogIcon\">";
         
             //upgrade car text
         } else if (currentRound == 1) {
@@ -202,9 +217,10 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             _sceneData.Value._shopUIView._shopModeButton.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._playButton.gameObject.SetActive(false);
             _tutorialStep = 10;
+            CompleteStepSendAnlyticEvent();
             ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-            playerCurrencyCmp.MoneyCount += 70;
-            _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "$";
+            playerCurrencyCmp.MoneyCount += 120;
+            _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "<sprite name=\"CogIcon\">";
             foreach (var buttonShop in _sceneData.Value._shopUIView._buttonsShop) {
                 buttonShop.BuyButton.interactable = false;
                 buttonShop.enabled = false;
@@ -218,7 +234,15 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
     }
-    
+
+    private void CompleteStepSendAnlyticEvent() {
+        Analytics.CustomEvent("tutorialEndStep",
+            new Dictionary<string, object> {
+                { "time", _tutorialStepTime },
+                { "round_number",_tutorialStep}
+            });
+        _tutorialStepTime = 0;
+    }
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
     private void ShopModeCheck() {
