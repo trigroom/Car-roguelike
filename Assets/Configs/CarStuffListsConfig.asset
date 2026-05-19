@@ -361,3 +361,10 @@ MonoBehaviour:
         - {fileID: 11400000, guid: 1f0e698396993724da752ac01d55a193, type: 2}
         - {fileID: 11400000, guid: bc50b7a796ac5324e91ebb85ba9ef4f0, type: 2}
         - {fileID: 11400000, guid: ac99a840f47d4274689c95a49d42904c, type: 2}
+  <MoneySound>k__BackingField: {fileID: 8300000, guid: b7673b1ac4b1e2b45a2a91a163467992, type: 3}
+  <PlacePartSound>k__BackingField: {fileID: 8300000, guid: ebd750dd43cb4fa4c9c26c0cc0420353, type: 3}
+  <AirplaneSound>k__BackingField: {fileID: 8300000, guid: a79c7ff57cd403c479706a385e4b7dd5, type: 3}
+  <BigExplosionSound>k__BackingField: {fileID: 8300000, guid: d78c5103700adae4383a48605073874c, type: 3}
+  <SmallExplosionSound>k__BackingField: {fileID: 8300000, guid: f601ce14b6c93ea4b81291968cfc6b8d, type: 3}
+  <ButtonSound>k__BackingField: {fileID: 8300000, guid: 764dcd2741c248d4dbb3c7ed2c31477e, type: 3}
+  <ThunderSound>k__BackingField: {fileID: 8300000, guid: 9021af1e6e45b4f4f825a28d4e34acc4, type: 3}

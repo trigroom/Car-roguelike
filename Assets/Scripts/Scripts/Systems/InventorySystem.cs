@@ -163,7 +163,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             /*(data) => { ChangeRoundDescription(randomRounds[newIndex], (PointerEventData)data); }*/
         }
 
-        _netcodeSceneService.Value.SetupServiceFromInventorySystem(SetHealthToMinimumLevel, UpgradeCarPartsAfterRoundCarPart);
+        _netcodeSceneService.Value.SetupServiceFromInventorySystem(SetHealthToMinimumLevel, UpgradeCarPartsAfterRoundCarPart, PlaySoundToPlayer);
         //test
         SetUpAdminButtons();
 
@@ -1142,9 +1142,9 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             if (!isModulesMode && (carPartConfig.PartType == CarPartType.Gun || carPartConfig.PartType == CarPartType.MeleeWeapon)) {
                 (Sprite upSprite, Vector2 size, Vector2 position) =
                     GetUpperPartSizesForUI(shopButton.ItemSprite.rectTransform.sizeDelta, carPartConfig);
-                shopButton.SetShopCellInfo(price, downSprite, upSprite, position, size);
+                shopButton.SetShopCellInfo(price, downSprite, upSprite, position, size, false);
             } else
-                shopButton.SetShopCellInfo(price, downSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero);
+                shopButton.SetShopCellInfo(price, downSprite, _sceneData.Value._transparentPixel, Vector2.zero, Vector2.zero, false);
 
             shopCellCmp.Price = price;
         }
@@ -1181,7 +1181,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             } else
                 shopButton.SetShopSaleInfo(0);
 
-            shopButton.SetPriceText(price);
+            shopButton.SetPriceText(price, false);
 
             shopCellCmp.Price = price;
             SetShopCarContainersContainerSize(shopButton.UpperItemSprite, shopCellCmp.CarMap.GridSize);
@@ -2183,6 +2183,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             var inventoryPartIndex = _carPartInfoComponentsPool.Value.Get(GetSortedCarPartList()[partsInInventoryIndex]).CarPartId;
             return GetCarPartConfig(inventoryPartIndex);
         } else {
+         //   if (!_shopCellComponentsPool.Value.Has(inventoryCmp.CurrentDraggedCellEntity)) return null; 
             int cellId = _shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity).CurrentBuyItemId;
             return GetCarPartConfig(cellId);
         }
@@ -2295,6 +2296,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                      _sceneData.Value.mainCanvas.localScale.x * _sceneData.Value._inventoryUIView._carPartsContainer.localScale.x;
         }
 
+        _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.PlacePartSound,SoundType.UI,0.4f);
         var gridPos = inventoryCmp.LastCheckedGridCellPosition;
         var worldPos = GetWorldPositionFromGrid(gridPos);
         returnSequence.Append(_sceneData.Value._inventoryUIView._draggedInventoryCell.transform.DOMove(worldPos + offset, 0.1f)
@@ -2751,6 +2753,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             null, Vector2.zero, Vector2.zero, cellEntity);
     }
 
+    private void PlaySoundToPlayer(Vector2 position, AudioClip clip) {
+        var playerDistance = Vector2.Distance(position,
+            _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CarView.CarPartsContainer.transform.position);
+        if (playerDistance < 20)
+            _betweenScenesService.Value.PlayUiAudioClip(clip,SoundType.GameSound,
+                1 - playerDistance / 20); 
+    }
     private ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(Vector2 cellSizeDelta, CarPartConfig carPartConfig) {
         Vector2 cellSize = Vector2.zero;
         Vector2 needPosition = Vector2.zero;

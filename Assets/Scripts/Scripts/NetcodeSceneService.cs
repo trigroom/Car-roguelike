@@ -42,6 +42,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<Vector2Int, float, bool> _setCarPartHealthPointAction;
    private Action<Vector2Int, float, bool,int> _setCarPartHealthToClientAction;
    private Action<float, float, float, float> _setFuelBarsAction;
+   private Action<Vector2, AudioClip> _playSoundToPlayer;
    private Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
        _carPartSetupAction;
 
@@ -162,9 +163,15 @@ public class NetcodeSceneService : NetworkBehaviour
  
 
    [Rpc(SendTo.NotServer)]
-   public void SetProjectileVisualClientRpc(NetworkObjectReference networkObject, bool isEnemy, int gunId, Vector2 projectileSpeed, float angle,
+   public void SetProjectileVisualClientRpc(NetworkObjectReference[] networkObject, bool isEnemy, int gunId, Vector2[] projectileSpeed, float[] angle,
        Vector2 worldFirePoint) {
-       ExecuteSetProjectileVisual(networkObject, isEnemy, gunId, projectileSpeed, angle, worldFirePoint);
+       for (int i = 0; i < networkObject.Length; i++) 
+            ExecuteSetProjectileVisual(networkObject[i], isEnemy, gunId, projectileSpeed[i], angle[i], worldFirePoint);
+       if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[gunId] is GunConfig gunConfig) {
+           _playSoundToPlayer.Invoke(worldFirePoint, gunConfig.ShotSound);
+       }
+
+       
    }
 
    private void ExecuteSetProjectileVisual(NetworkObjectReference networkObject, bool isEnemy, int gunId, Vector2 projectileSpeed, float angle,
@@ -283,9 +290,10 @@ public class NetcodeSceneService : NetworkBehaviour
         _sendBomberPlaneAction = sendBomberPlaneAction;
     }
     
-    public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction) {
+    public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction,Action <Vector2, AudioClip>playSoundToPlayer) {
         _setMinimumHealthLevelAction = setMinimumHealthLevelAction;
         _endRoundExpAddAction = endRoundExpAddAction;
+        _playSoundToPlayer = playSoundToPlayer;
     }
     public void SetupServiceFromMovementSystem(Action <float, float,Vector2, int> setMovementToTornadoAction) {
         _setMovementToTornadoAction = setMovementToTornadoAction;

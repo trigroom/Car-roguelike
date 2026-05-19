@@ -17,13 +17,15 @@ MonoBehaviour:
   - {fileID: 999178926518854591, guid: b0bd458a23afbea42b7eab2338fb6cb9, type: 3}
   - {fileID: 8773321095680263310, guid: 0c784067869e6f0418fdb8f30c3a89cd, type: 3}
   MapGroundPatterns:
-  - {fileID: 5962892356481742989, guid: cbdbb8fc94dcf50408c4134a465da929, type: 3}
-  - {fileID: 1187872553254311561, guid: 21803d54eb23c5d41950e49b61c2614c, type: 3}
-  - {fileID: 6699800899762991796, guid: 8c117cfa3b8eaf24c9da634237cf85ef, type: 3}
-  - {fileID: 2713004838910369838, guid: ba15ad7431f6b3248a329c04c86cc793, type: 3}
-  - {fileID: 3912486617394815731, guid: a4f9246fd3a295b4db6d861d3b7fe49a, type: 3}
-  - {fileID: 7661199223329507905, guid: a213d1119599faf40a5fd75dd2450843, type: 3}
-  - {fileID: 6249861261938431292, guid: 8820170570d82544298c7d7d6759f10f, type: 3}
+  - {fileID: -1409988811, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: -730950680, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: 1023356225, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: 1445893404, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: 537026265, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: 81744379, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: -316093500, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: -758953592, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
+  - {fileID: 1077551662, guid: 3e784d5a3e8c8224eb8aa6684fe1998d, type: 3}
   GroundMaterial: {fileID: 2100000, guid: 4aa56ead9d7a2dc4faffb8b63b9bbe80, type: 2}
   BehindMapGroundMaterial: {fileID: 2100000, guid: a9d455f98fbcccc498f905ab35106951, type: 2}
   NoiseObstaclesCountChances:

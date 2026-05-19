@@ -49,7 +49,20 @@ public class CarStuffListsConfig : ScriptableObject
     public ModuleConfig[] ModuleConfigs{ get;private set; }
     [field: SerializeField]
     public CarBasesForCarDictionary[] CarBasesForCars { get;private set; }
-   
+    [field: SerializeField]
+    public AudioClip MoneySound{ get;private set; }
+    [field: SerializeField]
+    public AudioClip PlacePartSound{ get;private set; }
+    [field: SerializeField]
+    public AudioClip AirplaneSound{ get;private set; }
+    [field: SerializeField]
+    public AudioClip BigExplosionSound{ get;private set; }
+    [field: SerializeField]
+    public AudioClip SmallExplosionSound{ get;private set; }
+    [field: SerializeField]
+    public AudioClip ButtonSound{ get;private set; }
+    [field: SerializeField]
+    public AudioClip ThunderSound{ get;private set; }
 }
 
 [System.Serializable]

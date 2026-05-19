@@ -46,4 +46,12 @@ public class SettingsView : MonoBehaviour
     public TMP_Text _blueColorText{ get; private set; }
      [field:SerializeField]
         public Button[] _selectLocalizationButtons{ get; private set; }
+     [field:SerializeField]
+     public Slider _soundsGameSlider { get; private set; }
+
+     [field: SerializeField]
+     public Slider _soundsUISlider { get; private set; }
+
+     [field: SerializeField]
+     public Slider _musicSlider { get; private set; }
 }

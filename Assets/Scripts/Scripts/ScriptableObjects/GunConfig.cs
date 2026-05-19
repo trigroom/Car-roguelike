@@ -31,6 +31,7 @@ public class GunConfig : CarPartConfig
     public float ProjectileLifeTime;
     public float ElectricityConsumption;
     public float ProjectileRotateSpeed;
+    public AudioClip ShotSound;
 }
 
 public enum MissleType {

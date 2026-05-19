@@ -15,6 +15,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
 
     public Transform MapContainer;
     public SpriteRenderer GroundSpriteRenderer;
+    public Transform BackgroundObjectSpriteRenderer;
     public MapEventsContentView MapEventsContentView;
     public NetcodeSceneService NetcodeSceneService;
     public NetworkButtons _networkButtonsView;
@@ -72,15 +73,18 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
 
     [ClientRpc]
     public void SpawnMapObstacleClientRpc(int index, int rotationIndex, bool isCollideObstacle, Vector3 spawnPosition = default) {
-        if (isCollideObstacle) rotationIndex = 0;
+      //  if (isCollideObstacle) rotationIndex = 0;
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, rotationIndex * 90);
-        var mapObject =
+        Transform mapObject =
             Instantiate(
                 isCollideObstacle
                     ? BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].MapObstacles[index]
-                    : BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].MapGroundPatterns[index], spawnPosition,
+                    : BackgroundObjectSpriteRenderer, spawnPosition,
                 Quaternion.identity, MapContainer);
         // mapObject.GetComponent<NetworkObject>()?.TrySetParent(MapContainer);
+        if (!isCollideObstacle)
+            mapObject.GetComponent<SpriteRenderer>().sprite =
+                BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].MapGroundPatterns[index];
         mapObject.rotation = randomRotation;
     }
 

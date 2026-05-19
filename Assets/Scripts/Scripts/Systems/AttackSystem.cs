@@ -165,6 +165,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
                     needPosition += new Vector3(randomCircle.x, randomCircle.y, 0);
                     thunderstormCmp.TimeToNextThunder = 1;
+                    _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.ThunderSound, SoundType.GameSound);
                     thunderstormCmp.ThunderTransform =
                         _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._thunderPrefab, needPosition);
                     _netcodeSceneService.Value.SpawnThunderClientRpc(needPosition);
@@ -394,7 +395,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private void SpawnThunderToClient(Vector2 spawnPosition) {
         ref var thunderstormCmp = ref _thunderstormComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         thunderstormCmp.ExplosionIsSpawned = false;
-      
+        _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.ThunderSound, SoundType.GameSound);
         thunderstormCmp.TimeToNextThunder = 1;
         thunderstormCmp.ThunderTransform =
             _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._thunderPrefab, spawnPosition);
@@ -513,8 +514,13 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (NetworkManager.Singleton.IsServer)
             CalculateExplodeDamage((EffectType)bomberControllerCmp.BombIndex, bomberControllerCmp.BombIndex == 0 ? 250 : 15, 5,
                 bombCmp.BombSpriteRenderer.transform.position);
+        var playerDistance = Vector2.Distance(bombCmp.BombSpriteRenderer.transform.position,
+            _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position);
+        Debug.Log("dist bomb"+playerDistance);
+        if (playerDistance < 20)
+            _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.BigExplosionSound,SoundType.GameSound,
+                1 - playerDistance / 20);
         CreateExplosionEffect(5f, bombCmp.BombSpriteRenderer.transform.position, (EffectType)bomberControllerCmp.BombIndex);
-
         _sceneService.Value.ReleaseSpriteRenderer(bombCmp.BombSpriteRenderer);
         _bomberProjectilesPool.Value.Del(bombEntity);
     }
@@ -570,7 +576,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             bomberControllerCmp.TimeToNextBomb = 3f;
             bomberControllerCmp.FinalPosition = new Vector2(xPos, yPos);
             bomberShadow.gameObject.SetActive(true);
-Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.FinalPosition );
+//Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.FinalPosition );
             bomberShadow.DOKill();
             bomberShadow.DOMove(bomberControllerCmp.FinalPosition, 20).SetEase(Ease.Linear).OnComplete(() => {
                 bomberShadow.gameObject.SetActive(false);
@@ -873,7 +879,7 @@ Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.Fina
         var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(gunEntity);
         ref var gunCmp = ref _gunComponentsPool.Value.Get(gunEntity);
         var gunConfig = _sceneService.Value.GetGunFromCarPart(carPartInfoCmp.CarPartId);
-
+        
         if (carPartCmp.CellCarPartsStuffViews == null || gunCmp.FirePointTransform == null ||
             !gunCmp.FirePointTransform.gameObject.activeInHierarchy) return;
 
@@ -887,8 +893,17 @@ Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.Fina
             fuelCmp.CurrentElectricity -= gunConfig.ElectricityConsumption;
         }
 
+        Vector2 worldFirePoint = gunCmp.FirePointTransform.position;
+        var playerDistance = Vector2.Distance(worldFirePoint,
+            _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position);
+        if (playerDistance < 20)
+            _betweenScenesService.Value.PlayUiAudioClip(gunConfig.ShotSound,SoundType.GameSound,
+                1 - playerDistance / 20); 
+        NetworkObjectReference[] projectiles = new NetworkObjectReference[gunConfig.BulletsCount];
+        Vector2[] projectilesDirections = new Vector2[gunConfig.BulletsCount];
+        float[] projectilesAngles = new float[gunConfig.BulletsCount];
         for (int i = 0; i < gunConfig.BulletsCount; i++) {
-            Vector2 worldFirePoint = gunCmp.FirePointTransform.position;
+          
 
             Vector2 direction = gunCmp.FirePointTransform.up;
 
@@ -896,7 +911,7 @@ Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.Fina
             direction = Quaternion.Euler(0, 0, randomSpread) * direction;
 
             ProjectileView currentProjectile = _netcodeSceneService.Value.GetGunProjectile(worldFirePoint);
-
+            projectiles[i] = currentProjectile.gameObject;
             if (currentProjectile.entity != 0) {
                 ref var projectileCmp = ref _projectileComponentsPool.Value.Get(currentProjectile.entity);
                 projectileCmp.MainEntity = carPartCmp.MainEntity;
@@ -925,25 +940,28 @@ Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.Fina
                 !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy) {
                 currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Enemy",
                     _sceneService.Value._carStuffListsConfig.DefaultMaterial);
-                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, true, gunConfig.Id,
-                    direction * gunConfig.BulletSpeed, angle,worldFirePoint);
             } else {
                 currentProjectile.Construct(ProjectileHit, gunConfig.Id, gunConfig.MissleSprite, "Player",
                     _sceneService.Value._carStuffListsConfig.EnemyProjectilesMaterial);
-                _netcodeSceneService.Value.SetProjectileVisualClientRpc(currentProjectile.gameObject, false, gunConfig.Id,
-                    direction * gunConfig.BulletSpeed, angle,worldFirePoint);
             }
             
                 
-
-           
+            projectilesDirections[i]= direction * gunConfig.BulletSpeed;
+            projectilesAngles[i] = angle;
             
            currentProjectile.rigidbody2D.linearVelocity = direction * gunConfig.BulletSpeed;
 
             
             currentProjectile.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
-
+        if (carPartCmp.MainEntity == _sceneService.Value.PlayerEntity || _playerTagComponentsPool.Value.Has(carPartCmp.MainEntity) ||
+            !_enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy) {
+            _netcodeSceneService.Value.SetProjectileVisualClientRpc(projectiles, true, gunConfig.Id,
+                projectilesDirections, projectilesAngles,worldFirePoint);
+        } else {
+            _netcodeSceneService.Value.SetProjectileVisualClientRpc(projectiles, false, gunConfig.Id,
+                projectilesDirections, projectilesAngles,worldFirePoint);
+        }
         if (gunConfig.CarRecoil != 0) {
             Vector2 recoilDirection = -gunCmp.GunSpriteRenderer.transform.up;
             _carComponentsPool.Value.Get(carPartCmp.MainEntity).CarView
@@ -1101,6 +1119,11 @@ Debug.Log(bomberShadow.position + "Send bomber plsane" +bomberControllerCmp.Fina
             if (projectileCmp.CurrentBreakingThroughCount <= 0 && gunConfig.ExplosionRadius != 0 &&
                 (_sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId).PartType != CarPartType.Armor ||
                  !_sceneService.Value.GetArmorFromCarPart(carPartInfoCmp.CarPartId).ExplosionDefence)) {
+                var playerDistance = Vector2.Distance(collisionPoint,
+                    _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position);
+                if(playerDistance > 20)
+                    _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.SmallExplosionSound,SoundType.GameSound,
+                        1 - playerDistance / 20);
                 CreateExplosionEffect(gunConfig.ExplosionRadius, collisionPoint, gunConfig.EffectType);
                 var castedObjects = Physics2D.OverlapCircleAll(collisionPoint, gunConfig.ExplosionRadius, layerMask);
 

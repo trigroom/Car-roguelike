@@ -53,3 +53,4 @@ MonoBehaviour:
   ProjectileLifeTime: 2.7
   ElectricityConsumption: 0
   ProjectileRotateSpeed: 0
+  ShotSound: {fileID: 8300000, guid: bfcf71d9e11784e4eba176dd5c78a22a, type: 3}

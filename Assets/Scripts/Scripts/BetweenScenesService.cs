@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class BetweenScenesService : MonoBehaviour {
+    public AudioSource UiAudio;
     public int CurrentSelectedCar;
     public int CurrentSelectedMap;
     public bool IsCoop;
@@ -30,6 +31,21 @@ public class BetweenScenesService : MonoBehaviour {
     }
 
     
+    public void PlayUiAudioClip(AudioClip clip,SoundType soundType, float volumeScale = 1) {
+        switch (soundType) {
+            case SoundType.UI:
+                UiAudio.PlayOneShot(clip, volumeScale * DataPersistenceManagerSystem._gameData.UIVolume);
+                break;
+            case SoundType.GameSound:
+                Debug.Log("sound vol " + DataPersistenceManagerSystem._gameData.SoundVolume);
+                UiAudio.PlayOneShot(clip, volumeScale * DataPersistenceManagerSystem._gameData.SoundVolume);
+                break;
+            case SoundType.Music:
+                UiAudio.PlayOneShot(clip, volumeScale * DataPersistenceManagerSystem._gameData.MusicVolume);
+                break;
+        }
+        
+    }
     public MapConfig GetMapConfig() {
        return _carStuffListsConfig.MapConfigs[CurrentSelectedMap];
     }
@@ -72,3 +88,8 @@ public class BetweenScenesService : MonoBehaviour {
         
     }
 }
+public enum SoundType {
+        UI,
+        GameSound,
+        Music
+    }

@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using DG.Tweening;
 using UnityEngine.UI;
 
-public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerClickHandler
 {
     [Header("Scale Settings")]
     [SerializeField] private float hoverScale = 1.1f;
@@ -18,7 +18,7 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
     [SerializeField] private RectTransform _rectTransform;
     private Tween _currentTween;
     
-    
+    [SerializeField] private bool useSound = true;
     
     private void Awake()
     {
@@ -42,7 +42,6 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
 
         _currentTween = _rectTransform.DOScale(normalScale * clickScale, duration * 0.5f).SetEase(Ease.OutQuad).SetUpdate(UpdateType.Normal, true);
     }
-    
     public void OnPointerExit(PointerEventData eventData)
     {
         _currentTween?.Kill();
@@ -62,6 +61,9 @@ public class AnimateScaleButtonView : MonoBehaviour, IPointerEnterHandler, IPoin
     
     
     private void OnDestroy() =>_currentTween?.Kill();
-  
-        
+
+    public void OnPointerClick(PointerEventData eventData) {
+        if ((targetButton && !targetButton.enabled) || !useSound) return;
+        BetweenScenesService.Instance.PlayUiAudioClip(BetweenScenesService.Instance._carStuffListsConfig.ButtonSound, SoundType.UI);
+    }
 }

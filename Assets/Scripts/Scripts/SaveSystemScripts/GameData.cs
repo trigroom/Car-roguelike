@@ -29,6 +29,10 @@ public class GameData
     public bool UseDamageNumbers;
     public bool UseHpBars;
     public bool UsePixelizedEffects;
+
+    public float MusicVolume;
+    public float SoundVolume;
+    public float UIVolume;
     public GameData()
     {
         LevelRounds = new int[3];

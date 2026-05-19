@@ -4,7 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "MapVisualInfoConfig", menuName = "Scriptable Objects/MapVisualInfoConfig")]
 public class MapVisualInfoConfig : ScriptableObject {
     public Transform[] MapObstacles;
-    public Transform[] MapGroundPatterns;
+    public Sprite[] MapGroundPatterns;
     public Material GroundMaterial;
     public Material BehindMapGroundMaterial;
     public float[] NoiseObstaclesCountChances;

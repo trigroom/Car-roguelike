@@ -33,8 +33,8 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
         if (BuyButton.enabled)
             _toggleAction(toggle, ToggleImage);
     }
-    public void SetShopCellInfo(int price, Sprite sprite, Sprite upperSprite, Vector2 upperImageSpritePos, Vector2 upperImageSize) {
-        SetPriceText(price);
+    public void SetShopCellInfo(int price, Sprite sprite, Sprite upperSprite, Vector2 upperImageSpritePos, Vector2 upperImageSize, bool isScrapPrice) {
+        SetPriceText(price, isScrapPrice);
 
         ItemSprite.sprite = sprite;
         UpperItemSprite.sprite = upperSprite;
@@ -44,8 +44,8 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
         UpperItemSprite.rectTransform.sizeDelta = upperImageSize;
     }
 
-    public void SetPriceText(int price) {
-        ItemPriceText.text = price + "<sprite name=\"CogIcon\">";
+    public void SetPriceText(int price, bool isScrapPrice) {
+        ItemPriceText.text = price +(isScrapPrice? "<sprite name=\"ScrapIcon\">":"<sprite name=\"CogIcon\">");
         BuyButton.enabled = true;
     }
 

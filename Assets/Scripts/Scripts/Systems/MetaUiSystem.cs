@@ -182,7 +182,7 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
                     sprite = moduleConfig.ModuleIcon;
                     break;
             }
-            shopButtonView.SetShopCellInfo(shopItemConfig.ScrapCost, sprite,upperSprite,upperImageSpritePos,upperImageSize);
+            shopButtonView.SetShopCellInfo(shopItemConfig.ScrapCost, sprite,upperSprite,upperImageSpritePos,upperImageSize, true);
         }
 
         private void BuyMetaShopItem(int itemIndex, Transform shopButtonView) {

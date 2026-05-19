@@ -207,7 +207,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         settingsView._blueColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._redColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
         settingsView._greenColorSlider.onValueChanged.AddListener(ChangePickedEnemyProjectilesColor);
-        
+     
+        SetVolumeSliders();
         settingsView._setPixelizedEffectModeButton.onClick.AddListener(()=>ChangePixelizedEffectsMode(true));
         settingsView._setHealthBarsButton.onClick.AddListener(()=>ChangeHealthBarsMode(true));
         settingsView._setDamageNumbersButton.onClick.AddListener(()=>ChangeDamageNumbersMode(true));
@@ -690,6 +691,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             supportBoxView.supportBoxAirplane.gameObject.SetActive(false));
         supportBoxView.supportBoxAirplane.gameObject.SetActive(true);
         _sceneService.Value.PlayWarningAnimation(GetLocalization("Supply drop") + "!", true);
+        _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.AirplaneSound,SoundType.GameSound);
     }
     private void SendSupportBox() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -912,6 +914,31 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         settingsView._blueColorText.text = settingsView._blueColorSlider.value.ToString();
     }
 
+    private void ChangeSliderVolume(SoundType soundType,float value) {
+        switch (soundType) {
+            case SoundType.UI:
+                DataPersistenceManagerSystem._gameData.UIVolume = value;
+                break;
+            case SoundType.GameSound:
+                DataPersistenceManagerSystem._gameData.SoundVolume = value;
+                break;
+            case SoundType.Music:
+                DataPersistenceManagerSystem._gameData.MusicVolume = value;
+                break;
+        }
+    }
+    private void SetVolumeSliders() {
+        var settingsView = _sceneService.Value._settingsView;
+        
+        settingsView._musicSlider.SetValueWithoutNotify(DataPersistenceManagerSystem._gameData.MusicVolume);
+        settingsView._musicSlider.onValueChanged.AddListener(value=>ChangeSliderVolume(SoundType.Music,value));
+        
+        settingsView._soundsUISlider.SetValueWithoutNotify(DataPersistenceManagerSystem._gameData.UIVolume);
+        settingsView._soundsUISlider.onValueChanged.AddListener(value=>ChangeSliderVolume(SoundType.UI,value));
+        
+        settingsView._soundsGameSlider.SetValueWithoutNotify(DataPersistenceManagerSystem._gameData.SoundVolume);
+        settingsView._soundsGameSlider.onValueChanged.AddListener(value=>ChangeSliderVolume(SoundType.GameSound,value));
+    }
     private void UpdateMapPoint() {
         if(!_fromPointToPointRoundComponentsPool.Value.Has(_sceneService.Value.PlayerEntity) || !NetworkManager.Singleton.IsServer)return;
         ref var pointToPointRound = ref _fromPointToPointRoundComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -1676,7 +1703,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
     }
 
     private void SetMoneyCount(float count) {
-        if(count == 0)return;
+        if (count == 0) return;
+        else if (count < 0)
+            _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.MoneySound,SoundType.UI);
+        
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         ref var playerCurrency = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         playerCurrency.VisibleMoneyCount = playerCurrency.MoneyCount;
@@ -3427,7 +3457,11 @@ Debug.Log("add wheel "+wheelsPositions.Count);
 
             if (mapVisualConfig.MapGroundPatterns != null) {
                 Vector3 randomPositionGroundPattern = GetRandomPositionInCell(cellX, cellY);
-                SpawnMapObstacle(randomPositionGroundPattern, Random.Range(0, mapVisualConfig.MapGroundPatterns.Length), false);
+                if (mapGrid[Mathf.FloorToInt((randomPositionGroundPattern.x + 100) / 5), Mathf.FloorToInt((randomPositionGroundPattern.y + 100) / 5)] == 0) {
+                    
+                                    SpawnMapObstacle(randomPositionGroundPattern, Random.Range(0, mapVisualConfig.MapGroundPatterns.Length), false);
+                }
+                
             }
         }
     }
