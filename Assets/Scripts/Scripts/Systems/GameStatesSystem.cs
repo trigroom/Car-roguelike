@@ -924,6 +924,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 break;
             case SoundType.Music:
                 DataPersistenceManagerSystem._gameData.MusicVolume = value;
+                _betweenScenesService.Value.BackgroundMusicAudio.volume = value;
                 break;
         }
     }

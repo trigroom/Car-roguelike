@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class BetweenScenesService : MonoBehaviour {
+    public AudioSource BackgroundMusicAudio;
     public AudioSource UiAudio;
     public int CurrentSelectedCar;
     public int CurrentSelectedMap;

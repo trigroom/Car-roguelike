@@ -7596,7 +7596,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 0}
-  useSound: 1
+  useSound: 0
 --- !u!1 &291641445
 GameObject:
   m_ObjectHideFlags: 0
@@ -15088,7 +15088,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 0}
-  useSound: 1
+  useSound: 0
 --- !u!222 &549593858
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -43549,7 +43549,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 0}
-  useSound: 1
+  useSound: 0
 --- !u!1 &1648494868
 GameObject:
   m_ObjectHideFlags: 0
@@ -46923,7 +46923,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 0}
-  useSound: 1
+  useSound: 0
 --- !u!1 &1784755264
 GameObject:
   m_ObjectHideFlags: 0
@@ -47781,7 +47781,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 0}
-  useSound: 1
+  useSound: 0
 --- !u!222 &1809081429
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -55096,7 +55096,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 0}
-  useSound: 1
+  useSound: 0
 --- !u!222 &2103179425
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -9,4 +9,6 @@ public class MapVisualInfoConfig : ScriptableObject {
     public Material BehindMapGroundMaterial;
     public float[] NoiseObstaclesCountChances;
     public Color WheelParticlesColor;
+    public AudioClip[] defaultBackgroundMusic;
+    public AudioClip[] bossBackgroundMusic;
 }

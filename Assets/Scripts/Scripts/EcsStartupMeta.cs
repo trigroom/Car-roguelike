@@ -29,7 +29,7 @@ public class EcsStartUpMeta : MonoBehaviour
             .Add(new Leopotam.EcsLite.UnityEditor.EcsWorldDebugSystem())
 #endif 
             .Add(new MetaUiSystem())
-        
+            .Add(new BackgroundMusicSystem())
          .Inject(_metaSceneService)
             .Inject(_betweenSceneService)
          .Init();

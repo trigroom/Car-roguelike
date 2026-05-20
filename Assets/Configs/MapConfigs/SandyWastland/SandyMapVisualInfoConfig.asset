@@ -37,3 +37,7 @@ MonoBehaviour:
   - 0.9
   - 2
   WheelParticlesColor: {r: 0.8207547, g: 0.7495364, b: 0.46070665, a: 1}
+  defaultBackgroundMusic:
+  - {fileID: 8300000, guid: 5f3398c522052994382f89a9c96b6d8a, type: 3}
+  bossBackgroundMusic:
+  - {fileID: 8300000, guid: e42c7bcaec0558246888bda46d99fd09, type: 3}
