@@ -38,8 +38,12 @@ public class ShopButtonView : MonoBehaviour, IPointerDownHandler {
 
         ItemSprite.sprite = sprite;
         UpperItemSprite.sprite = upperSprite;
-        if (upperImageSize == Vector2.zero)
-            return;
+        if (upperImageSize == Vector2.zero) {
+            UpperItemSprite.color = Color.clear;
+             return;
+        }
+        else
+             UpperItemSprite.color = Color.white;
         UpperItemSprite.transform.localPosition = upperImageSpritePos;
         UpperItemSprite.rectTransform.sizeDelta = upperImageSize;
     }

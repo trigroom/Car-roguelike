@@ -280,6 +280,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 5824984285594887778}
   _rectTransform: {fileID: 6502389039510754964}
+  useSound: 1
 --- !u!114 &5824984285594887778
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -605,6 +606,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 5335995880910121840}
   _rectTransform: {fileID: 2892744623940699381}
+  useSound: 1
 --- !u!1 &5011630691093380798
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,7 +717,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 2.2, y: -0.00010204}
-  m_SizeDelta: {x: 36.319, y: 16.002}
+  m_SizeDelta: {x: 50, y: 16.002}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9009286279798034750
 CanvasRenderer:
@@ -951,6 +953,7 @@ MonoBehaviour:
   easeType: 27
   targetButton: {fileID: 0}
   _rectTransform: {fileID: 7294678704315383402}
+  useSound: 1
 --- !u!1 &8280294049808394194
 GameObject:
   m_ObjectHideFlags: 0

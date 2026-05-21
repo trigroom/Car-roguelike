@@ -29373,6 +29373,7 @@ MonoBehaviour:
   - {fileID: 100843792}
   - {fileID: 1805699258}
   - {fileID: 1928092648}
+  - {fileID: 1753520536}
   _keys:
   - Inventory
   - Shop
@@ -29404,6 +29405,7 @@ MonoBehaviour:
   - UI sounds
   - Game sounds
   - Music
+  - Win values per same items row
 --- !u!4 &1065153041
 Transform:
   m_ObjectHideFlags: 0
@@ -33230,8 +33232,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 81.27568, y: -44.954}
-  m_SizeDelta: {x: 315.2876, y: 308.31}
+  m_AnchoredPosition: {x: 81.27568, y: -24.496195}
+  m_SizeDelta: {x: 315.2876, y: 267.3943}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1247323933
 MonoBehaviour:
@@ -33280,12 +33282,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
+  m_fontSize: 25
   m_fontSizeBase: 20
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 15
+  m_fontSizeMax: 25
   m_fontStyle: 0
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
@@ -53491,8 +53493,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 203.4, y: 45}
-  m_SizeDelta: {x: 242.2882, y: 411.8882}
+  m_AnchoredPosition: {x: 212.3, y: 52.4}
+  m_SizeDelta: {x: 234.4555, y: 398.5726}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2059349773
 MonoBehaviour:
@@ -53552,7 +53554,7 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 70, y: 100}
+  m_CellSize: {x: 65, y: 95}
   m_Spacing: {x: 2, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2

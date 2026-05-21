@@ -30,20 +30,20 @@ namespace Client {
                         StartNewMusic(false, randomMusicIndex);
                 }
            
-                backgroundMusicCmp.CurrentMusicTimeRemaining -= Time.deltaTime;
+                backgroundMusicCmp.CurrentMusicTimeRemaining -= Time.unscaledDeltaTime;
 
                 if (backgroundMusicCmp.CurrentMusicTimeRemaining <= 0) {
                     ChangeToNextMusic();
                 }
 
                 if (backgroundMusicCmp.NeedChangeMusic) {
-                    backgroundMusicCmp.FadeTimer -= Time.deltaTime;
+                    backgroundMusicCmp.FadeTimer -= Time.unscaledDeltaTime;
                     _betweenScenesService.Value.BackgroundMusicAudio.volume =
                         backgroundMusicCmp.FadeTimer * DataPersistenceManagerSystem._gameData.MusicVolume;
                     if (backgroundMusicCmp.FadeTimer <= 0)
                         SetMusic();
                 } else if (backgroundMusicCmp.FadeTimer < 1) {
-                    backgroundMusicCmp.FadeTimer += Time.deltaTime;
+                    backgroundMusicCmp.FadeTimer += Time.unscaledDeltaTime;
                     _betweenScenesService.Value.BackgroundMusicAudio.volume =
                         backgroundMusicCmp.FadeTimer * DataPersistenceManagerSystem._gameData.MusicVolume;
                     if (backgroundMusicCmp.FadeTimer > 1) {

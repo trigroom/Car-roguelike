@@ -176,6 +176,8 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
                         shopButtonView.ItemSprite.rectTransform.sizeDelta, carPartConfig);
                     break;
                 case AchievementRewardType.Car:
+                    var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[shopItemConfig.RewardCount];
+                    sprite = carConfig.CarIcon;
                     break;
                 case AchievementRewardType.Module:
                     var moduleConfig = _betweenSceneService.Value._carStuffListsConfig.ModuleConfigs[shopItemConfig.RewardCount];

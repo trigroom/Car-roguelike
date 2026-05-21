@@ -24,11 +24,12 @@ public struct CarPartTypeRow {
     public int partId;
     public int rotate;
     public int level;
-
-    public CarPartTypeRow(Vector2Int gridPosition, int partId, int rotate, int level) {
+    public int[] moduleIds;
+    public CarPartTypeRow(Vector2Int gridPosition, int partId, int rotate, int level, int[] moduleIds) {
         this.gridPosition = gridPosition;
         this.partId = partId;
         this.rotate = rotate;
         this.level = level;
+        this.moduleIds = moduleIds;
     }
 }

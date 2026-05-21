@@ -320,6 +320,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                         versusBattleCmp.LeftOpponentEntity == needEntity ? 0 : versusBattleCmp.LeftOpponentEntity;
                     versusBattleCmp.RightOpponentEntity =
                         versusBattleCmp.RightOpponentEntity == needEntity ? 0 : versusBattleCmp.RightOpponentEntity;
+                    Debug.Log(versusBattleCmp.RightOpponentEntity + " death right entity" + needEntity);
+                    Debug.Log(versusBattleCmp.LeftOpponentEntity + " death left entity"+needEntity);
                 }
 
                 if (versusBattleCmp.LeftOpponentEntity == 0 || versusBattleCmp.RightOpponentEntity == 0) {
@@ -1601,7 +1603,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         versusBattleView._versusMapContainer.gameObject.SetActive(true);
         _sceneService.Value._mapContainer.gameObject.SetActive(false);
         versusBattleView._betContainer.gameObject.SetActive(true);
-
+        _netcodeSceneService.Value.networkObjectsMapContainer.gameObject.SetActive(false);
         versusBattleView._rightVersusBattleParticipantInfo.NameText.text =
             $"{GetLocalization(VersusBattlesNames[Random.Range(0, VersusBattlesNames.Length)])} {GetLocalization(VersusBattlesSurnames[Random.Range(0, VersusBattlesSurnames.Length)])}";
         versusBattleView._leftVersusBattleParticipantInfo.NameText.text =
@@ -1755,7 +1757,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView._circularSawLeft.DOKill();
         versusBattleView._circularSawRight.DOKill();
-       
+        versusBattleView._circularSawLeft.transform.position = new Vector2(-50, 0);
+        versusBattleView._circularSawRight.transform.position = new Vector2(50, 0);
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         versusBattleCmp.IsBattleEnded = true;
@@ -1820,7 +1823,7 @@ Debug.Log(" end vs battle");
         ChangeInventoryState(true);
         versusBattleView._versusMapContainer.gameObject.SetActive(false);
         _sceneService.Value._mapContainer.gameObject.SetActive(true);
-
+        _netcodeSceneService.Value.networkObjectsMapContainer.gameObject.SetActive(true);
         curGameCmp.CurrentRoundType = RoundType.None;
         _endRoundEventsPool.Value.Add(_sceneService.Value.PlayerEntity);
         if (NetworkManager.Singleton.IsServer && _tornadoSpawnControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
@@ -1928,6 +1931,7 @@ Debug.Log(" end vs battle");
               versusBattleView._rightVersusBattleParticipantInfo.CarPratsUpLevelHealthContainer,
               ref versusBattleCmp.RightCarPartInfoUIViewsUpLevelGrid);*/
     }
+
     private void SetupClientCar(CarPartDataForRpc[] upParts, CarPartDataForRpc[] downParts, int carLevel, ulong userId, bool isPlayer,
         int carId, Vector2 carSize) {
         var enemyCarMap = BuildCarMap(upParts, downParts, carId, carLevel, carSize);
@@ -1940,10 +1944,8 @@ Debug.Log(" end vs battle");
             ref var playerCmp = ref _playerComponentsPool.Value.Add(playerCmpEntity);
             playerCmp.PlayerEntity = carEntity;
             ref var playerTagCmp = ref _playerTagComponentsPool.Value.Add(carEntity);
-                playerTagCmp.ChangedCarPartsHp = new HashSet<int>();
-            //    playerTagCmp.ClientId = userId;
+            playerTagCmp.ChangedCarPartsHp = new HashSet<int>();
 
-          //  Debug.Log(carEntity + " setup pl cmp 1");
             playerCmp.TeammatesEntities = new List<int>();
             _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).ClientsEntities.TryAdd(userId, playerCmpEntity);
 
@@ -2339,11 +2341,11 @@ Debug.Log(" end vs battle");
 
         var downGrid = new List<CarPartTypeRow>();
         foreach (var carPart in downParts) 
-            downGrid.Add(new CarPartTypeRow(carPart.EdgePosition, carPart.Id, carPart.RotateAngle, carPart.Level));
+            downGrid.Add(new CarPartTypeRow(carPart.EdgePosition, carPart.Id, carPart.RotateAngle, carPart.Level,carPart.Modules));
         
         var upGrid = new List<CarPartTypeRow>();
         foreach (var carPart in upParts) 
-            upGrid.Add(new CarPartTypeRow(carPart.EdgePosition, carPart.Id, carPart.RotateAngle, carPart.Level));
+            upGrid.Add(new CarPartTypeRow(carPart.EdgePosition, carPart.Id, carPart.RotateAngle, carPart.Level,carPart.Modules));
         
         carMap.CarPartDownLevelGrid = downGrid.ToArray();
         carMap.CarPartUpLevelGrid = upGrid.ToArray();
@@ -2400,33 +2402,35 @@ Debug.Log(" end vs battle");
 
         _netcodeSceneService.Value.InstantiateCarViewServerRpc(entity, true, GetPositionAroundPlayer());
     }
-    private int SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy, Vector2 spawnPosition) {
+
+    private int SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy,
+        Vector2 spawnPosition) {
         int enemyEntity = _world.Value.NewEntity();
 
         _movementComponentsPool.Value.Add(enemyEntity);
         _fuelComponentsPool.Value.Add(enemyEntity);
-           
+
         ref var carCmp = ref _carComponentsPool.Value.Add(enemyEntity);
         carCmp.CarId = carMap.CarId;
-        
+
         carCmp.CarPartGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
         carCmp.CarPartContainerGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
         carCmp.CarPartViewsGrid = new CarPartStuffView[carMap.GridSize.x, carMap.GridSize.y];
-            
+
         carCmp.CarPartContainerGroupsList = new Dictionary<int, List<Vector2Int>>();
         carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
-            
+
         foreach (var carContainer in carMap.CarPartDownLevelGrid) {
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
             var currentCarType = carPartConfig.PartType;
-                
+
             if (currentCarType == CarPartType.None) continue;
-                
+
             int carPartCellEntity = _world.Value.NewEntity();
             var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
                 carCmp.CarPartContainerGroupsGrid);
             carCmp.CarPartContainerGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
-                Debug.Log(carPartCellEntity + " car part cell added");
+
             foreach (var cell in placedCells) {
                 carCmp.CarPartContainerGroupsGrid[cell.x, cell.y] = carPartCellEntity;
                 carCmp.CarPartContainerGroupsList[carPartCellEntity].Add(cell);
@@ -2434,29 +2438,29 @@ Debug.Log(" end vs battle");
 
             ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
             ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Add(carPartCellEntity);
+            carPartInfoCmp.ModuleIds = carContainer.moduleIds;
             carPartCmp.MainEntity = enemyEntity;
             carPartInfoCmp.CarPartId = carContainer.partId;
             carPartCmp.RotateDegrees = carContainer.rotate;
-          //  SpawnCarPartCellView(carPartCellEntity, carCmp.CarView, !isEnemy, carContainer.rotate);
+            //  SpawnCarPartCellView(carPartCellEntity, carCmp.CarView, !isEnemy, carContainer.rotate);
 
             if (curGameCmp.CurrentRoundType != RoundType.VersusBattle && isEnemy) {
                 carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer * NetworkManager.Singleton.ConnectedClientsList.Count;
-                            carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
+                carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
             }
-            
         }
-            
+
         foreach (var carContainer in carMap.CarPartUpLevelGrid) {
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carContainer.partId);
             var currentCarType = carPartConfig.PartType;
-                
+
             if (currentCarType == CarPartType.None) continue;
-                
+
             int carPartCellEntity = _world.Value.NewEntity();
             var placedCells = GridUtils.GetCellsFromField(carContainer.gridPosition, carPartConfig, carContainer.rotate,
                 carCmp.CarPartGroupsGrid);
             carCmp.CarPartGroupsList.Add(carPartCellEntity, new List<Vector2Int>());
-                
+
             foreach (var cell in placedCells) {
                 carCmp.CarPartGroupsGrid[cell.x, cell.y] = carPartCellEntity;
                 carCmp.CarPartGroupsList[carPartCellEntity].Add(cell);
@@ -2464,19 +2468,21 @@ Debug.Log(" end vs battle");
 
             ref var carPartCmp = ref _carPartComponentsPool.Value.Add(carPartCellEntity);
             ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Add(carPartCellEntity);
+            carPartInfoCmp.ModuleIds = carContainer.moduleIds;
             carPartCmp.MainEntity = enemyEntity;
             carPartInfoCmp.CarPartId = carContainer.partId;
             carPartCmp.RotateDegrees = carContainer.rotate;
             if (curGameCmp.CurrentRoundType != RoundType.VersusBattle && isEnemy) {
-                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer* NetworkManager.Singleton.ConnectedClientsList.Count;
+                carPartCmp.MaxHealth *= curGameCmp.DifficultyHealthMultiplayer * NetworkManager.Singleton.ConnectedClientsList.Count;
                 carPartInfoCmp.CurrentHealth = carPartCmp.MaxHealth;
             }
-            
-        //    SpawnCarPartCellView(carPartCellEntity, carCmp.CarView, !isEnemy, carContainer.rotate);
+
+            //    SpawnCarPartCellView(carPartCellEntity, carCmp.CarView, !isEnemy, carContainer.rotate);
         }
+
         _enemyAIComponentsPool.Value.Add(enemyEntity).IsEnemy = isEnemy;
-     
-_netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spawnPosition);
+
+        _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy, spawnPosition);
         return enemyEntity;
     }
 
@@ -2543,7 +2549,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
        
     }
 
-    public void SendCarBuildToServer(int entity) {
+    private void SendCarBuildToServer(int entity) {
         var carCmp = _carComponentsPool.Value.Get(entity);
         var downParts = new List<CarPartDataForRpc>();
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
@@ -2562,6 +2568,7 @@ _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy,spa
                 carPartInfoCmp.ModuleIds, carPartInfoCmp.CarPartId, carPartInfoCmp.PartLevel, (int)carPartInfoCmp.CurrentHealth,
                 carPartInfo.Key));
         }
+
         _netcodeSceneService.Value.SetCarToServerRpc(upParts.ToArray(), downParts.ToArray(), carCmp.CarLevel,
             entity == _sceneService.Value.PlayerEntity, carCmp.CarId,
             new Vector2(carCmp.CarPartGroupsGrid.GetLength(0), carCmp.CarPartGroupsGrid.GetLength(1)));
@@ -3438,31 +3445,28 @@ Debug.Log("add wheel "+wheelsPositions.Count);
     private void SetQuicksandMethods(Transform quicksand) {
         quicksand?.GetComponent<QuicksandView>().Construct(EnterInQuicksand, ExitFromQuicksand, 0);
     }
-    
-    private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise)
-    {
+
+    private void GenerateObstaclesInCell(int cellX, int cellY, Vector2 randomOffsetForNoise) {
         float noiseValue = PerlinNoiseUtil.GetFractalNoise(
-            cellX * 20 + 20 / 2f+randomOffsetForNoise.x,
-            cellY * 20 + 20 / 2f+randomOffsetForNoise.y 
-        );
+            cellX * 20 + 20 / 2f + randomOffsetForNoise.x, cellY * 20 + 20 / 2f + randomOffsetForNoise.y);
         var mapGrid = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MapGrid;
         var mapVisualConfig = _betweenScenesService.Value.GetMapConfig().MapVisualInfoConfigs[0];
         int obstacleCount = GetObstacleCountFromNoise(noiseValue, mapVisualConfig.NoiseObstaclesCountChances);
 
         for (int k = 0; k < obstacleCount; k++) {
             Vector3 randomPosition = GetRandomPositionInCell(cellX, cellY);
-            bool canPlaceObstacle = AreAllNeighborsNonZero(mapGrid,Mathf.FloorToInt((randomPosition.x+100)/5),Mathf.FloorToInt((randomPosition.y+100)/5));
-            
+            bool canPlaceObstacle = AreAllNeighborsNonZero(mapGrid, Mathf.FloorToInt((randomPosition.x + 100) / 5),
+                Mathf.FloorToInt((randomPosition.y + 100) / 5));
+
             if (canPlaceObstacle)
                 SpawnMapObstacle(randomPosition, Random.Range(0, mapVisualConfig.MapObstacles.Length), true);
 
             if (mapVisualConfig.MapGroundPatterns != null) {
                 Vector3 randomPositionGroundPattern = GetRandomPositionInCell(cellX, cellY);
-                if (mapGrid[Mathf.FloorToInt((randomPositionGroundPattern.x + 100) / 5), Mathf.FloorToInt((randomPositionGroundPattern.y + 100) / 5)] == 0) {
-                    
-                                    SpawnMapObstacle(randomPositionGroundPattern, Random.Range(0, mapVisualConfig.MapGroundPatterns.Length), false);
+                if (mapGrid[Mathf.FloorToInt((randomPositionGroundPattern.x + 100) / 5),
+                        Mathf.FloorToInt((randomPositionGroundPattern.y + 100) / 5)] == 0) {
+                    SpawnMapObstacle(randomPositionGroundPattern, Random.Range(0, mapVisualConfig.MapGroundPatterns.Length), false);
                 }
-                
             }
         }
     }

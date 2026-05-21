@@ -38,7 +38,6 @@ public class BetweenScenesService : MonoBehaviour {
                 UiAudio.PlayOneShot(clip, volumeScale * DataPersistenceManagerSystem._gameData.UIVolume);
                 break;
             case SoundType.GameSound:
-                Debug.Log("sound vol " + DataPersistenceManagerSystem._gameData.SoundVolume);
                 UiAudio.PlayOneShot(clip, volumeScale * DataPersistenceManagerSystem._gameData.SoundVolume);
                 break;
             case SoundType.Music:

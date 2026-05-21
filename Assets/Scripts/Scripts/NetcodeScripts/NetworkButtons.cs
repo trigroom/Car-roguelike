@@ -34,7 +34,10 @@ public class NetworkButtons : MonoBehaviour {
         clientButton.onClick.AddListener(OnClientButtonClicked);
         _lobbyManager._readyButton.onClick.AddListener(OnReadyButtonClicked);
         disconnectButton.onClick.AddListener(OnLeaveButtonClicked);
-        changeNicknameButton.onClick.AddListener(()=>DataPersistenceManagerSystem._gameData.CoopPlayerName = nicknameInput.text);
+        changeNicknameButton.onClick.AddListener(()=> {
+            DataPersistenceManagerSystem._gameData.CoopPlayerName = nicknameInput.text;
+            DataPersistenceManagerSystem.SaveGame();
+        });
         // Изначально кнопка выхода неактивна
         
         disconnectButton.gameObject.SetActive(false);
@@ -190,20 +193,17 @@ public class NetworkButtons : MonoBehaviour {
         Debug.Log($"👤 Игрок {playerNumber} подключился");
     }
 
-    private void OnClientDisconnected(ulong clientId)
-    {
+    private void OnClientDisconnected(ulong clientId) {
         leaveButton.gameObject.SetActive(true);
         disconnectButton.gameObject.SetActive(false);
-        if(clientId == NetworkManager.Singleton.LocalClientId)
-        NetworkManager.Singleton.Shutdown();
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+            NetworkManager.Singleton.Shutdown();
         if (!NetworkManager.Singleton.IsServer) return;
-        
+
         // Удаляем игрока из списка
-        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++)
-        {
-            if (NetcodeBetweenScenesService.Instance.playerReadyStates[i].ClientId == clientId)
-            {
-                Debug.Log($"👋 Игрок {NetcodeBetweenScenesService.Instance.playerReadyStates[i].PlayerNumber} отключился");
+        for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++) {
+            if (NetcodeBetweenScenesService.Instance.playerReadyStates[i].ClientId == clientId) {
+                //  Debug.Log($"👋 Игрок {NetcodeBetweenScenesService.Instance.playerReadyStates[i].PlayerNumber} отключился");
                 NetcodeBetweenScenesService.Instance.playerReadyStates.RemoveAt(i);
                 break;
             }
@@ -249,7 +249,6 @@ public struct PlayerReadyState : INetworkSerializable, IEquatable<PlayerReadySta
         serializer.SerializeValue(ref PlayerCarId);
     }
 
-    // Реализация IEquatable<PlayerReadyState>
     public bool Equals(PlayerReadyState other)
     {
         return ClientId == other.ClientId &&
@@ -259,16 +258,9 @@ public struct PlayerReadyState : INetworkSerializable, IEquatable<PlayerReadySta
                PlayerCarId == other.PlayerCarId;
     }
 
-    // Переопределяем Equals(object) для полноты
-    public override bool Equals(object obj)
-    {
-        return obj is PlayerReadyState other && Equals(other);
-    }
-
-    // Переопределяем GetHashCode - обязательно для IEquatable
     public override int GetHashCode()
     {
-        unchecked // Overflow is fine, just wrap
+        unchecked 
         {
             int hash = 17;
             hash = hash * 23 + ClientId.GetHashCode();
@@ -278,17 +270,6 @@ public struct PlayerReadyState : INetworkSerializable, IEquatable<PlayerReadySta
             hash = hash * 23 + PlayerCarId.GetHashCode();
             return hash;
         }
-    }
-
-    // Операторы равенства (рекомендуется для структур)
-    public static bool operator ==(PlayerReadyState left, PlayerReadyState right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(PlayerReadyState left, PlayerReadyState right)
-    {
-        return !(left == right);
     }
     
     public string GetNickname() => PlayerNickname.ToString();

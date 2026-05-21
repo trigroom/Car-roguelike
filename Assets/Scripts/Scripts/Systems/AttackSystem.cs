@@ -98,9 +98,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         if (RoundUtilits.IsNotBattleRound(curGameCmp.CurrentRoundType) && curGameCmp.CurrentRoundType != RoundType.VersusBattle) return;
 
-        foreach (var hpBarEntity in _hpBarComponentsFilter.Value) 
-            if(_carPartInfoComponentsPool.Value.Get(hpBarEntity).CurrentHealth > 0)
-                _hpBarComponentsPool.Value.Get(hpBarEntity).hpBarImage.transform.position = _carPartComponentsPool.Value.Get(hpBarEntity).CarPartCellRenderer.transform.position;
+        foreach (var hpBarEntity in _hpBarComponentsFilter.Value)
+            if (_carPartInfoComponentsPool.Value.Get(hpBarEntity).CurrentHealth > 0 &&  _carPartComponentsPool.Value.Get(hpBarEntity).CarPartCellRenderer)
+                _hpBarComponentsPool.Value.Get(hpBarEntity).hpBarImage.transform.position =
+                    _carPartComponentsPool.Value.Get(hpBarEntity).CarPartCellRenderer.transform.position;
             
         
         foreach (var fireExtinguisherEntity in _fireExtinguisherComponentsFilter.Value) {
@@ -514,9 +515,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (NetworkManager.Singleton.IsServer)
             CalculateExplodeDamage((EffectType)bomberControllerCmp.BombIndex, bomberControllerCmp.BombIndex == 0 ? 250 : 15, 5,
                 bombCmp.BombSpriteRenderer.transform.position);
-        var playerDistance = Vector2.Distance(bombCmp.BombSpriteRenderer.transform.position,
-            _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position);
-        Debug.Log("dist bomb"+playerDistance);
+        var playerDistance = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView
+            ? Vector2.Distance(bombCmp.BombSpriteRenderer.transform.position,
+                _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position)
+            : 0;
         if (playerDistance < 20)
             _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.BigExplosionSound,SoundType.GameSound,
                 1 - playerDistance / 20);
@@ -894,8 +896,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         Vector2 worldFirePoint = gunCmp.FirePointTransform.position;
-        var playerDistance = Vector2.Distance(worldFirePoint,
-            _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position);
+        var playerDistance = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView?Vector2.Distance(worldFirePoint,
+            _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position):0;
         if (playerDistance < 20)
             _betweenScenesService.Value.PlayUiAudioClip(gunConfig.ShotSound,SoundType.GameSound,
                 1 - playerDistance / 20); 
@@ -1119,8 +1121,8 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             if (projectileCmp.CurrentBreakingThroughCount <= 0 && gunConfig.ExplosionRadius != 0 &&
                 (_sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId).PartType != CarPartType.Armor ||
                  !_sceneService.Value.GetArmorFromCarPart(carPartInfoCmp.CarPartId).ExplosionDefence)) {
-                var playerDistance = Vector2.Distance(collisionPoint,
-                    _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position);
+                var playerDistance = _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView?Vector2.Distance(collisionPoint,
+                    _carComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CarView.CarPartsContainer.transform.position):0;
                 if(playerDistance > 20)
                     _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.SmallExplosionSound,SoundType.GameSound,
                         1 - playerDistance / 20);
@@ -2077,13 +2079,17 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 CheckLoseGame();
             carCmp.CarView = null;
         }
-          
-        if (dontDestroyEnemyCar && carCmp.CarPartContainerGroupsList.Count == 0 && !_destroyEntityEventsPool.Value.Has(carEntity)) {
+
+        if (currentRoundType == RoundType.VersusBattle && !_destroyEntityEventsPool.Value.Has(carEntity)) {
+            carCmp.CarView = null;
+            _destroyEntityEventsPool.Value.Add(carEntity);
+        } else if (dontDestroyEnemyCar && carCmp.CarPartContainerGroupsList.Count == 0 && !_destroyEntityEventsPool.Value.Has(carEntity)) {
             _destroyEntityEventsPool.Value.Add(carEntity);
             carCmp.CarView = null;
         } else if (!dontDestroyEnemyCar && !_destroyEntityEventsPool.Value.Has(carEntity)) {
             carCmp.CarView = null;
-            if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carEntity) && !_playerTagComponentsPool.Value.Has(carEntity) && _enemyAIComponentsPool.Value.Get(carEntity).IsEnemy) {
+            if (!inventoryCmp.PlayerTeammateCarsEntity.Contains(carEntity) && !_playerTagComponentsPool.Value.Has(carEntity) &&
+                _enemyAIComponentsPool.Value.Get(carEntity).IsEnemy) {
                 DataPersistenceManagerSystem._gameData.BrokenCars++;
                 if (_bossComponentsPool.Value.Has(carEntity))
                     _bossComponentsPool.Value.Del(carEntity);
@@ -2098,6 +2104,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
             CheckTasks(TaskType.Kills);
         }
+        Debug.Log(dontDestroyEnemyCar + " car death" + carEntity + _destroyEntityEventsPool.Value.Has(carEntity));
     }
 
     private void ClearHealthUI() {

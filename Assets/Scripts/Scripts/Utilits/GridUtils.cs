@@ -910,7 +910,7 @@ public class GridUtils : MonoBehaviour {
                         rotateAngle = 90;
                         if (carPartSize.x > 1)
                             randomPosition = new Vector2Int(randomPosition.x - (carPartSize.x - 1), randomPosition.y);
-                    } else if (randomPosition.x - 1 < 0 || downGrid[randomPosition.x- 1, randomPosition.y ] == 0)
+                    } else if (randomPosition.x - 1 < 0 || downGrid[randomPosition.x - 1, randomPosition.y] == 0)
                         rotateAngle = 270;
                 } else {
                     float randomValue = Random.value;
@@ -932,7 +932,7 @@ public class GridUtils : MonoBehaviour {
                         edgeCells.Remove(cell);
                     }
 
-                    carPartUpLevelGrid.Add(new CarPartTypeRow(randomPosition, currentCarPartConfig.Id, rotateAngle, 0));
+                    carPartUpLevelGrid.Add(new CarPartTypeRow(randomPosition, currentCarPartConfig.Id, rotateAngle, 0, null));
                     if (partType == CarPartType.Main)
                         carPartsToPlace.RemoveAt(0);
                     else

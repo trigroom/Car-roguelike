@@ -242,65 +242,43 @@ public class RelayManager : MonoBehaviour
 
     public async Task<bool> StartClientWithRelay(string joinCode) {
         try {
-            if (UnityServices.State != ServicesInitializationState.Initialized) {
+            if (UnityServices.State != ServicesInitializationState.Initialized)
                 await InitializeUnityServices();
-            }
 
-            if (string.IsNullOrEmpty(joinCode)) {
-                Debug.LogError("❌ Join code is empty");
+            if (string.IsNullOrEmpty(joinCode))
                 return false;
-            }
 
-            Debug.Log($"📡 Joining Relay with code: {joinCode}");
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
-            Debug.Log($"✅ Joined Relay allocation with ID: {joinAllocation.AllocationId}");
 
-            if (!NetcodeBetweenScenesService.Instance.CanJoin())
-            {
-                Debug.LogWarning("❌ Game already started! Cannot join.");
+            if (!NetcodeBetweenScenesService.Instance.CanJoin()) {
+                Debug.LogWarning("Game already started");
                 return false;
             }
-            
-            if (NetworkManager.Singleton == null) {
-                Debug.LogError("❌ NetworkManager.Singleton is null");
+
+            if (NetworkManager.Singleton == null)
                 return false;
-            }
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport == null) {
-                Debug.LogError("❌ UnityTransport component not found");
+            if (transport == null)
                 return false;
-            }
 
-            // НАСТРОЙКА КЛИЕНТА ДЛЯ TRANSPORT 2.0 - 2.1
             var relayServerData = new RelayServerData(joinAllocation.RelayServer.IpV4, (ushort)joinAllocation.RelayServer.Port,
-                joinAllocation.AllocationIdBytes, joinAllocation.ConnectionData, joinAllocation.HostConnectionData, // Для клиента это важно!
-                joinAllocation.Key, useEncryption // isSecure
+                joinAllocation.AllocationIdBytes, joinAllocation.ConnectionData, joinAllocation.HostConnectionData, joinAllocation.Key,
+                useEncryption // isSecure
             );
 
             transport.SetRelayServerData(relayServerData);
 
-            Debug.Log($"✅ Client Relay configured (Encryption: {useEncryption})");
-
-            Debug.Log("🚀 Starting client...");
             bool result = NetworkManager.Singleton.StartClient();
 
-            if (result) {
+            if (result)
                 Debug.Log("✅ Client started successfully");
-            } else {
+            else
                 Debug.LogError("❌ Failed to start client");
-            }
 
-          //  if (NetcodeBetweenScenesService.Instance.CanJoin())
-
-                return result;
-          /*  else {
-                NetworkManager.Singleton.Shutdown();
-                return false;
-            }*/
-                
+            return result;
         } catch (Exception e) {
-            Debug.LogError($"❌ Failed to start client: {e.Message}\n{e.StackTrace}");
+            Debug.LogError($"Failed to start client: {e.Message}\n{e.StackTrace}");
             return false;
         }
     }

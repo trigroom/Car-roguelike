@@ -64,7 +64,6 @@ public class CarPartInfoUIView : MonoBehaviour
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
     public void SetPanelForModuleInfo(ModuleConfig moduleConfig) {
-        _destroyButton.gameObject.SetActive(true);
         _moveToInventoryButton.gameObject.SetActive(false);
         _upgradeButton.gameObject.SetActive(false);
         _moduleContainer.gameObject.SetActive(false);
@@ -112,7 +111,7 @@ public class CarPartInfoUIView : MonoBehaviour
                      break;
                  case Buff.MaxWeight:
                      _descriptionText +=
-                         $"{GetLocalization("Max weight")}: {(moduleBuff.BuffCount > 0 ? "+" : "")}{moduleBuff.BuffCount * 100}%";
+                         $"{GetLocalization("Car max weight")}: {(moduleBuff.BuffCount > 0 ? "+" : "")}{moduleBuff.BuffCount * 100}%";
                      break;
                  case Buff.TargetPierceing:
                      _descriptionText += $"{GetLocalization("Pierce count")}: +{moduleBuff.BuffCount}";
@@ -122,7 +121,7 @@ public class CarPartInfoUIView : MonoBehaviour
                  _descriptionText += "\n";
              
          }
-         _descriptionText += $"{GetLocalization("Sell for")} {moduleConfig.Cost}$";
+       //  _descriptionText += $"{GetLocalization("Sell for")} {moduleConfig.Cost}$";
          return _descriptionText;
     }
 

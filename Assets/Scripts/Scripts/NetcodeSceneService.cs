@@ -78,10 +78,11 @@ public class NetcodeSceneService : NetworkBehaviour
    private ObjectPool<NetworkObject> _hpBarsPool;
   
     private void Awake() {
-        if(NetcodeBetweenScenesService.Instance != null)
-        NetcodeBetweenScenesService.Instance.NetcodeSceneService = this;
-   
-       
+        if (NetcodeBetweenScenesService.Instance != null)
+            NetcodeBetweenScenesService.Instance.NetcodeSceneService = this;
+
+        if (!networkObjectsMapContainer.IsSpawned && !BetweenScenesService.Instance.IsCoop)
+            networkObjectsMapContainer.Spawn();
         
         _projectilesPool = new ObjectPool<ProjectileView>(() => {
             return Instantiate(_projectileView);
@@ -200,7 +201,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private void ExecuteReleaseGunProjectile(NetworkObjectReference networkObject, float radius, int projectileSpritesIndex)
    {
        if (!networkObject.TryGet(out NetworkObject projectileNetworkObject)) return;
-    
+      
        var projectile = projectileNetworkObject.GetComponent<ProjectileView>();
        projectile.rigidbody2D.linearVelocity = Vector2.zero;
        PlayHitAnimation(projectile, radius, projectileSpritesIndex);
@@ -211,11 +212,10 @@ public class NetcodeSceneService : NetworkBehaviour
         projectile.GetComponent<ProjectileView>().PlayHitAnimation(animation,radius, RelaseProjectileYourself);
     }
 
-    public void RelaseProjectileYourself(ProjectileView projectile) {  
+    public void RelaseProjectileYourself(ProjectileView projectile) {
+        if (!projectile.gameObject.activeInHierarchy) return;
         projectile.gameObject.SetActive(false);
-        if(!NetworkManager.IsServer)return;
-        if(!projectile.gameObject.activeInHierarchy)return;
-    
+        if (!NetworkManager.IsServer) return;
         _projectilesPool.Release(projectile);
     }
     [ServerRpc(RequireOwnership = false)]

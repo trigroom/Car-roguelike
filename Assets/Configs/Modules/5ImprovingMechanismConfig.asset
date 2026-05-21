@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 5ImprovingMechanismConfig
   m_EditorClassIdentifier: 
   ModuleId: 5
-  ModuleName: 'Improved mechanism '
+  ModuleName: Improved mechanism
   ModuleIcon: {fileID: 21300000, guid: b1b623cba4ec8d6418807c513a61e294, type: 3}
   ModuleType: 2
   Cost: 25

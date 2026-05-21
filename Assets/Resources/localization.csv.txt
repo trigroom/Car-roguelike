@@ -397,3 +397,14 @@ Round reward,Round Reward,Награда за раунд,Rundenbelohnung,Recompe
 UI sounds,UI Sounds,Звуки интерфейса,UI-Geräusche,Sonidos de interfaz,Sons d'interface
 Game sounds,Game Sounds,Звуки игры,Spielgeräusche,Sonidos de juego,Sons de jeu
 Music,Music,Музыка,Musik,Música,Musique
+Damage fall off,Damage Drop,Падение урона,Schadensabfall,Caída de daño,Baisse des dégâts
+Sharp tip,Sharp Tip,Острый наконечник,Scharfe Spitze,Punta afilada,Pointe tranchante
+High quality wood,High Quality Wood,Качественная древесина,Hochwertiges Holz,Madera de alta calidad,Bois de haute qualité
+High quality metal,High Quality Metal,Качественный металл,Hochwertiges Metall,Metal de alta calidad,Métal de haute qualité
+Heavy bullet,Heavy Bullet,Тяжёлая пуля,Schwere Kugel,Bala pesada,Balle lourde
+Armor piercing bullet,AP Bullet,Бронебойная пуля,Panzerbrechende Kugel,Bala perforante,Balle perforante
+Improved mechanism,Improved Mechanism,Улучшенный механизм,Verbesserter Mechanismus,Mecanismo mejorado,Mécanisme amélioré
+Improved car suspention,Improved Suspension,Улучшенная подвеска,Verbesserte Federung,Suspensión mejorada,Suspension améliorée
+Incrised mag size,Increased Magazine Size,Увеличенный магазин,Vergrößerte Magazingröße,Tamaño de cargador aumentado,Taille de chargeur augmentée
+Incrised wheels rotate speed,Increased Wheel Speed,Увеличенная скорость вращения колёс,Erhöhte Radgeschwindigkeit,Velocidad de rueda aumentada,Augmentation de vitesse roues
+Win values per same items row,Multiplier bonus per matching row,Бонус за совпадающий ряд,Multiplikator-Bonus pro übereinstimmender Reihe,Bonus multiplicador por línea igualada,Bonus multiplicateur par ligne identique
