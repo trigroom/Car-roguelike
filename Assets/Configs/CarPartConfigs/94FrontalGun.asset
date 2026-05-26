@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 94FrontalGun
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 94
+  <MaxHealth>k__BackingField: 400
+  <Weight>k__BackingField: 65
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 2e4884934b9c34543b0530983f9e9842, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 3
+  <UpgradedPartId>k__BackingField: 0
+  <UpgradedPartCost>k__BackingField: 12
+  <PartName>k__BackingField: Frontal gun
+  <ModuleTypes>k__BackingField: 040000000500000001000000
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  <MoneyCost>k__BackingField: 55
+  UpPartSprite: {fileID: 21300000, guid: d1aa89067955c5246a134940898847e8, type: 3}
+  UpPartPosition: {x: 0, y: 0.9}
+  MaxRotateAngle: 0
+  RotateSpeed: 0
+  Damage: 35
+  AttackCouldown: 0.6
+  BulletsCountInMagazine: 1
+  BulletsCount: 1
+  BulletSpeed: 22
+  ReloadDuration: 0.6
+  MissleType: 0
+  MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
+  FirePointPosition: {x: 0, y: 1.3}
+  GunContainerPosition: {x: 0, y: 0}
+  SpreadAngle: 3
+  ExplosionRadius: 0
+  ExplosionDamage: 0
+  ImpulseForce: 0
+  EffectType: 0
+  EffectDuration: 0
+  BreakingThroughCount: 2
+  BreakingThroughDamageFalloff: 0
+  CarRecoil: 0
+  ProjectileLifeTime: 2.3
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0
+  ShotSound: {fileID: 8300000, guid: 3bf721f0baae0af428f3dd6107ec7a06, type: 3}

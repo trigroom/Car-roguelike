@@ -7,4 +7,5 @@ public class SlotItemConfig : ScriptableObject
     public float Count;
     public int Id;
     public float TripleMultiplayer;
+    public float DoubleMultiplayer;
 }

@@ -786,6 +786,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             carPartInfoCmp.CarPartId = carPartConfig.Id;
             _sceneData.Value._inventoryUIView._placeFirstCarPartText.gameObject.SetActive(false);
             UpdateCarDescription(_inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRedactedCarEntity);
+            _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.HitTheGroundSound,SoundType.UI,0.6f);
         } else {
             CancelCarPartPlace(ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity));
         }
@@ -909,7 +910,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 CreateCarPartContainerOnComplete(carPartEntity, finalPosition, carPartConfig, gridCellNewSize, carPartSize, level);
                 CheckAllCarContainersForStability();
             });
-
+            _betweenScenesService.Value.PlayUiAudioClip(_betweenScenesService.Value._carStuffListsConfig.HitTheGroundSound, SoundType.UI, 0.6f);
             //  carPartSequence.Play();
         } else {
             CancelCarPartPlace(ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity));
@@ -2346,7 +2347,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carCmp.CarPartGroupsList = new Dictionary<int, List<Vector2Int>>();
         carCmp.CarPartContainerGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
         carCmp.CarPartGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
-
+        carCmp.NameIndexes = RoundUtilits.GetRandomCarNameIndexes();
         ref var moveCmp = ref _movementComponentsPool.Value.Add(teammateEntity);
         ref var fuelCmp = ref _fuelComponentsPool.Value.Add(teammateEntity);
         _enemyAIComponentsPool.Value.Add(teammateEntity);
@@ -2361,8 +2362,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             selectCarButton.gameObject.SetActive(i < inventoryCmp.PlayerTeammateCarsEntity.Count);
             if (i < inventoryCmp.PlayerTeammateCarsEntity.Count) {
                 //  Debug.Log(inventoryCmp.PlayerTeammateCarsEntity.Count + " deb int");
-                _sceneData.Value._inventoryUIView._selectCarButtons[i].sellCarText.text =
-                    GetCarCost(inventoryCmp.PlayerTeammateCarsEntity[i]) + "$";
+                selectCarButton.carNameText.text = i == 0
+                    ? DataPersistenceManagerSystem._gameData.CoopPlayerName
+                    : RoundUtilits.GetLocalizatedCarNameByIndex(_carComponentsPool.Value.Get(inventoryCmp.PlayerTeammateCarsEntity[i])
+                        .NameIndexes);
+                selectCarButton.sellCarText.text = GetCarCost(inventoryCmp.PlayerTeammateCarsEntity[i]) + "$";
             }
         }
     }

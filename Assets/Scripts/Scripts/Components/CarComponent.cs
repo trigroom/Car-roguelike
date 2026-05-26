@@ -22,6 +22,6 @@ public struct CarComponent {
      
      public Dictionary<int, List<Vector2Int>> CarPartContainerGroupsList;
      public int[,] CarPartContainerGroupsGrid;
-    
+     public Vector2 NameIndexes;
     public float WheelsRotateAngle;
 }

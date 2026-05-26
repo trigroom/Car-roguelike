@@ -3,66 +3,91 @@ using AYellowpaper.SerializedCollections;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CarStuffListsConfig", menuName = "Scriptable Objects/CarStuffListsConfig")]
-public class CarStuffListsConfig : ScriptableObject
-{
+public class CarStuffListsConfig : ScriptableObject {
     [field: SerializeField]
-    public Material DefaultMaterial { get;private set; }
+    public Material DefaultMaterial { get; private set; }
+
     [field: SerializeField]
-        public Material EnemyProjectilesMaterial { get;private set; }
+    public Material EnemyProjectilesMaterial { get; private set; }
+
     [field: SerializeField]
-    public Material LowDamagedMaterial { get;private set; }
+    public Material LowDamagedMaterial { get; private set; }
+
     [field: SerializeField]
-    public Material HighDamagedMaterial { get;private set; }
+    public Material HighDamagedMaterial { get; private set; }
+
     [field: SerializeField]
-    
-    public Material FrozenMaterial { get;private set; }
+
+    public Material FrozenMaterial { get; private set; }
+
     [field: SerializeField]
-    public Material FireMaterial { get;private set; }
+    public Material FireMaterial { get; private set; }
+
     [field: SerializeField]
-    public CarConfig[] CarConfigs { get;private set; }
+    public CarConfig[] CarConfigs { get; private set; }
+
     [field: SerializeField]
-    public CarPartConfig[] CarPartConfigs { get;private set; }
+    public CarPartConfig[] CarPartConfigs { get; private set; }
+
     [field: SerializeField]
-    public CarPartStuffView CarPartStuffView { get;private set; }
+    public CarPartStuffView CarPartStuffView { get; private set; }
+
     [field: SerializeField]
-    public MeleeCarPartStuffView MeleeCarPartStuffView { get;private set; }
-    
+    public MeleeCarPartStuffView MeleeCarPartStuffView { get; private set; }
+
     [field: SerializeField]
-    public int[] ShopItems { get;private set; }
-    
+    public int[] ShopItems { get; private set; }
+
     [field: SerializeField]
-    public WheelPrefabConfig[] Wheels { get;private set; }
-    
+    public WheelPrefabConfig[] Wheels { get; private set; }
+
     [field: SerializeField]
-    public Sprite[] CarPartUIBordersSprites { get;private set; }
+    public Sprite[] CarPartUIBordersSprites { get; private set; }
+
     [field: SerializeField]
-    public Color DestroyedCarPartColor { get;private set; }
+    public Color DestroyedCarPartColor { get; private set; }
+
     [field: SerializeField]
-    public MapConfig[] MapConfigs { get;private set; }
+    public MapConfig[] MapConfigs { get; private set; }
+
     [field: SerializeField]
-    public ShopIdList[] RoundShopChances{ get;private set; }
+    public ShopIdList[] RoundShopChances { get; private set; }
+
     [field: SerializeField]
-    public AchivementConfig[] AchievementConfigs{ get;private set; }
+    public AchivementConfig[] AchievementConfigs { get; private set; }
+
     [field: SerializeField]
-    public ShopItemConfig[] ShopItemConfigs{ get;private set; }
+    public ShopItemConfig[] ShopItemConfigs { get; private set; }
+
     [field: SerializeField]
-    public ModuleConfig[] ModuleConfigs{ get;private set; }
+    public ModuleConfig[] ModuleConfigs { get; private set; }
+
     [field: SerializeField]
-    public CarBasesForCarDictionary[] CarBasesForCars { get;private set; }
+    public CarBasesForCarDictionary[] CarBasesForCars { get; private set; }
+
     [field: SerializeField]
-    public AudioClip MoneySound{ get;private set; }
+    public AudioClip MoneySound { get; private set; }
+
     [field: SerializeField]
-    public AudioClip PlacePartSound{ get;private set; }
+    public AudioClip PlacePartSound { get; private set; }
+
     [field: SerializeField]
-    public AudioClip AirplaneSound{ get;private set; }
+    public AudioClip AirplaneSound { get; private set; }
+
     [field: SerializeField]
-    public AudioClip BigExplosionSound{ get;private set; }
+    public AudioClip BigExplosionSound { get; private set; }
+
     [field: SerializeField]
-    public AudioClip SmallExplosionSound{ get;private set; }
+    public AudioClip SmallExplosionSound { get; private set; }
+
     [field: SerializeField]
-    public AudioClip ButtonSound{ get;private set; }
+    public AudioClip ButtonSound { get; private set; }
+
     [field: SerializeField]
-    public AudioClip ThunderSound{ get;private set; }
+    public AudioClip ThunderSound { get; private set; }
+
+    [field: SerializeField]
+    public AudioClip HitTheGroundSound { get; private set; }
 }
 
 [System.Serializable]

@@ -31,6 +31,7 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public Transform _dontUsedUIImagesPool{ get; private set; }
     [field: SerializeField] public Transform _markForTeammatesContainer{ get; private set; }
     [field: SerializeField] public Transform _mapContainer{ get; private set; }
+   
     [field: SerializeField] public Transform _pixelizedEffectsImage{ get; private set; }
     [field: SerializeField] public Transform _pixelizedEffectsUnderCarImage{ get; private set; }
     [field: SerializeField] public SettingsView _settingsView{ get; private set; }
@@ -47,6 +48,7 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public SpriteRenderer _carPartSpriteRenderer { get; private set; }
     [field: SerializeField] public Image _carPartUIImage { get; private set; }
     [field: SerializeField] public Transform _floatingTextContainer { get; private set; }
+  
     [field: SerializeField] public TMP_Text _floatingTextPrefab { get; private set; }
     [field: SerializeField] public MergeRoundView _mergeRoundView { get; private set; }
     [field: SerializeField] public MapFilledZoneView _mapFilledZoneView { get; private set; }
@@ -87,6 +89,7 @@ public class SceneService : MonoBehaviour {
     [field: SerializeField] public CellView emptyCell { get; private set; }
     [field: SerializeField] public TMP_Text moneyText { get; private set; }
     [field: SerializeField] public Light2D globalLight { get; set; }
+    
     [field: SerializeField] public Camera mainCamera { get; private set; }
     [field: SerializeField] public EnemyAirplaneView enemyAirplaneView { get; set; }
     public float aspectRatio;
@@ -97,6 +100,7 @@ public class SceneService : MonoBehaviour {
     public BuildingView buildingViewForTest;
     private ObjectPool<CarPartStuffView> _carPartsPool;
     private ObjectPool<TMP_Text> _floatingTextsPool;
+
     private ObjectPool<EnemyAirplaneView> _enemyAirplanesPool;
     private ObjectPool<LineRenderer> _laserLineRenderersPool;
     private ObjectPool<MeleeCarPartStuffView> _meleeCarPartsPool;
@@ -166,6 +170,8 @@ public class SceneService : MonoBehaviour {
         _enemyAirplanesPool.Release(airplane);
         airplane.gameObject.SetActive(false);
     }
+    
+
   /*  public SpriteRenderer GetCarPartSpriteRenderer(Transform parent = null) {
         return parent ? Instantiate(_carPartSpriteRenderer, parent) : Instantiate(_carPartSpriteRenderer);
     }*/

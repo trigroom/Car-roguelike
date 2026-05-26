@@ -36,7 +36,7 @@ MonoBehaviour:
   BulletsCountInMagazine: 5
   BulletsCount: 1
   BulletSpeed: 33
-  ReloadDuration: 4
+  ReloadDuration: 3.7
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
   FirePointPosition: {x: 0, y: 1.3}

@@ -407,4 +407,5 @@ Improved mechanism,Improved Mechanism,Улучшенный механизм,Verb
 Improved car suspention,Improved Suspension,Улучшенная подвеска,Verbesserte Federung,Suspensión mejorada,Suspension améliorée
 Incrised mag size,Increased Magazine Size,Увеличенный магазин,Vergrößerte Magazingröße,Tamaño de cargador aumentado,Taille de chargeur augmentée
 Incrised wheels rotate speed,Increased Wheel Speed,Увеличенная скорость вращения колёс,Erhöhte Radgeschwindigkeit,Velocidad de rueda aumentada,Augmentation de vitesse roues
-Win values per same items row,Multiplier bonus per matching row,Бонус за совпадающий ряд,Multiplikator-Bonus pro übereinstimmender Reihe,Bonus multiplicador por línea igualada,Bonus multiplicateur par ligne identique
+Win values per same items row,Multiplier bonus per matching row (3 items/2 items),Бонус за совпадающий ряд (3 предмета/2 предмета),Multiplikator-Bonus pro übereinstimmender Reihe (3 Gegenstände/2 Gegenstände),Bonus multiplicador por línea igualada (3 objetos/2 objetos),Bonus multiplicateur par ligne identique (3 objets/2 objets)
+Go build car,Return to Car,Вернуться к машине,Zum Auto zurückkehren,Volver al coche,Retourner à la voiture

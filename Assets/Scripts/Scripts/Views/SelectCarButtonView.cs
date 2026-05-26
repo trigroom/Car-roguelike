@@ -10,7 +10,7 @@ public class SelectCarButtonView : MonoBehaviour
     public TMP_Text sellCarText;
 
     public void SelectCarButtonSetup(string carName, float price) {
-        carNameText.text = CSVLocalization.Instance.GetLocalizedValue(carName);
+        carNameText.text = carName;
         gameObject.SetActive(true);
         sellCarText.text = CSVLocalization.Instance.GetLocalizedValue("Sell for")+price+"$";
     }

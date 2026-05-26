@@ -1473,9 +1473,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         }
 
         slotMachineCmp.CurrentBet = 5;
-        slotMachineView._currentBetText.text =
-            $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}<sprite name=\"CogIconForScreen\">\n" +
-            $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}<sprite name=\"CogIconForScreen\">";
+        SetCurrentBetSlotTextToCurrentValues();
         slotMachineCmp.TryCount = 10;
         slotMachineView._tryLeftText.text =$"{GetLocalization("Trys left")}: {slotMachineCmp.TryCount}";
         ChangeInventoryState(false);
@@ -1503,30 +1501,59 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             }
 
         
-            bool allSame = true;
             int itemIndex = slotMachineCmp.CurrentSlotValues[0].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[0]];
-            for (int i = 1; i < slotMachineCmp.CurrentPositionItemIndexValues.Length; i++) {
-                if (slotMachineCmp.CurrentSlotValues[i].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[i]] != itemIndex)
-                    allSame = false;
-            }
+            int secondItemIndex = slotMachineCmp.CurrentSlotValues[1].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[1]];
+            int thirdItemIndex = slotMachineCmp.CurrentSlotValues[2].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[2]];
 
-            if (allSame)
-                playerCurrencyCmp.MoneyCount += slotMachineView._slotItemConfigs[itemIndex].TripleMultiplayer * slotMachineCmp.CurrentBet;
-            else
-                playerCurrencyCmp.MoneyCount -= slotMachineCmp.CurrentBet;
+            (int countSameValues, int sameItemIndex) = CheckMatches(itemIndex, secondItemIndex, thirdItemIndex);
+
+            if (countSameValues > 0) {
+                float winValue   =(countSameValues == 3
+                    ? slotMachineView._slotItemConfigs[sameItemIndex].TripleMultiplayer
+                    : slotMachineView._slotItemConfigs[sameItemIndex].DoubleMultiplayer) * slotMachineCmp.CurrentBet;
+                playerCurrencyCmp.MoneyCount += winValue;
+                slotMachineView._currentBetText.text = $"+{winValue}<sprite name=\"CogIconForScreen\">";
+                slotMachineView._currentBetText.DOKill();
+                slotMachineView._currentBetText.transform.DOPunchScale(Vector3.one * 0.2f, 0.8f, 1)
+                    .OnComplete(SetCurrentBetSlotTextToCurrentValues);
+            }
+            else {
+                if (slotMachineCmp.CurrentBet > playerCurrencyCmp.MoneyCount)
+                    slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
+                SetCurrentBetSlotTextToCurrentValues();
+            }
+               
             
             playerCurrencyCmp.VisibleMoneyCount = playerCurrencyCmp.MoneyCount;
             slotMachineCmp.CurrentRollTime = 0;
             slotMachineView._switchImage.sprite = slotMachineView._switchUpSprite;
-            if (slotMachineCmp.CurrentBet > playerCurrencyCmp.MoneyCount)
-                slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
-            slotMachineView._currentBetText.text = $" {GetLocalization("Current money")}: {playerCurrencyCmp.MoneyCount}<sprite name=\"CogIconForScreen\">\n" +
-                                                   $"{GetLocalization("Bet")}: {slotMachineCmp.CurrentBet}<sprite name=\"CogIconForScreen\">";
+          
         } else {
             slotMachineCmp.TryCount--;
+            playerCurrencyCmp.MoneyCount -= slotMachineCmp.CurrentBet;
+            SetCurrentBetSlotTextToCurrentValues();
             slotMachineView._tryLeftText.text = $"{GetLocalization("Trys left")}: {slotMachineCmp.TryCount}";
             slotMachineView._switchImage.sprite = slotMachineView._switchDownSprite;
         }
+    }
+
+    private void SetCurrentBetSlotTextToCurrentValues() {
+        _sceneService.Value._slotMachineUiView._currentBetText.text =
+            $" {GetLocalization("Current money")}: {_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount}<sprite name=\"CogIconForScreen\">\n" +
+            $"{GetLocalization("Bet")}: {_slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentBet}<sprite name=\"CogIconForScreen\">";
+    }
+    public (int count, int value) CheckMatches(int a, int b, int c)
+    {
+        if (a == b && b == c)
+            return (3, a);      // все три одинаковые
+        else if (a == b)
+            return (2, a);      // a и b одинаковые
+        else if (a == c)
+            return (2, a);      // a и c одинаковые
+        else if (b == c)
+            return (2, b);      // b и c одинаковые
+        else
+            return (0, 0);      // нет совпадений
     }
     private void RollSlotMachine() {
         ref var slotMachineCmp = ref _slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -1597,6 +1624,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
 
         return array;
     }
+
     private void SetVersusBattleUI() {
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView.gameObject.SetActive(true);
@@ -1604,20 +1632,17 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         _sceneService.Value._mapContainer.gameObject.SetActive(false);
         versusBattleView._betContainer.gameObject.SetActive(true);
         _netcodeSceneService.Value.networkObjectsMapContainer.gameObject.SetActive(false);
-        versusBattleView._rightVersusBattleParticipantInfo.NameText.text =
-            $"{GetLocalization(VersusBattlesNames[Random.Range(0, VersusBattlesNames.Length)])} {GetLocalization(VersusBattlesSurnames[Random.Range(0, VersusBattlesSurnames.Length)])}";
-        versusBattleView._leftVersusBattleParticipantInfo.NameText.text =
-            $"{GetLocalization(VersusBattlesNames[Random.Range(0, VersusBattlesNames.Length)])} {GetLocalization(VersusBattlesSurnames[Random.Range(0, VersusBattlesSurnames.Length)])}";
- ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+
+        ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         versusBattleView._circularSawLeft.transform.position = new Vector3(-50, 0, 0);
         versusBattleView._circularSawRight.transform.position = new Vector3(50, 0, 0);
-        versusBattleView._timerText.text = "0"; 
-        
+        versusBattleView._timerText.text = "0";
+
         if (NetworkManager.Singleton.IsServer) {
             versusBattleView._speedGameSpeedBoostText.text = ">";
             SetCarsToVersusBattle();
             SetCarToVersusGrid();
-        _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 0;
+            _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).LocalTimeScale = 0;
             if (_betweenScenesService.Value.IsCoop)
                 SetUiVersusBattleInfoFromServer();
         } else {
@@ -1626,15 +1651,21 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             versusBattleCmp.RightOpponentEntity = -1;
         }
 
-        
-        Time.timeScale = 0;
+        versusBattleView._rightVersusBattleParticipantInfo.NameText.text =
+            RoundUtilits.GetLocalizatedCarNameByIndex(_carComponentsPool.Value.Get(versusBattleCmp.RightOpponentEntity).NameIndexes);
+        versusBattleView._leftVersusBattleParticipantInfo.NameText.text =
+            RoundUtilits.GetLocalizatedCarNameByIndex(_carComponentsPool.Value.Get(versusBattleCmp.LeftOpponentEntity).NameIndexes);
+
+        if (NetworkManager.Singleton.IsServer)
+            Time.timeScale = 0;
         _sceneService.Value.mainCamera.transform.position = new Vector3(0, 0, -10);
-       
+
         versusBattleCmp.IsCircularSawsSended = false;
         versusBattleCmp.CurrentBet = 0;
         ChangeBet(Mathf.Min(5, (int)_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount));
     }
 
+    
     private void SetUiVersusBattleInfoFromServer() {
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         var leftCarCmp = _carComponentsPool.Value.Get(versusBattleCmp.LeftOpponentEntity);
@@ -1794,31 +1825,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         SetMoneyText();
     }
 
-    private string[] VersusBattlesNames = new[] {
-        "Buck", "Kyle", "Jack", "Travis", "Duke", "Billy", "Jake", "Clint", "Jedd", "Darryl", "Cody", "Shane", "Boyd", "Floyd", "Garrett",
-        "Lou", "Milo", "Otis", "Roscoe", "Jed", "Lyle", "Wade", "Curtis", "Russ", "Dallas", "Elvis", "Merle", "Coyote", "Jared", "Lance",
-        "Cletus", "Bo", "Waylon", "Hank", "Jethro", "Beau"
-    };
-
-    private string[] VersusBattlesSurnames = new[] {
-        "Viper", "Coyote", "Buzzard", "Mole", "Hound", "Scorpion", "Jackal", "Badger", "Vulture", "Roach",
-       
-        "Red", "Baldy", "Scar", "Beardo", "Chick", "Slick", "Deadeye", "Tooth", "Fang", "Crutch", "Stitches",
-       
-        "Sledge", "Dynamite", "Gas-Wrench", "Poker", "Chainsaw", "Solder", "Hammer", "Wrench", "Torch", "Greaser",
-       
-        "Preacher", "Doc", "Liar", "Quiet", "Grouch", "Sneak", "Hustler", "Joker", "Lucky", "Boomer", "Stranger", "Rook",
-        
-        "Rusty", "Diesel", "Exhaust", "Propane", "Spark", "Tar", "Dust", "Fume", "Scale", "Radiator",
-       
-        "Crusher", "Claw", "Grip", "Nightmare", "Ghost", "Raven", "Spider", "Hawk", "Thunder", "Reaper"
-    };
-
     private void CompleteVersusBattle() {
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
         var versusBattleView = _sceneService.Value._versusBattleView;
-Debug.Log(" end vs battle");
         versusBattleView.gameObject.SetActive(false);
         ChangeInventoryState(true);
         versusBattleView._versusMapContainer.gameObject.SetActive(false);
@@ -1933,11 +1943,11 @@ Debug.Log(" end vs battle");
     }
 
     private void SetupClientCar(CarPartDataForRpc[] upParts, CarPartDataForRpc[] downParts, int carLevel, ulong userId, bool isPlayer,
-        int carId, Vector2 carSize) {
+        int carId, Vector2 carSize, Vector2 nameIndexes) {
         var enemyCarMap = BuildCarMap(upParts, downParts, carId, carLevel, carSize);
 
         int carEntity = SpawnNpcCar(_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity), enemyCarMap, false,
-            GetRandomPointAround(Vector2.zero, 10));
+            GetRandomPointAround(Vector2.zero, 10), nameIndexes);
 
         if (isPlayer) {
             int playerCmpEntity = _world.Value.NewEntity();
@@ -1982,9 +1992,10 @@ Debug.Log(" end vs battle");
     private void SetCarsToVersusBattle() {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         ref var versusBattleCmp = ref _versusBattleComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
+        versusBattleCmp.RightOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(), true, new Vector2(20, 0),RoundUtilits.GetRandomCarNameIndexes());
+        versusBattleCmp.LeftOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(), false, new Vector2(-20, 0),RoundUtilits.GetRandomCarNameIndexes());
 
-        versusBattleCmp.RightOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(), true, new Vector2(20, 0));
-        versusBattleCmp.LeftOpponentEntity = SpawnNpcCar(curGameCmp, GetRandomCarMap(), false, new Vector2(-20, 0));
+        
     }
 
     private void SetHealthForCarPartToClient(Vector2Int gridPosition, float health, bool isUpperPart, int teammateIndex) {
@@ -2397,14 +2408,13 @@ Debug.Log(" end vs battle");
         fuelCmp.AddedFuelConsumption = carConfig.AccelerationFuelСonsumption;
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
-
         SetupEnemyMovementComponent(entity, _sceneService.Value.GetCarConfig(carCmp.CarId));
 
-        _netcodeSceneService.Value.InstantiateCarViewServerRpc(entity, true, GetPositionAroundPlayer());
+        _netcodeSceneService.Value.InstantiateCarViewServerRpc(entity, true, GetPositionAroundPlayer(),carCmp.NameIndexes );
     }
 
     private int SpawnNpcCar(CurrentGameComponent curGameCmp, /*List<Transform> ,*/ EnemyCarPartsMaps carMap, bool isEnemy,
-        Vector2 spawnPosition) {
+        Vector2 spawnPosition, Vector2 nameIndexes = default) {
         int enemyEntity = _world.Value.NewEntity();
 
         _movementComponentsPool.Value.Add(enemyEntity);
@@ -2412,7 +2422,7 @@ Debug.Log(" end vs battle");
 
         ref var carCmp = ref _carComponentsPool.Value.Add(enemyEntity);
         carCmp.CarId = carMap.CarId;
-
+        carCmp.NameIndexes = nameIndexes;
         carCmp.CarPartGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
         carCmp.CarPartContainerGroupsGrid = new int[carMap.GridSize.x, carMap.GridSize.y];
         carCmp.CarPartViewsGrid = new CarPartStuffView[carMap.GridSize.x, carMap.GridSize.y];
@@ -2481,8 +2491,7 @@ Debug.Log(" end vs battle");
         }
 
         _enemyAIComponentsPool.Value.Add(enemyEntity).IsEnemy = isEnemy;
-
-        _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy, spawnPosition);
+        _netcodeSceneService.Value.InstantiateCarViewServerRpc(enemyEntity, !isEnemy, spawnPosition,carCmp.NameIndexes);
         return enemyEntity;
     }
 
@@ -2541,7 +2550,7 @@ Debug.Log(" end vs battle");
         carCmp.CarPartViewsGrid =
             new CarPartStuffView[carCmp.CarPartContainerGroupsGrid.GetLength(0), carCmp.CarPartContainerGroupsGrid.GetLength(1)];
      
-        _netcodeSceneService.Value.InstantiateCarViewServerRpc(_sceneService.Value.PlayerEntity, true,Vector2.zero);
+        _netcodeSceneService.Value.InstantiateCarViewServerRpc(_sceneService.Value.PlayerEntity, true,Vector2.zero, carCmp.NameIndexes);
         foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
             if (carEntity != _sceneService.Value.PlayerEntity)
                 SpawnTeammateCar(carEntity);
@@ -2568,10 +2577,10 @@ Debug.Log(" end vs battle");
                 carPartInfoCmp.ModuleIds, carPartInfoCmp.CarPartId, carPartInfoCmp.PartLevel, (int)carPartInfoCmp.CurrentHealth,
                 carPartInfo.Key));
         }
-
+Debug.Log(carCmp.NameIndexes + " ni");
         _netcodeSceneService.Value.SetCarToServerRpc(upParts.ToArray(), downParts.ToArray(), carCmp.CarLevel,
             entity == _sceneService.Value.PlayerEntity, carCmp.CarId,
-            new Vector2(carCmp.CarPartGroupsGrid.GetLength(0), carCmp.CarPartGroupsGrid.GetLength(1)));
+            new Vector2(carCmp.CarPartGroupsGrid.GetLength(0), carCmp.CarPartGroupsGrid.GetLength(1)),carCmp.NameIndexes);
     }
 
     public void SetModuleBuffs(int carPartEntity) {

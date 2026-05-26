@@ -30,8 +30,11 @@ public class NetcodeSceneService : NetworkBehaviour
    [field:SerializeField] public MeleeCarPartStuffView meleeCarPartStuffView { get; private set; }
    [field:SerializeField] public Transform notUsedNetworkObjectsContainer { get; private set; }
    [field:SerializeField] public Gradient _healthGradient { get; private set; }
-   [field: SerializeField] public ProjectileView _projectileView { get; private set; }
-   [field: SerializeField] public Sprite[] _bulletSprites { get; private set; }
+   [field: SerializeField] public ProjectileView _projectileView { get; private set; } 
+   [field: SerializeField] public TMP_Text _nameTextPrefab { get; private set; }
+   [field: SerializeField] public Sprite[] _bulletSprites { get; private set; } 
+   [field: SerializeField] public Transform _carNamesContainer{ get; private set; }
+   
    private Action<CarView, int, bool> _carSetupAction;
    private Action<int> _deleteHpBarComponentAction;
    private Action<NetworkObject, int> _getHpBarAction;
@@ -61,7 +64,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action<float> _endRoundExpAddAction;
    private Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2 > _setupVersusBattleUiAction;
    private Action<Vector2Int[], CarPartType, bool, float, float> _setVersusBattleUiAction;
-   private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> _setupCarOnServerAction;
+   private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2, Vector2> _setupCarOnServerAction;
    private Action< float, float,Vector2, int> _setMovementToTornadoAction;
    private Action<int ,float ,Vector2 ,int> _spawnTornadoAction;
    private Action _endMapGenerateAction;
@@ -76,6 +79,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private ObjectPool<NetworkObject> _floatingTextsPool;
    private ObjectPool<ProjectileView> _projectilesPool;
    private ObjectPool<NetworkObject> _hpBarsPool;
+   private ObjectPool<TMP_Text> _namesTextsPool;
   
     private void Awake() {
         if (NetcodeBetweenScenesService.Instance != null)
@@ -123,6 +127,7 @@ public class NetcodeSceneService : NetworkBehaviour
           
             return needObject;
         });
+        _namesTextsPool = new ObjectPool<TMP_Text>(() => Instantiate(_nameTextPrefab, _carNamesContainer));
     }
 
     private void Start() {
@@ -161,28 +166,24 @@ public class NetcodeSceneService : NetworkBehaviour
                     ? BetweenScenesService.Instance._carStuffListsConfig.DefaultMaterial
                     : BetweenScenesService.Instance._carStuffListsConfig.EnemyProjectilesMaterial);
     }*/
- 
 
    [Rpc(SendTo.NotServer)]
-   public void SetProjectileVisualClientRpc(NetworkObjectReference[] networkObject, bool isEnemy, int gunId, Vector2[] projectileSpeed, float[] angle,
-       Vector2 worldFirePoint) {
-       for (int i = 0; i < networkObject.Length; i++) 
-            ExecuteSetProjectileVisual(networkObject[i], isEnemy, gunId, projectileSpeed[i], angle[i], worldFirePoint);
+   public void SetProjectileVisualClientRpc(NetworkObjectReference[] networkObject, bool isEnemy, int gunId, Vector2[] projectileSpeed,
+       float[] angle, Vector2 worldFirePoint) {
+       for (int i = 0; i < networkObject.Length; i++)
+           ExecuteSetProjectileVisual(networkObject[i], isEnemy, gunId, projectileSpeed[i], angle[i], worldFirePoint);
        if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[gunId] is GunConfig gunConfig) {
            _playSoundToPlayer.Invoke(worldFirePoint, gunConfig.ShotSound);
        }
-
-       
    }
 
-   private void ExecuteSetProjectileVisual(NetworkObjectReference networkObject, bool isEnemy, int gunId, Vector2 projectileSpeed, float angle,
+   private void ExecuteSetProjectileVisual(NetworkObject networkObject, bool isEnemy, int gunId, Vector2 projectileSpeed, float angle,
        Vector2 worldFirePoint) {
-       if (!networkObject.TryGet(out NetworkObject projectileNetworkObject)) return;
-
-       var projectile = projectileNetworkObject.GetComponent<ProjectileView>();
-       projectile.rigidbody2D.linearVelocity = projectileSpeed;
-       projectile.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+       var projectile = networkObject.GetComponent<ProjectileView>();
        projectile.transform.position = worldFirePoint;
+       projectile.gameObject.SetActive(true);  
+       projectile.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+       projectile.rigidbody2D.linearVelocity = projectileSpeed;
 
        if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[gunId] is GunConfig gunConfig) {
            projectile.SetProjectileVisual(gunConfig.MissleSprite, isEnemy ? "Enemy" : "Player",
@@ -229,7 +230,26 @@ public class NetcodeSceneService : NetworkBehaviour
         SetFloatingTextClientRpc(position, text, Color.white, floatingText,entity,rpcParams.Receive.SenderClientId);
        
     }
-    
+
+    public TMP_Text GetCarNameText(NetworkObject carContainer, string carName = null, Vector2 nameIndexes = default) {
+        var nameText = _namesTextsPool.Get();
+        if (carName != null) {
+            if (nameIndexes == default)
+                nameText.text = carName;
+            else
+                nameText.text = RoundUtilits.GetLocalizatedCarNameByIndex(nameIndexes);
+        }
+
+        nameText.gameObject.SetActive(true);
+
+        carContainer.gameObject.GetComponent<CarNameTextContainerView>().SetupNameTextContainer(nameText, ReleaseCarNameText);
+
+        return nameText;
+    }  
+    public void ReleaseCarNameText(TMP_Text nameText) {
+             _namesTextsPool.Release(nameText);
+             nameText.gameObject.SetActive(false);
+         }
     /*[ServerRpc(RequireOwnership = false)]
     public void SpawnCarPartSpritesServerRpc(int mainEntity, int cellEntity, int carPartId, int rotateAngle, bool isPlayer,
         int containerSizeX, int containerSizeY, NetworkObjectReference carView, int[] carpartStuffPositionsX, int[] carpartStuffPositionsY,
@@ -243,7 +263,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<NetworkObject, Sequence, int> laserTextGetAction, Action<CarView, int, bool> carSetupAction,
         Action<Animator[], int[]> wheelComponentsSetupAction,
         Action<int, SpriteRenderer, Transform, SpriteRenderer, LineRenderer, CarPartStuffView[], Transform, MeleeCarPartStuffView>
-            carPartSetupAction, Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2> setupCarOnServerAction,
+            carPartSetupAction, Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2, Vector2> setupCarOnServerAction,
         Action<ulong, Vector2, bool> setSpeedParametersAction, Action<CarView> setCarViewAction,
         Action<float, float, float, float> setFuelBarsAction, Action<Vector2Int, float, bool> setCarPartHealthPointAction,
         Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction,
@@ -553,15 +573,16 @@ public class NetcodeSceneService : NetworkBehaviour
     }*/
     
     [ServerRpc(RequireOwnership = false, DeferLocal = true)]
-    public void InstantiateCarViewServerRpc( int entity,bool isPlayer,Vector2 spawnPosition, ServerRpcParams rpcParams = default)
+    public void InstantiateCarViewServerRpc( int entity,bool isPlayer,Vector2 spawnPosition, Vector2 nameIndexes,ServerRpcParams rpcParams = default)
     {
         
         ulong clientId =  rpcParams.Receive.SenderClientId;
         
         var carTransform = Instantiate(_carView).GetComponent<NetworkObject>();
         carTransform.Spawn();
+       
         carTransform.transform.GetChild(0).transform.position = spawnPosition;
-        SendCarToClientRpc(clientId,carTransform, entity, isPlayer);
+        SendCarToClientRpc(clientId,carTransform, entity, isPlayer,nameIndexes);
     }
 
     [Rpc(SendTo.NotServer)]
@@ -569,153 +590,26 @@ public class NetcodeSceneService : NetworkBehaviour
         _endVersusBattleAction.Invoke(isRightWin);
     }
     [Rpc(SendTo.ClientsAndHost)]
-    private void SendCarToClientRpc(ulong targetClientId, NetworkObjectReference carReference, int entity, bool isPlayer)
-    {
-        // Этот RPC выполнят все клиенты, но нас интересует только целевой
-        if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
-  
-        if (carReference.TryGet(out NetworkObject netObj))
-        {    
+    private void SendCarToClientRpc(ulong targetClientId, NetworkObjectReference carReference, int entity, bool isPlayer, Vector2 nameIndexes) {
+        if (carReference.TryGet(out NetworkObject netObj)) {
+            if (nameIndexes != default) {
+                GetCarNameText(netObj, RoundUtilits.GetLocalizatedCarNameByIndex(nameIndexes));
+            } else if (isPlayer) {
+                foreach (var playerInfo in NetcodeBetweenScenesService.Instance.playerReadyStates) {
+                    if (playerInfo.ClientId == targetClientId)
+                        GetCarNameText(netObj, playerInfo.GetNickname());
+                }
+            }
+
+            if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
+
             var carView = netObj.GetComponentInChildren<CarView>();
-        
+
             _carSetupAction.Invoke(carView, entity, isPlayer);
         }
     }
 
-  /*  public void TrySpawnCarPartSprites(int mainEntity, int cellEntity, int carPartId, int rotateAngle, bool isPlayer, int containerSizeX,
-        int containerSizeY, NetworkObjectReference carView, int[] carpartStuffPositionsX, int[] carpartStuffPositionsY) {
-        if (BetweenScenesService.Instance.IsCoop) {
-            ulong clientId = NetworkManager.Singleton.LocalClientId;
-            SpawnCarPartSpritesClientRpc(clientId, mainEntity, cellEntity, carPartId, rotateAngle, isPlayer, containerSizeX, containerSizeY,
-                carView, carpartStuffPositionsX, carpartStuffPositionsY);
-        } else {
-            SpawnCarPartSprites(mainEntity, cellEntity, carPartId, rotateAngle, isPlayer, containerSizeX, containerSizeY, carView,
-                carpartStuffPositionsX, carpartStuffPositionsY);
-        }
-    }
-    public void SpawnCarPartSprites(int mainEntity, int cellEntity, int carPartId, int rotateAngle, bool isPlayer,
-        int containerSizeX, int containerSizeY, NetworkObjectReference carView, int[] carpartStuffPositionsX, int[] carpartStuffPositionsY) {
-      
-           var carPartConfig = BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartId];
-
-        var positionsList = new List<Vector2Int>();
-        for (int i = 0; i < carpartStuffPositionsX.Length; i++)
-            positionsList.Add(new Vector2Int(carpartStuffPositionsX[i], carpartStuffPositionsY[i]));
-        bool isContainer = GridUtils.IsContainerType(carPartConfig);
-        var cellCarPartsStuffViews = new List<CarPartStuffView>();
-        carView.TryGet(out NetworkObject carViewObject);
-        var carViewCmp = carViewObject.transform.GetComponentInChildren<CarView>();
-        if (carViewCmp.CarPartStuffViews == null) 
-            carViewCmp.CarPartStuffViews = new CarPartStuffView[containerSizeX, containerSizeY];
-        
-        for (int i = 0; i < carpartStuffPositionsX.Length; i++) {
-            var needGridPosition = new Vector2Int(positionsList[i].x, positionsList[i].y);
-            if (isContainer) {
-                var carPartView = _carPartsPool.Get();
-                cellCarPartsStuffViews.Add(carPartView);
-                // if (NetworkManager.Singleton.LocalClientId == clientId) {
-                carPartView.transform.SetParent(carViewCmp.CarPartsContainer.transform);
-                carPartView.transform.localPosition = new Vector2(needGridPosition.x, needGridPosition.y) -
-                                                      new Vector2(containerSizeX / 2f, containerSizeY / 2f);
-                carPartView.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
-
-                string needLayer = isPlayer ? "CarBase" : "CarBaseEnemy";
-                carPartView.SetupCarPart(needGridPosition, needLayer, mainEntity, 0);
-
-                carPartView.SetColliderEnableState(true);
-                carPartView.gameObject.tag = isPlayer ? "Player" : "Enemy";
-                carViewCmp.CarPartStuffViews[needGridPosition.x, needGridPosition.y] = carPartView;
-            } else {
-                string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
-                var carPartView = carViewCmp.CarPartStuffViews[needGridPosition.x, needGridPosition.y];
-                cellCarPartsStuffViews.Add(carPartView);
-                carPartView.SetupCarPart(needGridPosition, needLayer, mainEntity,0);
-                carPartView.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
-            }
-        }
-
-        SpriteRenderer spriteBase = _spriteRenderersPool.Get();
-        carViewCmp.CarPartSprites.Add(cellEntity, spriteBase);
-        Vector2Int carPartSize = GridUtils.GetCarPartSize(carPartConfig);
-
-        spriteBase.transform.SetParent(carViewCmp.CarPartsContainer.transform);
-        if (rotateAngle == 90 || rotateAngle == 270)
-            carPartSize = new Vector2Int(carPartSize.y, carPartSize.x);
-        spriteBase.transform.localPosition = (Vector3Int)GridUtils.GetEdgePointFromCarPart(positionsList) +
-                                             new Vector3((carPartSize.x - containerSizeX) / 2f - 0.5f,
-                                                 (carPartSize.y - containerSizeY) / 2f - 0.5f);
-        spriteBase.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
-        spriteBase.sprite = carPartConfig.PartSprite;
-        int needSpriteLevel = isContainer ? 1 : 2;
-        spriteBase.sortingOrder = needSpriteLevel;
-
-        Transform upPartContainer = null; //
-
-        Transform firePointTransform = null;
-        SpriteRenderer weaponSpriteRenderer = null;
-        LineRenderer laserLineRenderer = null;
-        MeleeCarPartStuffView meleeCarPartStuffView = null;
-        if (carPartConfig.PartType == CarPartType.Gun) {
-            if (carPartConfig is GunConfig gunConfig) {
-                if (gunConfig.UpPartSprite != null) {
-                    upPartContainer = _gunContainersPool.Get();
-                    upPartContainer.SetParent(spriteBase.transform);
-                    upPartContainer.transform.localPosition = gunConfig.GunContainerPosition;
-                    upPartContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                    firePointTransform = _gunContainersPool.Get();
-
-                    weaponSpriteRenderer = _spriteRenderersPool.Get();
-
-                    firePointTransform.SetParent(upPartContainer);
-                    firePointTransform.transform.localPosition = gunConfig.FirePointPosition - gunConfig.GunContainerPosition;
-                    firePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
-
-                    weaponSpriteRenderer.transform.SetParent(upPartContainer);
-                    weaponSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition - gunConfig.GunContainerPosition;
-                    weaponSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
-
-                    weaponSpriteRenderer.sprite = gunConfig.UpPartSprite;
-                    weaponSpriteRenderer.sortingOrder = 3;
-                } else {
-                    firePointTransform = _gunContainersPool.Get();
-                    firePointTransform.SetParent(spriteBase.transform);
-                    firePointTransform.transform.localPosition = gunConfig.FirePointPosition;
-                    firePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                }
-
-                if (gunConfig.MissleType == MissleType.laser) {
-                    laserLineRenderer = _laserLineRenderersPool.Get();
-                    laserLineRenderer.transform.SetParent(notUsedNetworkObjectsContainer);
-                    laserLineRenderer.gameObject.SetActive(false);
-                }
-            }
-        } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
-            if (carPartConfig is MeleeWeaponConfig meleeConfig) {
-                if (meleeConfig.UpSprite != null) {
-                    weaponSpriteRenderer = _spriteRenderersPool.Get();
-                    weaponSpriteRenderer.sprite = meleeConfig.UpSprite;
-                    weaponSpriteRenderer.transform.SetParent(spriteBase.transform);
-                    weaponSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                    weaponSpriteRenderer.sortingOrder = 3;
-                    weaponSpriteRenderer.transform.localPosition = meleeConfig.UpSpritePosition;
-                }
-
-//
-                meleeCarPartStuffView = _meleeCarPartStuffViewsPool.Get();
-                meleeCarPartStuffView.transform.SetParent(spriteBase.transform);
-                meleeCarPartStuffView.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                meleeCarPartStuffView.transform.localPosition = Vector3.zero;
-                meleeCarPartStuffView.MakeTriggerCollider();
-                meleeCarPartStuffView.SetColliderEnableState(true);
-            }
-        }
-
-            Transform firePointTransformToAction = firePointTransform ? firePointTransform.transform : null;
-            // Transform weaponContainerTransformToAction = weaponContainerTransform ? weaponContainerTransform.transform:null;
-            _carPartSetupAction.Invoke(cellEntity, spriteBase, upPartContainer, weaponSpriteRenderer, laserLineRenderer,
-                cellCarPartsStuffViews.ToArray(), firePointTransformToAction, meleeCarPartStuffView);
-        
-    }*/
+ 
     [ServerRpc(RequireOwnership = false)]
     public void SpawnCarPartSpritesServerRpc(int mainEntity, int cellEntity, int carPartId, int rotateAngle, bool isPlayer,
         int containerSizeX, int containerSizeY, NetworkObjectReference carView, int[] carpartStuffPositionsX, int[] carpartStuffPositionsY,
@@ -1178,8 +1072,8 @@ public class NetcodeSceneService : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SetCarToServerRpc (CarPartDataForRpc[]upParts,CarPartDataForRpc[] downParts, int carLevel, bool isPlayer, int carId, Vector2 carSize, ServerRpcParams rpcParams = default){
-        _setupCarOnServerAction.Invoke(upParts, downParts, carLevel, rpcParams.Receive.SenderClientId, isPlayer, carId,carSize);
+    public void SetCarToServerRpc (CarPartDataForRpc[]upParts,CarPartDataForRpc[] downParts, int carLevel, bool isPlayer, int carId, Vector2 carSize, Vector2 nameIndexes, ServerRpcParams rpcParams = default){
+        _setupCarOnServerAction.Invoke(upParts, downParts, carLevel, rpcParams.Receive.SenderClientId, isPlayer, carId,carSize,nameIndexes);
     }
     
     [ServerRpc(RequireOwnership = false)]
