@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Crossbow
-  <ModuleTypes>k__BackingField: 0000000003000000
+  <ModuleTypes>k__BackingField: 00000000030000000b000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 10
@@ -29,12 +29,12 @@ MonoBehaviour:
   UpPartPosition: {x: 0, y: 0.3}
   MaxRotateAngle: 0
   RotateSpeed: 0
-  Damage: 10
-  AttackCouldown: 1
+  Damage: 15
+  AttackCouldown: 1.4
   BulletsCountInMagazine: 1
   BulletsCount: 1
   BulletSpeed: 12
-  ReloadDuration: 1
+  ReloadDuration: 1.4
   MissleType: 0
   MissleSprite: {fileID: 21300000, guid: 1c6b2c9ebf624a94fbb2c359703cd930, type: 3}
   FirePointPosition: {x: 0, y: 0.3}

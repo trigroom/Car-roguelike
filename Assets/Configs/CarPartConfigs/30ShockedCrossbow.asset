@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Shocked crossbow
-  <ModuleTypes>k__BackingField: 000000000300000002000000
+  <ModuleTypes>k__BackingField: 0000000003000000020000000b000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 24

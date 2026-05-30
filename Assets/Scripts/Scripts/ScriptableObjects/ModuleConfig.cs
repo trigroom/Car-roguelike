@@ -25,5 +25,8 @@ public enum Buff {
     ReloadSpeed, 
     MaxWeight,
     CarRotateSpeed,
-    MaxMagazineSize
+    MaxMagazineSize,
+    CarMaxSpeed,
+    SpreadPercent,
+    SpreadCount
 }

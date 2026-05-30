@@ -10,15 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a7ea2c7462363041821e87546399de9, type: 3}
-  m_Name: 6ImprovedCarSuspentionConfig
+  m_Name: 13UranBulletConfig
   m_EditorClassIdentifier: 
-  ModuleId: 6
-  ModuleName: Improved car suspention
-  ModuleIcon: {fileID: 21300000, guid: d38dec7c8a5b01e4594cce19ed4e8ff0, type: 3}
-  ModuleType: 8
-  Cost: 35
+  ModuleId: 13
+  ModuleName: Uran bullet
+  ModuleIcon: {fileID: 21300000, guid: 3bece37828b2ee64da41bbe2b08506fb, type: 3}
+  ModuleType: 4
+  Cost: 40
   ModuleBuffs:
-  - BuffCount: 0.3
-    Buff: 7
-  - BuffCount: -0.1
-    Buff: 8
+  - BuffCount: -0.75
+    Buff: 1
+  - BuffCount: 3
+    Buff: 12
+  - BuffCount: 0.65
+    Buff: 3

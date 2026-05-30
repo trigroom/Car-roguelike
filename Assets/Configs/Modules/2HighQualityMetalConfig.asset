@@ -16,7 +16,7 @@ MonoBehaviour:
   ModuleName: High quality metal
   ModuleIcon: {fileID: 21300000, guid: 038791c1d6e2f804291bb68cb20ebaea, type: 3}
   ModuleType: 1
-  Cost: 30
+  Cost: 25
   ModuleBuffs:
   - BuffCount: 0.35
     Buff: 1

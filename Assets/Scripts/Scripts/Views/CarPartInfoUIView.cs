@@ -116,6 +116,15 @@ public class CarPartInfoUIView : MonoBehaviour
                  case Buff.TargetPierceing:
                      _descriptionText += $"{GetLocalization("Pierce count")}: +{moduleBuff.BuffCount}";
                      break;
+                 case Buff.CarMaxSpeed:
+                     _descriptionText += $"{GetLocalization("Max car speed")}: {(moduleBuff.BuffCount > 0 ? "+" : "")}{moduleBuff.BuffCount * 100}%";
+                     break;
+                 case Buff.SpreadCount:
+                     _descriptionText += $"{GetLocalization("Spread angle")}: {(moduleBuff.BuffCount > 0 ? "+" : "")}{moduleBuff.BuffCount}";
+                     break;
+                 case Buff.SpreadPercent:
+                     _descriptionText += $"{GetLocalization("Spread angle")}: {(moduleBuff.BuffCount > 0 ? "+" : "")}{moduleBuff.BuffCount * 100}%";
+                     break;
              }
 
                  _descriptionText += "\n";
@@ -178,11 +187,9 @@ public class CarPartInfoUIView : MonoBehaviour
     }
 
     public void SetDescriptionInfo(bool isUpdate, int[] moduleIds) {
-        (float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount,
-            float reloadSpeedMultiplayer,float maxWeightMultiplier,float wheelRotateSpeedMultiplier, float magSizeMultiplier)
-            = GridUtils.GetModulesMultipliers(moduleIds);
+        var moduleMultipliers  = GridUtils.GetModulesMultipliers(moduleIds);
         int needLevel = isUpdate ? _level + 1 : _level;
-        float maxHealth = _currentCarPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(needLevel)*healthMultiplayer;
+        float maxHealth = _currentCarPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(needLevel)*moduleMultipliers.healthMultiplayer;
         _descriptionText.text = $"{CurrentMarkedCarPartHealth:F2}/";
         _descriptionText.text += isUpdate ?  $"<color=#5bca4a>{maxHealth:F2}</color>":$"{maxHealth:F2}";
         _descriptionText.text += $" {GetLocalization("HP")} \n{GetLocalization("Part rare")}:" +
@@ -191,7 +198,9 @@ public class CarPartInfoUIView : MonoBehaviour
         
         if (_currentCarPartConfig.PartType == CarPartType.Gun) {
             if (_currentCarPartConfig is GunConfig gunConfig) {
-                SetGunInfo(gunConfig, needLevel, isUpdate, damageMultiplayer, attackSpeedMultiplayer, targetPiercingAddedCount, reloadSpeedMultiplayer, magSizeMultiplier);
+                SetGunInfo(gunConfig, needLevel, isUpdate, moduleMultipliers.damageMultiplaier, moduleMultipliers.attackSpeedMultiplayer,
+                    moduleMultipliers.targetPiercingAddedCount, moduleMultipliers.reloadSpeedMultiplayer, moduleMultipliers.magSizeMultiplier,
+                    moduleMultipliers.spreadCount, moduleMultipliers.spreadMultiplier);
             }
         } else if (_currentCarPartConfig.PartType == CarPartType.MeleeWeapon) {
             if (_currentCarPartConfig is MeleeWeaponConfig meleeConfig) {
@@ -206,8 +215,8 @@ public class CarPartInfoUIView : MonoBehaviour
                     _carPartIconUpLevel.gameObject.SetActive(true);
                 }
                 (float damageMultiplier, float damageBySpeedMultiplier) = GridUtils.GetMeleeLevelMultipliers(meleeConfig,needLevel);
-                var damage = damageMultiplayer * meleeConfig.Damage * damageMultiplier;
-                var attackCountdown = meleeConfig.AttackCountdown * attackSpeedMultiplayer;
+                var damage = moduleMultipliers.damageMultiplaier * meleeConfig.Damage * damageMultiplier;
+                var attackCountdown = meleeConfig.AttackCountdown * moduleMultipliers.attackSpeedMultiplayer;
                 var damageAddedFromSpeed = meleeConfig.DamageAddedFromOneSpeed * damageBySpeedMultiplier * damageMultiplier;
                 if (isUpdate) {
                     if (damageMultiplier != 1f)
@@ -252,7 +261,7 @@ public class CarPartInfoUIView : MonoBehaviour
         }
         else if (_currentCarPartConfig.PartType == CarPartType.WheelsContainer) {
             if (_currentCarPartConfig is WheelsContainerConfig wheelConfig) {
-                var maxWeight = wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(needLevel)*maxWeightMultiplier;
+                var maxWeight = wheelConfig.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(needLevel)*moduleMultipliers.maxWeightMultiplier;
                 _descriptionText.text += $"\n{GetLocalization("Car max weight")}: ";
                 _descriptionText.text += isUpdate ? $"<color=#5bca4a>{maxWeight}</color>" : maxWeight;
                 _descriptionText.text +=$"\n{GetLocalization("Stability radius")}:{wheelConfig.StabilityRadius} {GetLocalization("m")}";
@@ -326,7 +335,7 @@ public class CarPartInfoUIView : MonoBehaviour
     }
 
     private void SetGunInfo(GunConfig gunConfig, int level, bool isUpdate, float damageMultiplayer, float attackSpeedMultiplayer,
-        int targetPiercingAddedCount, float reloadSpeedMultiplayer, float magSizeMultiplier) {
+        int targetPiercingAddedCount, float reloadSpeedMultiplayer, float magSizeMultiplier, float spreadCount, float spreadMultipliers) {
         (float damageMultiplier, float reloadMultiplier, float attackCountdownMultiplayer) = GridUtils.GetGunLevelMultipliers(gunConfig, level);
 
         if (gunConfig.UpPartSprite != null) {
@@ -373,7 +382,7 @@ public class CarPartInfoUIView : MonoBehaviour
             if (gunConfig.BulletsCount > 1)
                 _descriptionText.text += $"x{gunConfig.BulletsCount}";
             _descriptionText.text += $" \n{GetLocalization("Projectile speed")}: {gunConfig.BulletSpeed} \n" +
-                                     $"{GetLocalization("Spread angle")}: {gunConfig.SpreadAngle}°\n" +
+                                     $"{GetLocalization("Spread angle")}: {(gunConfig.SpreadAngle+spreadCount)*spreadMultipliers}°\n" +
                                      $"{GetLocalization("Bullets in mag")}: {Mathf.FloorToInt(gunConfig.BulletsCountInMagazine * magSizeMultiplier)}";
             if (gunConfig.ExplosionRadius != 0)
                 _descriptionText.text += $"\n{GetLocalization("Explosion radius")}: {gunConfig.ExplosionRadius}\n" +

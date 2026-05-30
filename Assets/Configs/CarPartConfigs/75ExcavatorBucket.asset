@@ -28,7 +28,7 @@ MonoBehaviour:
   <MoneyCost>k__BackingField: 22
   Damage: 22
   AttackCountdown: 0.75
-  DamageAddedFromOneSpeed: 0.0018
+  DamageAddedFromOneSpeed: 1.45
   UpSprite: {fileID: 21300000, guid: 7d7de5ccf08283445860023415f973e4, type: 3}
   UpSpritePosition: {x: 0, y: 0.95}
   IsAttackAfterCountdown: 0

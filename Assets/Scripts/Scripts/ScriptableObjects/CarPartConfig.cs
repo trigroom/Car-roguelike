@@ -70,5 +70,6 @@ public enum ModuleType {
     explodeRadius,
     wheels,
     magSize,
-    main
+    main,
+    bowstring
 }

@@ -11,7 +11,7 @@ public class MeleeCarPartStuffView : CarPartStuffView {
     private int _entity;
 
     public void ConstructMelee(Sprite carPartSprite,
-        Action<AttackType, int, Vector2Int, int, Vector2, ProjectileView, int, string> hitTargetAction, string tag, int weaponId, int entity) {
+        Action<AttackType, int, Vector2Int, int, Vector2, ProjectileView, int, string> hitTargetAction, string tag, int weaponId, int entity, Vector2 positionOffset) {
         this.hitTargetAction = hitTargetAction;
         _needTag = tag;
         _weaponId = weaponId;
@@ -19,6 +19,7 @@ public class MeleeCarPartStuffView : CarPartStuffView {
         Bounds spriteBounds = carPartSprite.bounds;
 
         _carPartCollider.size = spriteBounds.size;
+        _carPartCollider.transform.localPosition = positionOffset;
         _carPartCollider.offset = spriteBounds.center;
         if (tag == "Player")
             _layerMask = LayerMask.GetMask("CarBase", "UpCarPart", "Obstacle");

@@ -601,7 +601,7 @@ public class GridUtils : MonoBehaviour {
     }
 
     public static (float damageMultiplaier, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount, float
-        reloadSpeedMultiplayer, float maxWeightMultiplier,float wheelRotateSpeedMultiplier, float magSizeMultiplier) GetModulesMultipliers(int[] moduleIds) {
+        reloadSpeedMultiplayer, float maxWeightMultiplier,float wheelRotateSpeedMultiplier, float magSizeMultiplier,float maxSpeedMultiplier, float spreadMultiplier, float spreadCount ) GetModulesMultipliers(int[] moduleIds) {
         float damageMultiplayer = 1;
         float attackSpeedMultiplayer = 1;
         float healthMultiplayer = 1;
@@ -610,7 +610,10 @@ public class GridUtils : MonoBehaviour {
         float maxWeightMultiplier = 1;
         float wheelRotateSpeedMultiplier = 1;
         float magSizeMultiplier = 1;
-
+        float maxSpeedMultiplier = 1;
+        float spreadMultiplier = 1;
+        float spreadCount = 0;
+        
         if (moduleIds != null)
             foreach (var moduleId in moduleIds) {
                 if (moduleId == -1) continue;
@@ -641,12 +644,21 @@ public class GridUtils : MonoBehaviour {
                         case Buff.CarRotateSpeed:
                             wheelRotateSpeedMultiplier += moduleBuff.BuffCount;
                             break;
+                        case Buff.CarMaxSpeed:
+                            maxSpeedMultiplier += moduleBuff.BuffCount;
+                            break;
+                        case Buff.SpreadCount:
+                            spreadCount += moduleBuff.BuffCount;
+                            break;
+                        case Buff.SpreadPercent:
+                            spreadMultiplier += moduleBuff.BuffCount;
+                            break;
                     }
                 }
             }
 
         return (damageMultiplayer, attackSpeedMultiplayer, healthMultiplayer, targetPiercingAddedCount, reloadSpeedMultiplayer,
-            maxWeightMultiplier, wheelRotateSpeedMultiplier, magSizeMultiplier);
+            maxWeightMultiplier, wheelRotateSpeedMultiplier, magSizeMultiplier,maxSpeedMultiplier, spreadMultiplier, spreadCount);
     }
     
     public static ( Sprite upSprite, Vector2 size, Vector2 position) GetUpperPartSizesForUI(Vector2 cellSizeDelta, CarPartConfig carPartConfig) {
@@ -878,6 +890,9 @@ public class GridUtils : MonoBehaviour {
         {CarPartRare.VeryHigh, 9}
     };
 
+    public static bool IsMaxCarPartLevel(int level, CarPartRare rare) {
+       return _maxLevelsForRare[rare] >= level;
+    }
     private static void PlaceCarPartToCarBase(CarPartType partType, int needCount, ref int moneyLimit, List<int> carPartsToPlace,
         ref int[,] upGrid, List<Vector2Int> middleCells, List<Vector2Int> edgeCells, int[,] downGrid,
         ref List<CarPartTypeRow> carPartUpLevelGrid) {

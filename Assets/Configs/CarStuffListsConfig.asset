@@ -304,6 +304,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2c39eca813dd887408841b4b678730d9, type: 2}
   - {fileID: 11400000, guid: c2003e7501e8ee74ebdffa94e681a091, type: 2}
   - {fileID: 11400000, guid: 345d7b1272bbde44b90073005dde2ee8, type: 2}
+  - {fileID: 11400000, guid: 68cc1c4a82d91454795bbc8d2284a5aa, type: 2}
+  - {fileID: 11400000, guid: a2a9ccfa78a60a74c95189dbcb6528bf, type: 2}
+  - {fileID: 11400000, guid: adf52f3d6d11448418875948a59fa50c, type: 2}
+  - {fileID: 11400000, guid: 9b72a81ad56cc6848b85755c3f8112bb, type: 2}
+  - {fileID: 11400000, guid: e0f1c2a443ab97c46aa097008b6a54da, type: 2}
+  - {fileID: 11400000, guid: b9c976ff9bed4fe40ba68c6ab95ded05, type: 2}
   <CarBasesForCars>k__BackingField:
   - CarPartBasesForLevel:
       _serializedList: []

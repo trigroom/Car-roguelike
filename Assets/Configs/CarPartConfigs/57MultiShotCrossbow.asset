@@ -21,7 +21,7 @@ MonoBehaviour:
   <UpgradedPartId>k__BackingField: 0
   <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Multi arrow crossbow
-  <ModuleTypes>k__BackingField: 0000000003000000
+  <ModuleTypes>k__BackingField: 00000000030000000b000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 23
@@ -30,7 +30,7 @@ MonoBehaviour:
   MaxRotateAngle: 0
   RotateSpeed: 0
   Damage: 15
-  AttackCouldown: 0.7
+  AttackCouldown: 0.8
   BulletsCountInMagazine: 6
   BulletsCount: 1
   BulletSpeed: 11

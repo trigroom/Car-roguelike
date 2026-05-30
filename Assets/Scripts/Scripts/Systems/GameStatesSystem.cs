@@ -2588,24 +2588,24 @@ Debug.Log(carCmp.NameIndexes + " ni");
         var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartInfo.CarPartId);
         var moduleIds = carPartInfo.ModuleIds;
 
-        (float damageMultiplayer, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount,
-            float reloadSpeedMultiplayer,float maxWeightMultiplier,float wheelRotateSpeedMultiplier, float magSizeMultiplier) = GridUtils.GetModulesMultipliers(moduleIds);
+        var moduleBuffs = GridUtils.GetModulesMultipliers(moduleIds);
 
         ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
 
-        carPartCmp.MaxHealth *= healthMultiplayer;
+        carPartCmp.MaxHealth *= moduleBuffs.healthMultiplayer;
         if (carPartConfig.PartType == CarPartType.Gun) {
             ref var gunCmp = ref _gunComponentsPool.Value.Get(carPartEntity);
-            gunCmp.CurrentDamage *= damageMultiplayer;
-            gunCmp.CurrentMaxAttackCountdown *= attackSpeedMultiplayer;
-            gunCmp.CurrentReloadSpeed *= reloadSpeedMultiplayer;
-            gunCmp.MaxPiercingCount += targetPiercingAddedCount;
-            gunCmp.CurrentMaxBulletsInMagazine = Mathf.FloorToInt(gunCmp.CurrentMaxBulletsInMagazine*magSizeMultiplier);
+            gunCmp.CurrentDamage *= moduleBuffs.damageMultiplaier;
+            gunCmp.CurrentMaxAttackCountdown *= moduleBuffs.attackSpeedMultiplayer;
+            gunCmp.CurrentSpread = (gunCmp.CurrentSpread +moduleBuffs.spreadCount)* moduleBuffs.spreadMultiplier;
+            gunCmp.CurrentReloadSpeed *= moduleBuffs.reloadSpeedMultiplayer;
+            gunCmp.MaxPiercingCount += moduleBuffs.targetPiercingAddedCount;
+            gunCmp.CurrentMaxBulletsInMagazine = Mathf.FloorToInt(gunCmp.CurrentMaxBulletsInMagazine*moduleBuffs.magSizeMultiplier);
             gunCmp.CurrentMagazineCount = gunCmp.CurrentMaxBulletsInMagazine;
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
             ref var meleeCmp = ref _meleeWeaponComponentsPool.Value.Get(carPartEntity);
-            meleeCmp.CurrentDamage *= damageMultiplayer;
-            meleeCmp.CurrentMaxCountdown *= attackSpeedMultiplayer;
+            meleeCmp.CurrentDamage *= moduleBuffs.damageMultiplaier;
+            meleeCmp.CurrentMaxCountdown *= moduleBuffs.attackSpeedMultiplayer;
         }
     }
 
@@ -2817,6 +2817,7 @@ Debug.Log(carCmp.NameIndexes + " ni");
             gunCmp.CurrentMaxBulletsInMagazine = gunConfig.BulletsCountInMagazine;
             gunCmp.CurrentMagazineCount = gunCmp.CurrentMaxBulletsInMagazine;
             gunCmp.MaxPiercingCount = gunConfig.BreakingThroughCount;
+            gunCmp.CurrentSpread = gunConfig.SpreadAngle;
           
 
             _gunComponentsPool.Value.Get(cellEntity) = gunCmp;
@@ -2977,14 +2978,16 @@ Debug.Log(carCmp.NameIndexes + " ni");
     private void SetupEnemyMovementComponent(int enemyEntity, CarConfig carConfig) {
         ref var movementComponent = ref _movementComponentsPool.Value.Get(enemyEntity);
         var carCmp = _carComponentsPool.Value.Get(enemyEntity);
-      
+        float maxSpeedMultiplier = 1;
         float rotateSpeedMultiplier = 1;
         foreach (var carPart in carCmp.CarPartContainerGroupsList.Keys) {
             var carPartCellCmp = _carPartInfoComponentsPool.Value.Get(carPart);
             int carPartId = carPartCellCmp.CarPartId;
             var carPartConfig = _sceneService.Value.GetCarPartConfig(carPartId);
             if (carPartConfig is WheelsContainerConfig wheels) {
-                rotateSpeedMultiplier += GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds).wheelRotateSpeedMultiplier - 1;
+                var multipliers = GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds);
+                rotateSpeedMultiplier += multipliers.wheelRotateSpeedMultiplier - 1;
+                maxSpeedMultiplier += multipliers.maxSpeedMultiplier - 1;
             }
               
         }
@@ -2997,7 +3000,7 @@ Debug.Log(carCmp.NameIndexes + " ni");
 
       //  carCmp.CarView.SyncRigidbodyView.SetMassServerRpc(carCmp.CurrentWeight);
         //movementComponent.MovableObjectRigidbody.mass = carCmp.CurrentWeight;
-        movementComponent.MaxMoveSpeed += carConfig.DefaultMaxSpeed * (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight);
+        movementComponent.MaxMoveSpeed += carConfig.DefaultMaxSpeed * (1 - carCmp.CurrentWeight / carCmp.CurrentMaxWeight)*maxSpeedMultiplier;
         //Debug.Log("max move speed "+movementComponent.MaxMoveSpeed);
     }
     private void ColissionCarsHit(int entityOne, int entityTwo) {

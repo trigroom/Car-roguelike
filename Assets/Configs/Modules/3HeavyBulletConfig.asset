@@ -24,3 +24,5 @@ MonoBehaviour:
     Buff: 2
   - BuffCount: 0.4
     Buff: 3
+  - BuffCount: 0.5
+    Buff: 12

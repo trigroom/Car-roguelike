@@ -16,7 +16,7 @@ MonoBehaviour:
   ModuleName: Improved mechanism
   ModuleIcon: {fileID: 21300000, guid: b1b623cba4ec8d6418807c513a61e294, type: 3}
   ModuleType: 2
-  Cost: 25
+  Cost: 30
   ModuleBuffs:
   - BuffCount: -0.1
     Buff: 3

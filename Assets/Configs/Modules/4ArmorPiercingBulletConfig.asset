@@ -20,7 +20,9 @@ MonoBehaviour:
   ModuleBuffs:
   - BuffCount: 1
     Buff: 4
-  - BuffCount: 0.1
+  - BuffCount: 0.25
     Buff: 3
   - BuffCount: -0.3
     Buff: 6
+  - BuffCount: 0.25
+    Buff: 11

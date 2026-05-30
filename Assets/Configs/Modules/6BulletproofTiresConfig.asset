@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6a7ea2c7462363041821e87546399de9, type: 3}
-  m_Name: 8IcrisedRotateSpeedConfig
+  m_Name: 6BulletproofTiresConfig
   m_EditorClassIdentifier: 
-  ModuleId: 8
-  ModuleName: Incrised wheels rotate speed
-  ModuleIcon: {fileID: 21300000, guid: 571a601520c2f104986715a6ddd10b07, type: 3}
+  ModuleId: 6
+  ModuleName: Bulletproof tires
+  ModuleIcon: {fileID: 21300000, guid: 3e43c3ec8db7d0f449f35dabafccde66, type: 3}
   ModuleType: 8
-  Cost: 25
+  Cost: 20
   ModuleBuffs:
-  - BuffCount: 0.3
-    Buff: 8
+  - BuffCount: 0.35
+    Buff: 1
   - BuffCount: -0.1
-    Buff: 7
+    Buff: 8

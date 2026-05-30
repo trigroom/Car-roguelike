@@ -18,5 +18,5 @@ MonoBehaviour:
   ModuleType: 3
   Cost: 25
   ModuleBuffs:
-  - BuffCount: 0.25
+  - BuffCount: 0.2
     Buff: 3

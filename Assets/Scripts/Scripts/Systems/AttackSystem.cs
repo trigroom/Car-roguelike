@@ -847,7 +847,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             carPartComponent.MainEntity == _sceneService.Value.PlayerEntity ||
             !_enemyAIComponentsPool.Value.Get(carPartComponent.MainEntity).IsEnemy
                 ? "Enemy"
-                : "Player", carPartInfoCmp.CarPartId, entity);
+                : "Player", carPartInfoCmp.CarPartId, entity,meleeConfig.UpSpritePosition);
     }
 
     private void CreateExplosionEffect(float radius, Vector2 position, EffectType effectType) {
@@ -909,7 +909,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
             Vector2 direction = gunCmp.FirePointTransform.up;
 
-            float randomSpread = Random.Range(-gunConfig.SpreadAngle, gunConfig.SpreadAngle);
+            float randomSpread = Random.Range(-gunCmp.CurrentSpread, gunCmp.CurrentSpread);
             direction = Quaternion.Euler(0, 0, randomSpread) * direction;
 
             ProjectileView currentProjectile = _netcodeSceneService.Value.GetGunProjectile(worldFirePoint);
@@ -1185,18 +1185,14 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                 int mainEntity = _carPartComponentsPool.Value.Get(weaponCellEntity).MainEntity;
                 var rigidbodyCurrent = _carComponentsPool.Value.Get(mainEntity).CarView.Rigidbody;
                 isPlayer = mainEntity == _sceneService.Value.PlayerEntity;
-                float damagedObjectMass = 10;
                 float damagedObjectSpeed = 0;
                 if (_movementComponentsPool.Value.Has(damagedMainEntity)) {
                     var rigidbodyDamaged = _carComponentsPool.Value.Get(damagedMainEntity).CarView.Rigidbody;
-                    damagedObjectMass = rigidbodyDamaged.mass;
                     damagedObjectSpeed = rigidbodyDamaged.linearVelocity.magnitude;
                 }
                 float relativeSpeed = Mathf.Abs(rigidbodyCurrent.linearVelocity.magnitude - damagedObjectSpeed);
-                float speedFactor = relativeSpeed * 0.3f; // Настраиваемый коэффициент
-                float massFactor = damagedObjectMass / 100f; // Нормализуем массу
-
-                float damageByCollision = meleeCmp.DamageBySpeed * speedFactor * massFactor;
+              
+                float damageByCollision = meleeCmp.DamageBySpeed * relativeSpeed;
                 
                 damagePoints = meleeCmp.CurrentDamage + damageByCollision;
             } else {
@@ -1774,10 +1770,12 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                     wheel.transform.parent = _sceneService.Value._brokenCarPartsContainer;
                 }
 
+                var multipliers = GridUtils.GetModulesMultipliers(carPartInfoCmp.ModuleIds);
                 _wheelContainerComponentsPool.Value.Del(cellEntity);
                 carCmp.CurrentMaxWeight -= _sceneService.Value.GetWheelContainerFromCarPart(carPartInfoCmp.CarPartId).MaxWeight *
-                                           GridUtils.GetModulesMultipliers(carPartInfoCmp.ModuleIds).maxWeightMultiplier *
+                                           multipliers.maxWeightMultiplier *
                                            GridUtils.GetMaxWeightLevelMultiplier(carPartInfoCmp.PartLevel);
+                _movementComponentsPool.Value.Get(carPartCmp.MainEntity).MaxMoveSpeed *= multipliers.maxSpeedMultiplier;
             }
 
             if (isEnemy)
