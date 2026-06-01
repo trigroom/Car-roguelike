@@ -62,7 +62,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action< Vector2 , int>  _setEnemyAirplanePosition;
    private Action<bool> _endVersusBattleAction;
    private Action<float> _endRoundExpAddAction;
-   private Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2 > _setupVersusBattleUiAction;
+   private Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2,Vector2 , Vector2 > _setupVersusBattleUiAction;
    private Action<Vector2Int[], CarPartType, bool, float, float> _setVersusBattleUiAction;
    private Action<CarPartDataForRpc[], CarPartDataForRpc[], int, ulong, bool, int, Vector2, Vector2> _setupCarOnServerAction;
    private Action< float, float,Vector2, int> _setMovementToTornadoAction;
@@ -269,7 +269,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<SpriteRenderer> destroyCarPartAction, Action<Vector2> setZonePositionAction, Action<float> setZoneFillAmountAction,
         Action<Vector2> setMapPointForClients, Action endRoundForClientAction,
         Action<Vector2Int, float, bool, int> setCarPartHealthToClientAction, Action<Vector2, int> setEnemyAirplanePosition,
-        Action<bool> endVersusBattleAction, Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2> setupVersusBattleUiAction,
+        Action<bool> endVersusBattleAction, Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2,Vector2 , Vector2 > setupVersusBattleUiAction,
         Action<bool> setIsReadyCountAction,Action endMapGenerateAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
@@ -831,10 +831,10 @@ public class NetcodeSceneService : NetworkBehaviour
     }
     
     [Rpc(SendTo.NotServer)]
-    public void SetUiVersusBattleClientRpc(CarPartsHpVersusDataForRpc[] carPartsHpData, Vector2 leftCarSize, Vector2 rightCarSize) {
+    public void SetUiVersusBattleClientRpc(CarPartsHpVersusDataForRpc[] carPartsHpData, Vector2 leftCarSize, Vector2 rightCarSize,Vector2 leftCarName, Vector2 rightCarName) {
         Debug.Log(carPartsHpData.Length + "SetupVersusBattle");
       
-        _setupVersusBattleUiAction.Invoke(carPartsHpData,leftCarSize,rightCarSize);
+        _setupVersusBattleUiAction.Invoke(carPartsHpData,leftCarSize,rightCarSize,leftCarName,rightCarName);
     }
     private void ProcessHealthData(int[] healthValues, Vector2Int gridSize, bool isUpperPart,int teammateIndex) // true - для HealthValues, false - для Containers
     {

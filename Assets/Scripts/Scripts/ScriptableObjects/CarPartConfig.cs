@@ -25,9 +25,6 @@ public class CarPartConfig : ScriptableObject {
     public int UpgradedPartId { get; private set; }
 
     [field: SerializeField]
-    public int UpgradedPartCost { get; private set; }
-
-    [field: SerializeField]
     public string PartName { get; private set; }
 
     [field: SerializeField]

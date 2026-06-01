@@ -15,7 +15,7 @@ MonoBehaviour:
   <CarId>k__BackingField: 2
   <CarIcon>k__BackingField: {fileID: 21300000, guid: a7bdf21e734e51843ab24eb6eb2d6e34, type: 3}
   <CarName>k__BackingField: Enemy small car
-  <StartCarParts>k__BackingField: 030000000400000030000000300000000b000000
+  <StartCarParts>k__BackingField: 630000006400000030000000300000000b000000
   "<Fuel\u0421onsumption>k__BackingField": 0.2
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.35
   <RotateSpeed>k__BackingField: 150

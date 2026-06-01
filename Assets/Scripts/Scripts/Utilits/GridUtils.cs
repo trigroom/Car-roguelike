@@ -289,7 +289,7 @@ public class GridUtils : MonoBehaviour {
             }
         }
 
-        return Mathf.FloorToInt(carPartConfig.UpgradedPartCost * (1 + level * 0.2f)) * costMultiplayer;
+        return Mathf.FloorToInt(GetNeedExpToUpgrade(level, carPartConfig) * (1 + level * 0.2f)) * costMultiplayer;
     }
     
     public static float GetArmorLevelMultipliers(int level) {
@@ -597,7 +597,7 @@ public class GridUtils : MonoBehaviour {
                 modulesCost += moduleConfig.Cost;
             }
 
-        return carPartConfig.MoneyCost / 2 + Mathf.Max(level - 1, 0) * carPartConfig.UpgradedPartCost + modulesCost;
+        return carPartConfig.MoneyCost / 2 + Mathf.Max(level - 1, 0) * GetNeedExpToUpgrade(level, carPartConfig) + modulesCost;
     }
 
     public static (float damageMultiplaier, float attackSpeedMultiplayer, float healthMultiplayer, int targetPiercingAddedCount, float
@@ -889,9 +889,22 @@ public class GridUtils : MonoBehaviour {
         {CarPartRare.High, 7},
         {CarPartRare.VeryHigh, 9}
     };
-
+    
+    public static Dictionary<CarPartRare, float> _neededUpgradeExpForRare = new Dictionary<CarPartRare, float>() {
+        {CarPartRare.Low, 1},
+        {CarPartRare.Medium, 1.2f},
+        {CarPartRare.High, 1.4f},
+        {CarPartRare.VeryHigh, 1.5f}
+    };
+    public static int GetNeedExpToUpgrade(int level, CarPartConfig config) {
+        float needExp = _neededUpgradeExpForRare[config.RartRare] * 5+config.PartForm.Length * (0.75f + level*0.25f);
+        if (config.PartType is CarPartType.Gun or CarPartType.MeleeWeapon) {
+            needExp *= 1.25f;
+        }
+        return (int)needExp;
+    }
     public static bool IsMaxCarPartLevel(int level, CarPartRare rare) {
-       return _maxLevelsForRare[rare] >= level;
+       return _maxLevelsForRare[rare] <= level;
     }
     private static void PlaceCarPartToCarBase(CarPartType partType, int needCount, ref int moneyLimit, List<int> carPartsToPlace,
         ref int[,] upGrid, List<Vector2Int> middleCells, List<Vector2Int> edgeCells, int[,] downGrid,

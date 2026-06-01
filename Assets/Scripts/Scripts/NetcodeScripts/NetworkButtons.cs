@@ -19,7 +19,7 @@ public class NetworkButtons : MonoBehaviour {
     [SerializeField] private Button changeNicknameButton;
     [SerializeField] private TMP_Text joinCodeDisplay;
     [SerializeField] private Button leaveButton;
-    [SerializeField] private Button disconnectButton;
+    [SerializeField] public Button disconnectButton;
     [SerializeField] private Transform joinCodeContainer;
     [SerializeField] public SelectMapUiView selectMapUiView;
     [SerializeField] public SelectDifficultyUIView selectDifficultyUIView;
@@ -38,10 +38,9 @@ public class NetworkButtons : MonoBehaviour {
             DataPersistenceManagerSystem._gameData.CoopPlayerName = nicknameInput.text;
             DataPersistenceManagerSystem.SaveGame();
         });
-        // Изначально кнопка выхода неактивна
+      
         
         disconnectButton.gameObject.SetActive(false);
-        // Подписываемся на события NetworkManager
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         

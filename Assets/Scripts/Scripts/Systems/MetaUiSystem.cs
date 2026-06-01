@@ -76,6 +76,7 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
                 }
                );
             _metaSceneService.Value._mainMenuView._playCoopButton.onClick.AddListener(() => {
+                    _metaSceneService.Value._networkButtonsUIView.disconnectButton.gameObject.SetActive(false);
                     OpenNewWindow(_metaSceneService.Value._networkButtonsUIView.transform);
                     BetweenScenesService.Instance.IsCoop = true;
                 }

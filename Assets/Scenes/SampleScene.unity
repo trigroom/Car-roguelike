@@ -38902,6 +38902,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5171527146908566972, guid: d3a65472ce684094790914c5049ed061, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0097605dd12235f4590fa918a655ac18, type: 3}
+    - target: {fileID: 5171527146908566972, guid: d3a65472ce684094790914c5049ed061, type: 3}
       propertyPath: m_Color.b
       value: 1
       objectReference: {fileID: 0}
@@ -38953,6 +38957,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6011307260143131045, guid: d3a65472ce684094790914c5049ed061, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -38977,6 +38985,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _pointCollider: {fileID: 1466434879}
+  _spriteRenderer: {fileID: 1466434880}
+  _pointSprites:
+  - {fileID: 21300000, guid: 0097605dd12235f4590fa918a655ac18, type: 3}
+  - {fileID: 21300000, guid: bbc5ce6fe25311e448bf1746da844994, type: 3}
+  - {fileID: 21300000, guid: 971b0da0d5bb1d746b9ed32d7613ea93, type: 3}
 --- !u!58 &1466434879
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -39013,6 +39026,11 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!212 &1466434880 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 5171527146908566972, guid: d3a65472ce684094790914c5049ed061, type: 3}
+  m_PrefabInstance: {fileID: 1466434875}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1472858806
 GameObject:
   m_ObjectHideFlags: 0

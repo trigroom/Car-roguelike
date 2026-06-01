@@ -50,7 +50,7 @@ public class AchievementsUIView : MonoBehaviour
       case AchievementType.SupportBoxOpened:
         return $"{GetLocalization("Open")} {achievement.needCount} {GetLocalization("support boxes")}";
       case AchievementType.WinWithoutUpgrades:
-        return $"{GetLocalization("Win without car and car part upgrades")}";
+        return $"{GetLocalization("Win without car upgrades")}";
       case AchievementType.CarKills:
         return $"{GetLocalization("Kill")} {achievement.needCount} {GetLocalization("Cars")}";
       case AchievementType.CompleteMap:

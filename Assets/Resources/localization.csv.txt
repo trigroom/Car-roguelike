@@ -215,7 +215,7 @@ Complete,Complete,Выполни,Abschließen,Completar,Terminer
 tasks,tasks,заданий,Aufgaben,tareas,missions
 Open,Open,Открой,Öffnen,Abrir,Ouvrir
 support boxes,support boxes,коробок поддержки,Unterstützungskisten,cajas de apoyo,boîtes de soutien
-Win without car and car part upgrades,Win without upgrades,Победи без улучшений,Gewinne ohne Upgrades,Gana sin mejoras,Gagne sans améliorations
+Win without car upgrades,Win without car upgrades,Победи без улучшений машины,Gewinne ohne Auto-Upgrades,Gana sin mejoras de coche,Gagne sans améliorations de voiture
 Kill,Kill,Уничтожь,Töten,Mata,Tue
 Cars,Cars,Машин,Autos,Coches,Voitures
 Difficulty,Difficulty,Сложность,Schwierigkeit,Dificultad,Difficulté

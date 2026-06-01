@@ -12,10 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80a761ca45df10443b6146fcbcfc1929, type: 3}
   m_Name: 14RoundEnemyStuffConfig
   m_EditorClassIdentifier: 
-  EnemyCarChances:
-  - 1
-  - 1
-  - 3
-  - 7
-  - 3
+  AddedCarPartsToEnemyPool: 150000002d000000
+  RemovedCarPartsFromEnemyPool: 09000000
   MoneyCount: 60

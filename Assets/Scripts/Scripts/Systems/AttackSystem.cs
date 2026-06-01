@@ -984,6 +984,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         if (carPartCmp.CellCarPartsStuffViews == null) return;
         switch (effectType) {
             case EffectType.shock:
+                if (_enemyAIComponentsPool.Value.Has(carPartCmp.MainEntity) &&
+                    _enemyAIComponentsPool.Value.Get(carPartCmp.MainEntity).IsEnemy &&
+                    _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).CurrentRoundType != RoundType.VersusBattle)
+                    duration /= 2;
                 if (_shockEffectComponentsPool.Value.Has(carPartEntity)) {
                     ref var shockCmp = ref _shockEffectComponentsPool.Value.Get(carPartEntity);
                     if (shockCmp.EffectDuration < duration)
@@ -1819,7 +1823,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                         _sceneService.Value._playerUIView._batteryImage.color = fuelCmp.MaxElectricity <= 0
                             ? new Color(0.15f, 0.15f, 0.15f, 1)
                             : _sceneService.Value._healthGradient.Evaluate(fuelCmp.CurrentElectricity / fuelCmp.MaxElectricity);
-                        _sceneService.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity}/{fuelCmp.MaxElectricity}";
+                        _sceneService.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity:F1}/{fuelCmp.MaxElectricity:F1}";
                         break;
                     case SupportModuleType.Turbine:
                         fuelCmp.AddedFuelConsumption -= supportCarPartConfig.FirstCount * firstMultiplayer;

@@ -1150,19 +1150,29 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     }
 
     private void SetCarShopCells() {
-    //    var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         float inflationMultiplayer = 1 + _betweenScenesService.Value.GetMapDifficultyConfig().ShopInflationPerRound *
             _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
-     //   var currentMapConfig = _betweenScenesService.Value.GetMapConfig().GameProcessConfig;
-    //    var roundEnemyStuff =
-     //       currentMapConfig.GameRounds[Mathf.Max(_currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound - 2, 0)];
-       // var carsList = _betweenScenesService.Value.GetMapConfig().EnemyMapConfigs;
+
+        Dictionary<CarPartType, List<int>> needDictionary = new() {
+            { CarPartType.Gun, new List<int>() },
+            { CarPartType.Support, new List<int>() },
+            { CarPartType.Armor, new List<int>() },
+            { CarPartType.MeleeWeapon, new List<int>() }
+        };
+        var shopCmp = _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+        for (int j = 0; j < shopCmp.ListShopItemsForRares.Count; j++) {
+            if (shopCmp.ShopLevel >= j * 5) {
+                foreach (var shopItem in shopCmp.ListShopItemsForRares[j]) {
+                    needDictionary[_sceneData.Value.GetCarPartConfig(shopItem).PartType].Add(shopItem);
+                }
+            } else break;
+        }
+
         int saleIndex = Random.Range(0, _sceneData.Value._shopUIView._buttonsCarShop.Length);
         for (int i = 0; i < _sceneData.Value._shopUIView._buttonsCarShop.Length; i++) {
             if (_sceneData.Value._shopUIView._buttonsCarShop[i].LockToggle.isOn) continue;
-            //var carMapsList = carsList[GridUtils.GetRandomIndexFromChancesList(roundEnemyStuff.EnemyCarChances)].CarMapsList;
-            //  var carMap = carMapsList[Random.Range(0, carMapsList.Count)];
-            var carMap = GetRandomCarMap();
+
+            var carMap = GetRandomCarMapForShop(needDictionary);
             var shopButton = _sceneData.Value._shopUIView._buttonsCarShop[i];
 
             ref var shopCellCmp = ref _shopCellCarComponentsPool.Value.Get(shopButton.Entity);
@@ -1220,13 +1230,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var carPartInfo in carMap.CarPartDownLevelGrid) {
             var carPartConfig = GetCarPartConfig(carPartInfo.partId);
             carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
-                                        carPartConfig.UpgradedPartCost * 0.3f * carPartInfo.level * (carPartInfo.level + 1) / 2);
+                                        GridUtils.GetNeedExpToUpgrade(carPartInfo.level, carPartConfig) * 0.3f * carPartInfo.level * (carPartInfo.level + 1) / 2);
         }
 
         foreach (var carPartInfo in carMap.CarPartUpLevelGrid) {
             var carPartConfig = GetCarPartConfig(carPartInfo.partId);
             carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
-                                        carPartConfig.UpgradedPartCost * 0.3f * carPartInfo.level * (carPartInfo.level + 1) / 2);
+                                        GridUtils.GetNeedExpToUpgrade(carPartInfo.level, carPartConfig) * 0.3f * carPartInfo.level * (carPartInfo.level + 1) / 2);
         }
 
         return (int)carCost;
@@ -1294,15 +1304,15 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
             var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
             var carPartConfig = GetCarPartConfig(carPartCmp.CarPartId);
-            carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
-                                        carPartConfig.UpgradedPartCost * 0.3f * carPartCmp.PartLevel * (carPartCmp.PartLevel + 1) / 2);
+            carCost += Mathf.FloorToInt(carPartConfig.MoneyCost + GridUtils.GetNeedExpToUpgrade(carPartCmp.PartLevel, carPartConfig) * 0.3f *
+                carPartCmp.PartLevel * (carPartCmp.PartLevel + 1) / 2);
         }
 
         foreach (var carPartInfo in carCmp.CarPartGroupsList) {
             var carPartCmp = _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
             var carPartConfig = GetCarPartConfig(carPartCmp.CarPartId);
-            carCost += Mathf.FloorToInt(carPartConfig.MoneyCost +
-                                        carPartConfig.UpgradedPartCost * 0.3f * carPartCmp.PartLevel * (carPartCmp.PartLevel + 1) / 2);
+            carCost += Mathf.FloorToInt(carPartConfig.MoneyCost + GridUtils.GetNeedExpToUpgrade(carPartCmp.PartLevel, carPartConfig) * 0.3f *
+                carPartCmp.PartLevel * (carPartCmp.PartLevel + 1) / 2);
         }
 
         return carCost * 0.5f;
@@ -1453,7 +1463,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         if (carPartEntity == 0) return;
 
         ref var carInfoPartCmp = ref _carPartInfoComponentsPool.Value.Get(carPartEntity);
-        ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
+
         float upgradeCost = GridUtils.GetUpgradeCost(carInfoPartCmp.PartLevel, carPartConfig, carInfoPartCmp.ModuleIds) -
                             carInfoPartCmp.CurrentExp;
         if (playerCurrencyCmp.ExpPointsCount < upgradeCost) {
@@ -1461,6 +1471,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             return;
         }
 
+        ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartEntity);
         float addedHealth = carPartConfig.MaxHealth *
                             (GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel + 1) -
                              GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel)) *
@@ -1468,19 +1479,20 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carInfoPartCmp.PartLevel++;
         carInfoPartCmp.CurrentHealth += addedHealth;
         carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carInfoPartCmp.PartLevel);
-        SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
         carInfoPartCmp.CurrentExp = 0;
+        SetCarPartInfoPanel(inventoryCmp.CurrentMarkedCellForPanelInfo, false);
+        
         SetExpCount(-upgradeCost);
     }
 
     private void UpgradeCarPartsAfterRoundCarPart(float addedXp) {
-        float expToCurrentParts = addedXp * 0.33f;
+        float expToCurrentParts = addedXp * 0.5f;
         SetExpCount(addedXp - expToCurrentParts);
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         foreach (var carEntity in inventoryCmp.PlayerTeammateCarsEntity) {
             ref var carCmp = ref _carComponentsPool.Value.Get(carEntity);
             float addedExpToCarPart = expToCurrentParts / (carCmp.CarPartContainerGroupsList.Count + carCmp.CarPartGroupsList.Count - 2);
-
+            Debug.Log("try after round" + addedExpToCarPart);
             foreach (var carPartInfo in carCmp.CarPartContainerGroupsList) {
                 ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
                 ref var carPartCmp = ref _carPartComponentsPool.Value.Get(carPartInfo.Key);
@@ -1509,7 +1521,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                     carPartCmp.MaxHealth = carPartConfig.MaxHealth * GridUtils.GetHealthLevelMultiplier(carPartInfoCmp.PartLevel);
                 }
             }
-
             foreach (var carPartInfo in carCmp.CarPartGroupsList) {
                 ref var carPartInfoCmp = ref _carPartInfoComponentsPool.Value.Get(carPartInfo.Key);
                 var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartInfoCmp.CarPartId);
@@ -1879,7 +1890,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._inventoryUIView._carStatsWindowText.transform.parent.gameObject.SetActive(true);
     }
 
-    private EnemyCarPartsMaps GetRandomCarMap() {
+    private EnemyCarPartsMaps GetRandomCarMapForShop(Dictionary<CarPartType, List<int>> needList) {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         int roundNumber = curGameCmp.CurrentRound;
 
@@ -1901,8 +1912,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         carMap.CarId = carId;
         carMap.CarLevel = roundNumber == 0 ? 0 : roundNumber / 2;
         carMap.GridSize = carBase.GridSize;
-        carMap.CarPartUpLevelGrid =
-            GridUtils.GetPlacedCarPatsOnCarBase(carBase, carId, curGameCmp.CarPartsToEnemyBuilding, 40 + roundNumber * 20).ToArray();
+        carMap.CarPartUpLevelGrid = GridUtils.GetPlacedCarPatsOnCarBase(carBase, carId, needList,
+            35 + _shopComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).ShopLevel * 10).ToArray();
 
         for (int i = 0; i < carMap.CarPartUpLevelGrid.Length; i++) {
             var carPart = carMap.CarPartUpLevelGrid[i];
@@ -1936,13 +1947,14 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
                 return;
             }
 
-            var cellCmp = _carPartInfoComponentsPool.Value.Get(carPartEntity);
-            moduleIds = cellCmp.ModuleIds;
+         
+           
             if (inventoryCmp.CurrentMarkedCellForPanelInfo == entity && isCanClose) {
                 CloseShowInfoPanel();
                 return;
             }
-
+   var cellCmp = _carPartInfoComponentsPool.Value.Get(carPartEntity); 
+   moduleIds = cellCmp.ModuleIds;
             currentHealth = cellCmp.CurrentHealth;
             needCarPartId = cellCmp.CarPartId;
             currentExp = cellCmp.CurrentExp;

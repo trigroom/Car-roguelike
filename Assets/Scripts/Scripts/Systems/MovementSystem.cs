@@ -223,7 +223,7 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 fuelCmp.CurrentElectricity += electricityConsumption * deltaTime;
                 _sceneData.Value._playerUIView._batteryImage.color =
                     _sceneData.Value._healthGradient.Evaluate(fuelCmp.CurrentElectricity / fuelCmp.MaxElectricity);
-                _sceneData.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity}/{fuelCmp.MaxElectricity}";
+                _sceneData.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity:F1}/{fuelCmp.MaxElectricity:F1}";
             }
                 
             var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
