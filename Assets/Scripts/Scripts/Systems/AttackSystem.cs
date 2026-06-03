@@ -209,7 +209,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
             gunCmp.CurrentCountdown -= deltaTime;
 
-            if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0) {
+            if (gunCmp.UpPartContainer != null && gunConfig.RotateSpeed != 0 && carPartInfoCmp.CurrentHealth > 0) {
                 ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
                 if (fuelCmp.CurrentElectricity > 0) {
                     gunCmp.GunOnTargetTime -= deltaTime;

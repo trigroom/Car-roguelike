@@ -68,5 +68,7 @@ public enum ModuleType {
     wheels,
     magSize,
     main,
-    bowstring
+    bowstring,
+    driver,
+    engine
 }

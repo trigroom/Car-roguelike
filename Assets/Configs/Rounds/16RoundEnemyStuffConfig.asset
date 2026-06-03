@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: 16RoundEnemyStuffConfig
   m_EditorClassIdentifier: 
   AddedCarPartsToEnemyPool: 40000000
-  RemovedCarPartsFromEnemyPool: 
+  RemovedCarPartsFromEnemyPool: 69000000
   MoneyCount: 70

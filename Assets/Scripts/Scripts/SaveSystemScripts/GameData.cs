@@ -42,6 +42,9 @@ public class GameData
         CoopPlayerName = "Player";
         lastGameVersion = Application.version;
         CurrentLanguage = GetSystemLanguageCode();
+        MusicVolume = 0.3f;
+        SoundVolume = 0.3f;
+        UIVolume = 0.3f;
     }
     
     public static string GetSystemLanguageCode()

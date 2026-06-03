@@ -39,4 +39,6 @@ MonoBehaviour:
       Value: 27000000
     - Key: 10
       Value: 31000000
+    - Key: 12
+      Value: 11000000
   <CarUpgradeCost>k__BackingField: 15

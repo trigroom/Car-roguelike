@@ -19,9 +19,8 @@ MonoBehaviour:
   <PartType>k__BackingField: 2
   <RartRare>k__BackingField: 0
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 10
   <PartName>k__BackingField: Rusted moto engine
-  <ModuleTypes>k__BackingField: 
+  <ModuleTypes>k__BackingField: 0d000000
   <PartForm>k__BackingField:
   - {x: 0, y: 0}
   <MoneyCost>k__BackingField: 8

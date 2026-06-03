@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 105HommemadeRifle
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 105
+  <MaxHealth>k__BackingField: 75
+  <Weight>k__BackingField: 6.2
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: 1137355eae9587e4eb15fc846d05c328, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 1
+  <UpgradedPartId>k__BackingField: 0
+  <PartName>k__BackingField: Homemade rifle
+  <ModuleTypes>k__BackingField: 0900000004000000
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  <MoneyCost>k__BackingField: 20
+  UpPartSprite: {fileID: 21300000, guid: 30cf79facb6e6ee4ab0590c1a99e0c34, type: 3}
+  UpPartPosition: {x: 0.094, y: 0.25}
+  MaxRotateAngle: 30
+  RotateSpeed: 0.2
+  Damage: 9
+  AttackCouldown: 0.6
+  BulletsCountInMagazine: 5
+  BulletsCount: 1
+  BulletSpeed: 18
+  ReloadDuration: 1.3
+  MissleType: 0
+  MissleSprite: {fileID: 21300000, guid: 0ab98cec807c4f440ace7194fe75d9f2, type: 3}
+  FirePointPosition: {x: 0, y: 0.4}
+  GunContainerPosition: {x: 0, y: -0.25}
+  SpreadAngle: 5
+  ExplosionRadius: 0
+  ExplosionDamage: 0
+  ImpulseForce: 0
+  EffectType: 0
+  EffectDuration: 0
+  BreakingThroughCount: 1
+  BreakingThroughDamageFalloff: 0
+  CarRecoil: 0
+  ProjectileLifeTime: 2.3
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0
+  ShotSound: {fileID: 8300000, guid: 728aa451f5fc460409897ccb8a427b56, type: 3}

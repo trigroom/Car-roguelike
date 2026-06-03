@@ -1489,9 +1489,10 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
 
     private void StartRollMachine() {
         ref var slotMachineCmp = ref _slotMachineComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        var slotMachineView = _sceneService.Value._slotMachineUiView;  
+        var slotMachineView = _sceneService.Value._slotMachineUiView;
         ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        if (slotMachineCmp.SwitchDelay > 0 || ((slotMachineCmp.TryCount <= 0 || playerCurrencyCmp.MoneyCount < 5) && !slotMachineCmp.IsStarted)) return;
+        if (slotMachineCmp.SwitchDelay > 0 ||
+            ((slotMachineCmp.TryCount <= 0 || playerCurrencyCmp.MoneyCount < 5) && !slotMachineCmp.IsStarted)) return;
         slotMachineCmp.IsStarted = !slotMachineCmp.IsStarted;
         slotMachineCmp.SwitchDelay = 1;
         slotMachineView._leaveRoundButton.gameObject.SetActive(true);
@@ -1502,7 +1503,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 slotMachineCmp.CurrentPositionValues[i] = 0.2262f;
             }
 
-        
             int itemIndex = slotMachineCmp.CurrentSlotValues[0].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[0]];
             int secondItemIndex = slotMachineCmp.CurrentSlotValues[1].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[1]];
             int thirdItemIndex = slotMachineCmp.CurrentSlotValues[2].ItemsId[slotMachineCmp.CurrentPositionItemIndexValues[2]];
@@ -1510,31 +1510,30 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             (int countSameValues, int sameItemIndex) = CheckMatches(itemIndex, secondItemIndex, thirdItemIndex);
 
             if (countSameValues > 0) {
-                float winValue   =(countSameValues == 3
+                float winValue = (countSameValues == 3
                     ? slotMachineView._slotItemConfigs[sameItemIndex].TripleMultiplayer
                     : slotMachineView._slotItemConfigs[sameItemIndex].DoubleMultiplayer) * slotMachineCmp.CurrentBet;
                 playerCurrencyCmp.MoneyCount += winValue;
+                if (slotMachineCmp.CurrentBet > playerCurrencyCmp.MoneyCount)
+                    slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
                 slotMachineView._currentBetText.text = $"+{winValue}<sprite name=\"CogIconForScreen\">";
                 slotMachineView._currentBetText.DOKill();
                 slotMachineView._currentBetText.transform.DOPunchScale(Vector3.one * 0.2f, 0.8f, 1)
                     .OnComplete(SetCurrentBetSlotTextToCurrentValues);
-            }
-            else {
+            } else {
                 if (slotMachineCmp.CurrentBet > playerCurrencyCmp.MoneyCount)
                     slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
                 SetCurrentBetSlotTextToCurrentValues();
             }
-               
-            
+
             playerCurrencyCmp.VisibleMoneyCount = playerCurrencyCmp.MoneyCount;
             slotMachineCmp.CurrentRollTime = 0;
             slotMachineView._switchImage.sprite = slotMachineView._switchUpSprite;
-          
         } else {
             slotMachineCmp.TryCount--;
             playerCurrencyCmp.MoneyCount -= slotMachineCmp.CurrentBet;
-            if (slotMachineCmp.CurrentBet > playerCurrencyCmp.MoneyCount)
-                slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
+            //    if (slotMachineCmp.CurrentBet > playerCurrencyCmp.MoneyCount)
+            //    slotMachineCmp.CurrentBet = Mathf.Max((int)playerCurrencyCmp.MoneyCount, 5);
             SetCurrentBetSlotTextToCurrentValues();
             slotMachineView._tryLeftText.text = $"{GetLocalization("Trys left")}: {slotMachineCmp.TryCount}";
             slotMachineView._switchImage.sprite = slotMachineView._switchDownSprite;
@@ -2963,7 +2962,7 @@ Debug.Log(carCmp.NameIndexes + " ni");
 
             _constructMeleeCellEventsPool.Value.Add(cellEntity);
         } else if (!GridUtils.IsContainerType(carPartConfig) && _carComponentsPool.Value.Get(carPartCmp.MainEntity).CarView.Wheels.Count == 0) {
-            Debug.Log( " wheel setup"+carPartCmp.MainEntity);
+       
             SetupWheels(carPartCmp.MainEntity, _carComponentsPool.Value.Get(carPartCmp.MainEntity).CarView);
         }
     

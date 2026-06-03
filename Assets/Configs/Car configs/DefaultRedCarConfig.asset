@@ -30,11 +30,13 @@ MonoBehaviour:
     - Key: 2
       Value: 36000000
     - Key: 4
-      Value: 0d000000
+      Value: 6b000000
     - Key: 6
       Value: 21000000
     - Key: 8
       Value: 0d000000
     - Key: 10
       Value: 3500000021000000
+    - Key: 12
+      Value: 6c000000
   <CarUpgradeCost>k__BackingField: 15

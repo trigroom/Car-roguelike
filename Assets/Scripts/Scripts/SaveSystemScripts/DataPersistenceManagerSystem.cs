@@ -26,7 +26,6 @@ public class DataPersistenceManagerSystem : MonoBehaviour
         _gameData = new GameData();
         _gameData.AchievementsCompleted = new bool[BetweenScenesService.Instance._carStuffListsConfig.AchievementConfigs.Length];
         _gameData.ShopItemsBuyed = new bool[BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs.Length];
-
         _gameData.CarPartsUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs.Length];
         for (int i = 0; i < _gameData.CarPartsUnlocked.Length; i++)
             _gameData.CarPartsUnlocked[i] = true;
@@ -34,12 +33,13 @@ public class DataPersistenceManagerSystem : MonoBehaviour
         _gameData.ModulesUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.ModuleConfigs.Length];
         for (int i = 0; i < _gameData.ModulesUnlocked.Length; i++)
             _gameData.ModulesUnlocked[i] = true;
-        foreach (var achievement in BetweenScenesService.Instance._carStuffListsConfig.AchievementConfigs) {
+        foreach (var achievement in BetweenScenesService.Instance._carStuffListsConfig.AchievementConfigs) { 
+          
             if (achievement.rewardType == AchievementRewardType.CarPart)
                 _gameData.CarPartsUnlocked[achievement.rewardCount] = false;
             else if (achievement.rewardType == AchievementRewardType.Module)
                 _gameData.ModulesUnlocked[achievement.rewardCount] = false;
-            Debug.Log(achievement.rewardCount);
+           
         }
 
         foreach (var shopItem in BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs) {
@@ -60,7 +60,7 @@ public class DataPersistenceManagerSystem : MonoBehaviour
       if (isTestProgressReload)
             _gameData = null;
 
-        if (_gameData == null) {
+        if (_gameData == null || _gameData.lastGameVersion != Application.version) {
             NewGame();
         }
 

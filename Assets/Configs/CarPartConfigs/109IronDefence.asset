@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d569a8de01075864785b5d73317f0a00, type: 3}
+  m_Name: 109IronDefence
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 109
+  <MaxHealth>k__BackingField: 230
+  <Weight>k__BackingField: 35
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: edac33cc831b79341a2a979d8063ac2a, type: 3}
+  <PartType>k__BackingField: 1
+  <RartRare>k__BackingField: 3
+  <UpgradedPartId>k__BackingField: 0
+  <PartName>k__BackingField: Iron shield
+  <ModuleTypes>k__BackingField: 01000000
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  <MoneyCost>k__BackingField: 50
+  DefencePercent: 80
+  DefenceDirections: 00000000
+  ExplosionDefence: 1

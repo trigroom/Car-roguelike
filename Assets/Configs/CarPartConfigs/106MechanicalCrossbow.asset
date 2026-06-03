@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 106MechanicalCrossbow
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 106
+  <MaxHealth>k__BackingField: 240
+  <Weight>k__BackingField: 32
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: df13bdbfd9ef4654eb1e7fce9c765983, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 2
+  <UpgradedPartId>k__BackingField: 0
+  <PartName>k__BackingField: Mechanical crossbow
+  <ModuleTypes>k__BackingField: 01000000030000000b000000
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  - {x: 0, y: 1}
+  <MoneyCost>k__BackingField: 38
+  UpPartSprite: {fileID: 21300000, guid: 03b3fff1158d4bf46a3684e183665eda, type: 3}
+  UpPartPosition: {x: 0, y: 0.1}
+  MaxRotateAngle: 18
+  RotateSpeed: 0.1
+  Damage: 65
+  AttackCouldown: 1.8
+  BulletsCountInMagazine: 1
+  BulletsCount: 1
+  BulletSpeed: 20
+  ReloadDuration: 1.8
+  MissleType: 0
+  MissleSprite: {fileID: 21300000, guid: e6911bd4ff32fb947bcab438fba5e22b, type: 3}
+  FirePointPosition: {x: 0, y: 0.2}
+  GunContainerPosition: {x: 0, y: -0.25}
+  SpreadAngle: 5
+  ExplosionRadius: 0
+  ExplosionDamage: 0
+  ImpulseForce: 250
+  EffectType: 0
+  EffectDuration: 0
+  BreakingThroughCount: 2
+  BreakingThroughDamageFalloff: 0.2
+  CarRecoil: 0
+  ProjectileLifeTime: 2.7
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0
+  ShotSound: {fileID: 8300000, guid: c98bd5cd899b200419ed29514b4642f5, type: 3}

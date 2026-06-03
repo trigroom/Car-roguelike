@@ -16,7 +16,7 @@ MonoBehaviour:
   <achievementIcon>k__BackingField: {fileID: 21300000, guid: ff582b8ebe7c3ab419fb633c861f837a, type: 3}
   <achievementBackground>k__BackingField: {fileID: 21300000, guid: b4df236d93c01dc49adebb11c3d3d27e, type: 3}
   <achivementName>k__BackingField: Complete tasks
-  <needCount>k__BackingField: 100
+  <needCount>k__BackingField: 20
   <needSecondCount>k__BackingField: 0
   <needAchievementToVisible>k__BackingField: 14
   <rewardType>k__BackingField: 2

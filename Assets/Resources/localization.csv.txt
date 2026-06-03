@@ -4,16 +4,14 @@ Choose map,Choose map,Выбрать карту,Karte wählen,Elegir mapa,Choisi
 Back,Back,Назад,Zurück,Atrás,Retour
 Moto,Moto,Мотоцикл,Motorrad,Moto,Moto
 Car,Car,Машина,Auto,Coche,Voiture
-Enemy moto,Enemy moto,Вражеский мотоцикл,Gegnerisches Motorrad,Moto enemiga,Moto ennemie
-Enemy small car,Enemy small car,Вражеская маленькая машина,Gegnerisches Kleinauto,Coche pequeño enemigo,Petite voiture ennemie
 Truck,Truck,Грузовик,Lastwagen,Camión,Camion
 Choose car,Choose car,Выбрать машину,Auto wählen,Elegir coche,Choisir une voiture
 Choose map,Choose map,Выбрать карту,Karte wählen,Elegir mapa,Choisir une carte
 Back,Back,Назад,Zurück,Atrás,Retour
 Motocircle,Motocircle,Мотокруг,Motocircle,Motocircle,Motocircle
 Car,Car,Машина,Auto,Coche,Voiture
-Enemy moto,Enemy moto,Вражеский мотоцикл,Gegnerisches Motorrad,Moto enemiga,Moto ennemie
-Enemy small car,Enemy small car,Вражеская маленькая машина,Gegnerisches Kleinauto,Coche pequeño enemigo,Petite voiture ennemie
+Enemy moto,Rusted Moto,Ржавый мотоцикл,Rost-Motorrad,Moto oxidada,Moto rouillée
+Enemy small car,Rusted Car,Ржавая машина,Rost-Auto,Coche oxidado,Voiture rouillée
 Truck,Truck,Грузовик,Lastwagen,Camión,Camion
 Enemy damage,Enemy damage,Урон врага,Gegner Schaden,Daño enemigo,Dégâts ennemis
 Enemy health,Enemy health,Здоровье врага,Gegner Gesundheit,Salud enemiga,Santé ennemie
@@ -415,3 +413,30 @@ Diagonal tires,Diagonal Tires,Диагональные шины,Diagonalreifen,N
 Offroad tires,Offroad Tires,Внедорожные шины,Geländereifen,Neumáticos todoterreno,Pneus tout-terrain
 Elastic bowstring,Elastic Bowstring,Эластичная тетива,Elastische Bogensehne,Cuerda elástica,Corde élastique
 Hard bowstring,Hard Bowstring,Жесткая тетива,Harte Bogensehne,Cuerda dura,Corde dure
+Uran bullet,Uranium Bullet,Урановая пуля,Uran-Geschoss,Bala de uranio,Balle d'uranium
+Spike bullet,Spike Bullet,Пуля-шип,Stachelgeschoss,Bala espina,Balle pique
+High compression piston,High Compression Piston,Поршень высокой компрессии,Hochdruckkolben,Pistón de alta compresión,Piston haute compression
+Engine chip tuning,Engine Chip Tuning,Чип-тюнинг двигателя,Motor-Chip-Tuning,Ajuste centralita motor,Programmation moteur
+Turbo charging,Turbo Charging,Турбонаддув,Turboaufladung,Turboalimentación,Turbo
+Car airfreshener,Car Air Freshener,Освежитель воздуха в машину,Lufterfrischer Auto,Ambientador coche,Désodorisant voiture
+Steering wheel cover,Steering Wheel Cover,Чехол на руль,Lenkradbezug,Funda volante,Protection volant
+Light tip,Light Tip,Легкий наконечник,Leichte Spitze,Punta ligera,Pointe légère
+Narrow tip,Narrow Tip,Узкий наконечник,Schmale Spitze,Punta estrecha,Pointe étroite
+Spiked tip,Spiked Tip,Шипованный наконечник,Stachelspitze,Punta con púas,Pointe à pointes
+Fast reload mag,Fast Reload Magazine,Быстросменяемый магазин,Schnelllade-Magazin,Cargador rápido rearme,Chargeur rapide
+Frontal gun,Frontal Gun,Лобовая пушка,Frontalgeschütz,Cañón frontal,Canon frontal
+Frontal MG,Frontal MG,Лобовой пулемёт,Frontales MG,Ametralladora frontal,Mitrailleuse frontale
+Moto driver cabine,Moto Driver Cabin,Кабина водителя мотоцикла,Moto-Fahrerkabine,Cabina conductor moto,Cabine conducteur moto
+Truck driver cabine,Truck Driver Cabin,Кабина водителя грузовика,LKW-Fahrerkabine,Cabina conductor camión,Cabine conducteur camion
+Moto driver cabine rusted,Rusted Moto Cabin,Ржавая кабина мотоцикла,Verrostete Moto-Kabine,Cabina moto oxidada,Cabine moto rouillée
+Driver cabine rusted,Rusted Driver Cabin,Ржавая кабина водителя,Verrostete Fahrerkabine,Cabina conductor oxidada,Cabine conducteur rouillée
+Rusted car engine,Rusted Car Engine,Ржавый двигатель машины,Verrosteter Automotor,Motor coche oxidado,Moteur voiture rouillé
+Rusted moto engine,Rusted Moto Engine,Ржавый двигатель мотоцикла,Verrosteter Moto-Motor,Motor moto oxidado,Moteur moto rouillé
+Rusted spikes,Rusted Spikes,Ржавые шипы,Verrostete Stacheln,Púas oxidadas,Piques rouillées
+Iron spikes,Iron Spikes,Железные шипы,Eisenstacheln,Púas de hierro,Piques en fer
+Small drill,Small Drill,Маленькая дрель,Kleiner Bohrer,Taladro pequeño,Petite perceuse
+Homemade rifle,Homemade Rifle,Самодельная винтовка,Selbstgebaute Gewehr,Rifle casero,Fusil artisanal
+Mechanical crossbow,Mechanical Crossbow,Механический арбалет,Mechanische Armbrust,Ballesta mecánica,Arbalète mécanique
+3x2 car base zig zag,3x2 Zig Zag Car Base,Основа машины 3х2 зигзаг,3x2 Zickzack-Autobasis,Base coche 3x2 zigzag,Base voiture 3x2 zigzag
+3x2 car base zig zag reverse,3x2 Zig Zag Reverse Car Base,Основа машины 3х2 обратный зигзаг,3x2 Zickzack-Reverse-Autobasis,Base coche 3x2 zigzag inverso,Base voiture 3x2 zigzag inversé
+Iron shield,Iron Shield,Железный щит,Eisenschild,Escudo de hierro,Bouclier en fer
