@@ -31,6 +31,7 @@ MonoBehaviour:
   <RoundsCount>k__BackingField: 20
   <DestroyEnemyCarsAfterDeath>k__BackingField: 0
   <BossCars>k__BackingField:
-  - {fileID: 11400000, guid: 1944121b7825d014f96a06ec442ca80f, type: 2}
+  - {fileID: 11400000, guid: 5f2ba1a5dcca83d439375cc2f289d4a0, type: 2}
+  - {fileID: 11400000, guid: f2ef3413c055fba47aa4948ec78c249f, type: 2}
   <ShopInflationPerRound>k__BackingField: 0.04
   <AutoUpgradeShopToRoundLevel>k__BackingField: 0

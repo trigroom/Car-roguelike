@@ -891,10 +891,10 @@ public class GridUtils : MonoBehaviour {
     };
     
     public static Dictionary<CarPartRare, float> _neededUpgradeExpForRare = new Dictionary<CarPartRare, float>() {
-        {CarPartRare.Low, 1},
-        {CarPartRare.Medium, 1.2f},
-        {CarPartRare.High, 1.4f},
-        {CarPartRare.VeryHigh, 1.5f}
+        {CarPartRare.Low, 2},
+        {CarPartRare.Medium, 2.4f},
+        {CarPartRare.High, 2.8f},
+        {CarPartRare.VeryHigh, 3f}
     };
     public static int GetNeedExpToUpgrade(int level, CarPartConfig config) {
         float needExp = _neededUpgradeExpForRare[config.RartRare] * 5+config.PartForm.Length * (0.75f + level*0.25f);

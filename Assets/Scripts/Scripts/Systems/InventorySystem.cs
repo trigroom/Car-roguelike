@@ -637,12 +637,12 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         shopCmp.ListShopItemsForRares = new List<List<int>>() { new List<int>(), new List<int>(), new List<int>(), new List<int>() };
         shopCmp.CurrentShopItemsChances = new List<float>(4);
         shopCmp.ShopModulesIds = new List<int>();
-        foreach (var shopItem in _sceneData.Value._carStuffListsConfig.ShopItems) {
-            if (!DataPersistenceManagerSystem._gameData.CarPartsUnlocked[shopItem]) continue;
+        for (int i = 0; i < DataPersistenceManagerSystem._gameData.CarPartsUnlocked.Length; i++) {
+            if (!DataPersistenceManagerSystem._gameData.CarPartsUnlocked[i]) continue;
+            var carPartConfig = GetCarPartConfig(i);
+            if (GridUtils.IsContainerType(carPartConfig.PartType) || carPartConfig.PartType == CarPartType.Main) continue;
 
-            var partRare = (int)GetCarPartConfig(shopItem).RartRare;
-
-            shopCmp.ListShopItemsForRares[partRare].Add(shopItem);
+            shopCmp.ListShopItemsForRares[(int)carPartConfig.RartRare].Add(i);
         }
 
         foreach (var moduleItem in _sceneData.Value._carStuffListsConfig.ModuleConfigs) {
@@ -3300,7 +3300,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._carPartInfoUIView.CarDescriptionText.text =
             $"{GetLocalization(carConfig.CarName)}\n {carCmp.CarLevel + 1} {GetLocalization("lvl")}";
 
-        if (carCmp.CarLevel > 15) {
+        if (carCmp.CarLevel >= 14) {
             _sceneData.Value._inventoryUIView._upgradeCarButton.enabled = false;
             _sceneData.Value._inventoryUIView._upgradeCarButtonText.text = $"{GetLocalization("Max level")}";
         } else {

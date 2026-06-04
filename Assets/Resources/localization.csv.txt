@@ -440,3 +440,4 @@ Mechanical crossbow,Mechanical Crossbow,Механический арбалет,
 3x2 car base zig zag,3x2 Zig Zag Car Base,Основа машины 3х2 зигзаг,3x2 Zickzack-Autobasis,Base coche 3x2 zigzag,Base voiture 3x2 zigzag
 3x2 car base zig zag reverse,3x2 Zig Zag Reverse Car Base,Основа машины 3х2 обратный зигзаг,3x2 Zickzack-Reverse-Autobasis,Base coche 3x2 zigzag inverso,Base voiture 3x2 zigzag inversé
 Iron shield,Iron Shield,Железный щит,Eisenschild,Escudo de hierro,Bouclier en fer
+Excavator bucket,Excavator Bucket,Ковш экскаватора,Baggerlöffel,Cazo de excavadora,Godet d'excavatrice

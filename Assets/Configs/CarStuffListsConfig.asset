@@ -305,9 +305,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a3001100afd9fdf46b94c1563a98302d, type: 2}
   - {fileID: 11400000, guid: 3134aa700f11d0d44802f7a86bbcaee6, type: 2}
   <ShopItemConfigs>k__BackingField:
-  - {fileID: 11400000, guid: 539e2dd079d97ba448e23a2016a32c87, type: 2}
-  - {fileID: 11400000, guid: 225cd5a1aeebb6945ae52aab548f7f48, type: 2}
+  - {fileID: 11400000, guid: af017c01302c35a4998d5ddd62bb86ba, type: 2}
+  - {fileID: 11400000, guid: 79e9e9bc478b967438a2e1376c9ef2d2, type: 2}
+  - {fileID: 11400000, guid: 8f3ad95cea3e26a4097335e51ebd7ccf, type: 2}
+  - {fileID: 11400000, guid: 229ed14fd5d3a8c4f98cb82a096859a9, type: 2}
+  - {fileID: 11400000, guid: 5beda2f6c3943e142916b677f8f888a2, type: 2}
   - {fileID: 11400000, guid: 2244bbdddeab3ba44b561e35805bffa6, type: 2}
+  - {fileID: 11400000, guid: 211e25bf5156da6448e0b2b018b702d7, type: 2}
+  - {fileID: 11400000, guid: 225cd5a1aeebb6945ae52aab548f7f48, type: 2}
+  - {fileID: 11400000, guid: 539e2dd079d97ba448e23a2016a32c87, type: 2}
   <ModuleConfigs>k__BackingField:
   - {fileID: 11400000, guid: 014e4a7372e5526458fd17166ab93f43, type: 2}
   - {fileID: 11400000, guid: a7b350f8c981ae0488141627541bb645, type: 2}

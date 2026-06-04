@@ -36,9 +36,6 @@ public class CarStuffListsConfig : ScriptableObject {
     public MeleeCarPartStuffView MeleeCarPartStuffView { get; private set; }
 
     [field: SerializeField]
-    public int[] ShopItems { get; private set; }
-
-    [field: SerializeField]
     public WheelPrefabConfig[] Wheels { get; private set; }
 
     [field: SerializeField]

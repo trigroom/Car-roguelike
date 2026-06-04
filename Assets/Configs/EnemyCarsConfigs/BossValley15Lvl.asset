@@ -1,0 +1,154 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31ffd1037cc574c4f90a2762730ba894, type: 3}
+  m_Name: BossValley15Lvl
+  m_EditorClassIdentifier: 
+  CarPartDownLevelGrid:
+  - gridPosition: {x: 2, y: 1}
+    partId: 1
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 2, y: 0}
+    partId: 33
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 2, y: 4}
+    partId: 33
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 0, y: 2}
+    partId: 107
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 5, y: 2}
+    partId: 108
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 0, y: 5}
+    partId: 54
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 0, y: 6}
+    partId: 33
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 4, y: 5}
+    partId: 54
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 4, y: 6}
+    partId: 33
+    rotate: 0
+    level: 0
+    moduleIds: 
+  CarPartUpLevelGrid:
+  - gridPosition: {x: 3, y: 2}
+    partId: 4
+    rotate: 0
+    level: 14
+    moduleIds: 
+  - gridPosition: {x: 3, y: 3}
+    partId: 3
+    rotate: 0
+    level: 14
+    moduleIds: 
+  - gridPosition: {x: 5, y: 2}
+    partId: 44
+    rotate: 270
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 1, y: 2}
+    partId: 44
+    rotate: 90
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 5, y: 6}
+    partId: 57
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 1, y: 6}
+    partId: 57
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 4, y: 4}
+    partId: 55
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 2, y: 4}
+    partId: 55
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 4, y: 1}
+    partId: 105
+    rotate: 270
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 2, y: 1}
+    partId: 105
+    rotate: 90
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 1, y: 5}
+    partId: 30
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 5, y: 5}
+    partId: 30
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 2, y: 6}
+    partId: 102
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 4, y: 6}
+    partId: 102
+    rotate: 0
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 4, y: 2}
+    partId: 66
+    rotate: 180
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 2, y: 2}
+    partId: 66
+    rotate: 180
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 0, y: 5}
+    partId: 44
+    rotate: 90
+    level: 0
+    moduleIds: 
+  - gridPosition: {x: 6, y: 5}
+    partId: 44
+    rotate: 270
+    level: 0
+    moduleIds: 
+  CarId: 0
+  CarLevel: 14
+  GridSize: {x: 7, y: 7}

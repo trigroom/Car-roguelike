@@ -120,5 +120,5 @@ MonoBehaviour:
     level: 0
     moduleIds: 
   CarId: 4
-  CarLevel: 10
+  CarLevel: 5
   GridSize: {x: 3, y: 7}

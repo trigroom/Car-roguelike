@@ -278,6 +278,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 if (_bossComponentsFilter.Value.GetEntitiesCount() == 0) {
                     _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
                     EndRoundForAll();
+                    if(curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount)
                     WinGame();
                 }
 
@@ -1195,7 +1196,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
        
       
         var currentSupportRoundTypes = RoundUtilits.SupportRoundsTypes.Distinct().ToList();
-        if (TaskCount() == 3)
+        if (TaskCount() >= 3)
             currentSupportRoundTypes.Remove(RoundType.Task);
         if (_playerCurrencyComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MoneyCount < 5) {
             currentSupportRoundTypes.Remove(RoundType.VersusBattle);
@@ -1204,7 +1205,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
             
         
         (var randomRounds, int moneyMultiplayerRound) =
-            curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount - 1
+            ((curGameCmp.CurrentRound+1)%5 == 0 && curGameCmp.CurrentRound > 7)
                 ? (new[] { RoundType.BossBattle }, -1)
                 : RoundUtilits.GetRandomBattleRound(curGameCmp.CurrentBattleRounds, 3, currentSupportRoundTypes);
       //  curGameCmp.RoundTypes.Add(randomRounds);
@@ -2400,11 +2401,18 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
     }
 
     private void SpawnBossCars() {
-        var bossCars = _betweenScenesService.Value.GetMapDifficultyConfig().BossCars;
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
-        foreach (var enemyCarPartsMap in bossCars) 
-              _bossComponentsPool.Value.Add(SpawnNpcCar(curGameCmp, enemyCarPartsMap, true,GetPositionAroundPlayer()));
-        
+        EnemyCarPartsMaps[] bossCars;
+        if (curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount - 1)
+            bossCars = _betweenScenesService.Value.GetMapDifficultyConfig().BossCars;
+        else {
+            bossCars = curGameCmp.CurrentRound > 13
+                ? _betweenScenesService.Value.GetMapConfig().MapDifficltyConfigs[1].BossCars
+                : _betweenScenesService.Value.GetMapConfig().MapDifficltyConfigs[0].BossCars;
+        }
+
+        foreach (var enemyCarPartsMap in bossCars)
+            _bossComponentsPool.Value.Add(SpawnNpcCar(curGameCmp, enemyCarPartsMap, true, GetPositionAroundPlayer()));
     }
 
     private void SpawnTeammateCar(int entity) {

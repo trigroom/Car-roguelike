@@ -20,7 +20,7 @@ MonoBehaviour:
   "<AccelerationFuel\u0421onsumption>k__BackingField": 0.5
   <RotateSpeed>k__BackingField: 150
   <BoostSpeedMultiplayer>k__BackingField: 87.5
-  <DefaultMaxSpeed>k__BackingField: 125
+  <DefaultMaxSpeed>k__BackingField: 120
   <Acceleration>k__BackingField: 35
   <Deceleration>k__BackingField: 50
   <DefaultMaxFuel>k__BackingField: 150
