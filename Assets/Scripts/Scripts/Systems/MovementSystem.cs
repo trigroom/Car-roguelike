@@ -215,17 +215,18 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
 
                 fuelCmp.CurrentFuel -= fuelConsumption * deltaTime;
             }
-               
-           
 
             if ((electricityConsumption > 0 && fuelCmp.CurrentElectricity < fuelCmp.MaxElectricity) ||
                 (fuelCmp.CurrentElectricity > 0 && electricityConsumption < 0)) {
                 fuelCmp.CurrentElectricity += electricityConsumption * deltaTime;
+            }
+
+            if (isThisPlayer) {
                 _sceneData.Value._playerUIView._batteryImage.color =
                     _sceneData.Value._healthGradient.Evaluate(fuelCmp.CurrentElectricity / fuelCmp.MaxElectricity);
-                _sceneData.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity:F1}/{fuelCmp.MaxElectricity:F1}";
+                _sceneData.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity:0.##}/{fuelCmp.MaxElectricity:0.##}";
             }
-                
+             
             var moveObjectTransform = movementCmp.MovableObjectRigidbody.transform;
             movementCmp.Velocity = ((Vector2)moveObjectTransform.position - movementCmp.PreviousPosition) / deltaTime;
             if (isThisPlayer)
@@ -280,11 +281,9 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                             movementCmp.RotateSpeed * Time.fixedDeltaTime);
                     }
 
-//mb move to end
                     RotateWheels(angleToTarget, movementCmp.CurrentRotateSpeed, movementEntity);
                     SetWheelParticleSystemState(movementEntity, true);
                     UseFuel(movementEntity);
-                    //   var carConfig = _sceneData.Value.GetCarConfig(carCmp.CarId);
                     float maxSpeed = fuelCmp.UseSpeedBoost
                         ? movementCmp.MaxMoveSpeed + movementCmp.MaxBoostMoveSpeed
                         : movementCmp.MaxMoveSpeed;
@@ -307,10 +306,6 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                         movementCmp.CurrentRotateSpeed, 0f, movementCmp.RotateSpeed * Time.fixedDeltaTime);
                 }
 
-             //   movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
-           
-            //    Debug.Log($"Try sent angular velocity: {movementCmp.RotateSpeed}");
-             //    movementCmp.MovableObjectRigidbody.angularVelocity = movementCmp.CurrentRotateSpeed;
                carCmp.CarView.SyncRigidbodyView.RequestSetAngularVelocityServerRpc(movementCmp.CurrentRotateSpeed,carCmp.WheelsRotateAngle);
               
             } else {
@@ -318,29 +313,6 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                   SetWheelParticleSystemState(movementEntity, false);
             }
 
-        //    carCmp.CarView.SyncRigidbodyView.SetRotationClientRpc(carCmp.CarView.transform.eulerAngles.z,NetcodeBetweenScenesService.Instance.OwnerClientId);
-         /*   if (movementCmp.CantMoveTime <= 0 && carCmp.ShockedMainPartsCount == 0 && movementCmp.MaxMoveSpeed > 0) {
-               carCmp.CarView.SyncRigidbodyView.RequestPushForceServerRpc(
-                    movementCmp.MovableObjectRigidbody.transform.up * movementCmp.CurrentMoveSpeed * carCmp.CurrentWeight / 10);
-              //   movementCmp.MovableObjectRigidbody.AddForce(movementCmp.MovableObjectRigidbody.transform.up * movementCmp.CurrentMoveSpeed * carCmp.CurrentWeight / 10);
-            }
-
-            if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
-                var windCmp = _windComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-               carCmp.CarView.SyncRigidbodyView.RequestPushForceServerRpc(windCmp.WindDirection * windCmp.WindSpeed);
-              //  movementCmp.MovableObjectRigidbody.AddForce(windCmp.WindDirection * windCmp.WindSpeed);
-            }*/
-          //  movementCmp.MovableObjectRigidbody.AddForce( movementCmp.CurrentMoveSpeed, ForceMode2D.Force);
-          /*  if (_windComponentsPool.Value.Has(_sceneData.Value.PlayerEntity)) {
-                var windCmp = _windComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
-                movementCmp.MovableObjectRigidbody.AddForce(windCmp.WindDirection * windCmp.WindSpeed, ForceMode2D.Force);
-            }*/
-                
-            
-          //  carCmp.CarView.ForwardWheelsContainer.position = carCmp.CarView.transform.position;
-         //   carCmp.CarView.ForwardWheelsContainer.rotation = carCmp.CarView.transform.rotation;
-
-           
         }
     }
 

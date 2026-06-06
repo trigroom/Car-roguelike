@@ -19,7 +19,6 @@ public class RoundUtilits
     };*/
     public static (RoundType[], int) GetRandomBattleRound(int battleRounds, int needCount,  List<RoundType> currentSupportRoundTypes) {
         List<RoundType> currentBattleRoundTypes = BattleRoundsTypes.Distinct().ToList();
-        
         int moneyMultiplayerRound = -1;
         if (battleRounds > 1) {
             moneyMultiplayerRound = Random.Range(0, battleRounds);

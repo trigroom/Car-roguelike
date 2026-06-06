@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using UnityEngine;
 
 public class DataPersistenceManagerSystem : MonoBehaviour
@@ -62,24 +63,32 @@ public class DataPersistenceManagerSystem : MonoBehaviour
 
         if (_gameData == null || _gameData.lastGameVersion != Application.version) {
             NewGame();
+        } else {
+            var filteredResolutions = new List<Resolution>();
+        
+            RefreshRate currentRefreshRate = Screen.currentResolution.refreshRateRatio;
+            foreach (Resolution res in Screen.resolutions)
+            {
+                if (res.refreshRateRatio.value == currentRefreshRate.value)
+                    filteredResolutions.Add(res);
+            }
+            
+             var needResolution = _gameData.ResolutionIndex == -1 ? filteredResolutions[^1] : filteredResolutions[_gameData.ResolutionIndex];
+            Screen.SetResolution(needResolution.width, needResolution.height, _gameData.IsFullScreen);
+          
         }
-
-        if (isTestProgressReload) {
-            _gameData.TutorialIsCompleted = true;
-            _gameData.LevelRounds[0] = 5;
-            _gameData.LevelRounds[1] = 5;
-            _gameData.CarsUnlocked[5] = true;
-            _gameData.CarsUnlocked[4] = true;
-            _gameData.CarsUnlocked[3] = true;
-            _gameData.CarsUnlocked[2] = true;
-            _gameData.CarsUnlocked[1] = true;
-          SaveGame();
-        }  
-    }
-
-    public enum SavePriority {
-        fullSave,
-        inGameSave
+        Application.targetFrameRate = _gameData.FpsCountLock;
+        /*  if (isTestProgressReload) {
+              _gameData.TutorialIsCompleted = true;
+              _gameData.LevelRounds[0] = 5;
+              _gameData.LevelRounds[1] = 5;
+              _gameData.CarsUnlocked[5] = true;
+              _gameData.CarsUnlocked[4] = true;
+              _gameData.CarsUnlocked[3] = true;
+              _gameData.CarsUnlocked[2] = true;
+              _gameData.CarsUnlocked[1] = true;
+            SaveGame();
+          }  */
     }
 
     public static void SaveGame() {

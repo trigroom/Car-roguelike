@@ -30,4 +30,4 @@ MonoBehaviour:
   <BossCars>k__BackingField:
   - {fileID: 11400000, guid: 74af8a3f0040034479564d949345690f, type: 2}
   <ShopInflationPerRound>k__BackingField: 0
-  <AutoUpgradeShopToRoundLevel>k__BackingField: 0
+  <AutoUpgradeShopToRoundLevel>k__BackingField: 1

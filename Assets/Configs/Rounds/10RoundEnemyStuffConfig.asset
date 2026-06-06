@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AddedCarPartsToEnemyPool: 180000003e00000067000000
   RemovedCarPartsFromEnemyPool: 380000003c000000
-  MoneyCount: 45
+  MoneyCount: 100

@@ -194,9 +194,8 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
     private void RoundCheck() {
         int currentRound = _сurrentGameComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CurrentRound;
 
-        if (currentRound > 1) {
-            RoundUtilits.SupportRoundsTypes = new List<RoundType> { RoundType.Chest }; //.Add(RoundType.ModulesShop);
-
+        if (currentRound == 2) {
+           
             DataPersistenceManagerSystem._gameData.TutorialIsCompleted = true;
             DataPersistenceManagerSystem.SaveGame();
         } else if (currentRound == 0) {
@@ -209,9 +208,12 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
             ref var playerCurrencyCmp = ref _playerCurrencyComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
             playerCurrencyCmp.MoneyCount += 30;
             _sceneData.Value._shopUIView._moneyCountText.text = playerCurrencyCmp.MoneyCount + "<sprite name=\"CogIcon\">";
-        
+         RoundUtilits.SupportRoundsTypes = new List<RoundType> { RoundType.Chest }; //.Add(RoundType.ModulesShop);
             //upgrade car text
         } else if (currentRound == 1) {
+            RoundUtilits.SupportRoundsTypes = new List<RoundType> {
+                                      RoundType.Chest, RoundType.Shop, RoundType.Task, RoundType.SlotMachine, RoundType.ModulesShop, RoundType.VersusBattle
+                                  };
             _sceneData.Value._tutorialStuffView.TutorialInGoundText.transform.parent.gameObject.SetActive(false);
             _sceneData.Value._inventoryUIView._upgradeCarButton.interactable = false;
             _sceneData.Value._shopUIView._shopModeButton.gameObject.SetActive(true);

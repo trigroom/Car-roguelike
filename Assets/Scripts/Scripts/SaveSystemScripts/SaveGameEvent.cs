@@ -5,5 +5,5 @@ using UnityEngine;
 
 public struct SaveGameEvent 
 {
-    public DataPersistenceManagerSystem.SavePriority type;
+  
 }

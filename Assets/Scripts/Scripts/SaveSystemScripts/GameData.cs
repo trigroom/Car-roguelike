@@ -33,6 +33,10 @@ public class GameData
     public float MusicVolume;
     public float SoundVolume;
     public float UIVolume;
+
+    public int ResolutionIndex;
+    public bool IsFullScreen;
+    public int FpsCountLock;
     public GameData()
     {
         LevelRounds = new int[3];
@@ -45,6 +49,9 @@ public class GameData
         MusicVolume = 0.3f;
         SoundVolume = 0.3f;
         UIVolume = 0.3f;
+        IsFullScreen = true;
+        ResolutionIndex = -1;
+        FpsCountLock = (int)Screen.currentResolution.refreshRateRatio.value;
     }
     
     public static string GetSystemLanguageCode()

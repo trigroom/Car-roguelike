@@ -59,7 +59,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private EcsFilterInject<Inc<InventoryCellComponent>> _inventoryCellComponentsFilter;
     private EcsFilterInject<Inc<AddInventoryItemEvent>> _addInventoryItemEventsFilter;
     private EcsFilterInject<Inc<ModuleInventoryItem>> _moduleInventoryItemsFilter;
-    private EcsFilterInject<Inc<UpdateCarStatsEvent>> _updateCarStatsEventsFilter;
+    private EcsFilterInject<Inc<UpdateCarStatsEvent>> _updateCarStatsEventsFilter; 
 
     public void Init(IEcsSystems systems) {
         //test
@@ -1771,7 +1771,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         moveCmp.MaxBoostMoveSpeed = carConfig.BoostSpeedMultiplayer * baseAccelerationMultiplier;
         float defaultFuelConsumption = carConfig.FuelСonsumption;
         ref var fuelCmp = ref _fuelComponentsPool.Value.Get(entity);
-        fuelCmp.MaxElectricity = carConfig.DefaultMaxElectricity;
+        fuelCmp.MaxElectricity = carConfig.DefaultMaxElectricity*baseMaxFuelMultiplier;
         fuelCmp.ElectricityConsumption = 0;
         fuelCmp.ConstantElectricityConsumption = 0;
         fuelCmp.ConstantElectricityReplenishment = 0;
@@ -1846,10 +1846,13 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             int carPartId = carPartCellCmp.CarPartId;
             var carPartConfig = _sceneData.Value.GetCarPartConfig(carPartId);
             carWeight += carPartConfig.Weight;
-            if (carPartConfig is WheelsContainerConfig wheels) {
+            if (carPartConfig.PartType == CarPartType.WheelsContainer || carPartConfig.PartType == CarPartType.Main) {
                 var modulesMultipliers = GridUtils.GetModulesMultipliers(carPartCellCmp.ModuleIds);
-                carMaxWeight += wheels.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCellCmp.PartLevel) *
-                                modulesMultipliers.maxWeightMultiplier;
+                if (carPartConfig is WheelsContainerConfig wheels) {
+                    carMaxWeight += wheels.MaxWeight * GridUtils.GetMaxWeightLevelMultiplier(carPartCellCmp.PartLevel) *
+                                    modulesMultipliers.maxWeightMultiplier;
+                }
+
                 rotateSpeedMultiplier += modulesMultipliers.wheelRotateSpeedMultiplier - 1;
                 maxSpeedMultiplier += modulesMultipliers.maxSpeedMultiplier - 1;
             }
@@ -2098,7 +2101,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float visibleMoney = playerCurrency.VisibleMoneyCount;
         inventoryCmp.CurrentMoneyTween = DOTween.To(() => visibleMoney, x => visibleMoney = x, playerCurrency.MoneyCount, 1f)
             .SetEase(Ease.OutCubic).OnUpdate(() => {
-                _sceneData.Value._shopUIView._moneyCountText.text = visibleMoney.ToString("N0") + "<sprite name=\"CogIcon\">";
+                _sceneData.Value._shopUIView._moneyCountText.text =$"{visibleMoney:0.##}<sprite name=\"CogIcon\">";
                 SetVisibleMoneyCount(visibleMoney);
             });
 
@@ -2117,7 +2120,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float visibleMoney = playerCurrency.VisibleExpPointsCount;
         inventoryCmp.CurrentExpTween = DOTween.To(() => visibleMoney, x => visibleMoney = x, playerCurrency.ExpPointsCount, 1f)
             .SetEase(Ease.OutCubic).OnUpdate(() => {
-                _sceneData.Value._shopUIView._expCountText.text = $"{visibleMoney:N0} <sprite name=\"ExpIcon\">";
+                _sceneData.Value._shopUIView._expCountText.text = $"{visibleMoney:0.##} <sprite name=\"ExpIcon\">";
                 SetVisibleExpCount(visibleMoney);
             });
 
@@ -3008,7 +3011,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         inventoryCmp.CurrentInventoryPage++;
         float itemsCount = inventoryCmp.IsModuleInventoryMode ? GetModulesList().Count : (float)GetSortedCarPartList().Count;
-        if (inventoryCmp.CurrentInventoryPage > Mathf.FloorToInt(itemsCount / _sceneData.Value._inventoryUIView._inventoryCellViews.Length))
+        if (inventoryCmp.CurrentInventoryPage > Mathf.FloorToInt((itemsCount-1) / _sceneData.Value._inventoryUIView._inventoryCellViews.Length))
             inventoryCmp.CurrentInventoryPage = 0;
 
         SetInventoryCells();
@@ -3019,7 +3022,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         float itemsCount = inventoryCmp.IsModuleInventoryMode ? GetModulesList().Count : (float)GetSortedCarPartList().Count;
         inventoryCmp.CurrentInventoryPage--;
         if (inventoryCmp.CurrentInventoryPage < 0)
-            inventoryCmp.CurrentInventoryPage = Mathf.FloorToInt(itemsCount / _sceneData.Value._inventoryUIView._inventoryCellViews.Length);
+            inventoryCmp.CurrentInventoryPage = Mathf.FloorToInt((itemsCount-1) / _sceneData.Value._inventoryUIView._inventoryCellViews.Length);
 
         SetInventoryCells();
     }
@@ -3055,12 +3058,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void SetInventoryCells() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         int inventoryItemsCount = inventoryCmp.IsModuleInventoryMode ? GetModulesList().Count : GetSortedCarPartList().Count;
-        if ((float)inventoryItemsCount / _sceneData.Value._inventoryUIView._inventoryCellViews.Length > 1.03f) {
+        if ((inventoryItemsCount-1) / _sceneData.Value._inventoryUIView._inventoryCellViews.Length >= 1f) {
             _sceneData.Value._inventoryUIView._inventoryArrowsContainer.gameObject.SetActive(true);
             _sceneData.Value._inventoryUIView._pageNumberText.text = inventoryCmp.CurrentInventoryPage + "/" +
-                                                                     (Mathf.FloorToInt((float)inventoryItemsCount /
-                                                                                       _sceneData.Value._inventoryUIView._inventoryCellViews
-                                                                                           .Length));
+                                                                     ((inventoryItemsCount-1) / _sceneData.Value._inventoryUIView
+                                                                         ._inventoryCellViews.Length);
         } else {
             _sceneData.Value._inventoryUIView._pageNumberText.text = "";
             _sceneData.Value._inventoryUIView._inventoryArrowsContainer.gameObject.SetActive(false);
@@ -3454,7 +3456,7 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
     private void UpdateHealAllCarPartButton() {
         float healCost = GetHealAllCarPartCost();
         _sceneData.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost > 0);
-        _sceneData.Value._inventoryUIView._healCarText.text = $"{GetLocalization("Heal all car for")} {healCost:F2} <sprite name=\"CogIcon\">";
+        _sceneData.Value._inventoryUIView._healCarText.text = $"{GetLocalization("Heal all car for")} {healCost:0.###} <sprite name=\"CogIcon\">";
     }
 
     private float GetHealAllCarPartCost() {

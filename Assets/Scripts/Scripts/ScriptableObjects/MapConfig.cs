@@ -23,7 +23,6 @@ public class MapConfig : ScriptableObject {
      [field: SerializeField]
      public MapDifficultyConfig[] MapDifficltyConfigs { get; private set; }
 
-     public List<EnemyListConfigsList> EnemyMapConfigs;
      
      public List<MapVisualInfoConfig> MapVisualInfoConfigs;
      public Color LightColor;

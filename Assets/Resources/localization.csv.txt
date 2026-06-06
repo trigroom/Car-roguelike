@@ -92,7 +92,7 @@ RoundFromAToB,Visit all points,Посетить все точки,Alle Punkte be
 RoundShop,Big sale shop,Магазин с распродажей,Rabatt Shop,Tienda con rebajas,Magasin en promotion
 RoundTransfer,Upgrade via exchange,Улучшить через обмен,Durch Tausch verbessern,Mejorar mediante intercambio,Améliorer par échange
 RoundZoneDefence,Defend the zone,Защитить зону,Die Zone verteidigen,Defender la zona,Défendre la zone
-RoundBossBattle,Boss fight,Бой с боссом,Bosskampf,Pelea con jefe,Combat boss
+RoundBossBattle,Destroy All Opponents,Уничтожь всех противников,Zerstöre alle Gegner,Destruye a todos los oponentes,Détruis tous les adversaires
 Round,Round,Раунд,Runde,Ronda,Manche
 Down level health,Lower section health,Здоровье нижней секции,Unterer Abschnitt Gesundheit,Salud sección inferior,Santé section inférieure
 Up level health,Upper section health,Здоровье верхней секции,Oberer Abschnitt Gesundheit,Salud sección superior,Santé section supérieure
@@ -441,3 +441,8 @@ Mechanical crossbow,Mechanical Crossbow,Механический арбалет,
 3x2 car base zig zag reverse,3x2 Zig Zag Reverse Car Base,Основа машины 3х2 обратный зигзаг,3x2 Zickzack-Reverse-Autobasis,Base coche 3x2 zigzag inverso,Base voiture 3x2 zigzag inversé
 Iron shield,Iron Shield,Железный щит,Eisenschild,Escudo de hierro,Bouclier en fer
 Excavator bucket,Excavator Bucket,Ковш экскаватора,Baggerlöffel,Cazo de excavadora,Godet d'excavatrice
+Use full screen,Full Screen Mode,Полноэкранный режим,Vollbildmodus,Modo pantalla completa,Mode plein écran
+Unlimited,No Limit,Без ограничений,Keine Begrenzung,Sin límite,Pas de limite
+Enemy hp,Enemy Health,Здоровье врага,Gegner Leben,Vida Enemiga,Vie Ennemie
+Enemy damage,Enemy Damage,Урон врага,Gegner Schaden,Daño Enemigo,Dégâts Ennemis
+Pull the lever,Pull the Lever,Потяни рычаг,Zieh den Hebel,Tira de la palanca,Tire le levier

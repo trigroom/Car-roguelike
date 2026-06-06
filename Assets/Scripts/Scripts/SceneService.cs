@@ -134,7 +134,10 @@ public class SceneService : MonoBehaviour {
     //    gameInput = new InputSystem_Actions();
   //      gameInput.Enable();
         gameVersionText.text = Application.version;
-        aspectRatio =(mainCanvas.rect.width / mainCanvas.rect.height)/(16f/9f) ;
+        var screenResolution = DataPersistenceManagerSystem._gameData.ResolutionIndex != -1
+            ? Screen.resolutions[DataPersistenceManagerSystem._gameData.ResolutionIndex]
+            :Screen.resolutions[^1];
+        aspectRatio =(screenResolution.width / screenResolution.height)/(16f/9f) ;
         aspectRatio = 7.5f;
         mainCamera = Camera.main;
         _gunContainersPool = new ObjectPool<Transform>(() => Instantiate(_gunContainerPrefab));
@@ -149,11 +152,7 @@ public class SceneService : MonoBehaviour {
         _enemyAirplanesPool = new ObjectPool<EnemyAirplaneView>(() => Instantiate(enemyAirplaneView));
         _сarPartInGameUIViewsPool =
             new ObjectPool<CarPartInGameUIView>(() => Instantiate(_carPartInGameUIView, _playerUIView._carPratsDownLevelHealthContainer));
-        
-        _pixelEffectsLayerTexture.width = Screen.width;
-        _pixelEffectsLayerTexture.height = Screen.height;
-        _pixelEffectsUnderCarLayerTexture.width = Screen.width;
-        _pixelEffectsUnderCarLayerTexture.height = Screen.height;
+   
     }
 
     public CarPartInGameUIView GetCarPartInGameUIView() {

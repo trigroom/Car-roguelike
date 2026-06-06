@@ -887,12 +887,13 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
         if (gunConfig.ElectricityConsumption != 0) {
             ref var fuelCmp = ref _fuelComponentsPool.Value.Get(carPartCmp.MainEntity);
-            if (fuelCmp.CurrentElectricity < gunConfig.ElectricityConsumption) {
+            if (fuelCmp.CurrentElectricity > gunConfig.ElectricityConsumption) {
                 gunCmp.CurrentCountdown += gunCmp.CurrentMaxAttackCountdown;
                 return;
             }
 
-            fuelCmp.CurrentElectricity -= gunConfig.ElectricityConsumption;
+            if (fuelCmp.CurrentElectricity > 0)
+                fuelCmp.CurrentElectricity -= gunConfig.ElectricityConsumption;
         }
 
         Vector2 worldFirePoint = gunCmp.FirePointTransform.position;
@@ -1820,10 +1821,10 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
                         fuelCmp.MaxElectricity -= firstCountBattery;
                         fuelCmp.CurrentElectricity = Mathf.Min(fuelCmp.MaxElectricity, fuelCmp.CurrentElectricity);
 
-                        _sceneService.Value._playerUIView._batteryImage.color = fuelCmp.MaxElectricity <= 0
+                     /*   _sceneService.Value._playerUIView._batteryImage.color = fuelCmp.MaxElectricity <= 0
                             ? new Color(0.15f, 0.15f, 0.15f, 1)
                             : _sceneService.Value._healthGradient.Evaluate(fuelCmp.CurrentElectricity / fuelCmp.MaxElectricity);
-                        _sceneService.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity:F1}/{fuelCmp.MaxElectricity:F1}";
+                        _sceneService.Value._playerUIView._batteryCount.text = $"{fuelCmp.CurrentElectricity:0.##}/{fuelCmp.MaxElectricity:0.##}";*/
                         break;
                     case SupportModuleType.Turbine:
                         fuelCmp.AddedFuelConsumption -= supportCarPartConfig.FirstCount * firstMultiplayer;

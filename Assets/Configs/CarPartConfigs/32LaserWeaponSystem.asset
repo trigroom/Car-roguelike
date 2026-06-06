@@ -19,7 +19,6 @@ MonoBehaviour:
   <PartType>k__BackingField: 6
   <RartRare>k__BackingField: 3
   <UpgradedPartId>k__BackingField: 0
-  <UpgradedPartCost>k__BackingField: 20
   <PartName>k__BackingField: Laser weapon system
   <ModuleTypes>k__BackingField: 
   <PartForm>k__BackingField:
@@ -51,5 +50,6 @@ MonoBehaviour:
   BreakingThroughDamageFalloff: 0
   CarRecoil: 0
   ProjectileLifeTime: 3
-  ElectricityConsumption: 0
+  ElectricityConsumption: 0.1
   ProjectileRotateSpeed: 0
+  ShotSound: {fileID: 0}
