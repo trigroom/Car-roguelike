@@ -184,6 +184,7 @@ sealed class TutorialSystem : IEcsRunSystem, IEcsInitSystem {
 
         if (_tutorialStep is <= 3 or 6 or 10) {
             // if (_tutorialStep > 3)
+            if(_tutorialStep == 0 && _carComponentsPool.Value.Get(_sceneData.Value.PlayerEntity).CarPartContainerGroupsList.Count == 3)return;
             _sceneData.Value._carPartInfoUIView._moveToInventoryButton.gameObject.SetActive(false);
             _sceneData.Value._carPartInfoUIView._upgradeButton.gameObject.SetActive(false);
             _sceneData.Value._carPartInfoUIView._destroyButton.gameObject.SetActive(false);

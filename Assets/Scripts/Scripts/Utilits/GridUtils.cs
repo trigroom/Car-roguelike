@@ -695,7 +695,7 @@ public class GridUtils : MonoBehaviour {
     static private int maxBuildings = 15;
 
     static public void GenerateRandomBuildings(ref int[,] mapGrid) {
-        int buildingCount = Random.Range(minBuildings, maxBuildings + 1);
+        int buildingCount = RandomSeedUtils.Random.Next(minBuildings, maxBuildings + 1);
         List<Building> placedBuildings = new List<Building>();
         for (int i = 0; i < buildingCount; i++) {
             Building building = CreateRandomBuilding();
@@ -711,23 +711,23 @@ public class GridUtils : MonoBehaviour {
 
     static private Building CreateRandomBuilding() {
         // Случайные размеры здания (минимальный размер 2x2)
-        int width = Random.Range(3, 8);
-        int height = Random.Range(3, 8);
+        int width = RandomSeedUtils.Random.Next(3, 8);
+        int height = RandomSeedUtils.Random.Next(3, 8);
 
-        var needAxis = Random.value > 0.5f;
+        var needAxis = RandomSeedUtils.Random.NextDouble() > 0.5f;
         // Случайная позиция с отступом от границ
         int x=0;
         int y=0;
         if (needAxis) {
-            x = Random.value > 0.5f
-                ? Random.Range(2, (gridSize - width - 1) / 2 - 2-width/2)
-                : Random.Range((gridSize - width - 1) / 2 + 2+width/2, gridSize - width - 1);
-            y = Random.Range(2, gridSize - height - 1);
+            x = RandomSeedUtils.Random.NextDouble() > 0.5f
+                ? RandomSeedUtils.RandomWithNumbersCheck(2, (gridSize - width - 1) / 2 - 2-width/2)
+                : RandomSeedUtils.RandomWithNumbersCheck((gridSize - width - 1) / 2 + 2+width/2, gridSize - width - 1);
+            y = RandomSeedUtils.RandomWithNumbersCheck(2, gridSize - height - 1);
         } else {
-            x = Random.Range(2, gridSize - width - 1);
-            y = Random.value > 0.5f
-                ? Random.Range(2, (gridSize - height - 1) / 2 - 2-height/2)
-                : Random.Range((gridSize - height - 1) / 2 + 2+height/2, gridSize - height - 1);
+            x = RandomSeedUtils.RandomWithNumbersCheck(2, gridSize - width - 1);
+            y = RandomSeedUtils.Random.NextDouble() > 0.5f
+                ? RandomSeedUtils.RandomWithNumbersCheck(2, (gridSize - height - 1) / 2 - 2-height/2)
+                : RandomSeedUtils.RandomWithNumbersCheck((gridSize - height - 1) / 2 + 2+height/2, gridSize - height - 1);
         }
      
 
@@ -935,11 +935,11 @@ public class GridUtils : MonoBehaviour {
                         rotateAngle = 180;
 
                     else if (randomPosition.x + 1 >= upGrid.GetLength(0) || downGrid[randomPosition.x + 1, randomPosition.y] == 0) {
-                        rotateAngle = 90;
+                        rotateAngle = 270;
                         if (carPartSize.x > 1)
                             randomPosition = new Vector2Int(randomPosition.x - (carPartSize.x - 1), randomPosition.y);
                     } else if (randomPosition.x - 1 < 0 || downGrid[randomPosition.x - 1, randomPosition.y] == 0)
-                        rotateAngle = 270;
+                        rotateAngle = 90;
                 } else {
                     float randomValue = Random.value;
                     randomPosition = middleCells[Random.Range(0, middleCells.Count)];

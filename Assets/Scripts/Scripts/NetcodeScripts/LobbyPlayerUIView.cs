@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,14 @@ public class LobbyPlayerUIView : MonoBehaviour {
     private Image _playerCarImage;
     [SerializeField]
     private Image _playerCarHighlightImage;
+    [SerializeField]
+    public Button _giveMoneyYesButton;
+    [SerializeField]
+    public Button _giveMoneyNoButton;
+    [SerializeField]
+    private TMP_Text _giveMoneyText;
+    [SerializeField]
+    private Transform _giveMoneyContainer;
    
     private string GetLocalization(string needString) => BetweenScenesService.Instance.CsvLocalization.GetLocalizedValue(needString);
 
@@ -25,6 +34,21 @@ public class LobbyPlayerUIView : MonoBehaviour {
 
         _playerNameText.text = playerName;
         _playerCarImage.sprite = carSprite;
+    }
+
+    public void ShowGiveMoneyContainerAnimation(int moneyCount) {
+        _giveMoneyText.text = GetLocalization("Give") + moneyCount + "<sprite name=\"CogIcon\">?";
+        _giveMoneyContainer.DOKill();
+        _giveMoneyContainer.DOLocalMoveY(-4, 0.5f);
+        _giveMoneyYesButton.enabled = true;
+        _giveMoneyNoButton.enabled = true;
+    }
+
+    public void HideGiveMoneyContainerAnimation() {
+        _giveMoneyYesButton.enabled = false;
+        _giveMoneyNoButton.enabled = false;
+        _giveMoneyContainer.DOKill();
+        _giveMoneyContainer.DOLocalMoveY(-20, 0.5f);
     }
     
 }

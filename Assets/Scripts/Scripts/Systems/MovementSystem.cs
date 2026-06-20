@@ -40,6 +40,15 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
                 tornadoCmp.CounterTween.Kill();
                _sceneData.Value.DestroyGameobject(tornadoCmp.TornadoAnimator.transform);
                _tornadoComponentsPool.Value.Del(tornadoEntity);
+               if (!NetworkManager.Singleton.IsHost) {
+                   ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+                   foreach (var hostTornadoEntity in tornadoControllerCmp.TornadoHostAndLocalEnities) {
+                       if (hostTornadoEntity.Value == tornadoEntity) {
+                           tornadoControllerCmp.TornadoHostAndLocalEnities.Remove(hostTornadoEntity.Key);
+                           break;
+                       }
+                   }
+               }
             }
             return;
         }
@@ -53,6 +62,16 @@ public class MovementSystem : IEcsRunSystem, IEcsInitSystem {
             tornadoCmp.TimeToChangeDirection -= deltaTime;
             if (tornadoCmp.LifeTime <= 0) {
                 _sceneData.Value.DestroyGameobject(tornadoCmp.TornadoAnimator.transform);
+                if (!NetworkManager.Singleton.IsHost) {
+                    ref var tornadoControllerCmp = ref _tornadoSpawnControllerComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
+                    foreach (var hostTornadoEntity in tornadoControllerCmp.TornadoHostAndLocalEnities) {
+                        if (hostTornadoEntity.Value == tornadoEntity) {
+                            tornadoControllerCmp.TornadoHostAndLocalEnities.Remove(hostTornadoEntity.Key);
+                            break;
+                        }
+                    }
+                    Debug.Log(tornadoEntity + " del tornado");
+                }
                 _tornadoComponentsPool.Value.Del(tornadoEntity);
                 continue;
             }

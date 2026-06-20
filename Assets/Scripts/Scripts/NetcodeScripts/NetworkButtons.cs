@@ -140,11 +140,13 @@ public class NetworkButtons : MonoBehaviour {
         DisableMenuButtons();
         
         bool connected = await RelayManager.Instance.StartClientWithRelay(joinCodeInput.text);
-        
-        if (connected)
-        {
-           // leaveButton.gameObject.SetActive(true);
+
+        if (connected) {
+          //  Debug.Log(NetworkManager.Singleton.LocalClientId+" client connected"+DataPersistenceManagerSystem._gameData.CoopPlayerName);
+         //     NetcodeBetweenScenesService.Instance.SetPlayerNicknameServerRpc(NetworkManager.Singleton.LocalClientId,DataPersistenceManagerSystem._gameData.CoopPlayerName);
         }
+          
+        
         else
             EnableMenuButtons();
     }
@@ -189,9 +191,12 @@ public class NetworkButtons : MonoBehaviour {
             PlayerCarId = 0
         });
         
-        Debug.Log($"👤 Игрок {playerNumber} подключился");
+      NetcodeBetweenScenesService.Instance.WaitForNickname(clientId);
+
     }
 
+   
+    
     private void OnClientDisconnected(ulong clientId) {
         leaveButton.gameObject.SetActive(true);
         disconnectButton.gameObject.SetActive(false);

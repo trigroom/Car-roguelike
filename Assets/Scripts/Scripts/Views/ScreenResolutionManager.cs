@@ -64,6 +64,13 @@ private bool isFullscreen = true;
         resolutionDropdown.RefreshShownValue();
         // Добавляем слушатель события изменения выбора в Dropdown
         resolutionDropdown.onValueChanged.AddListener(SetResolution);
+
+        SetResolution(DataPersistenceManagerSystem._gameData.ResolutionIndex);
+      /*  _pixelEffectsLayerTexture.width = selectedResolution.width;
+        _pixelEffectsLayerTexture.height = selectedResolution.height;
+        _pixelEffectsUnderCarLayerTexture.width = selectedResolution.width;
+        _pixelEffectsUnderCarLayerTexture.height = selectedResolution.height;
+        
         
         _pixelEffectsLayerTexture.Release();
         _pixelEffectsLayerTexture.width = Screen.width;
@@ -72,7 +79,7 @@ private bool isFullscreen = true;
         _pixelEffectsUnderCarLayerTexture.Release();
         _pixelEffectsUnderCarLayerTexture.width = Screen.width;
         _pixelEffectsUnderCarLayerTexture.height = Screen.height;
-        _pixelEffectsUnderCarLayerTexture.Create();
+        _pixelEffectsUnderCarLayerTexture.Create();*/
         SetFpsLockSlider();
     }
     
@@ -81,10 +88,10 @@ private bool isFullscreen = true;
         DataPersistenceManagerSystem._gameData.ResolutionIndex = resolutionIndex;
         Resolution selectedResolution = filteredResolutions[resolutionIndex];
         Screen.SetResolution(selectedResolution.width, selectedResolution.height, DataPersistenceManagerSystem._gameData.IsFullScreen);
-        _pixelEffectsLayerTexture.width = selectedResolution.width;
-        _pixelEffectsLayerTexture.height = selectedResolution.height;
-        _pixelEffectsUnderCarLayerTexture.width = selectedResolution.width;
-        _pixelEffectsUnderCarLayerTexture.height = selectedResolution.height;
+       //_pixelEffectsLayerTexture.width = selectedResolution.width;
+       // _pixelEffectsLayerTexture.height = selectedResolution.height;
+       // _pixelEffectsUnderCarLayerTexture.width = selectedResolution.width;
+      //  _pixelEffectsUnderCarLayerTexture.height = selectedResolution.height;
         
         _pixelEffectsLayerTexture.Release();
         _pixelEffectsLayerTexture.width = selectedResolution.width;

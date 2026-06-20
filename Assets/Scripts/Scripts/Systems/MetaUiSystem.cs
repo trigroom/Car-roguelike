@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
         private EcsWorldInject _world;
@@ -14,15 +16,16 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
         public void Init (IEcsSystems systems) {
             _betweenSceneService.Value.HideBlackScreen();
             Time.timeScale = 1;
+            _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             _metaSceneService.Value.MainEntity = _world.Value.NewEntity();
             ref var metaUiComponent = ref _metaUIComponentsPool.Value.Add(_metaSceneService.Value.MainEntity);
             metaUiComponent.CurrentOpenedWindow =
                 _metaSceneService.Value._mainMenuView.transform;
             metaUiComponent.CurrentOpenedAchievementId = -1;
             metaUiComponent.CurrentRewardedAchievementIds = new List<int>();
+           
             SetupAchievements();
             SetupShopButtons();
-            _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
             for (int i = 0; i < _metaSceneService.Value._selectCarButtonViews.Length; i++) {
                 if (DataPersistenceManagerSystem._gameData.CarsUnlocked[i]) {
                     var carConfig = _betweenSceneService.Value._carStuffListsConfig.CarConfigs[i];
@@ -105,6 +108,7 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
                 SetupMenuToCoopAfterCoreGame();
             }
                 
+            _metaSceneService.Value.selectMapDifficultyUIView.SeedInputField.text = Random.Range(100000, 1000000).ToString();
         }
 
 
@@ -195,6 +199,7 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
             DataPersistenceManagerSystem._gameData.ScrapCount -= shopItemConfig.ScrapCost;
             GiveAchievementReward(shopItemConfig.RewardType, shopItemConfig.RewardCount);
             DataPersistenceManagerSystem._gameData.ShopItemsBuyed[itemIndex] = true;
+            _metaSceneService.Value._scrapCountText.text = DataPersistenceManagerSystem._gameData.ScrapCount.ToString();
         }
         private void ShowMetaShopItemInfo(int itemIndex, bool isShow) {
             
@@ -386,20 +391,31 @@ sealed class MetaUiSystem : IEcsInitSystem, IEcsDestroySystem {
                 _metaSceneService.Value._networkButtonsUIView.OnChangeDifficultyDescription(0);
             }
         
-            SelectMapDifficulty(0);
+           
             //go to select diff
         }
+
         public void StartGame() {
-            if (BetweenScenesService.Instance.IsCoop && NetworkManager.Singleton.IsHost)
+            if (NetworkManager.Singleton.IsHost) {
+                int seed = Random.Range(100000, 1000000);
+                if (_metaSceneService.Value.selectMapDifficultyUIView.SeedInputField.text != "")
+                    seed = int.Parse(_metaSceneService.Value.selectMapDifficultyUIView.SeedInputField.text);
+                RandomSeedUtils.SetNewSeed(seed);
+            }
+
+            if (BetweenScenesService.Instance.IsCoop && NetworkManager.Singleton.IsHost) {
+                NetcodeBetweenScenesService.Instance.UpdateSeedForAllClientRpc(RandomSeedUtils.Seed);
                 OpenNewWindow(_metaSceneService.Value._lobbyUIView.transform);
-            else
-                BetweenScenesService.Instance.ShowBlackScreen( ()=>SceneManager.LoadScene("Scenes/SampleScene"));
+            } else
+                BetweenScenesService.Instance.ShowBlackScreen(() => SceneManager.LoadScene("Scenes/SampleScene"));
         }
+
         public void SelectMapDifficulty(int difficultyLevel) {
             _betweenSceneService.Value.CurrentSelectedMapDifficlty = difficultyLevel;
             _metaSceneService.Value.selectMapDifficultyUIView.SetDifficultyDescription(_betweenSceneService.Value.GetMapDifficultyConfig());
-            if (_betweenSceneService.Value.IsCoop)
+            
                 _metaSceneService.Value._networkButtonsUIView.OnChangeDifficultyDescription(difficultyLevel);
+         //   SelectMapDifficulty(0);
             //SceneManager.LoadScene("Scenes/SampleScene");
         }
 

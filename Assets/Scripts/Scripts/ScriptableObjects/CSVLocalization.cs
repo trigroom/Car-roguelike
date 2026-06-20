@@ -36,10 +36,8 @@ public class CSVLocalization : MonoBehaviour
         
         if (lines.Length < 2) return;
         
-        // Первая строка - заголовки с кодами языков
         string[] languages = lines[0].Split(',');
         
-        // Пропускаем заголовок и обрабатываем каждую строку
         for (int i = 1; i < lines.Length; i++)
         {
             if (string.IsNullOrWhiteSpace(lines[i])) continue;

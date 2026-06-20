@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,8 @@ public class SelectDifficultyUIView : MonoBehaviour
    private TMP_Text _mapDescription;
    [SerializeField]
    private TMP_Text _difficultyDescription;
+   [SerializeField]
+   public TMP_InputField SeedInputField;
    [field:SerializeField]
    public Button _startMapButton { get; private set; }
       [field:SerializeField]
@@ -19,6 +22,10 @@ public class SelectDifficultyUIView : MonoBehaviour
    [SerializeField]
    private Image _difficultyColorGradient;
 
+   private void Awake() {
+      SeedInputField.onValueChanged.AddListener(CheckInputForMinus);
+   }
+
    public void SetupDifficultyScreen(MapConfig currentMapConfig) {
      // gameObject.SetActive(true);
       SetLocalizationText(currentMapConfig);
@@ -26,6 +33,11 @@ public class SelectDifficultyUIView : MonoBehaviour
       for (int i = 0; i < DifficultyButtons.Length; i++) {
          DifficultyButtons[i].gameObject.SetActive(maxUnlockedLevel >= i);
       }
+   }
+   
+   private void CheckInputForMinus(string value) {
+      if (value == "-")
+         SeedInputField.text = "";
    }
 
    public void SetLocalizationText(MapConfig currentMapConfig) {

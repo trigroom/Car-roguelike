@@ -9,4 +9,6 @@
         public bool IsCarShopMode;
         public bool IsModulesShop;
         public int ShopLevel;
+
+        public Dictionary<ulong, int> PlayersGivenMoneyDictionary;
     }

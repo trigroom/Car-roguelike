@@ -17,7 +17,7 @@ public class AchievementStuffView : MonoBehaviour
     public void SetAchievementInfo(AchivementConfig achievement, float value)
     {
         achivementConfig = achievement;
-        achievementCount.text = value+"/"+(ChallangeAchievments.Contains(achievement.achievementType)?1: achivementConfig.needCount);
+        achievementCount.text = (int)value+"/"+(ChallangeAchievments.Contains(achievement.achievementType)?1: achivementConfig.needCount);
         achievementImage.material = grayscaleMaterial;
         achievementImageIcon.material = grayscaleMaterial;
         filledImage.fillAmount = value/achivementConfig.needCount;

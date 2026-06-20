@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -51,7 +52,39 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
             PlayerCarId = 0
         });
     }
-
+    
+    [ClientRpc]
+    private void RequestNicknameClientRpc(ulong targetClientId)
+    {
+        if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
+        
+        // Клиент отправляет свой ник
+        string nickname = DataPersistenceManagerSystem._gameData.CoopPlayerName;
+        SendNicknameServerRpc(nickname);
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    private void SendNicknameServerRpc(string nickname, ServerRpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        
+        // Обновляем ник в списке
+        for (int i = 0; i < playerReadyStates.Count; i++)
+        {
+            if (playerReadyStates[i].ClientId == clientId)
+            {
+                var state = playerReadyStates[i];
+                state.PlayerNickname = new FixedString64Bytes(nickname);
+                playerReadyStates[i] = state;
+                Debug.Log($"✅ Player {clientId} set nickname: {nickname}");
+                break;
+            }
+        }
+    }
+    public void WaitForNickname(ulong clientId)
+    {
+        RequestNicknameClientRpc(clientId);
+    }
     [ServerRpc(RequireOwnership = false)]
     public void ReportSceneLoadedServerRpc() {
         if (!IsServer) return;
@@ -71,8 +104,8 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
         updateAction?.Invoke(mapGrid);
     }
 
-    [ClientRpc]
-    public void SpawnMapObstacleClientRpc(int index, int rotationIndex, bool isCollideObstacle, Vector3 spawnPosition = default) {
+  
+    public void SpawnMapObstacle(int index, int rotationIndex, bool isCollideObstacle, Vector3 spawnPosition = default) {
       //  if (isCollideObstacle) rotationIndex = 0;
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, rotationIndex * 90);
         Transform mapObject =
@@ -96,22 +129,22 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
         mapObject.rotation = randomRotation;
     }
 
-    [ClientRpc]
-    public void SpawnQuicksandClientRpc(int index, int rotationIndex, Vector3 spawnPosition = default) {
+  //  [ClientRpc]
+    public void SpawnQuicksand(int index, int rotationIndex, Vector3 spawnPosition = default) {
         Quaternion randomRotation = Quaternion.Euler(0f, 0f, rotationIndex * 90);
         var mapObject = Instantiate(MapEventsContentView._quicksandPrefabs[index], spawnPosition, Quaternion.identity, MapContainer);
         mapObject.rotation = randomRotation;
         quicksandAction.Invoke(mapObject.transform);
     }
 
-    [ClientRpc]
-    public void SpawnTrainTrailsClientRpc(int rotationIndex) {
+   // [ClientRpc]
+    public void SpawnTrainTrails(int rotationIndex) {
         var mapObject = Instantiate(MapEventsContentView._trainTunnelsPrefab, MapContainer);
         addTrainTrailAction.Invoke(mapObject.transform, rotationIndex);
     }
 
-    [ClientRpc]
-    public void SpawnGroundClientRpc(Vector3 spawnPosition = default) {
+   // [ClientRpc]
+    public void SpawnGround(Vector3 spawnPosition = default) {
         var mapObject = Instantiate(GroundSpriteRenderer, spawnPosition, Quaternion.identity, MapContainer);
         mapObject.material = BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[1].GroundMaterial;
         mapObject.transform.localScale = new(5, 5);
@@ -198,6 +231,10 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
         _networkButtonsView._lobbyManager._difficultyDescriptionText.text =
             _networkButtonsView.selectDifficultyUIView.GetDifficultyDescription(BetweenScenesService.Instance.GetMapDifficultyConfig());
     }
+    [ClientRpc]
+    public void UpdateSeedForAllClientRpc(int seed) {
+        RandomSeedUtils.SetNewSeed(seed);
+    }
 
   /*  [ServerRpc(RequireOwnership = false)]
     public void SetPlayerReadyServerRpc(ulong clientId, bool isReady) {
@@ -227,6 +264,22 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
             }
         }
     }
+    
+   /* [ServerRpc(RequireOwnership = false)]
+    public void SetPlayerNicknameServerRpc(ulong clientId, string playerNickname) {
+        Debug.Log("try change nick to" + playerNickname);
+        for (int i = 0; i < playerReadyStates.Count; i++) {
+            Debug.Log(playerReadyStates[i].ClientId);
+            if (playerReadyStates[i].ClientId == clientId) {
+                var state = playerReadyStates[i];
+                state.PlayerNickname = playerNickname;
+
+                playerReadyStates.Set(i, state, true);
+
+                break;
+            }
+        }
+    }*/
 
     public void SetupService(Action<int[]> updateAction, Action<Transform> quicksandAction, Action<Transform, int> addTrainTrailAction,
         Action<RoundType, float> startRoundAction) {

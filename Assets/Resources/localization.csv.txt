@@ -446,3 +446,7 @@ Unlimited,No Limit,Без ограничений,Keine Begrenzung,Sin límite,Pa
 Enemy hp,Enemy Health,Здоровье врага,Gegner Leben,Vida Enemiga,Vie Ennemie
 Enemy damage,Enemy Damage,Урон врага,Gegner Schaden,Daño Enemigo,Dégâts Ennemis
 Pull the lever,Pull the Lever,Потяни рычаг,Zieh den Hebel,Tira de la palanca,Tire le levier
+Generation seed,Generation Seed,Сид генерации,Generierungs-Samen,Generación semilla,Graine de génération
+Ask for money,Ask for Money,Попросить деньги,Geld anfordern,Pedir dinero,Demander de l'argent
+Enter the amount,Enter Amount,Введите сумму,Betrag eingeben,Ingresar cantidad,Entrez le montant
+Give,Give,Дать,Geben,Entregar,Donner

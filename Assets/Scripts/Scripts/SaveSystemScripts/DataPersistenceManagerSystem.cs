@@ -65,20 +65,54 @@ public class DataPersistenceManagerSystem : MonoBehaviour
             NewGame();
         } else {
             var filteredResolutions = new List<Resolution>();
-        
+
             RefreshRate currentRefreshRate = Screen.currentResolution.refreshRateRatio;
-            foreach (Resolution res in Screen.resolutions)
-            {
+            foreach (Resolution res in Screen.resolutions) {
                 if (res.refreshRateRatio.value == currentRefreshRate.value)
                     filteredResolutions.Add(res);
             }
+
+            if (_gameData.CarPartsUnlocked.Length != BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs.Length) {
+                var oldUnlockedCarPartsArray = _gameData.CarPartsUnlocked;
+                _gameData.CarPartsUnlocked = new bool[BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs.Length];
+                for (int i = 0; i < BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs.Length; i++) {
+                    
+                    if (oldUnlockedCarPartsArray.Length <= i) {
+                        _gameData.CarPartsUnlocked[i] = false;
+                        Debug.Log(i + " i");
+                    }
+                        
+                    else
+                        _gameData.CarPartsUnlocked[i] = oldUnlockedCarPartsArray[i];
+                }
+            }
             
-             var needResolution = _gameData.ResolutionIndex == -1 ? filteredResolutions[^1] : filteredResolutions[_gameData.ResolutionIndex];
+            if (_gameData.ShopItemsBuyed.Length != BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs.Length) {
+                var oldShopUnlockedItemsArray = _gameData.ShopItemsBuyed;
+                _gameData.ShopItemsBuyed = new bool[BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs.Length];
+                for (int i = 0; i < BetweenScenesService.Instance._carStuffListsConfig.ShopItemConfigs.Length; i++) {
+                    if (oldShopUnlockedItemsArray.Length <=  i)
+                        _gameData.ShopItemsBuyed[i] = false;
+                    else
+                        _gameData.ShopItemsBuyed[i] = oldShopUnlockedItemsArray[i];
+                }
+            }
+
+            SaveGame();
+            var needResolution = _gameData.ResolutionIndex == -1 ||filteredResolutions.Count <= _gameData.ResolutionIndex ? filteredResolutions[^1] : filteredResolutions[_gameData.ResolutionIndex];
             Screen.SetResolution(needResolution.width, needResolution.height, _gameData.IsFullScreen);
-          
         }
         Application.targetFrameRate = _gameData.FpsCountLock;
-        /*  if (isTestProgressReload) {
+
+       /* int seed = Random.Range(100000, 1000000);
+        var rng = new System.Random(seed);
+        Debug.Log(" try random in seed"+seed);
+        for (int i = 0; i < 25; i++) {
+             float chance = (float)rng.NextDouble();
+                    Debug.Log(chance);
+        }*/
+       
+         if (isTestProgressReload) {
               _gameData.TutorialIsCompleted = true;
               _gameData.LevelRounds[0] = 5;
               _gameData.LevelRounds[1] = 5;
@@ -88,7 +122,7 @@ public class DataPersistenceManagerSystem : MonoBehaviour
               _gameData.CarsUnlocked[2] = true;
               _gameData.CarsUnlocked[1] = true;
             SaveGame();
-          }  */
+          }  
     }
 
     public static void SaveGame() {

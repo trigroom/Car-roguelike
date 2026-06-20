@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33c885047ae2be9429f3fa64e8d33e25, type: 3}
+  m_Name: 110RustedMinelayer
+  m_EditorClassIdentifier: 
+  <Id>k__BackingField: 110
+  <MaxHealth>k__BackingField: 300
+  <Weight>k__BackingField: 15
+  <PartSprite>k__BackingField: {fileID: 21300000, guid: fe3f05f163d7014429358bd4b53d5fce, type: 3}
+  <PartType>k__BackingField: 6
+  <RartRare>k__BackingField: 2
+  <UpgradedPartId>k__BackingField: 0
+  <PartName>k__BackingField: Rusted minelayer
+  <ModuleTypes>k__BackingField: 
+  <PartForm>k__BackingField:
+  - {x: 0, y: 0}
+  <MoneyCost>k__BackingField: 38
+  UpPartSprite: {fileID: 21300000, guid: 608a1d16da625fc4dba7058b6c9db2ae, type: 3}
+  UpPartPosition: {x: -0.15, y: -0.05}
+  MaxRotateAngle: 0
+  RotateSpeed: 0
+  Damage: 0
+  AttackCouldown: 1.7
+  BulletsCountInMagazine: 10
+  BulletsCount: 1
+  BulletSpeed: 0
+  ReloadDuration: 3.5
+  MissleType: 1
+  MissleSprite: {fileID: 21300000, guid: eee3d31744dbe7f4fb0a64276a89f9de, type: 3}
+  FirePointPosition: {x: 0, y: 0}
+  GunContainerPosition: {x: 0, y: 0}
+  SpreadAngle: 0
+  ExplosionRadius: 3.5
+  ExplosionDamage: 50
+  ImpulseForce: 750
+  EffectType: 0
+  EffectDuration: 0
+  BreakingThroughCount: 1
+  BreakingThroughDamageFalloff: 0
+  CarRecoil: 0
+  ProjectileLifeTime: 13
+  ElectricityConsumption: 0
+  ProjectileRotateSpeed: 0
+  ShotSound: {fileID: 8300000, guid: 764dcd2741c248d4dbb3c7ed2c31477e, type: 3}

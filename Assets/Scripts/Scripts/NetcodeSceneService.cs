@@ -57,6 +57,7 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action _endRoundForClientAction;
    private Action _setDeathPlayersCountAction;
    private Action _setLoseStateForAllAction;
+   private Action _setWinStateForAllAction;
    private Action<bool> _setIsReadyCountAction;
    private Action _setMinimumHealthLevelAction;
    private Action< Vector2 , int>  _setEnemyAirplanePosition;
@@ -70,6 +71,8 @@ public class NetcodeSceneService : NetworkBehaviour
    private Action _endMapGenerateAction;
    private Action<Vector2> _spawnThunderAction;
    private Action<Vector2> _sendBomberPlaneAction;
+   private Action<float> _addMoneyAction;
+   private Action<ulong, int> _updateGivenMoneyUIAction;
    
    private ObjectPool<CarPartStuffView> _carPartsPool;
    private ObjectPool<Transform> _gunContainersPool;
@@ -270,7 +273,7 @@ public class NetcodeSceneService : NetworkBehaviour
         Action<Vector2> setMapPointForClients, Action endRoundForClientAction,
         Action<Vector2Int, float, bool, int> setCarPartHealthToClientAction, Action<Vector2, int> setEnemyAirplanePosition,
         Action<bool> endVersusBattleAction, Action<CarPartsHpVersusDataForRpc[], Vector2 ,Vector2,Vector2 , Vector2 > setupVersusBattleUiAction,
-        Action<bool> setIsReadyCountAction,Action endMapGenerateAction) {
+        Action<bool> setIsReadyCountAction,Action endMapGenerateAction, Action setWinStateForAllAction) {
         _carSetupAction = carSetupAction;
         _carPartSetupAction = carPartSetupAction;
         _wheelComponentsSetupAction = wheelComponentsSetupAction;
@@ -292,7 +295,8 @@ public class NetcodeSceneService : NetworkBehaviour
         _endVersusBattleAction = endVersusBattleAction;
         _setupVersusBattleUiAction = setupVersusBattleUiAction;
         _setIsReadyCountAction = setIsReadyCountAction;
-        _endMapGenerateAction = endMapGenerateAction;
+        _endMapGenerateAction = endMapGenerateAction; 
+        _setWinStateForAllAction = setWinStateForAllAction;
     }
     [ServerRpc(RequireOwnership = false)]
     public void SetReadyActionServerRpc(bool isReady) {
@@ -310,10 +314,13 @@ public class NetcodeSceneService : NetworkBehaviour
         _sendBomberPlaneAction = sendBomberPlaneAction;
     }
     
-    public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction,Action <Vector2, AudioClip>playSoundToPlayer) {
+    public void SetupServiceFromInventorySystem(Action setMinimumHealthLevelAction,Action <float>endRoundExpAddAction,Action <Vector2, AudioClip>playSoundToPlayer,
+        Action<ulong, int> updateGivenMoneyUIAction,Action<float> addMoneyAction) {
         _setMinimumHealthLevelAction = setMinimumHealthLevelAction;
         _endRoundExpAddAction = endRoundExpAddAction;
         _playSoundToPlayer = playSoundToPlayer;
+        _updateGivenMoneyUIAction = updateGivenMoneyUIAction;
+        _addMoneyAction = addMoneyAction;
     }
     public void SetupServiceFromMovementSystem(Action <float, float,Vector2, int> setMovementToTornadoAction) {
         _setMovementToTornadoAction = setMovementToTornadoAction;
@@ -386,11 +393,22 @@ public class NetcodeSceneService : NetworkBehaviour
 
         sequence.Play();
 
-        if (entity != -1 && clientId == NetworkManager.LocalClientId)
+        if (entity != -1 && clientId == NetworkManager.Singleton.LocalClientId)
             _laserTextGetAction.Invoke(networkObject, sequence, entity);
     }
     
-    
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetAskForMoneyClientRpc(ulong senderId, int amount) {
+        if(senderId != NetworkManager.Singleton.LocalClientId)
+        _updateGivenMoneyUIAction.Invoke(senderId, amount);
+      //  _setLoseStateForAllAction.Invoke();
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void GiveAskForMoneyClientRpc(ulong senderId, int amount) {
+        if(senderId == NetworkManager.Singleton.LocalClientId)
+        _addMoneyAction.Invoke(amount);
+       // _setLoseStateForAllAction.Invoke();
+    }
     
     [ServerRpc(RequireOwnership = false)]
     public void SetDeathPlayersCountServerRpc() {
@@ -400,6 +418,11 @@ public class NetcodeSceneService : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     public void SetLoseStateForAllClientRpc() {
         _setLoseStateForAllAction.Invoke();
+    }
+    
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetWinStateForAllClientRpc() {
+        _setWinStateForAllAction.Invoke();
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -419,7 +442,7 @@ public class NetcodeSceneService : NetworkBehaviour
     [Rpc(SendTo.NotServer)]
     public void SpawnTrainClientRpc(NetworkObjectReference trainTransform) {
         trainTransform.TryGet(out var networkObject);
-       
+        networkObject.transform.GetChild(0).gameObject.SetActive(false);
         networkObject.gameObject.SetActive(false);
     }
     
@@ -832,7 +855,7 @@ public class NetcodeSceneService : NetworkBehaviour
     
     [Rpc(SendTo.NotServer)]
     public void SetUiVersusBattleClientRpc(CarPartsHpVersusDataForRpc[] carPartsHpData, Vector2 leftCarSize, Vector2 rightCarSize,Vector2 leftCarName, Vector2 rightCarName) {
-        Debug.Log(carPartsHpData.Length + "SetupVersusBattle");
+     //   Debug.Log(carPartsHpData.Length + "SetupVersusBattle");
       
         _setupVersusBattleUiAction.Invoke(carPartsHpData,leftCarSize,rightCarSize,leftCarName,rightCarName);
     }
@@ -844,17 +867,17 @@ public class NetcodeSceneService : NetworkBehaviour
             float health = healthValues[i];
             if (health != 0) {
                 Vector2Int gridPosition = ConvertIndexToGridPosition(i, gridSize);
+               // if(isUpperPart)
+              //      Debug.Log(gridPosition + " health "+health) ;
                 _setCarPartHealthToClientAction.Invoke(gridPosition, health == -1 ? 0 : health, isUpperPart,teammateIndex);
             }
         }
     }
 
     private Vector2Int ConvertIndexToGridPosition(int index, Vector2Int gridSize) {
-        // Исправленная формула: row = index / cols, col = index % cols
-        int cols = gridSize.y; // предполагая, что y - это количество столбцов
-        int row = index / cols;
-        int col = index % cols;
-        return new Vector2Int(row, col);
+        int x = index % gridSize.x;
+        int y = index / gridSize.x;
+        return new Vector2Int(x, y);
     }
     [Rpc(SendTo.ClientsAndHost)]
     public void SetBomberPlaneClientRpc(Vector2 finalPosition ) {
@@ -867,18 +890,24 @@ public class NetcodeSceneService : NetworkBehaviour
     }
     [Rpc(SendTo.NotServer)]
     public void SetEndRoundHealthValuesClientRpc(CarPartHealthDataForRpc[] carPartsHpData) {
-        Debug.Log( "Set Car Parts Hp After Round ClientRpc");
+   
         foreach (var carPartData in carPartsHpData) {
             if (NetworkManager.Singleton.LocalClientId == carPartData.Id) {
                 // Player
-                ProcessHealthData(carPartData.HealthValuesContainersPlayer, carPartData.PlayerGridSize, false,0);
-                ProcessHealthData(carPartData.HealthValuesPlayer, carPartData.PlayerGridSize, true,0);
-    
+                //Debug.Log("SetHP Player parts");
+                ProcessHealthData(carPartData.HealthValuesPlayer, carPartData.PlayerGridSize, true, 0);
+                Debug.Log("SetHP Player cont");
+                ProcessHealthData(carPartData.HealthValuesContainersPlayer, carPartData.PlayerGridSize, false, 0);
+                
+                Debug.Log( "SetHP Player end");
                 // First Teammate
                 if (carPartData.FirstTeammateGridSize != Vector2Int.zero)
                 {
+                    Debug.Log( "SetHP Teammate cont");
                     ProcessHealthData(carPartData.HealthValuesContainersFirstTeammate, carPartData.FirstTeammateGridSize, false,1);
+                    Debug.Log( "SetHP Teammate parts");
                     ProcessHealthData(carPartData.HealthValuesFirstTeammate, carPartData.FirstTeammateGridSize, true,1);
+                    Debug.Log( "SetHP Teammate end");
                 }
     
                 // Second Teammate

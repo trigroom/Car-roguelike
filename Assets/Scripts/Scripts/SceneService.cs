@@ -201,6 +201,8 @@ public class SceneService : MonoBehaviour {
     }
     public Image GetCarPartUIImage(Transform parent, Vector2 position) {
         var carPartImage = _imagesPool.Get();
+        if (carPartImage.transform.childCount > 0 && carPartImage.transform.GetChild(0).gameObject.TryGetComponent(out Image childImage))
+            ReleaseCarPartUIImage(childImage);
         carPartImage.transform.SetParent(parent, false); 
         carPartImage.transform.position = position;
         carPartImage.gameObject.SetActive(true);

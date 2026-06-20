@@ -79,6 +79,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
     private EcsFilterInject<Inc<ThunderstormComponent>> _thunderstormComponentsFilter;
     private EcsFilterInject<Inc<BomberProjectile>> _bomberProjectilesFilter;
     private EcsFilterInject<Inc<FireExtinguisherComponent>> _fireExtinguisherComponentsFilter;
+    private EcsFilterInject<Inc<EndGenerateMapEvent>> _endGenerateMapEventsFilter;
     
 
     public void Run(IEcsSystems systems) {
@@ -93,6 +94,13 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             }
         }
 
+        foreach (var endGenerateEvent in _endGenerateMapEventsFilter.Value) {
+            if (NetworkManager.Singleton.IsServer) {
+                if (_trainControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
+                    _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
+                        .ConstructMapMelee(ProjectileHit);
+            }
+        }
        
         float deltaTime = Time.deltaTime;
         ref var curGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -424,7 +432,9 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             currentTornadoEntity = tornadoEntity;
         else {
             currentTornadoEntity = _world.Value.NewEntity();
-            tornadoControllerCmp.TornadoHostAndLocalEnities.Add(tornadoEntity, currentTornadoEntity);
+            if(!tornadoControllerCmp.TornadoHostAndLocalEnities.TryAdd(tornadoEntity, currentTornadoEntity))
+                tornadoControllerCmp.TornadoHostAndLocalEnities[tornadoEntity] = currentTornadoEntity;
+            Debug.Log(tornadoControllerCmp.TornadoHostAndLocalEnities.Count + " tornado count");
         }
         
         ref var tornadoCmp = ref _tornadoComponentsPool.Value.Add(currentTornadoEntity);
@@ -555,6 +565,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
 
     private void UpdateHealAllCarPartButton() {
         float healCost = GetHealAllCarPartCost();
+   
         _sceneService.Value._inventoryUIView._healCarButton.gameObject.SetActive(healCost > 0);
         _sceneService.Value._inventoryUIView._healCarText.text = $"Heal all car for {healCost} <sprite name=\"CogIcon\">";
     }
@@ -595,6 +606,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartEntity);
             healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth,
                 _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId));
+            
         }
 
         foreach (var carPartEntity in carCmp.CarPartGroupsGrid) {
@@ -602,6 +614,7 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
             var carPartInfoCmp = _carPartInfoComponentsPool.Value.Get(carPartEntity);
             healCost += GetHealCostForCarPart(carPartCmp.MaxHealth, carPartInfoCmp.CurrentHealth,
                 _sceneService.Value.GetCarPartConfig(carPartInfoCmp.CarPartId));
+            
         }
 
         return healCost;
@@ -2165,9 +2178,6 @@ sealed class AttackSystem : IEcsRunSystem, IEcsInitSystem {
         var versusBattleView = _sceneService.Value._versusBattleView;
         versusBattleView._circularSawLeft.ConstructMapMelee(ProjectileHit);
         versusBattleView._circularSawRight.ConstructMapMelee(ProjectileHit);
-        if (_trainControllerComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
-            _trainControllerComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).TrainTransform.GetChild(0).GetComponent<MapMeleeWeapon>()
-                .ConstructMapMelee(ProjectileHit);
 
         _netcodeSceneService.Value.SetupServiceFromAttackSystem(CheckDeathPlayersCount, LoseGame, SetVersusBattleUiToClient, OpenSupportBox,
             SpawnNewTornado, SpawnThunderToClient,SendBomberPlane);
