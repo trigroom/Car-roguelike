@@ -599,7 +599,7 @@ public class NetcodeSceneService : NetworkBehaviour
     public void InstantiateCarViewServerRpc( int entity,bool isPlayer,Vector2 spawnPosition, Vector2 nameIndexes,ServerRpcParams rpcParams = default)
     {
         
-        ulong clientId =  rpcParams.Receive.SenderClientId;
+        ulong clientId =  /*isPlayer?(ulong)nameIndexes.x :*/rpcParams.Receive.SenderClientId;
         
         var carTransform = Instantiate(_carView).GetComponent<NetworkObject>();
         carTransform.Spawn();
@@ -615,12 +615,16 @@ public class NetcodeSceneService : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void SendCarToClientRpc(ulong targetClientId, NetworkObjectReference carReference, int entity, bool isPlayer, Vector2 nameIndexes) {
         if (carReference.TryGet(out NetworkObject netObj)) {
-            if (nameIndexes != default) {
+            if (nameIndexes != default && !isPlayer) {
                 GetCarNameText(netObj, RoundUtilits.GetLocalizatedCarNameByIndex(nameIndexes));
             } else if (isPlayer) {
                 foreach (var playerInfo in NetcodeBetweenScenesService.Instance.playerReadyStates) {
-                    if (playerInfo.ClientId == targetClientId)
-                        GetCarNameText(netObj, playerInfo.GetNickname());
+                    if (playerInfo.ClientId == (ulong)nameIndexes.x) {
+                         GetCarNameText(netObj, playerInfo.GetNickname());
+                         Debug.Log(nameIndexes.x);
+                         break;
+                    }
+                       
                 }
             }
 
@@ -644,43 +648,23 @@ public class NetcodeSceneService : NetworkBehaviour
 
     [Rpc(SendTo.ClientsAndHost)]
     public void SpawnCarPartSpritesClientRpc(ulong clientId, int mainEntity, int cellEntity, int carPartId, int rotateAngle, bool isPlayer,
-        int containerSizeX, int containerSizeY, NetworkObjectReference carView, int[] carpartStuffPositionsX, int[] carpartStuffPositionsY) {
+        int containerSizeX, int containerSizeY, NetworkObjectReference carView, int[] carPartStuffPositionsX, int[] carPartStuffPositionsY) {
         var carPartConfig = BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartId];
 
         var positionsList = new List<Vector2Int>();
-        for (int i = 0; i < carpartStuffPositionsX.Length; i++)
-            positionsList.Add(new Vector2Int(carpartStuffPositionsX[i], carpartStuffPositionsY[i]));
+        for (int i = 0; i < carPartStuffPositionsX.Length; i++)
+            positionsList.Add(new Vector2Int(carPartStuffPositionsX[i], carPartStuffPositionsY[i]));
         bool isContainer = GridUtils.IsContainerType(carPartConfig);
         var cellCarPartsStuffViews = new List<CarPartStuffView>();
         carView.TryGet(out NetworkObject carViewObject);
         var carViewCmp = carViewObject.transform.GetComponentInChildren<CarView>();
-        if (carViewCmp.CarPartStuffViews == null) 
+        if (carViewCmp.CarPartStuffViews == null)
             carViewCmp.CarPartStuffViews = new CarPartStuffView[containerSizeX, containerSizeY];
-        
-        for (int i = 0; i < carpartStuffPositionsX.Length; i++) {
+
+        for (int i = 0; i < carPartStuffPositionsX.Length; i++) {
             var needGridPosition = new Vector2Int(positionsList[i].x, positionsList[i].y);
-            if (isContainer) {
-                var carPartView = _carPartsPool.Get();
-                cellCarPartsStuffViews.Add(carPartView);
-                // if (NetworkManager.Singleton.LocalClientId == clientId) {
-                carPartView.transform.SetParent(carViewCmp.CarPartsContainer.transform);
-                carPartView.transform.localPosition = new Vector2(needGridPosition.x, needGridPosition.y) -
-                                                      new Vector2(containerSizeX / 2f, containerSizeY / 2f);
-                carPartView.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
-
-                string needLayer = isPlayer ? "CarBase" : "CarBaseEnemy";
-                carPartView.SetupCarPart(needGridPosition, needLayer, mainEntity, clientId);
-
-                carPartView.SetColliderEnableState(true);
-                carPartView.gameObject.tag = isPlayer ? "Player" : "Enemy";
-                carViewCmp.CarPartStuffViews[needGridPosition.x, needGridPosition.y] = carPartView;
-            } else {
-                string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
-                var carPartView = carViewCmp.CarPartStuffViews[needGridPosition.x, needGridPosition.y];
-                cellCarPartsStuffViews.Add(carPartView);
-                carPartView.SetupCarPart(needGridPosition, needLayer, mainEntity,clientId);
-                carPartView.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
-            }
+            SetupCarPartColliderParameters(clientId, mainEntity, rotateAngle, isPlayer, containerSizeX, containerSizeY, isContainer,
+                cellCarPartsStuffViews, carViewCmp, needGridPosition);
         }
 
         SpriteRenderer spriteBase = _spriteRenderersPool.Get();
@@ -706,96 +690,106 @@ public class NetcodeSceneService : NetworkBehaviour
         MeleeCarPartStuffView meleeCarPartStuffView = null;
         if (carPartConfig.PartType == CarPartType.Gun) {
             if (carPartConfig is GunConfig gunConfig) {
-                if (gunConfig.UpPartSprite != null) {
-                    upPartContainer = _gunContainersPool.Get();
-                    upPartContainer.SetParent(spriteBase.transform);
-                    upPartContainer.transform.localPosition = gunConfig.GunContainerPosition;
-                    upPartContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                    firePointTransform = _gunContainersPool.Get();
-
-                    weaponSpriteRenderer = _spriteRenderersPool.Get();
-
-                    firePointTransform.SetParent(upPartContainer);
-                    firePointTransform.transform.localPosition = gunConfig.FirePointPosition - gunConfig.GunContainerPosition;
-                    firePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
-
-                    weaponSpriteRenderer.transform.SetParent(upPartContainer);
-                    weaponSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition - gunConfig.GunContainerPosition;
-                    weaponSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
-
-                    weaponSpriteRenderer.sprite = gunConfig.UpPartSprite;
-                    weaponSpriteRenderer.sortingOrder = 3;
-                } else {
-                    firePointTransform = _gunContainersPool.Get();
-                    firePointTransform.SetParent(spriteBase.transform);
-                    firePointTransform.transform.localPosition = gunConfig.FirePointPosition;
-                    firePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                }
-
-                if (gunConfig.MissleType == MissleType.laser) {
-                    laserLineRenderer = _laserLineRenderersPool.Get();
-                    laserLineRenderer.transform.SetParent(notUsedNetworkObjectsContainer);
-                    laserLineRenderer.gameObject.SetActive(false);
-                }
+                firePointTransform = SetupGunCarPartStuff(gunConfig, spriteBase, ref upPartContainer, ref weaponSpriteRenderer,
+                    ref laserLineRenderer);
             }
         } else if (carPartConfig.PartType == CarPartType.MeleeWeapon) {
-            if (carPartConfig is MeleeWeaponConfig meleeConfig) {
-                if (meleeConfig.UpSprite != null) {
-                    weaponSpriteRenderer = _spriteRenderersPool.Get();
-                    weaponSpriteRenderer.sprite = meleeConfig.UpSprite;
-                    weaponSpriteRenderer.transform.SetParent(spriteBase.transform);
-                    weaponSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                    weaponSpriteRenderer.sortingOrder = 3;
-                    weaponSpriteRenderer.transform.localPosition = meleeConfig.UpSpritePosition;
-                }
-
-//
-                meleeCarPartStuffView = _meleeCarPartStuffViewsPool.Get();
-                meleeCarPartStuffView.transform.SetParent(spriteBase.transform);
-                meleeCarPartStuffView.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                meleeCarPartStuffView.transform.localPosition = Vector3.zero;
-                meleeCarPartStuffView.MakeTriggerCollider();
-                meleeCarPartStuffView.SetColliderEnableState(true);
-            }
+            if (carPartConfig is MeleeWeaponConfig meleeConfig)
+                meleeCarPartStuffView = SetupMeleeCarPartStuff(meleeConfig, spriteBase, ref weaponSpriteRenderer);
         }
 
         if (NetworkManager.Singleton.LocalClientId == clientId) {
             Transform firePointTransformToAction = firePointTransform ? firePointTransform.transform : null;
-            // Transform weaponContainerTransformToAction = weaponContainerTransform ? weaponContainerTransform.transform:null;
             _carPartSetupAction.Invoke(cellEntity, spriteBase, upPartContainer, weaponSpriteRenderer, laserLineRenderer,
                 cellCarPartsStuffViews.ToArray(), firePointTransformToAction, meleeCarPartStuffView);
         }
     }
 
-    /*[Rpc(SendTo.ClientsAndHost)]
-    public void SpawnWheelsClientRpc(NetworkObjectReference carViewNO, float[] wheelsPositionsX, float[] wheelsPositionsY, float maxY,
-        int[] wheelIds, int[] wheelComponentEntities, ulong clientId) {
-        carViewNO.TryGet(out NetworkObject carViewObject);
-        var carView = carViewObject.GetComponentInChildren<CarView>();
-        List<Animator> forwardWheels = new List<Animator>();
-        Animator[] allWheels = new Animator[wheelIds.Length];
-        ParticleSystem[] wheelParticles = new ParticleSystem[wheelsPositionsX.Length];
-        for (int i = 0; i < wheelsPositionsY.Length; i++) {
-            var wheel = CreateWheel(wheelIds[i], carView, new Vector2(wheelsPositionsX[i], wheelsPositionsY[i]), wheelsPositionsX[i] > 0);
-         //   Debug.Log((int)wheel.transform.localPosition.y +"=="+ (int)maxY);
-            if ((int)wheel.transform.localPosition.y == (int)maxY)
-                forwardWheels.Add(wheel);
-            if (!carView.Wheels.TryAdd(wheelComponentEntities[i], new List<Transform> { wheel.transform }))
-                carView.Wheels[wheelComponentEntities[i]].Add(wheel.transform); 
-            var wheelParticle = wheel.GetComponentInChildren<ParticleSystem>();
-            wheelParticles[i] = wheelParticle;
-            allWheels[i] = wheel;
-            var mainParticle = wheelParticle.main;
-            mainParticle.startColor = BetweenScenesService.Instance.GetMapConfig().MapVisualInfoConfigs[0].WheelParticlesColor;
+    private void SetupCarPartColliderParameters(ulong clientId, int mainEntity, int rotateAngle, bool isPlayer, int containerSizeX,
+        int containerSizeY, bool isContainer, List<CarPartStuffView> cellCarPartsStuffViews, CarView carViewCmp, Vector2Int needGridPosition) {
+        if (isContainer) {
+            var carPartView = _carPartsPool.Get();
+            cellCarPartsStuffViews.Add(carPartView);
+            // if (NetworkManager.Singleton.LocalClientId == clientId) {
+            carPartView.transform.SetParent(carViewCmp.CarPartsContainer.transform);
+            carPartView.transform.localPosition = new Vector2(needGridPosition.x, needGridPosition.y) -
+                                                  new Vector2(containerSizeX / 2f, containerSizeY / 2f);
+            carPartView.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
+
+            string needLayer = isPlayer ? "CarBase" : "CarBaseEnemy";
+            carPartView.SetupCarPart(needGridPosition, needLayer, mainEntity, clientId);
+
+            carPartView.SetColliderEnableState(true);
+            carPartView.gameObject.tag = isPlayer ? "Player" : "Enemy";
+            carViewCmp.CarPartStuffViews[needGridPosition.x, needGridPosition.y] = carPartView;
+        } else {
+            string needLayer = isPlayer ? "UpCarPart" : "UpCarPartEnemy";
+            var carPartView = carViewCmp.CarPartStuffViews[needGridPosition.x, needGridPosition.y];
+            cellCarPartsStuffViews.Add(carPartView);
+            carPartView.SetupCarPart(needGridPosition, needLayer, mainEntity,clientId);
+            carPartView.transform.localRotation = Quaternion.Euler(0, 0, rotateAngle);
+        }
+    }
+
+    private Transform SetupGunCarPartStuff(GunConfig gunConfig, SpriteRenderer spriteBase, ref Transform upPartContainer,
+        ref SpriteRenderer weaponSpriteRenderer, ref LineRenderer laserLineRenderer) {
+        Transform firePointTransform;
+        if (gunConfig.UpPartSprite != null) {
+            upPartContainer = _gunContainersPool.Get();
+            upPartContainer.SetParent(spriteBase.transform);
+            upPartContainer.transform.localPosition = gunConfig.GunContainerPosition;
+            upPartContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            firePointTransform = _gunContainersPool.Get();
+
+            weaponSpriteRenderer = _spriteRenderersPool.Get();
+
+            firePointTransform.SetParent(upPartContainer);
+            firePointTransform.transform.localPosition = gunConfig.FirePointPosition - gunConfig.GunContainerPosition;
+            firePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
+            weaponSpriteRenderer.transform.SetParent(upPartContainer);
+            weaponSpriteRenderer.transform.localPosition = gunConfig.UpPartPosition - gunConfig.GunContainerPosition;
+            weaponSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
+            weaponSpriteRenderer.sprite = gunConfig.UpPartSprite;
+            weaponSpriteRenderer.sortingOrder = 3;
+        } else {
+            firePointTransform = _gunContainersPool.Get();
+            firePointTransform.SetParent(spriteBase.transform);
+            firePointTransform.transform.localPosition = gunConfig.FirePointPosition;
+            firePointTransform.transform.localRotation = Quaternion.Euler(0, 0, 0);
         }
 
-        carView.SetupForwardWheels(forwardWheels.ToArray(), wheelParticles);
-        
-        if (NetworkManager.Singleton.LocalClientId == clientId) {
-            _wheelComponentsSetupAction.Invoke(allWheels, wheelComponentEntities);
+        if (gunConfig.MissleType == MissleType.laser) {
+            laserLineRenderer = _laserLineRenderersPool.Get();
+            laserLineRenderer.transform.SetParent(notUsedNetworkObjectsContainer);
+            laserLineRenderer.gameObject.SetActive(false);
         }
-    }*/
-  
+
+        return firePointTransform;
+    }
+
+    private MeleeCarPartStuffView SetupMeleeCarPartStuff(MeleeWeaponConfig meleeConfig, SpriteRenderer spriteBase,
+        ref SpriteRenderer weaponSpriteRenderer) {
+        MeleeCarPartStuffView meleeCarPartStuffView;
+        if (meleeConfig.UpSprite != null) {
+            weaponSpriteRenderer = _spriteRenderersPool.Get();
+            weaponSpriteRenderer.sprite = meleeConfig.UpSprite;
+            weaponSpriteRenderer.transform.SetParent(spriteBase.transform);
+            weaponSpriteRenderer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            weaponSpriteRenderer.sortingOrder = 3;
+            weaponSpriteRenderer.transform.localPosition = meleeConfig.UpSpritePosition;
+        }
+
+        meleeCarPartStuffView = _meleeCarPartStuffViewsPool.Get();
+        meleeCarPartStuffView.transform.SetParent(spriteBase.transform);
+        meleeCarPartStuffView.transform.localRotation = Quaternion.Euler(0, 0, 0);
+        meleeCarPartStuffView.transform.localPosition = Vector3.zero;
+        meleeCarPartStuffView.MakeTriggerCollider();
+        meleeCarPartStuffView.SetColliderEnableState(true);
+        return meleeCarPartStuffView;
+    }
+
     [Rpc(SendTo.ClientsAndHost)]
     public void SpawnWheelsClientRpc(NetworkObjectReference carViewNO, float[] wheelsPositionsX, float[] wheelsPositionsY, float maxY,
         int[] wheelIds, int[] wheelComponentEntities, ulong clientId) {

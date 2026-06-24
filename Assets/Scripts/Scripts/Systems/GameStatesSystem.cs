@@ -84,14 +84,14 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
     private Vector2 _cellOffset = new Vector2(0.5f, 0.5f);
 
     public void Init(IEcsSystems systems) {
-    
+        RandomSeedUtils.SetNewSeed();
        // Application.targetFrameRate = 144;
        int playerEntity = _world.Value.NewEntity();
        _sceneService.Value.PlayerEntity = playerEntity;
        ref var curGameCmp = ref _currentGameComponentsPool.Value.Add(playerEntity); 
       // Debug.Log(NetworkManager.Singleton.ConnectedClients.Count + " players count"+_currentGameComponentsPool.Value.Has(_sceneService.Value.PlayerEntity));  
        
-       NetcodeBetweenScenesService.Instance.SetupService(UpdateMapGridClientRpc,SetQuicksandMethods, AddTrainTrailInList, StartCurrentRoundType);
+       NetcodeBetweenScenesService.Instance.SetupService(UpdateMapGrid,SetQuicksandMethods, AddTrainTrailInList, StartCurrentRoundType);
        if (NetworkManager.Singleton.IsServer) {
                ref var serverValuesCmp = ref  _serverValuesComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
                serverValuesCmp.ClientsEntities = new Dictionary<ulong, int>();
@@ -241,7 +241,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         NetcodeBetweenScenesService.Instance.ReportSceneLoadedServerRpc();
         SetupSupportBox();
         SetCoopUI();
-     
+
     }
     private void OnSceneLoadComplete(int first,int second)
     {
@@ -276,7 +276,8 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 break;
 
             case RoundType.BossBattle:
-                if (_bossComponentsFilter.Value.GetEntitiesCount() == 0) {
+                
+                if (_bossComponentsFilter.Value.GetEntitiesCount() == 0 && NetworkManager.Singleton.IsHost) {
                     _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
                     EndRoundForAll();
                     if (curGameCmp.CurrentRound >= _betweenScenesService.Value.GetMapDifficultyConfig().RoundsCount) {
@@ -285,9 +286,6 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                         else
                             WinGame();
                     }
-                        
-                    
-                  
                 }
 
                 break;
@@ -1026,6 +1024,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 EndPointToPointRound();
                 break;
         }
+        _sceneService.Value._playerUIView._gameTimerText.gameObject.SetActive(false);
         curGameCmp.CurrentRoundType = RoundType.None;
         curGameCmp.SupportBoxPhase = 0;
         var supportBoxStuffView = _sceneService.Value._supportBoxStuffView;
@@ -1383,23 +1382,23 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         curGameCmp.RoundAddedEnemies = 1;
         switch (roundType) {
             case RoundType.BattleDefault:
-                SetPlayerCarPrefab();
+                SetupPlayerCarPrefab();
                 SetEnemiesCars(3);
                 //   SpawnTeammateCar();
                 SetGameTimer();
                 break;
             case RoundType.BossBattle:
-                SetPlayerCarPrefab();
+                SetupPlayerCarPrefab();
                 SpawnBossCars();
                 break;
             case RoundType.FromAToB:
-                SetPlayerCarPrefab();
+                SetupPlayerCarPrefab();
                 SetEnemiesCars(3);
                 // SpawnTeammateCar();
                 SetNewPointToPointRound();
                 break;
             case RoundType.ZoneDefence:
-                SetPlayerCarPrefab();
+                SetupPlayerCarPrefab();
                 SetEnemiesCars(3);
                 // SpawnTeammateCar();
                 SetFilledZoneRound();
@@ -1971,9 +1970,9 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
 
     private void SetupClientCar(CarPartDataForRpc[] upParts, CarPartDataForRpc[] downParts, int carLevel, ulong userId, bool isPlayer,
         int carId, Vector2 carSize, Vector2 nameIndexes) {
-        var enemyCarMap = BuildCarMap(upParts, downParts, carId, carLevel, carSize);
+        var needCarMap = BuildCarMap(upParts, downParts, carId, carLevel, carSize);
 
-        int carEntity = SpawnNpcCar(_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity), enemyCarMap, false,
+        int carEntity = SpawnNpcCar(_currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity), needCarMap, false,
             GetRandomPointAround(Vector2.zero, 10), nameIndexes);
 
         if (isPlayer) {
@@ -1988,12 +1987,12 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
 
             _netcodeSceneService.Value.SetupCarViewToClientRpc(
                 _carComponentsPool.Value.Get(carEntity).CarView.transform.parent.gameObject.GetComponent<NetworkObject>(), userId);
-
         } else {
             int playerCmpEntity = _serverValuesComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).ClientsEntities[userId];
             _playerComponentsPool.Value.Get(playerCmpEntity).TeammatesEntities.Add(carEntity);
-            
-        }_updateCarStatsEventsPool.Value.Add(carEntity);
+        }
+
+        _updateCarStatsEventsPool.Value.Add(carEntity);
     }
     private void ClearHealthUI(CarPartInGameUIView[,] upHealthUI,  CarPartInGameUIView[,] downHealthUI) {
         
@@ -2331,11 +2330,11 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         //collider.SetPath(0, contour.ToArray());
     }
 
-    private void SpawnTeammateCar() {
+    /*private void SpawnTeammateCar() {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         
         SpawnNpcCar(curGameCmp, GetRandomCarMap(), false,GetPositionAroundPlayer());
-    }
+    }*/
 
     private EnemyCarPartsMaps GetRandomCarMap() {
         var curGameCmp = _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
@@ -2570,7 +2569,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
         }
     }
 
-    private void SetPlayerCarPrefab() {
+    private void SetupPlayerCarPrefab() {
         ref var inventoryCmp = ref _inventoryComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         SetComponentsValuesToDefault(_sceneService.Value.PlayerEntity);
 
@@ -2612,6 +2611,7 @@ public class  GameStatesSystem : IEcsInitSystem, IEcsRunSystem, IEcsDestroySyste
                 carPartInfoCmp.ModuleIds, carPartInfoCmp.CarPartId, carPartInfoCmp.PartLevel, (int)carPartInfoCmp.CurrentHealth,
                 carPartInfo.Key));
         }
+        var nameIndexes  = entity == _sceneService.Value.PlayerEntity?new Vector2(NetworkManager.Singleton.LocalClientId,0):carCmp.NameIndexes;
         _netcodeSceneService.Value.SetCarToServerRpc(upParts.ToArray(), downParts.ToArray(), carCmp.CarLevel,
             entity == _sceneService.Value.PlayerEntity, carCmp.CarId,
             new Vector2(carCmp.CarPartGroupsGrid.GetLength(0), carCmp.CarPartGroupsGrid.GetLength(1)),carCmp.NameIndexes);
@@ -3237,7 +3237,7 @@ Debug.Log("add wheel "+wheelsPositions.Count);
             
     }
 
-    private void UpdateMapGridClientRpc(int[] mapGrid) {
+    private void UpdateMapGrid(int[] mapGrid) {
         ref var currentGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
         for (int i = 0; i < 20; i++) {
             for (int j = 0; j < 20; j++) {
@@ -3256,131 +3256,99 @@ Debug.Log("add wheel "+wheelsPositions.Count);
 
     private void GenerateMap() {
         UpdateMapVisual();
-        
-     //   if (!_currentGameComponentsPool.Value.Has(_sceneService.Value.PlayerEntity))
-   //         _currentGameComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
+
         _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity).MapGrid = new int[40, 40];
-        
+
         var mapConfig = _betweenScenesService.Value.GetMapConfig();
-    
-        //    _netcodeSceneService.Value.GetComponent<NetworkObject>().Spawn();
-           // _netcodeSceneService.Value.networkObjectsMapContainer.Spawn();
-            ref var currentGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
-            Vector2 randomOffset = new Vector2(RandomSeedUtils.Random.Next(-1000, 1000), RandomSeedUtils.Random.Next(-1000, 1000));
+        ref var currentGameCmp = ref _currentGameComponentsPool.Value.Get(_sceneService.Value.PlayerEntity);
 
-            if (mapConfig.MapId == 1) {
-                var buildigsMap = new int[20, 20];
+        Vector2 randomOffset = new Vector2(RandomSeedUtils.Random.Next(-1000, 1000), RandomSeedUtils.Random.Next(-1000, 1000));
+        if (mapConfig.MapId == 1) {
+            var buildigsMap = new int[20, 20];
 
-                GridUtils.GenerateRandomBuildings(ref buildigsMap);
+            GridUtils.GenerateRandomBuildings(ref buildigsMap);
 
-                int[] newArray = new int[buildigsMap.GetLength(0) * buildigsMap.GetLength(1)];
-                int index = 0;
-                foreach (var mapIndex in buildigsMap) {
-                    newArray[index] = mapIndex;
-                    index++;
-                }
+            int[] newArray = new int[buildigsMap.GetLength(0) * buildigsMap.GetLength(1)];
+            int index = 0;
+            foreach (var mapIndex in buildigsMap) {
+                newArray[index] = mapIndex;
+                index++;
+            }
 
-                UpdateMapGridClientRpc(newArray);
-               // NetcodeBetweenScenesService.Instance.ChangeMapClientRpc(newArray);
-                var buildingVisualConfig = mapConfig.MapVisualInfoConfigs[1];
+            UpdateMapGrid(newArray);
+            var buildingVisualConfig = mapConfig.MapVisualInfoConfigs[1];
 
-                for (int i = 0; i < currentGameCmp.MapGrid.GetLength(0); i++) {
-                    for (int j = 0; j < currentGameCmp.MapGrid.GetLength(1); j++) {
-                        if (currentGameCmp.MapGrid[i, j] == 0) continue;
+            for (int i = 0; i < currentGameCmp.MapGrid.GetLength(0); i++) {
+                for (int j = 0; j < currentGameCmp.MapGrid.GetLength(1); j++) {
+                    if (currentGameCmp.MapGrid[i, j] == 0) continue;
 
-                        var locPosition = new Vector3(i * 5 - 97.5f, j * 5 - 97.5f, 0f);
+                    var locPosition = new Vector3(i * 5 - 97.5f, j * 5 - 97.5f, 0f);
 
-                        NetcodeBetweenScenesService.Instance.SpawnGround(locPosition);
+                    NetcodeBetweenScenesService.Instance.SpawnGround(locPosition);
 
-                        if (i % 2 == 1 || j % 2 == 1) continue;
-                        Vector2 obstaclePosition = new(i * 5f - 100, j * 5f - 90);
-                        SpawnPillar(obstaclePosition, buildingVisualConfig);
-                        if (j == 40 || i == 0 || (currentGameCmp.MapGrid[i, j + 2] == 0 && currentGameCmp.MapGrid[i + 2, j] == 0)) {
-                            Vector2 downObstaclePosition = new(obstaclePosition.x + 10, obstaclePosition.y);
-                            SpawnPillar(downObstaclePosition, buildingVisualConfig);
-                        }
+                    if (i % 2 == 1 || j % 2 == 1) continue;
+                    Vector2 obstaclePosition = new(i * 5f - 100, j * 5f - 90);
+                    SpawnPillar(obstaclePosition, buildingVisualConfig);
+                    if (j == 40 || i == 0 || (currentGameCmp.MapGrid[i, j + 2] == 0 && currentGameCmp.MapGrid[i + 2, j] == 0)) {
+                        Vector2 downObstaclePosition = new(obstaclePosition.x + 10, obstaclePosition.y);
+                        SpawnPillar(downObstaclePosition, buildingVisualConfig);
+                    }
 
-                        if (i == 0 || currentGameCmp.MapGrid[i, j - 1] == 0) {
-                            Vector2 downObstaclePosition = new(obstaclePosition.x, obstaclePosition.y - 10);
-                            SpawnPillar(downObstaclePosition, buildingVisualConfig);
-                        }
+                    if (i == 0 || currentGameCmp.MapGrid[i, j - 1] == 0) {
+                        Vector2 downObstaclePosition = new(obstaclePosition.x, obstaclePosition.y - 10);
+                        SpawnPillar(downObstaclePosition, buildingVisualConfig);
+                    }
 
-                        if (i == 40 || currentGameCmp.MapGrid[i + 2, j] == 0) {
-                            Vector2 downObstaclePosition = new(obstaclePosition.x + 10, obstaclePosition.y - 10);
-                            SpawnPillar(downObstaclePosition, buildingVisualConfig);
-                        } /**/
+                    if (i == 40 || currentGameCmp.MapGrid[i + 2, j] == 0) {
+                        Vector2 downObstaclePosition = new(obstaclePosition.x + 10, obstaclePosition.y - 10);
+                        SpawnPillar(downObstaclePosition, buildingVisualConfig);
                     }
                 }
+            }
+        } else if (mapConfig.MapId == 0 && _betweenScenesService.Value.CurrentSelectedMapDifficlty > 0) {
+            if (_betweenScenesService.Value.CurrentSelectedMapDifficlty > 2) {
+                if (NetworkManager.Singleton.IsServer) {
+                    ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
+                    trainControllerCmp.TrainTransform =
+                        _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._trainPrefab.transform);
+                    trainControllerCmp.TrainTransform.gameObject.SetActive(false);
+                    var trainNetworkObject = trainControllerCmp.TrainTransform.GetComponent<NetworkObject>();
+                    trainNetworkObject.Spawn(true);
+                    if (_betweenScenesService.Value.IsCoop)
+                        _netcodeSceneService.Value.SpawnTrainClientRpc(trainNetworkObject);
+                    trainControllerCmp.TimeToNextTrain = 7f;
 
-                for (int i = 0; i < 10; i++) {
-                    for (int j = 0; j < 10; j++) {
-                        if (i == 4 && j == 5) continue;
-                        GenerateObstaclesInCell(i, j, randomOffset);
-                    }
+                    trainControllerCmp.TrainRails = new List<Transform>();
                 }
 
-                return;
-            } else if (mapConfig.MapId == 0 && _betweenScenesService.Value.CurrentSelectedMapDifficlty > 0) {
-                if (_betweenScenesService.Value.CurrentSelectedMapDifficlty > 2) {
-                    if (NetworkManager.Singleton.IsServer) {
-                        ref var trainControllerCmp = ref _trainControllerComponentsPool.Value.Add(_sceneService.Value.PlayerEntity);
-                        trainControllerCmp.TrainTransform =
-                            _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._trainPrefab.transform);
-                        trainControllerCmp.TrainTransform.gameObject.SetActive(false);
-                        var trainNetworkObject = trainControllerCmp.TrainTransform.GetComponent<NetworkObject>();
-                        trainNetworkObject.Spawn(true);
-                        if (_betweenScenesService.Value.IsCoop)
-                            _netcodeSceneService.Value.SpawnTrainClientRpc(trainNetworkObject);
-                        trainControllerCmp.TimeToNextTrain = 7f;
-                        
-                       
-                        trainControllerCmp.TrainRails = new List<Transform>();
-                    }
-                   
-                    List<int> needPositions = Enumerable.Range(0, 61).ToList();
-                    for (int i = 0; i < 5; i++) {
-                        //var trainTrail = _sceneService.Value.InstantiateObject(_sceneService.Value._mapEventsContentView._trainTunnelsPrefab);
-                        int needIndex = RandomSeedUtils.Random.Next(0, needPositions.Count);
-                        var needValue = needPositions[needIndex];
-                        NetcodeBetweenScenesService.Instance.SpawnTrainTrails(needValue);
-                        /*   if (needValue < 30) {
-                               int needGridLine = 5 + needValue;
-                               trainTrail.localEulerAngles = new Vector3(0, 0, 90);
-                               trainTrail.position = new Vector3((needGridLine) * 5 - 97.5f, 1.3f, 0f);
-                               for (int j = 0; j < currentGameCmp.MapGrid.GetLength(0); j++)
-                                   currentGameCmp.MapGrid[needGridLine, j] = 1;
+                List<int> needPositions = Enumerable.Range(0, 61).ToList();
+                for (int i = 0; i < 5; i++) {
+                    int needIndex = RandomSeedUtils.Random.Next(0, needPositions.Count);
+                    var needValue = needPositions[needIndex];
+                    NetcodeBetweenScenesService.Instance.SpawnTrainTrails(needValue);
 
-                               //1 line to grid
-                           } else {
-                               int needGridLine = needValue - 25;
-                               trainTrail.position = new Vector3(-7.5f, (needGridLine) * 5 - 97.5f, 0f);
-                               for (int j = 0; j < currentGameCmp.MapGrid.GetLength(0); j++)
-                                   currentGameCmp.MapGrid[j, needGridLine] = 1;
-                           }*/
-
-                        needPositions.Remove(needValue + 1);
-                        needPositions.Remove(needValue - 1);
-                        needPositions.Remove(needValue);
-                        //  trainControllerCmp.TrainRails.Add(trainTrail);
-                    }
-                }
-
-           //     GridUtils.PrintGrid(currentGameCmp.MapGrid);
-                var quicksandVisualConfig = _sceneService.Value._mapEventsContentView._quicksandPrefabs;
-                for (int i = 0; i < 10; i++) {
-                    for (int j = 0; j < 10; j++)
-                        GenerateQuicksandInCell(i, j, randomOffset, quicksandVisualConfig);
+                    needPositions.Remove(needValue + 1);
+                    needPositions.Remove(needValue - 1);
+                    needPositions.Remove(needValue);
                 }
             }
 
+            var quicksandVisualConfig = _sceneService.Value._mapEventsContentView._quicksandPrefabs;
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++)
-                    GenerateObstaclesInCell(i, j, randomOffset);
+                    GenerateQuicksandInCell(i, j, randomOffset, quicksandVisualConfig);
             }
-        
-            
-            EndGenerateMap();
+        }
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (i == 4 && j == 5) continue;
+                GenerateObstaclesInCell(i, j, randomOffset);
+            }
+        }
+
+        EndGenerateMap();
     }
 
     private void EndGenerateMap() {
@@ -3412,8 +3380,12 @@ Debug.Log("add wheel "+wheelsPositions.Count);
             RandomSeedUtils.Random.Next(0, buildingVisualConfig.MapObstacles.Length));
         if (RandomSeedUtils.Random.NextDouble() > 0.8f) {
             int randomBarrel = RandomSeedUtils.Random.Next(0, _sceneService.Value._mapEventsContentView._barrelPrefabs.Length);
+            int XMultiplayer = RandomSeedUtils.Random.NextDouble()>0.5f?1:-1;
+            int YMultiplayer = RandomSeedUtils.Random.NextDouble()>0.5f?1:-1;
             if (NetworkManager.Singleton.IsHost) {
-                var needObstacle = SpawnNetworkObstacle(obstaclePosition + (Random.insideUnitCircle * 5f).normalized * 2.5f,
+                var needObstacle = SpawnNetworkObstacle(
+                    obstaclePosition + (new Vector2((float)RandomSeedUtils.Random.NextDouble() * XMultiplayer,
+                        (float)RandomSeedUtils.Random.NextDouble() * YMultiplayer) * 5f).normalized * 2.5f,
                     _sceneService.Value._mapEventsContentView._barrelPrefabs[randomBarrel]);
                 if (!needObstacle) return;
                 needObstacle.GetComponent<NetworkObject>().TrySetParent(_netcodeSceneService.Value.networkObjectsMapContainer);
@@ -3428,6 +3400,8 @@ Debug.Log("add wheel "+wheelsPositions.Count);
                 carPartCmp.CellCarPartsStuffViews[0].SetupCarPart(Vector2Int.one * (-11 - randomBarrel), "Obstacle", barrelEntity,
                     _netcodeSceneService.Value.OwnerClientId);
             } else {
+                RandomSeedUtils.Random.NextDouble();
+                RandomSeedUtils.Random.NextDouble();
                 RandomSeedUtils.Random.Next(0, 4);
             }
    
@@ -3523,7 +3497,8 @@ Debug.Log("add wheel "+wheelsPositions.Count);
                 Vector3 randomPositionGroundPattern = GetRandomPositionInCell(cellX, cellY);
                 if (mapGrid[Mathf.FloorToInt((randomPositionGroundPattern.x + 100) / 5),
                         Mathf.FloorToInt((randomPositionGroundPattern.y + 100) / 5)] == 0) {
-                    SpawnMapObstacle(randomPositionGroundPattern, RandomSeedUtils.Random.Next(0, mapVisualConfig.MapGroundPatterns.Length), false);
+                    SpawnMapObstacle(randomPositionGroundPattern, RandomSeedUtils.Random.Next(0, mapVisualConfig.MapGroundPatterns.Length),
+                        false);
                 }
             }
         }

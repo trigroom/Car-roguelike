@@ -167,74 +167,46 @@ public class RelayManager : MonoBehaviour
         
         Debug.Log("✅ NetworkManager cleaned up");
     }
-    public async Task<string> StartHostWithRelay()
-    {
-        try
-        {
-            // Важно: очищаем NetworkManager перед рестартом
-           CleanupNetworkManager();
-            
-            // Даем время на очистку
+
+    public async Task<string> StartHostWithRelay() {
+        try {
+            CleanupNetworkManager();
             await Task.Delay(100);
+
             if (UnityServices.State != ServicesInitializationState.Initialized)
-            {
                 await InitializeUnityServices();
-            }
 
-            Debug.Log("📡 Creating Relay allocation...");
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxConnections);
-            Debug.Log($"✅ Relay allocation created with ID: {allocation.AllocationId}");
-
             JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            Debug.Log($"🔑 Join Code: {JoinCode}");
 
-            if (NetworkManager.Singleton == null)
-            {
+            if (NetworkManager.Singleton == null) {
                 Debug.LogError("❌ NetworkManager.Singleton is null. Make sure NetworkManager exists in the scene.");
                 return null;
             }
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport == null)
-            {
+            if (transport == null) {
                 Debug.LogError("❌ UnityTransport component not found on NetworkManager");
                 return null;
             }
 
             // НАСТРОЙКА RELAY ДЛЯ TRANSPORT 2.0 - 2.1
             // Используем конструктор RelayServerData с 7 параметрами [citation:5]
-            var relayServerData = new RelayServerData(
-                allocation.RelayServer.IpV4,
-                (ushort)allocation.RelayServer.Port,
-                allocation.AllocationIdBytes,
-                allocation.ConnectionData,
+            var relayServerData = new RelayServerData(allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port,
+                allocation.AllocationIdBytes, allocation.ConnectionData,
                 allocation.ConnectionData, // Для хоста HostConnectionData = ConnectionData
-                allocation.Key,
-                useEncryption // isSecure
+                allocation.Key, useEncryption // isSecure
             );
-            
+
             transport.SetRelayServerData(relayServerData);
-            
-            Debug.Log($"✅ Relay configured (Encryption: {useEncryption})");
-            Debug.Log("🚀 Starting host...");
-            if (!NetworkManager.Singleton.StartHost())
-            {
+
+            if (!NetworkManager.Singleton.StartHost()) {
                 Debug.LogError("❌ Failed to start host");
                 return null;
             }
 
-            Debug.Log($"✅ Host started successfully. Join code: {JoinCode}");
-
-           /* if (!string.IsNullOrEmpty(gameSceneName))
-            {
-                NetworkManager.Singleton.SceneManager.LoadScene(gameSceneName, LoadSceneMode.Single);
-            }*/
-          // no scene change
-
             return JoinCode;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Debug.LogError($"❌ Failed to start host: {e.Message}\n{e.StackTrace}");
             return null;
         }

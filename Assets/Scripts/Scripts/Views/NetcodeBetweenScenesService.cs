@@ -206,7 +206,7 @@ public class NetcodeBetweenScenesService : NetworkBehaviour {
 
     [ClientRpc]
     public void StartGameForAllClientRpc() {
-        if (IsServer) {
+        if (IsServer && playerReadyStates.Count > 1) {
             for (int i = 0; i < NetcodeBetweenScenesService.Instance.playerReadyStates.Count; i++) {
                 var state = NetcodeBetweenScenesService.Instance.playerReadyStates[i];
                 state.IsReady = false;

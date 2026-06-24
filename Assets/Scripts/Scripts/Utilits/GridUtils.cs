@@ -701,8 +701,6 @@ public class GridUtils : MonoBehaviour {
             Building building = CreateRandomBuilding();
 
             if (TryPlaceBuilding(building, placedBuildings)) {
-             //   minPoints.Add(new Vector2(building.X*10-102.5f, building.Y*10-102.5f));
-               // maxPoints.Add(new Vector2((building.X+building.Width-1)*10-97.5f, (building.Y+building.Height-1)*10-97.5f));
                 placedBuildings.Add(building);
                 PlaceBuildingOnGrid(building, ref mapGrid);
             }
@@ -710,12 +708,12 @@ public class GridUtils : MonoBehaviour {
     }
 
     static private Building CreateRandomBuilding() {
-        // Случайные размеры здания (минимальный размер 2x2)
+    
         int width = RandomSeedUtils.Random.Next(3, 8);
         int height = RandomSeedUtils.Random.Next(3, 8);
 
         var needAxis = RandomSeedUtils.Random.NextDouble() > 0.5f;
-        // Случайная позиция с отступом от границ
+   
         int x=0;
         int y=0;
         if (needAxis) {
@@ -730,21 +728,18 @@ public class GridUtils : MonoBehaviour {
                 : RandomSeedUtils.RandomWithNumbersCheck((gridSize - height - 1) / 2 + 2+height/2, gridSize - height - 1);
         }
      
-
-
-        // Случайная форма (прямоугольник, Г-образная, П-образная)
         return new Building(x, y, width, height, GetRandomShape(width, height));
     }
 
     static private bool[,] GetRandomShape(int width, int height) {
         bool[,] shape = new bool[width, height];
      
-        bool isVerticalCentre = Random.value > 0.5f;
-        bool isHorizontalCentre = Random.value > 0.5f;
-        int xStartPosition = Random.Range(isHorizontalCentre ? 1 : 0, isHorizontalCentre ? width - 1 : width);
-        int xEndPosition = Random.Range(xStartPosition + 1, isHorizontalCentre ? width : width + 1);
-        int yStartPosition = Random.Range(isVerticalCentre ? 1 : 0, isVerticalCentre ? height - 1 : height);
-        int yEndPosition = Random.Range(yStartPosition + 1, isVerticalCentre ? height : height + 1);
+        bool isVerticalCentre = RandomSeedUtils.Random.NextDouble() > 0.5f;
+        bool isHorizontalCentre = RandomSeedUtils.Random.NextDouble() > 0.5f;
+        int xStartPosition =RandomSeedUtils.RandomWithNumbersCheck(isHorizontalCentre ? 1 : 0, isHorizontalCentre ? width - 1 : width);
+        int xEndPosition =RandomSeedUtils.RandomWithNumbersCheck(xStartPosition + 1, isHorizontalCentre ? width : width + 1);
+        int yStartPosition = RandomSeedUtils.RandomWithNumbersCheck(isVerticalCentre ? 1 : 0, isVerticalCentre ? height - 1 : height);
+        int yEndPosition = RandomSeedUtils.RandomWithNumbersCheck(yStartPosition + 1, isVerticalCentre ? height : height + 1);
         for (int i = 0; i < width; i++)
         for (int j = 0; j < height; j++)
             shape[i, j] = ((isHorizontalCentre && i >= xStartPosition && i <= xEndPosition) ||
@@ -792,16 +787,14 @@ public class GridUtils : MonoBehaviour {
         Dictionary<CarPartType, List<int>> carPartsToPlace, int moneyLimit) {
         List<int> mainParts = new List<int>();
         var carConfig = BetweenScenesService.Instance._carStuffListsConfig.CarConfigs[carId];
-        int carCellsSum = 0;
+
         foreach (var carPartId in carConfig.StartCarParts) {
-            if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartId].PartType == CarPartType.Main) {
+            if (BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartId].PartType == CarPartType.Main)
                 mainParts.Add(carPartId);
-              //  carCellsSum -= BetweenScenesService.Instance._carStuffListsConfig.CarPartConfigs[carPartId].PartForm.Length;
-            }
         }
 
         List<CarPartTypeRow> carPartUpLevelGrid = new List<CarPartTypeRow>();
-
+        int carCellsSum = 0;
         int[,] downGrid = new int[carBaseConfig.GridSize.x, carBaseConfig.GridSize.y];
         int[,] upGrid = new int[carBaseConfig.GridSize.x, carBaseConfig.GridSize.y];
         foreach (var carPartBase in carBaseConfig.CarPartDownLevelGrid) {
@@ -814,8 +807,8 @@ public class GridUtils : MonoBehaviour {
 
         (List<Vector2Int> middleCells, List<Vector2Int> edgeCells) = GetEdgeAndMiddleCells(downGrid);
         int edgeCellsCount = edgeCells.Count;
-        PlaceCarPartToCarBase(CarPartType.Main, 0, ref moneyLimit,
-            mainParts, ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+        PlaceCarPartToCarBase(CarPartType.Main, 0, ref moneyLimit, mainParts, ref upGrid, middleCells, edgeCells, downGrid,
+            ref carPartUpLevelGrid);
         int carType = Random.Range(0, 3);
         switch (carType) {
             //tank
@@ -831,10 +824,10 @@ public class GridUtils : MonoBehaviour {
                 break;
             //range
             case 1:
-                PlaceCarPartToCarBase(CarPartType.Armor, edgeCellsCount, ref moneyLimit, carPartsToPlace[CarPartType.Armor], ref upGrid,
-                    middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 PlaceCarPartToCarBase(CarPartType.Gun, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.65f), ref moneyLimit,
                     carPartsToPlace[CarPartType.Gun], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
+                PlaceCarPartToCarBase(CarPartType.Armor, edgeCellsCount, ref moneyLimit, carPartsToPlace[CarPartType.Armor], ref upGrid,
+                    middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
                 PlaceCarPartToCarBase(CarPartType.Support, Mathf.RoundToInt((carCellsSum - edgeCellsCount) * 0.35f), ref moneyLimit,
                     carPartsToPlace[CarPartType.Support], ref upGrid, middleCells, edgeCells, downGrid, ref carPartUpLevelGrid);
 
@@ -852,7 +845,6 @@ public class GridUtils : MonoBehaviour {
                 break;
         }
 
-        //other car part types + main
         return carPartUpLevelGrid;
     }
     private static bool CanPlaceCarPartOnField(CarPartConfig form, Vector2Int position, int[,] grid,
@@ -891,10 +883,10 @@ public class GridUtils : MonoBehaviour {
     };
     
     public static Dictionary<CarPartRare, float> _neededUpgradeExpForRare = new Dictionary<CarPartRare, float>() {
-        {CarPartRare.Low, 2},
-        {CarPartRare.Medium, 2.4f},
-        {CarPartRare.High, 2.8f},
-        {CarPartRare.VeryHigh, 3f}
+        {CarPartRare.Low, 5},
+        {CarPartRare.Medium, 7f},
+        {CarPartRare.High, 10f},
+        {CarPartRare.VeryHigh, 15f}
     };
     public static int GetNeedExpToUpgrade(int level, CarPartConfig config) {
         float needExp = _neededUpgradeExpForRare[config.RartRare] * 5+config.PartForm.Length * (0.75f + level*0.25f);
@@ -920,7 +912,7 @@ public class GridUtils : MonoBehaviour {
             for (int j = 0; j < 3; j++) {
                 Vector2Int randomPosition = Vector2Int.zero;
                 int rotateAngle = 0;
-                if (canPlaceOnEdge || middleCells.Count == 0) {
+                if (canPlaceOnEdge || middleCells.Count < edgeCells.Count || middleCells.Count == 0) {
                     if (edgeCells.Count == 0) {
                         needCount -= currentCarPartConfig.PartForm.Length;
                         break;

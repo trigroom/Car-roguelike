@@ -80,7 +80,9 @@ public class ShopUIView : MonoBehaviour {
             _yesButtonAskForMoney.onClick.AddListener(()=>SetAskForMoneyInputActiveState(false));
             _noButtonAskForMoney.onClick.AddListener(()=>SetAskForMoneyInputActiveState(false));
             _inputAmountAskForMoney.onValueChanged.AddListener(CheckInputForMinus);
-        }
+        } else 
+            _askForMoneyContainer.gameObject.SetActive(false);
+        
     }
     private void CheckInputForMinus(string value) {
         if (value == "-")

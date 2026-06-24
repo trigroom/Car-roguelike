@@ -165,6 +165,8 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
 
         _netcodeSceneService.Value.SetupServiceFromInventorySystem(SetHealthToMinimumLevel, UpgradeCarPartsAfterRoundCarPart, PlaySoundToPlayer,
             UpdateGiveMoneyUI,SetMoneyCount);
+        
+        _carComponentsPool.Value.Get(playerEntity).NameIndexes = new Vector2(NetworkManager.Singleton.LocalClientId, 0);
         SetupGiveMoneyButtons();
         //test
         SetUpAdminButtons();
@@ -2287,8 +2289,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         if (!isBuyCell) {
             ref var invCellCmp = ref _inventoryCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity);
             int cellId = invCellCmp.CellId;
-            // if (inventoryCmp.CurrentMarkedCellForPanelInfo == _sceneData.Value._inventoryUIView._inventoryCellViews[cellId]._entity)
-
             int partsInInventoryIndex = inventoryCmp.CurrentInventoryPage * _sceneData.Value._inventoryUIView._inventoryCellViews.Length +
                                         cellId;
             int cellEntity = GetSortedCarPartList()[partsInInventoryIndex];
@@ -2303,7 +2303,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
             if (inventoryCmp.CurrentInventoryPage != 0 &&
                 !_sceneData.Value._inventoryUIView._inventoryCellViews[1].gameObject.activeInHierarchy)
                 inventoryCmp.CurrentInventoryPage--;
-
             SetInventoryCells();
         } else {
             var shopCellCmp = _shopCellComponentsPool.Value.Get(inventoryCmp.CurrentDraggedCellEntity);
@@ -2594,13 +2593,11 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         _sceneData.Value._gridMaskRect.gameObject.SetActive(false);
         var inventoryCmp = _inventoryComponentsPool.Value.Get(_sceneData.Value.PlayerEntity);
         ref var carCmp = ref _carComponentsPool.Value.Get(inventoryCmp.CurrentRedactedCarEntity);
-
         var needCells = GridUtils.GetCellsFromField(gridPosition, partInfo, inventoryCmp.CurrentRotateDegrees, carCmp.CarPartGroupsGrid);
 
-        foreach (var cell in needCells) {
+        foreach (var cell in needCells) 
             carCmp.CarPartGroupsGrid[cell.x, cell.y] = carPartCmpEntity;
-        }
-
+        
         carCmp.CarPartGroupsList.Add(carPartCmpEntity, needCells);
         Vector2Int carPartSize = GridUtils.GetCarPartSize(partInfo);
         Vector2 needPos = worldPosition + imageOffset;
@@ -2637,7 +2634,6 @@ public class InventorySystem : IEcsRunSystem, IEcsInitSystem {
         }
 
         PlaceAnimationCarPartContainers();
-
         UpdateCarDescription(inventoryCmp.CurrentRedactedCarEntity);
     }
 

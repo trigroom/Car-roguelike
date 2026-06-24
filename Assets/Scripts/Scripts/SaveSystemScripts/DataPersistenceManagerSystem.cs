@@ -104,14 +104,6 @@ public class DataPersistenceManagerSystem : MonoBehaviour
         }
         Application.targetFrameRate = _gameData.FpsCountLock;
 
-       /* int seed = Random.Range(100000, 1000000);
-        var rng = new System.Random(seed);
-        Debug.Log(" try random in seed"+seed);
-        for (int i = 0; i < 25; i++) {
-             float chance = (float)rng.NextDouble();
-                    Debug.Log(chance);
-        }*/
-       
          if (isTestProgressReload) {
               _gameData.TutorialIsCompleted = true;
               _gameData.LevelRounds[0] = 5;

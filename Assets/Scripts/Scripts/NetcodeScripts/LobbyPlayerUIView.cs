@@ -30,7 +30,6 @@ public class LobbyPlayerUIView : MonoBehaviour {
              _readyStateText.text = isReady ? GetLocalization("Ready")+"!" : GetLocalization("Not ready")+"!";
              _readyStateText.color = isReady ? new Color(0.53f, 0.8f, 0.53f, 1f) : new Color(0.8f, 0.53f, 0.53f, 1f);
         }
-           
 
         _playerNameText.text = playerName;
         _playerCarImage.sprite = carSprite;
@@ -48,7 +47,7 @@ public class LobbyPlayerUIView : MonoBehaviour {
         _giveMoneyYesButton.enabled = false;
         _giveMoneyNoButton.enabled = false;
         _giveMoneyContainer.DOKill();
-        _giveMoneyContainer.DOLocalMoveY(-20, 0.5f);
+        _giveMoneyContainer.DOLocalMoveY(-74, 0.5f);
     }
     
 }

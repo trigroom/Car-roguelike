@@ -8,6 +8,9 @@ public static class RandomSeedUtils {
 
     public static void SetNewSeed(int needSeed) {
         Seed = needSeed;
+    }
+    
+    public static void SetNewSeed() {
         Random = new System.Random(Seed);
     }
 
